@@ -123,14 +123,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_electrostatic_setup(this, problem, solver, corr_method)
+    SUBROUTINE init_electrostatic_setup(this, problem, solver)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=80), INTENT(IN) :: problem
         CLASS(electrostatic_solver), TARGET, INTENT(IN) :: solver
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: corr_method
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         !
@@ -142,8 +141,6 @@ CONTAINS
         !
         this%problem = problem
         this%solver => solver
-        !
-        IF (PRESENT(corr_method)) this%solver%corrections_method = corr_method
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_electrostatic_setup
@@ -166,15 +163,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (solver => this%solver)
-            !
-        CLASS IS (solver_direct)
-            CALL solver%destroy()
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, "Unexpected solver", 1)
-            !
-        END SELECT
+        CALL this%solver%destroy()
         !
         NULLIFY (this%solver)
         !
@@ -198,14 +187,15 @@ CONTAINS
     !! Calculates the electrostatic embedding contribution to the Kohn-Sham potential
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_velectrostatic(this, charges, potential)
+    SUBROUTINE calc_velectrostatic(this, charges, v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(electrostatic_setup), INTENT(INOUT) :: this
+        CLASS(electrostatic_setup), INTENT(IN) :: this
+        !
+        TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
-        TYPE(environ_density), INTENT(INOUT) :: potential
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_velectrostatic'
         !
@@ -213,7 +203,7 @@ CONTAINS
         !
         CALL env_start_clock(sub_name)
         !
-        potential%of_r = 0.D0
+        v%of_r = 0.D0
         !
         !--------------------------------------------------------------------------------
         ! Select the appropriate combination of problem and solver
@@ -221,99 +211,37 @@ CONTAINS
         SELECT CASE (this%problem)
             !
         CASE ('poisson')
-            !
-            SELECT TYPE (solver => this%solver)
-                !
-            TYPE IS (solver_direct)
-                CALL solver%poisson(charges, potential)
-                !
-            CLASS DEFAULT
-                CALL io%error(sub_name, 'Unexpected solver', 1)
-                !
-            END SELECT
+            CALL this%solver%poisson(charges, v)
             !
         CASE ('generalized')
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
                 CALL io%error(sub_name, 'Missing details of dielectric medium', 1)
             !
-            SELECT TYPE (solver => this%solver)
-                !
-            TYPE IS (solver_direct)
-                !
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
-                !
-                ! CALL generalized_direct() #TODO future work
-                !
-            TYPE IS (solver_gradient)
-                CALL solver%generalized(charges, potential)
-                !
-            TYPE IS (solver_fixedpoint)
-                CALL solver%generalized(charges, potential)
-                !
-            CLASS DEFAULT
-                CALL io%error(sub_name, 'Unexpected solver', 1)
-                !
-            END SELECT
+            CALL this%solver%generalized(charges, v)
             !
         CASE ('linpb', 'linmodpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                 CALL io%error(sub_name, 'Missing details of electrolyte ions', 1)
             !
-            SELECT TYPE (solver => this%solver)
-                !
-            TYPE IS (solver_direct)
-                !
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
-                !
-                ! CALL linpb_direct() #TODO future work
-                !
-            TYPE IS (solver_gradient)
-                CALL solver%linearized_pb(charges, potential)
-                !
-            CLASS DEFAULT
-                CALL io%error(sub_name, 'Unexpected solver', 1)
-                !
-            END SELECT
+            CALL this%solver%linearized_pb(charges, v)
             !
         CASE ('pb', 'modpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                 CALL io%error(sub_name, 'Missing details of electrolyte ions', 1)
             !
-            SELECT TYPE (solver => this%solver)
+            IF (ASSOCIATED(this%inner)) THEN
                 !
-            TYPE IS (solver_direct)
+                IF (.NOT. ASSOCIATED(charges%dielectric)) &
+                    CALL io%error(sub_name, 'Missing details of dielectric medium', 1)
                 !
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
+                CALL this%solver%pb_nested(charges, v, this%inner%solver)
                 !
-            TYPE IS (solver_fixedpoint)
-                !
-                IF (ASSOCIATED(this%inner)) THEN
-                    !
-                    IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                        CALL io%error(sub_name, &
-                                      'Missing details of dielectric medium', 1)
-                    !
-                    CALL solver%pb_nested(charges, potential, this%inner%solver)
-                    !
-                ELSE
-                    CALL solver%pb_nested(charges, potential)
-                END IF
-                !
-            TYPE IS (solver_newton)
-                !
-                IF (.NOT. ASSOCIATED(this%inner)) &
-                    CALL io%error(sub_name, &
-                                  'Missing details of inner electrostatic setup', 1)
-                !
-                CALL solver%pb_nested(this%inner%solver, charges, potential)
-                !
-            CLASS DEFAULT
-                CALL io%error(sub_name, 'Unexpected solver', 1)
-                !
-            END SELECT
+            ELSE
+                CALL this%solver%pb_nested(charges, v)
+            END IF
             !
         CASE DEFAULT
             CALL io%error(sub_name, "Unexpected 'problem'", 1)

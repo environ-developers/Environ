@@ -245,7 +245,13 @@ setup.o : solver_iterative.o
 setup.o : solver_newton.o
 setup.o : solver_setup.o
 solver.o : ../utils/io.o
+solver.o : charges.o
 solver.o : core_container.o
+solver.o : density.o
+solver.o : dielectric.o
+solver.o : electrolyte.o
+solver.o : gradient.o
+solver.o : semiconductor.o
 solver_direct.o : ../utils/io.o
 solver_direct.o : charges.o
 solver_direct.o : constants.o
@@ -265,6 +271,7 @@ solver_fixedpoint.o : electrolyte.o
 solver_fixedpoint.o : gradient.o
 solver_fixedpoint.o : semiconductor.o
 solver_fixedpoint.o : solver.o
+solver_fixedpoint.o : solver_direct.o
 solver_fixedpoint.o : solver_gradient.o
 solver_fixedpoint.o : solver_iterative.o
 solver_gradient.o : ../utils/io.o
@@ -277,7 +284,9 @@ solver_gradient.o : dielectric.o
 solver_gradient.o : electrolyte.o
 solver_gradient.o : gradient.o
 solver_gradient.o : semiconductor.o
+solver_gradient.o : solver_direct.o
 solver_gradient.o : solver_iterative.o
+solver_iterative.o : ../utils/io.o
 solver_iterative.o : constants.o
 solver_iterative.o : core_container.o
 solver_iterative.o : solver.o
@@ -290,6 +299,7 @@ solver_newton.o : density.o
 solver_newton.o : dielectric.o
 solver_newton.o : electrolyte.o
 solver_newton.o : solver.o
+solver_newton.o : solver_direct.o
 solver_newton.o : solver_gradient.o
 solver_newton.o : solver_iterative.o
 solver_setup.o : ../utils/io.o

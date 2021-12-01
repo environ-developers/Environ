@@ -42,6 +42,7 @@ MODULE class_solver_fixedpoint
     USE class_core_container
     !
     USE class_solver
+    USE class_solver_direct
     USE class_solver_gradient
     USE class_solver_iterative
     !
@@ -73,18 +74,13 @@ MODULE class_solver_fixedpoint
         !
         PROCEDURE :: init => init_solver_fixedpoint
         !
-        PROCEDURE, PRIVATE :: generalized_fixedpoint_charges
-        PROCEDURE, PRIVATE :: generalized_fixedpoint_density
+        PROCEDURE :: generalized_charges
+        PROCEDURE :: generalized_density
         !
-        GENERIC :: generalized => &
-            generalized_fixedpoint_charges, generalized_fixedpoint_density
+        PROCEDURE :: pb_nested_charges
+        PROCEDURE :: pb_nested_density
         !
-        PROCEDURE, PRIVATE :: pb_nested_charges
-        PROCEDURE, PRIVATE :: pb_nested_density
-        !
-        GENERIC :: pb_nested => pb_nested_charges, pb_nested_density
-        !
-        PROCEDURE, PRIVATE :: pb => pb_fixedpoint
+        PROCEDURE, PRIVATE :: pb_fixedpoint
         PROCEDURE, PRIVATE :: generalized_fixedpoint
         !
         !--------------------------------------------------------------------------------
@@ -103,13 +99,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_fixedpoint(this, mix_type, mix, ndiis, cores, maxiter, &
-                                      tol, auxiliary)
+    SUBROUTINE init_solver_fixedpoint(this, mix_type, mix, ndiis, cores, direct, &
+                                      maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(core_container), TARGET, INTENT(IN) :: cores
+        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: ndiis, maxiter
         REAL(DP), INTENT(IN) :: tol, mix
         CHARACTER(LEN=80), INTENT(IN) :: mix_type
@@ -119,7 +116,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
+        CALL this%init_iterative(cores, direct, maxiter, tol, auxiliary)
         !
         this%solver_type = 'fixed-point'
         !
@@ -139,48 +136,47 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE generalized_fixedpoint_charges(this, charges, potential)
+    SUBROUTINE generalized_charges(this, charges, v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_fixedpoint), INTENT(IN) :: this
         !
+        TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
-        TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_fixedpoint_charges'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_charges'
         !
         !--------------------------------------------------------------------------------
         !
         CALL env_start_clock(sub_name)
         !
-        potential%of_r = 0.D0
+        v%of_r = 0.D0
         !
         IF (this%auxiliary == 'full') THEN
             !
-            CALL this%generalized_fixedpoint(charges%density, charges%dielectric, &
-                                             potential, charges%electrolyte, &
-                                             charges%semiconductor)
+            CALL this%generalized_fixedpoint(charges%density, charges%dielectric, v, &
+                                             charges%electrolyte, charges%semiconductor)
             !
         ELSE
             !
             CALL io%error(sub_name, 'Option not yet implemented', 1)
             !
-            ! CALL generalized_iterative_velect(charges, dielectric, potential) #TODO future-work
+            ! CALL generalized_iterative_velect(charges, dielectric, v) #TODO future-work
             !
         END IF
         !
         CALL env_stop_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE generalized_fixedpoint_charges
+    END SUBROUTINE generalized_charges
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE generalized_fixedpoint_density(this, charges, dielectric, potential, &
-                                              electrolyte, semiconductor)
+    SUBROUTINE generalized_density(this, charges, dielectric, v, &
+                                   electrolyte, semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -188,50 +184,50 @@ CONTAINS
         CLASS(solver_fixedpoint), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
+        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
-        TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_fixedpoint_density'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_density'
         !
         !--------------------------------------------------------------------------------
         !
         CALL env_start_clock(sub_name)
         !
-        potential%of_r = 0.D0
+        v%of_r = 0.D0
         !
         IF (this%auxiliary == 'full') THEN
             !
-            CALL this%generalized_fixedpoint(charges, dielectric, potential, &
-                                             electrolyte, semiconductor)
+            CALL this%generalized_fixedpoint(charges, dielectric, v, electrolyte, &
+                                             semiconductor)
             !
         ELSE
             !
             CALL io%error(sub_name, 'Option not yet implemented', 1)
             !
-            ! CALL generalized_iterative_velect(charges, dielectric, potential) #TODO future-work
+            ! CALL generalized_iterative_velect(charges, dielectric, v) #TODO future-work
             !
         END IF
         !
         CALL env_stop_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE generalized_fixedpoint_density
+    END SUBROUTINE generalized_density
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE pb_nested_charges(this, charges, potential, inner)
+    SUBROUTINE pb_nested_charges(this, charges, v, inner)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_fixedpoint), INTENT(IN) :: this
-        TYPE(environ_charges), INTENT(IN) :: charges
         CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
         !
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_charges), INTENT(INOUT) :: charges
         !
         CHARACTER(LEN=80) :: sub_name = 'pb_nested_charges'
         !
@@ -246,11 +242,11 @@ CONTAINS
                 IF (.NOT. PRESENT(inner)) &
                     CALL io%error(sub_name, 'Missing inner solver', 1)
                 !
-                CALL this%pb(potential, charges%density, charges%electrolyte, &
-                             charges%dielectric, inner)
+                CALL this%pb_fixedpoint(v, charges%density, charges%electrolyte, &
+                                        charges%dielectric, inner=inner)
                 !
             ELSE
-                CALL this%pb(potential, charges%density, charges%electrolyte)
+                CALL this%pb_fixedpoint(v, charges%density, charges%electrolyte)
             END IF
             !
         ELSE
@@ -265,8 +261,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE pb_nested_density(this, charges, potential, electrolyte, dielectric, &
-                                 inner)
+    SUBROUTINE pb_nested_density(this, charges, v, electrolyte, dielectric, inner)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -274,10 +269,10 @@ CONTAINS
         CLASS(solver_fixedpoint), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
-        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
+        CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner
         !
-        TYPE(environ_density), INTENT(INOUT) :: potential
-        TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
         CHARACTER(LEN=80) :: sub_name = 'pb_nested_density'
         !
@@ -292,10 +287,10 @@ CONTAINS
                 IF (.NOT. PRESENT(inner)) &
                     CALL io%error(sub_name, 'Missing inner setup', 1)
                 !
-                CALL this%pb(potential, charges, electrolyte, dielectric, inner)
+                CALL this%pb_fixedpoint(v, charges, electrolyte, dielectric, inner=inner)
                 !
             ELSE
-                CALL this%pb(potential, charges, electrolyte)
+                CALL this%pb_fixedpoint(v, charges, electrolyte)
             END IF
             !
         ELSE
@@ -316,8 +311,8 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE generalized_fixedpoint(this, charges, dielectric, potential, &
-                                      electrolyte, semiconductor)
+    SUBROUTINE generalized_fixedpoint(this, charges, dielectric, v, electrolyte, &
+                                      semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -325,10 +320,10 @@ CONTAINS
         CLASS(solver_fixedpoint), TARGET, INTENT(IN) :: this
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
+        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         TYPE(environ_dielectric), TARGET, INTENT(INOUT) :: dielectric
-        TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
         INTEGER :: iter
         REAL(DP) :: total, totpol, totzero, totiter, delta_qm, delta_en
@@ -347,7 +342,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         !--------------------------------------------------------------------------------
@@ -398,8 +393,8 @@ CONTAINS
             DO iter = 1, maxiter
                 rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
                 !
-                CALL this%poisson_gradient(rhotot, gradpoisson, electrolyte, &
-                                           semiconductor)
+                CALL this%direct%grad_poisson(rhotot, gradpoisson, electrolyte, &
+                                              semiconductor)
                 !
                 CALL dielectric%gradlog%scalar_product(gradpoisson, residual)
                 !
@@ -449,7 +444,7 @@ CONTAINS
             !
             rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
             !
-            CALL this%poisson(rhotot, potential, electrolyte, semiconductor)
+            CALL this%direct%poisson(rhotot, v, electrolyte, semiconductor)
             !
             rhotot%of_r = rhozero%of_r + rhoiter%of_r
             ! in rhotot store total polarization charge
@@ -492,7 +487,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE pb_fixedpoint(this, potential, charges, electrolyte, dielectric, inner)
+    SUBROUTINE pb_fixedpoint(this, v, charges, electrolyte, dielectric, inner)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -500,10 +495,10 @@ CONTAINS
         CLASS(solver_fixedpoint), TARGET, INTENT(IN) :: this
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
-        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
+        CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
-        TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
+        TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
         INTEGER :: iter, ityp, ir
         REAL(DP) :: total, totaux, delta_qm, delta_en, kT, factor, arg
@@ -524,7 +519,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         IF (PRESENT(dielectric)) THEN
@@ -541,7 +536,6 @@ CONTAINS
         ASSOCIATE (cell => charges%cell, &
                    maxiter => this%maxiter, &
                    tolrhoaux => this%tol, &
-                   x => potential, &
                    base => electrolyte%base, &
                    cionmax => electrolyte%base%cionmax, &
                    gam => electrolyte%gamma)
@@ -563,7 +557,7 @@ CONTAINS
             !
             kT = K_BOLTZMANN_RY * base%temperature
             !
-            x%of_r = 0.D0
+            v%of_r = 0.D0
             rhoaux%of_r = 0.D0
             !
             !----------------------------------------------------------------------------
@@ -587,22 +581,9 @@ CONTAINS
                 rhotot%of_r = charges%of_r + rhoaux%of_r
                 !
                 IF (PRESENT(dielectric)) THEN
-                    !
-                    SELECT TYPE (inner)
-                        !
-                    TYPE IS (solver_gradient)
-                        CALL inner%generalized(rhotot, dielectric, x)
-                        !
-                    TYPE IS (solver_fixedpoint)
-                        CALL inner%generalized(rhotot, dielectric, x)
-                        !
-                    CLASS DEFAULT
-                        CALL io%error(sub_name, "Unexpected inner solver", 1)
-                        !
-                    END SELECT
-                    !
+                    CALL inner%generalized(rhotot, dielectric, v)
                 ELSE
-                    CALL this%poisson(rhotot, x)
+                    CALL this%direct%poisson(rhotot, v)
                 END IF
                 !
                 !------------------------------------------------------------------------
@@ -618,7 +599,7 @@ CONTAINS
                     cfactor%of_r = 1.D0
                     !
                     DO ir = 1, cell%ir_end
-                        arg = -z * x%of_r(ir) / kT
+                        arg = -z * v%of_r(ir) / kT
                         !
                         IF (arg > exp_arg_limit) THEN
                             cfactor%of_r(ir) = EXP(exp_arg_limit)

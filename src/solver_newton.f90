@@ -41,6 +41,7 @@ MODULE class_solver_newton
     USE class_core_container
     !
     USE class_solver
+    USE class_solver_direct
     USE class_solver_gradient
     USE class_solver_iterative
     !
@@ -67,12 +68,10 @@ MODULE class_solver_newton
         !
         PROCEDURE :: init => init_solver_newton
         !
-        PROCEDURE, PRIVATE :: pb_nested_charges
-        PROCEDURE, PRIVATE :: pb_nested_density
+        PROCEDURE :: pb_nested_charges
+        PROCEDURE :: pb_nested_density
         !
-        GENERIC :: pb_nested => pb_nested_charges, pb_nested_density
-        !
-        PROCEDURE, PRIVATE :: pb => pb_newton
+        PROCEDURE, PRIVATE :: pb_newton
         !
         !--------------------------------------------------------------------------------
     END TYPE solver_newton
@@ -90,12 +89,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_newton(this, cores, maxiter, tol, auxiliary)
+    SUBROUTINE init_solver_newton(this, cores, direct ,maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(core_container), TARGET, INTENT(IN) :: cores
+        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
@@ -104,7 +104,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
+        CALL this%init_iterative(cores, direct, maxiter, tol, auxiliary)
         !
         this%solver_type = 'newton'
         !
@@ -120,16 +120,16 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE pb_nested_charges(this, inner, charges, potential)
+    SUBROUTINE pb_nested_charges(this, charges, v, inner)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(electrostatic_solver), INTENT(IN) :: inner
-        TYPE(environ_charges), INTENT(IN) :: charges
+        CLASS(solver_newton), INTENT(IN) :: this
+        CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner ! # TODO should it be optional?
         !
-        CLASS(solver_newton), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_charges), INTENT(INOUT) :: charges
         !
         CHARACTER(LEN=80) :: sub_name = 'pb_nested_charges'
         !
@@ -139,11 +139,11 @@ CONTAINS
         !
         IF (ASSOCIATED(charges%dielectric)) THEN
             !
-            CALL this%pb(inner, potential, charges%density, charges%electrolyte, &
-                         charges%dielectric)
+            CALL this%pb_newton(v, charges%density, charges%electrolyte, &
+                                charges%dielectric, inner=inner)
             !
         ELSE
-            CALL this%pb(inner, potential, charges%density, charges%electrolyte)
+            CALL this%pb_newton(v, charges%density, charges%electrolyte, inner=inner)
         END IF
         !
         CALL env_stop_clock(sub_name)
@@ -154,19 +154,18 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE pb_nested_density(this, inner, charges, potential, electrolyte, &
-                                 dielectric)
+    SUBROUTINE pb_nested_density(this, charges, v, electrolyte, dielectric, inner)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(electrostatic_solver), INTENT(IN) :: inner
+        CLASS(solver_newton), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
-        TYPE(environ_dielectric), INTENT(IN), OPTIONAL :: dielectric
+        CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner
         !
-        CLASS(solver_newton), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
         CHARACTER(LEN=80) :: sub_name = 'pb_nested_density'
         !
@@ -174,7 +173,7 @@ CONTAINS
         !
         CALL env_start_clock(sub_name)
         !
-        CALL this%pb(inner, potential, charges, electrolyte, dielectric)
+        CALL this%pb_newton(v, charges, electrolyte, dielectric, inner=inner)
         !
         CALL env_stop_clock(sub_name)
         !
@@ -190,18 +189,18 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE pb_newton(this, inner, potential, charges, electrolyte, dielectric)
+    SUBROUTINE pb_newton(this, v, charges, electrolyte, dielectric, inner)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(electrostatic_solver), INTENT(IN) :: inner
+        CLASS(solver_newton), TARGET, INTENT(IN) :: this
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
-        TYPE(environ_dielectric), INTENT(IN), OPTIONAL :: dielectric
+        CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner
         !
-        CLASS(solver_newton), TARGET, INTENT(INOUT) :: this
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
+        TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
         INTEGER :: iter, itypi, itypj, ir
         REAL(DP) :: totaux, delta_qm, delta_en, kT, z, arg
@@ -224,7 +223,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         IF (PRESENT(dielectric)) THEN
@@ -241,7 +240,6 @@ CONTAINS
                    tol => this%tol, &
                    base => electrolyte%base, &
                    cionmax => electrolyte%base%cionmax, &
-                   x => potential, &
                    gam => electrolyte%gamma)
             !
             !----------------------------------------------------------------------------
@@ -263,7 +261,7 @@ CONTAINS
             !
             kT = K_BOLTZMANN_RY * base%temperature
             !
-            x%of_r = 0.D0
+            v%of_r = 0.D0
             rhoaux%of_r = 0.D0
             screening%of_r = base%k2 / e2 / fpi * gam%of_r
             residual%of_r = 0.D0
@@ -285,21 +283,12 @@ CONTAINS
             ! Start Newton's algorithm
             !
             DO iter = 1, maxiter
-                rhotot%of_r = charges%of_r + rhoaux%of_r + screening%of_r * x%of_r
-                residual%of_r = x%of_r
+                rhotot%of_r = charges%of_r + rhoaux%of_r + screening%of_r * v%of_r
+                residual%of_r = v%of_r
                 !
-                SELECT TYPE (inner)
-                    !
-                TYPE IS (solver_gradient)
-                    CALL inner%linearized_pb(rhotot, electrolyte, x, dielectric, &
-                                             screening)
-                    !
-                CLASS DEFAULT
-                    CALL io%error(sub_name, 'Unexpected inner solver', 1)
-                    !
-                END SELECT
+                CALL inner%linearized_pb(rhotot, electrolyte, v, dielectric, screening)
                 !
-                residual%of_r = x%of_r - residual%of_r
+                residual%of_r = v%of_r - residual%of_r
                 rhoaux%of_r = 0.D0
                 screening%of_r = 0.D0
                 denominator%of_r = 1.D0
@@ -314,7 +303,7 @@ CONTAINS
                     cfactor%of_r = 1.D0
                     !
                     DO ir = 1, cell%ir_end
-                        arg = -zi * x%of_r(ir) / kT
+                        arg = -zi * v%of_r(ir) / kT
                         !
                         IF (arg > exp_arg_limit) THEN
                             cfactor%of_r(ir) = EXP(exp_arg_limit)

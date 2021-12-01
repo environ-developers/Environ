@@ -43,6 +43,7 @@ MODULE class_solver_gradient
     !
     USE class_core_fft
     !
+    USE class_solver_direct
     USE class_solver_iterative
     !
     USE class_charges
@@ -76,23 +77,17 @@ MODULE class_solver_gradient
         !
         PROCEDURE :: init => init_solver_gradient
         !
-        PROCEDURE, PRIVATE :: generalized_gradient_charges
-        PROCEDURE, PRIVATE :: generalized_gradient_density
+        PROCEDURE :: generalized_charges
+        PROCEDURE :: generalized_density
         !
-        GENERIC :: generalized => &
-            generalized_gradient_charges, generalized_gradient_density
+        PROCEDURE :: linearized_pb_charges
+        PROCEDURE :: linearized_pb_density
         !
-        PROCEDURE, PRIVATE :: linearized_pb_gradient_charges
-        PROCEDURE, PRIVATE :: linearized_pb_gradient_density
+        PROCEDURE, PRIVATE :: generalized_none
+        PROCEDURE, PRIVATE :: generalized_sqrt
+        PROCEDURE, PRIVATE :: generalized_left
         !
-        GENERIC :: linearized_pb => &
-            linearized_pb_gradient_charges, linearized_pb_gradient_density
-        !
-        PROCEDURE, PRIVATE :: generalized_none => generalized_gradient_none
-        PROCEDURE, PRIVATE :: generalized_sqrt => generalized_gradient_sqrt
-        PROCEDURE, PRIVATE :: generalized_left => generalized_gradient_left
-        !
-        PROCEDURE, PRIVATE :: linearized_pb_sqrt => linearized_pb_gradient_sqrt
+        PROCEDURE, PRIVATE :: linearized_pb_sqrt
         !
         !--------------------------------------------------------------------------------
     END TYPE solver_gradient
@@ -111,13 +106,14 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_solver_gradient(this, lconjugate, step_type, step, preconditioner, &
-                                    screening_type, screening, cores, maxiter, tol, &
-                                    auxiliary)
+                                    screening_type, screening, cores, direct, maxiter, &
+                                    tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(core_container), INTENT(IN) :: cores
+        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
         LOGICAL, INTENT(IN) :: lconjugate
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol, step, screening
@@ -128,7 +124,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
+        CALL this%init_iterative(cores, direct, maxiter, tol, auxiliary)
         !
         IF (lconjugate) THEN
             this%solver_type = 'cg'
@@ -155,23 +151,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE generalized_gradient_charges(this, charges, potential)
+    SUBROUTINE generalized_charges(this, charges, v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_gradient), INTENT(IN) :: this
         !
+        TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
-        TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_charges'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_charges'
         !
         !--------------------------------------------------------------------------------
         !
         CALL env_start_clock(sub_name)
         !
-        potential%of_r = 0.D0
+        v%of_r = 0.D0
         !
         IF (this%auxiliary == 'none') THEN
             !
@@ -179,21 +175,18 @@ CONTAINS
                 !
             CASE ('none')
                 !
-                CALL this%generalized_none(charges%density, charges%dielectric, &
-                                           potential, charges%electrolyte, &
-                                           charges%semiconductor)
+                CALL this%generalized_none(charges%density, charges%dielectric, v, &
+                                           charges%electrolyte, charges%semiconductor)
                 !
             CASE ('sqrt')
                 !
-                CALL this%generalized_sqrt(charges%density, charges%dielectric, &
-                                           potential, charges%electrolyte, &
-                                           charges%semiconductor)
+                CALL this%generalized_sqrt(charges%density, charges%dielectric, v, &
+                                           charges%electrolyte, charges%semiconductor)
                 !
             CASE ('left')
                 !
-                CALL this%generalized_left(charges%density, charges%dielectric, &
-                                           potential, charges%electrolyte, &
-                                           charges%semiconductor)
+                CALL this%generalized_left(charges%density, charges%dielectric, v, &
+                                           charges%electrolyte, charges%semiconductor)
                 !
             CASE DEFAULT
                 CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
@@ -204,52 +197,52 @@ CONTAINS
             !
             CALL io%error(sub_name, 'Option not yet implemented', 1)
             !
-            ! CALL generalized_gradient_rhoaux(charges, dielectric, potential) #TODO future-work
+            ! CALL generalized_rhoaux(charges, dielectric, v) #TODO future-work
             !
         END IF
         !
         CALL env_stop_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE generalized_gradient_charges
+    END SUBROUTINE generalized_charges
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE generalized_gradient_density(this, charges, dielectric, potential, &
-                                            electrolyte, semiconductor)
+    SUBROUTINE generalized_density(this, charges, dielectric, v, electrolyte, &
+                                   semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
-        TYPE(environ_dielectric), INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
+        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), INTENT(INOUT) :: potential
-        TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_density'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_density'
         !
         !--------------------------------------------------------------------------------
         !
         CALL env_start_clock(sub_name)
         !
-        potential%of_r = 0.D0
+        v%of_r = 0.D0
         !
         IF (this%auxiliary == 'none') THEN
             !
             SELECT CASE (this%preconditioner) ! #TODO none and left need work
                 !
             CASE ('none')
-                CALL this%generalized_none(charges, dielectric, potential, electrolyte)
+                CALL this%generalized_none(charges, dielectric, v, electrolyte)
                 !
             CASE ('sqrt')
-                CALL this%generalized_sqrt(charges, dielectric, potential, electrolyte)
+                CALL this%generalized_sqrt(charges, dielectric, v, electrolyte)
                 !
             CASE ('left')
-                CALL this%generalized_left(charges, dielectric, potential, electrolyte)
+                CALL this%generalized_left(charges, dielectric, v, electrolyte)
                 !
             CASE DEFAULT
                 CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
@@ -260,38 +253,38 @@ CONTAINS
             !
             CALL io%error(sub_name, 'Option not yet implemented', 1)
             !
-            ! CALL generalized_gradient_rhoaux(charges, dielectric, potential) #TODO future-work
+            ! CALL generalized_rhoaux(charges, dielectric, v) #TODO future-work
             !
         END IF
         !
         CALL env_stop_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE generalized_gradient_density
+    END SUBROUTINE generalized_density
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE linearized_pb_gradient_charges(this, charges, potential, screening)
+    SUBROUTINE linearized_pb_charges(this, charges, v, screening)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_gradient), INTENT(IN) :: this
-        TYPE(environ_charges), INTENT(IN) :: charges
-        TYPE(environ_density), OPTIONAL, INTENT(IN) :: screening
+        TYPE(environ_density), INTENT(IN), OPTIONAL :: screening
         !
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_charges), INTENT(INOUT) :: charges
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_gradient_charges'
+        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_charges'
         !
         !--------------------------------------------------------------------------------
         !
         CALL env_start_clock(sub_name)
         !
-        CALL local_screening%init(potential%cell)
+        CALL local_screening%init(v%cell)
         !
         IF (PRESENT(screening)) THEN
             local_screening%of_r = screening%of_r ! external screening
@@ -326,8 +319,8 @@ CONTAINS
                     !
                 CASE ('sqrt')
                     !
-                    CALL this%linearized_pb_sqrt(charges%density, local_screening, &
-                                                 potential, charges%dielectric)
+                    CALL this%linearized_pb_sqrt(charges%density, local_screening, v, &
+                                                 charges%dielectric)
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
@@ -336,8 +329,7 @@ CONTAINS
                 !
             ELSE
                 !
-                CALL this%linearized_pb_sqrt(charges%density, local_screening, &
-                                             potential)
+                CALL this%linearized_pb_sqrt(charges%density, local_screening, v)
                 !
             END IF
             !
@@ -350,13 +342,13 @@ CONTAINS
         CALL env_stop_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE linearized_pb_gradient_charges
+    END SUBROUTINE linearized_pb_charges
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE linearized_pb_gradient_density(this, charges, electrolyte, potential, &
-                                              dielectric, screening)
+    SUBROUTINE linearized_pb_density(this, charges, electrolyte, v, dielectric, &
+                                     screening)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -364,20 +356,20 @@ CONTAINS
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
-        TYPE(environ_dielectric), INTENT(IN), OPTIONAL :: dielectric
         TYPE(environ_density), INTENT(IN), OPTIONAL :: screening
         !
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_gradient_density'
+        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_density'
         !
         !--------------------------------------------------------------------------------
         !
         CALL env_start_clock(sub_name)
         !
-        CALL local_screening%init(potential%cell)
+        CALL local_screening%init(v%cell)
         !
         IF (PRESENT(screening)) THEN
             local_screening%of_r = screening%of_r ! external screening
@@ -411,7 +403,7 @@ CONTAINS
                     !
                 CASE ('sqrt')
                     !
-                    CALL this%linearized_pb_sqrt(charges, local_screening, potential, &
+                    CALL this%linearized_pb_sqrt(charges, local_screening, v, &
                                                  dielectric)
                     !
                 CASE DEFAULT
@@ -420,7 +412,7 @@ CONTAINS
                 END SELECT
                 !
             ELSE
-                CALL this%linearized_pb_sqrt(charges, local_screening, potential)
+                CALL this%linearized_pb_sqrt(charges, local_screening, v)
             END IF
             !
         ELSE
@@ -432,7 +424,7 @@ CONTAINS
         CALL env_stop_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE linearized_pb_gradient_density
+    END SUBROUTINE linearized_pb_density
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -443,8 +435,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE generalized_gradient_none(this, charges, dielectric, potential, &
-                                         electrolyte, semiconductor)
+    SUBROUTINE generalized_none(this, charges, dielectric, v, electrolyte, semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -453,16 +444,16 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
-        !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
+        !
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         !
         INTEGER :: iter
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en
         TYPE(environ_density) :: r, z, p, Ap, l
         TYPE(environ_gradient) :: g
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_none'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_none'
         !
         !--------------------------------------------------------------------------------
         !
@@ -473,14 +464,13 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => charges%cell, &
                    gradeps => dielectric%gradient, &
-                   x => potential, &
                    maxiter => this%maxiter, &
                    tolvelect => this%tol)
             !
@@ -502,13 +492,13 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Starting guess from new input and previous solution(s)
             !
-            IF (x%lupdate) THEN
-                x%lupdate = .FALSE.
+            IF (v%lupdate) THEN
+                v%lupdate = .FALSE.
             END IF
             !
-            IF (.NOT. x%lupdate) THEN
-                x%lupdate = .TRUE.
-                x%of_r = 0.D0
+            IF (.NOT. v%lupdate) THEN
+                v%lupdate = .TRUE.
+                v%of_r = 0.D0
                 r = charges
                 rzold = 0.D0
             END IF
@@ -575,7 +565,7 @@ CONTAINS
                 pAp = p%scalar_product(Ap)
                 alpha = rzold / pAp
                 !
-                x%of_r = x%of_r + alpha * p%of_r
+                v%of_r = v%of_r + alpha * p%of_r
                 r%of_r = r%of_r - alpha * Ap%of_r
                 !
                 delta_en = r%euclidean_norm()
@@ -659,13 +649,12 @@ CONTAINS
 1007    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE generalized_gradient_none
+    END SUBROUTINE generalized_none
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE generalized_gradient_sqrt(this, charges, dielectric, potential, &
-                                         electrolyte, semiconductor)
+    SUBROUTINE generalized_sqrt(this, charges, dielectric, v, electrolyte, semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -674,15 +663,15 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
+        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
-        TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         !
         INTEGER :: iter
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
         TYPE(environ_density) :: r, z, p, Ap, invsqrt
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_sqrt'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_sqrt'
         !
         !--------------------------------------------------------------------------------
         !
@@ -693,7 +682,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         !--------------------------------------------------------------------------------
@@ -701,7 +690,6 @@ CONTAINS
         ASSOCIATE (cell => charges%cell, &
                    b => charges, &
                    factsqrt => dielectric%factsqrt, &
-                   x => potential, &
                    maxiter => this%maxiter, &
                    tolvelect => this%tol)
             !
@@ -723,15 +711,15 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Starting guess from new input and previous solution(s)
             !
-            IF (x%lupdate) THEN
-                r%of_r = b%of_r - factsqrt%of_r * x%of_r
+            IF (v%lupdate) THEN
+                r%of_r = b%of_r - factsqrt%of_r * v%of_r
                 !
                 !------------------------------------------------------------------------
                 ! Preconditioning step
                 !
                 z%of_r = r%of_r * invsqrt%of_r
                 !
-                CALL this%poisson(z, z, electrolyte, semiconductor)
+                CALL this%direct%poisson(z, z, electrolyte, semiconductor)
                 !
                 z%of_r = z%of_r * invsqrt%of_r
                 !
@@ -740,7 +728,7 @@ CONTAINS
                 IF (ABS(rzold) < 1.D-30) &
                     CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
                 !
-                r%of_r = factsqrt%of_r * (x%of_r - z%of_r)
+                r%of_r = factsqrt%of_r * (v%of_r - z%of_r)
                 delta_en = r%euclidean_norm()
                 delta_qm = r%quadratic_mean()
                 !
@@ -749,20 +737,20 @@ CONTAINS
                     IF (io%verbosity >= 1 .AND. io%lnode) &
                         WRITE (io%debug_unit, 1101) delta_en
                     !
-                    x%of_r = z%of_r
+                    v%of_r = z%of_r
                 ELSE
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) &
                         WRITE (io%debug_unit, 1102) delta_en
                     !
-                    x%lupdate = .FALSE.
+                    v%lupdate = .FALSE.
                 END IF
                 !
             END IF
             !
-            IF (.NOT. x%lupdate) THEN
-                x%lupdate = .TRUE.
-                x%of_r = 0.D0
+            IF (.NOT. v%lupdate) THEN
+                v%lupdate = .TRUE.
+                v%of_r = 0.D0
                 r%of_r = b%of_r
                 rzold = 0.D0
             END IF
@@ -790,7 +778,7 @@ CONTAINS
                 !
                 z%of_r = r%of_r * invsqrt%of_r
                 !
-                CALL this%poisson(z, z, electrolyte, semiconductor)
+                CALL this%direct%poisson(z, z, electrolyte, semiconductor)
                 !
                 z%of_r = z%of_r * invsqrt%of_r
                 !
@@ -822,7 +810,7 @@ CONTAINS
                 pAp = p%scalar_product(Ap)
                 alpha = rzold / pAp
                 !
-                x%of_r = x%of_r + alpha * p%of_r
+                v%of_r = v%of_r + alpha * p%of_r
                 r%of_r = r%of_r - alpha * Ap%of_r
                 !
                 delta_en = r%euclidean_norm()
@@ -869,9 +857,9 @@ CONTAINS
             shift = 0.D0
             !
             IF (.NOT. (this%cores%internal_correction .OR. this%cores%has_corrections)) &
-                shift = -x%integrate() / cell%omega
+                shift = -v%integrate() / cell%omega
             !
-            x%of_r = x%of_r + shift
+            v%of_r = v%of_r + shift
             !
             IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1109) delta_en, iter
             !
@@ -919,13 +907,12 @@ CONTAINS
 1109    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE generalized_gradient_sqrt
+    END SUBROUTINE generalized_sqrt
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE generalized_gradient_left(this, charges, dielectric, potential, &
-                                         electrolyte, semiconductor)
+    SUBROUTINE generalized_left(this, charges, dielectric, v, electrolyte, semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -934,16 +921,16 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
+        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
-        TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         !
         INTEGER :: iter
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_en, delta_qm
         TYPE(environ_density) :: r, z, p, Ap
         TYPE(environ_gradient) :: g
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_left'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_left'
         !
         !--------------------------------------------------------------------------------
         !
@@ -955,14 +942,13 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => charges%cell, &
                    gradeps => dielectric%gradient, &
-                   x => potential, &
                    maxiter => this%maxiter, &
                    tolvelect => this%tol)
             !
@@ -982,7 +968,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Starting guess from new input and previous solution(s)
             !
-            x%of_r = 0.D0
+            v%of_r = 0.D0
             r%of_r = charges%of_r
             rzold = 0.D0
             !
@@ -1009,7 +995,7 @@ CONTAINS
                 !
                 z%of_r = r%of_r / dielectric%epsilon%of_r
                 !
-                CALL this%poisson(z, z, electrolyte, semiconductor)
+                CALL this%direct%poisson(z, z, electrolyte, semiconductor)
                 !
                 rznew = r%scalar_product(z)
                 !
@@ -1048,7 +1034,7 @@ CONTAINS
                 pAp = p%scalar_product(Ap)
                 alpha = rzold / pAp
                 !
-                x%of_r = x%of_r + alpha * p%of_r
+                v%of_r = v%of_r + alpha * p%of_r
                 r%of_r = r%of_r - alpha * Ap%of_r
                 !
                 delta_en = r%euclidean_norm()
@@ -1130,13 +1116,12 @@ CONTAINS
 1207    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE generalized_gradient_left
+    END SUBROUTINE generalized_left
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE linearized_pb_gradient_sqrt(this, charges, screening, potential, &
-                                           dielectric)
+    SUBROUTINE linearized_pb_sqrt(this, charges, screening, v, dielectric)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -1144,9 +1129,9 @@ CONTAINS
         CLASS(solver_gradient), TARGET, INTENT(IN) :: this
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_density), TARGET, INTENT(IN) :: screening
-        TYPE(environ_dielectric), OPTIONAL, TARGET, INTENT(IN) :: dielectric
+        TYPE(environ_dielectric), TARGET, INTENT(IN), OPTIONAL :: dielectric
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         !
         TYPE(environ_density), POINTER :: eps, factsqrt
         !
@@ -1154,7 +1139,7 @@ CONTAINS
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
         TYPE(environ_density) :: r, z, p, Ap, invsqrt
         !
-        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_gradient_sqrt'
+        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_sqrt'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1165,7 +1150,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, screening%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         IF (PRESENT(dielectric)) THEN
@@ -1179,7 +1164,6 @@ CONTAINS
         !
         ASSOCIATE (cell => charges%cell, &
                    b => charges, &
-                   x => potential, &
                    scr => screening, &
                    maxiter => this%maxiter, &
                    tolvelect => this%tol)
@@ -1207,12 +1191,12 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Starting guess from new input and previous solution(s)
             !
-            IF (x%lupdate) THEN
+            IF (v%lupdate) THEN
                 !
                 IF (PRESENT(dielectric)) THEN
-                    r%of_r = b%of_r - (factsqrt%of_r + scr%of_r) * x%of_r
+                    r%of_r = b%of_r - (factsqrt%of_r + scr%of_r) * v%of_r
                 ELSE
-                    r%of_r = b%of_r - scr%of_r * x%of_r
+                    r%of_r = b%of_r - scr%of_r * v%of_r
                 END IF
                 !
                 !------------------------------------------------------------------------
@@ -1221,13 +1205,13 @@ CONTAINS
                 IF (PRESENT(dielectric)) THEN
                     z%of_r = r%of_r * invsqrt%of_r
                     !
-                    CALL this%poisson(z, z)
+                    CALL this%direct%poisson(z, z)
                     !
                     z%of_r = z%of_r * invsqrt%of_r
                 ELSE
                     z%of_r = r%of_r
                     !
-                    CALL this%poisson(z, z)
+                    CALL this%direct%poisson(z, z)
                     !
                 END IF
                 !
@@ -1237,9 +1221,9 @@ CONTAINS
                     CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
                 !
                 IF (PRESENT(dielectric)) THEN
-                    r%of_r = (factsqrt%of_r + scr%of_r) * (x%of_r - z%of_r)
+                    r%of_r = (factsqrt%of_r + scr%of_r) * (v%of_r - z%of_r)
                 ELSE
-                    r%of_r = scr%of_r * (x%of_r - z%of_r)
+                    r%of_r = scr%of_r * (v%of_r - z%of_r)
                 END IF
                 !
                 delta_en = r%euclidean_norm()
@@ -1250,20 +1234,20 @@ CONTAINS
                     IF (io%verbosity >= 1 .AND. io%lnode) &
                         WRITE (io%debug_unit, 1301) delta_en
                     !
-                    x%of_r = z%of_r
+                    v%of_r = z%of_r
                 ELSE
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) &
                         WRITE (io%debug_unit, 1302) delta_en
                     !
-                    x%lupdate = .FALSE.
+                    v%lupdate = .FALSE.
                 END IF
                 !
             END IF
             !
-            IF (.NOT. x%lupdate) THEN
-                x%lupdate = .TRUE.
-                x%of_r = 0.D0
+            IF (.NOT. v%lupdate) THEN
+                v%lupdate = .TRUE.
+                v%of_r = 0.D0
                 r%of_r = b%of_r
                 rzold = 0.D0
             END IF
@@ -1292,13 +1276,13 @@ CONTAINS
                 IF (PRESENT(dielectric)) THEN
                     z%of_r = r%of_r * invsqrt%of_r
                     !
-                    CALL this%poisson(z, z)
+                    CALL this%direct%poisson(z, z)
                     !
                     z%of_r = z%of_r * invsqrt%of_r
                 ELSE
                     z%of_r = r%of_r
                     !
-                    CALL this%poisson(z, z)
+                    CALL this%direct%poisson(z, z)
                     !
                 END IF
                 !
@@ -1337,7 +1321,7 @@ CONTAINS
                 pAp = p%scalar_product(Ap)
                 alpha = rzold / pAp
                 !
-                x%of_r = x%of_r + alpha * p%of_r
+                v%of_r = v%of_r + alpha * p%of_r
                 r%of_r = r%of_r - alpha * Ap%of_r
                 !
                 delta_en = r%euclidean_norm()
@@ -1384,9 +1368,9 @@ CONTAINS
             shift = 0.D0
             !
             IF (.NOT. (this%cores%internal_correction .OR. this%cores%has_corrections)) &
-                shift = -x%integrate() / cell%omega
+                shift = -v%integrate() / cell%omega
             !
-            x%of_r = x%of_r + shift
+            v%of_r = v%of_r + shift
             !
             IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1309) delta_en, iter
             !
@@ -1434,7 +1418,7 @@ CONTAINS
 1309    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE linearized_pb_gradient_sqrt
+    END SUBROUTINE linearized_pb_sqrt
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

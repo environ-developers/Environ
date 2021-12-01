@@ -60,23 +60,20 @@ MODULE class_solver_direct
     TYPE, EXTENDS(electrostatic_solver), PUBLIC :: solver_direct
         !--------------------------------------------------------------------------------
         !
+        CHARACTER(LEN=80) :: corrections_method = 'none'
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: init_direct => init_solver_direct
+        PROCEDURE :: init => init_solver_direct
         PROCEDURE :: destroy => destroy_solver_direct
         !
-        PROCEDURE, PRIVATE :: poisson_direct_charges
-        PROCEDURE, PRIVATE :: poisson_direct_density
+        PROCEDURE :: poisson_charges
+        PROCEDURE :: poisson_density
         !
-        GENERIC :: poisson => poisson_direct_charges, poisson_direct_density
-        !
-        PROCEDURE, PRIVATE :: poisson_gradient_direct_charges
-        PROCEDURE, PRIVATE :: poisson_gradient_direct_density
-        !
-        GENERIC :: poisson_gradient => &
-            poisson_gradient_direct_charges, poisson_gradient_direct_density
+        PROCEDURE :: grad_poisson_charges
+        PROCEDURE :: grad_poisson_density
         !
         !--------------------------------------------------------------------------------
     END TYPE solver_direct
@@ -94,12 +91,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_direct(this, cores)
+    SUBROUTINE init_solver_direct(this, cores, corr_method)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(core_container), TARGET, INTENT(IN) :: cores
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: corr_method
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !
@@ -107,7 +105,9 @@ CONTAINS
         !
         this%solver_type = 'direct'
         !
-        CALL this%init_cores(cores)
+        CALL this%set_cores(cores)
+        !
+        IF (PRESENT(corr_method)) this%corrections_method = corr_method
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solver_direct
@@ -126,13 +126,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cores)) CALL io%destroy_error(sub_name)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%cores%destroy()
-        !
-        NULLIFY (this%cores)
+        CALL this%destroy_cores()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_solver_direct
@@ -146,26 +140,26 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_direct_charges(this, charges, potential)
+    SUBROUTINE poisson_charges(this, charges, v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_direct), TARGET, INTENT(IN) :: this
+        TYPE(environ_charges), TARGET, INTENT(IN) :: charges
         !
-        TYPE(environ_charges), TARGET, INTENT(INOUT) :: charges
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_direct_charges'
+        CHARACTER(LEN=80) :: sub_name = 'poisson_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%density%cell, v%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%cores%electrostatics%poisson(charges%density, potential)
+        CALL this%cores%electrostatics%poisson(charges%density, v)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
@@ -180,7 +174,7 @@ CONTAINS
                 SELECT CASE (this%corrections_method)
                     !
                 CASE ('parabolic')
-                    CALL correction%potential(density, potential)
+                    CALL correction%potential(density, v)
                     !
                 CASE ('gcs') ! gouy-chapman-stern
                     !
@@ -189,7 +183,7 @@ CONTAINS
                                       'Missing electrolyte for electrochemical &
                                       &boundary correction', 1)
                     !
-                    CALL correction%potential(electrolyte%base, density, potential)
+                    CALL correction%potential(electrolyte%base, density, v)
                     !
                 CASE ('ms') ! mott-schottky
                     !
@@ -198,7 +192,7 @@ CONTAINS
                                       'Missing semiconductor for electrochemical &
                                       &boundary correction', 1)
                     !
-                    CALL correction%potential(semiconductor%base, density, potential)
+                    CALL correction%potential(semiconductor%base, density, v)
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, 'Unexpected corrections method', 1)
@@ -210,31 +204,30 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE poisson_direct_charges
+    END SUBROUTINE poisson_charges
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_direct_density(this, charges, potential, electrolyte, &
-                                      semiconductor)
+    SUBROUTINE poisson_density(this, charges, v, electrolyte, semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_direct), TARGET, INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
+        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), INTENT(INOUT) :: charges
-        TYPE(environ_density), INTENT(INOUT) :: potential
-        TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
         TYPE(environ_density) :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_direct_density'
+        CHARACTER(LEN=80) :: sub_name = 'poisson_density'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
         !
         !--------------------------------------------------------------------------------
@@ -284,36 +277,36 @@ CONTAINS
             !
         END IF
         !
-        potential%of_r = local%of_r ! only update the potential at the end
+        v%of_r = local%of_r ! only update the potential at the end
         !
         CALL local%destroy()
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE poisson_direct_density
+    END SUBROUTINE poisson_density
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_gradient_direct_charges(this, charges, gradient)
+    SUBROUTINE grad_poisson_charges(this, charges, grad_v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_direct), TARGET, INTENT(IN) :: this
+        TYPE(environ_charges), TARGET, INTENT(IN) :: charges
         !
-        TYPE(environ_charges), TARGET, INTENT(INOUT) :: charges
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_gradient_direct_charges'
+        CHARACTER(LEN=80) :: sub_name = 'grad_poisson_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(charges%density%cell, gradient%cell)) &
+        IF (.NOT. ASSOCIATED(charges%density%cell, grad_v%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and gradient', 1)
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%cores%electrostatics%grad_poisson(charges%density, gradient)
+        CALL this%cores%electrostatics%grad_poisson(charges%density, grad_v)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
@@ -328,7 +321,7 @@ CONTAINS
                 SELECT CASE (this%corrections_method)
                     !
                 CASE ('parabolic')
-                    CALL correction%grad_potential(density, gradient)
+                    CALL correction%grad_potential(density, grad_v)
                     !
                 CASE ('gcs') ! gouy-chapman-stern
                     !
@@ -337,7 +330,7 @@ CONTAINS
                                       'Missing electrolyte for electrochemical &
                                       &boundary correction', 1)
                     !
-                    CALL correction%grad_potential(electrolyte%base, density, gradient)
+                    CALL correction%grad_potential(electrolyte%base, density, grad_v)
                     !
                 CASE ('ms') ! mott-schottky
                     !
@@ -346,7 +339,7 @@ CONTAINS
                                       'Missing semiconductor for electrochemical &
                                       &boundary correction', 1)
                     !
-                    CALL correction%grad_potential(semiconductor%base, density, gradient)
+                    CALL correction%grad_potential(semiconductor%base, density, grad_v)
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, 'Unexpected corrections method', 1)
@@ -358,34 +351,33 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE poisson_gradient_direct_charges
+    END SUBROUTINE grad_poisson_charges
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_gradient_direct_density(this, charges, gradient, electrolyte, &
-                                               semiconductor)
+    SUBROUTINE grad_poisson_density(this, charges, grad_v, electrolyte, semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(solver_direct), TARGET, INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
+        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), INTENT(INOUT) :: charges
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
-        TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
+        TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_gradient_direct_density'
+        CHARACTER(LEN=80) :: sub_name = 'grad_poisson_density'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(charges%cell, gradient%cell)) &
+        IF (.NOT. ASSOCIATED(charges%cell, grad_v%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and gradient', 1)
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%cores%electrostatics%grad_poisson(charges, gradient)
+        CALL this%cores%electrostatics%grad_poisson(charges, grad_v)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
@@ -397,7 +389,7 @@ CONTAINS
                 SELECT CASE (this%corrections_method)
                     !
                 CASE ('parabolic')
-                    CALL correction%grad_potential(charges, gradient)
+                    CALL correction%grad_potential(charges, grad_v)
                     !
                 CASE ('gcs') ! gouy-chapman-stern
                     !
@@ -406,7 +398,7 @@ CONTAINS
                                       'Missing electrolyte for &
                                       &electrochemical boundary correction', 1)
                     !
-                    CALL correction%grad_potential(electrolyte%base, charges, gradient)
+                    CALL correction%grad_potential(electrolyte%base, charges, grad_v)
                     !
                 CASE ('ms') ! mott-schottky
                     !
@@ -415,7 +407,7 @@ CONTAINS
                                       'Missing semiconductor for &
                                       &electrochemical boundary correction', 1)
                     !
-                    CALL correction%grad_potential(semiconductor%base, charges, gradient)
+                    CALL correction%grad_potential(semiconductor%base, charges, grad_v)
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, 'Unexpected corrections method', 1)
@@ -427,7 +419,7 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE poisson_gradient_direct_density
+    END SUBROUTINE grad_poisson_density
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

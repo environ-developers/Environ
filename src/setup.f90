@@ -941,16 +941,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference solver
         !
-        CALL this%reference_direct%init_direct(this%reference_container)
+        CALL this%reference_direct%init(this%reference_container)
         !
         !--------------------------------------------------------------------------------
         ! Outer solver
         !
+        CALL this%direct%init(this%outer_container, pbc_correction)
+        !
         SELECT CASE (solver)
             !
         CASE ('direct')
-            CALL this%direct%init_direct(this%outer_container)
-            !
             local_outer_solver => this%direct
             !
         CASE ('cg', 'sd')
@@ -959,19 +959,20 @@ CONTAINS
             !
             CALL this%gradient%init(lconjugate, step_type, step, preconditioner, &
                                     screening_type, screening, this%outer_container, &
-                                    maxstep, tol, auxiliary)
+                                    this%direct, maxstep, tol, auxiliary)
             !
             local_outer_solver => this%gradient
             !
         CASE ('fixed-point')
             !
             CALL this%fixedpoint%init(mix_type, mix, ndiis, this%outer_container, &
-                                      maxstep, tol, auxiliary)
+                                      this%direct, maxstep, tol, auxiliary)
             !
             local_outer_solver => this%fixedpoint
             !
         CASE ('newton')
-            CALL this%newton%init(this%outer_container, maxstep, tol, auxiliary)
+            CALL this%newton%init(this%outer_container, this%direct, maxstep, tol, &
+                                  auxiliary)
             !
             local_outer_solver => this%newton
             !
@@ -1002,7 +1003,7 @@ CONTAINS
                         CALL this%inner_gradient%init( &
                             lconjugate, step_type, step, preconditioner, &
                             screening_type, screening, this%inner_container, &
-                            inner_maxstep, inner_tol, auxiliary)
+                            this%direct, inner_maxstep, inner_tol, auxiliary)
                         !
                         local_inner_solver => this%inner_gradient
                         !
@@ -1011,7 +1012,7 @@ CONTAINS
                         !
                         CALL this%inner_fixedpoint%init( &
                             mix_type, inner_mix, ndiis, this%inner_container, &
-                            inner_maxstep, inner_tol, local_auxiliary)
+                            this%direct, inner_maxstep, inner_tol, local_auxiliary)
                         !
                         local_inner_solver => this%inner_fixedpoint
                         !
@@ -1031,7 +1032,8 @@ CONTAINS
                 !
                 CALL this%inner_gradient%init( &
                     lconjugate, step_type, step, preconditioner, screening_type, &
-                    screening, this%inner_container, inner_maxstep, inner_tol, auxiliary)
+                    screening, this%inner_container, this%direct, inner_maxstep, &
+                    inner_tol, auxiliary)
                 !
                 local_inner_solver => this%inner_gradient
                 !
@@ -1052,14 +1054,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Outer setup
         !
-        CALL this%outer%init(problem, local_outer_solver, pbc_correction)
+        CALL this%outer%init(problem, local_outer_solver)
         !
         !--------------------------------------------------------------------------------
         ! Inner setup
         !
         IF (this%need_inner) THEN
             !
-            CALL this%inner%init(inner_problem, local_inner_solver, pbc_correction)
+            CALL this%inner%init(inner_problem, local_inner_solver)
             !
             this%outer%inner => this%inner
         END IF

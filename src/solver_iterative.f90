@@ -32,6 +32,8 @@
 MODULE class_solver_iterative
     !------------------------------------------------------------------------------------
     !
+    USE class_io, ONLY: io
+    !
     USE environ_param, ONLY: DP
     !
     USE class_core_container
@@ -49,18 +51,22 @@ MODULE class_solver_iterative
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(solver_direct), PUBLIC :: solver_iterative
+    TYPE, ABSTRACT, EXTENDS(electrostatic_solver), PUBLIC :: solver_iterative
         !--------------------------------------------------------------------------------
         !
         CHARACTER(LEN=80) :: auxiliary
         REAL(DP) :: tol
         INTEGER :: maxiter
         !
+        TYPE(solver_direct), POINTER :: direct
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create_iterative => create_solver_iterative
         PROCEDURE :: init_iterative => init_solver_iterative
+        PROCEDURE :: destroy => destroy_solver_iterative
         !
         !--------------------------------------------------------------------------------
     END TYPE solver_iterative
@@ -78,12 +84,32 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_iterative(this, cores, maxiter, tol, auxiliary)
+    SUBROUTINE create_solver_iterative(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_iterative), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_solver_iterative'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%direct)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_solver_iterative
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_solver_iterative(this, cores, direct, maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(core_container), TARGET, INTENT(IN) :: cores
+        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
@@ -92,7 +118,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_cores(cores)
+        CALL this%create_iterative()
+        !
+        CALL this%set_cores(cores)
+        !
+        this%direct => direct
         !
         this%maxiter = maxiter
         this%tol = tol
@@ -101,6 +131,33 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solver_iterative
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_solver_iterative(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_iterative), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_solver_iterative'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(this%direct)) CALL io%destroy_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%destroy_cores()
+        !
+        CALL this%direct%destroy()
+        !
+        NULLIFY (this%direct)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_solver_iterative
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
