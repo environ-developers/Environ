@@ -195,7 +195,7 @@ CONTAINS
             !
         ELSE
             !
-            CALL io%error(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, "Option not yet implemented", 1)
             !
             ! CALL generalized_rhoaux(charges, dielectric, v) #TODO future-work
             !
@@ -251,7 +251,7 @@ CONTAINS
             !
         ELSE
             !
-            CALL io%error(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, "Option not yet implemented", 1)
             !
             ! CALL generalized_rhoaux(charges, dielectric, v) #TODO future-work
             !
@@ -334,7 +334,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL io%error(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, "Option not yet implemented", 1)
         END IF
         !
         CALL local_screening%destroy()
@@ -416,7 +416,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL io%error(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, "Option not yet implemented", 1)
         END IF
         !
         CALL local_screening%destroy()
@@ -462,10 +462,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -529,7 +529,7 @@ CONTAINS
                 rznew = r%scalar_product(z)
                 !
                 IF (ABS(rznew) < 1.D-30) &
-                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
                 !
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
@@ -680,10 +680,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -726,7 +726,7 @@ CONTAINS
                 rzold = r%scalar_product(z)
                 !
                 IF (ABS(rzold) < 1.D-30) &
-                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
                 !
                 r%of_r = factsqrt%of_r * (v%of_r - z%of_r)
                 delta_en = r%euclidean_norm()
@@ -785,7 +785,7 @@ CONTAINS
                 rznew = r%scalar_product(z)
                 !
                 IF (ABS(rznew) < 1.D-30) &
-                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
                 !
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
@@ -940,10 +940,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1000,7 +1000,7 @@ CONTAINS
                 rznew = r%scalar_product(z)
                 !
                 IF (ABS(rznew) < 1.D-30) &
-                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
                 !
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
@@ -1148,15 +1148,15 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, screening%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+                CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
             !
         END IF
         !
@@ -1218,7 +1218,7 @@ CONTAINS
                 rzold = r%scalar_product(z)
                 !
                 IF (ABS(rzold) < 1.D-30) &
-                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
                 !
                 IF (PRESENT(dielectric)) THEN
                     r%of_r = (factsqrt%of_r + scr%of_r) * (v%of_r - z%of_r)
@@ -1289,7 +1289,7 @@ CONTAINS
                 rznew = r%scalar_product(z)
                 !
                 IF (ABS(rznew) < 1.D-30) &
-                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
                 !
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input

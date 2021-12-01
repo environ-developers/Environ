@@ -315,11 +315,50 @@ sum_ = 1 + var1 + &
   - outputs `'ENVIRON WARNING (ierr): message'`
   - lowercased message
 
+<br>
+
+# ASSOCIATE BLOCKS
+
+- use ASSOCIATE blocks instead of many POINTERs
+
+```
+ASSOCIATE (item1 => this%item1, &
+           item2 => this%item2)
+```
+
+- pointers can point to expressions
+
+```
+ASSOCIATE (item1 => SUM(some_items))
+```
+
+- pointers cannot reference one another
+
+  incorrect
+
+  ```
+  ASSOCIATE (item1 => this%item1, &
+             attr1 => item1%some_attr)
+  ```
+
+  correct
+
+  ```
+  ASSOCIATE (item1 => this%item1, &
+             attr1 => this%item1%some_attr)
+  ```
+
+- ASSOCIATE block pointers do not require declaration
+- ASSOCIATE block targets do not require the TARGET attribute
+
+<br>
+
 # GENERAL SYNTAX
 
 - avoid GOTO statements
 
 - DO NOT exceed col 90
+
   - exceptions for long strings, but not past col 130
 
 - use `array = ...` when operating on the entire array (no need for `array(:)`)

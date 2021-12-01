@@ -295,12 +295,8 @@ CONTAINS
         CLASS(environ_electrolyte), TARGET, INTENT(INOUT) :: this
         !
         INTEGER :: i, j
-        REAL(DP) :: kT, factor, sumcbulk, arg
+        REAL(DP) :: fact, sumcbulk, arg
         TYPE(environ_density) :: denominator
-        !
-        REAL(DP), POINTER :: z, cbulk, cionmax
-        REAL(DP), DIMENSION(:), POINTER :: pot, rho, c, cfactor, gam
-        TYPE(environ_electrolyte_base), POINTER :: base
         !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
@@ -308,129 +304,136 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        gam => this%gamma%of_r
-        pot => potential%of_r
-        rho => this%density%of_r
-        base => this%base
-        cionmax => base%cionmax
-        !
-        rho = 0.D0
-        kT = K_BOLTZMANN_RY * base%temperature
-        !
-        CALL denominator%init(potential%cell)
-        !
-        denominator%of_r = 1.D0
-        !
-        DO i = 1, base%ntyp
-            cfactor => base%ioncctype(i)%cfactor%of_r
-            cbulk => base%ioncctype(i)%cbulk
-            z => base%ioncctype(i)%z
-            !
-            cfactor = 1.D0
-            !
-            IF (base%linearized) THEN ! Linearized PB and modified PB
-                cfactor = 1.D0 - z * pot / kT
-                !
-                IF (cionmax > 0.D0) THEN
-                    factor = cbulk / cionmax
-                    !
-                    IF (base%electrolyte_entropy == 'ions') &
-                        denominator%of_r = denominator%of_r - factor * (1.D0 - gam)
-                    !
-                END IF
-                !
-            ELSE ! full PB
-                !
-                DO j = 1, potential%cell%ir_end
-                    !
-                    !--------------------------------------------------------------------
-                    ! Numerical problems arise when computing exp( -z*pot/kT )
-                    ! in regions close to the nuclei (exponent is too large).
-                    !
-                    arg = -z * pot(j) / kT
-                    !
-                    IF (arg > exp_arg_limit) THEN
-                        cfactor(j) = EXP(exp_arg_limit)
-                    ELSE IF (arg < -exp_arg_limit) THEN
-                        cfactor(j) = EXP(-exp_arg_limit)
-                    ELSE
-                        cfactor(j) = EXP(arg)
-                    END IF
-                    !
-                END DO
-                !
-                IF (cionmax /= 0.D0) THEN ! full modified PB
-                    factor = cbulk / cionmax
-                    !
-                    SELECT CASE (base%electrolyte_entropy)
-                        !
-                    CASE ('full')
-                        denominator%of_r = denominator%of_r - factor * (1.D0 - cfactor)
-                        !
-                    CASE ('ions')
-                        !
-                        denominator%of_r = denominator%of_r - &
-                                           factor * (1.D0 - gam * cfactor)
-                        !
-                    CASE DEFAULT
-                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
-                        !
-                    END SELECT
-                    !
-                END IF
-                !
-            END IF
-            !
-            NULLIFY (cfactor)
-            NULLIFY (cbulk)
-            NULLIFY (z)
-        END DO
-        !
-        DO i = 1, base%ntyp
-            c => base%ioncctype(i)%c%of_r
-            cfactor => base%ioncctype(i)%cfactor%of_r
-            cbulk => base%ioncctype(i)%cbulk
-            z => base%ioncctype(i)%z
-            !
-            c = gam * cbulk * cfactor / denominator%of_r
-            rho = rho + c * z
-            !
-            NULLIFY (c)
-            NULLIFY (cfactor)
-            NULLIFY (cbulk)
-            NULLIFY (z)
-        END DO
-        !
-        this%charge = this%density%integrate()
-        !
-        IF (base%linearized) THEN
+        ASSOCIATE (cell => potential%cell, &
+                   gamma => this%gamma%of_r, &
+                   dgamma => this%dgamma%of_r, &
+                   pot => potential%of_r, &
+                   rho => this%density, &
+                   base => this%base, &
+                   k2 => this%base%k2, &
+                   cionmax => this%base%cionmax, &
+                   de_dboundary_second_order => this%de_dboundary_second_order%of_r, &
+                   kT => K_BOLTZMANN_RY * this%base%temperature)
             !
             !----------------------------------------------------------------------------
-            ! Compute energy and de_dboundary terms that depend on the potential.
-            ! These are the second order terms, first order terms are equal to zero.
-            ! NOTE: the energy is equal to minus the electrostatic interaction of the
-            ! electrolyte, and is identical for the various implementations of the entropy.
             !
-            this%energy_second_order = 0.5D0 * this%density%scalar_product(potential)
+            rho%of_r = 0.D0
             !
-            IF (base%electrolyte_entropy == 'ions' .AND. cionmax > 0.D0) THEN
+            CALL denominator%init(cell)
+            !
+            denominator%of_r = 1.D0
+            !
+            DO i = 1, base%ntyp
                 !
-                sumcbulk = SUM(base%ioncctype%cbulk)
+                ASSOCIATE (cfactor => base%ioncctype(i)%cfactor%of_r, &
+                           cbulk => base%ioncctype(i)%cbulk, &
+                           z => base%ioncctype(i)%z)
+                    !
+                    cfactor = 1.D0
+                    !
+                    IF (base%linearized) THEN ! Linearized PB and modified PB
+                        cfactor = 1.D0 - z * pot / kT
+                        !
+                        IF (cionmax > 0.D0) THEN
+                            fact = cbulk / cionmax
+                            !
+                            IF (base%electrolyte_entropy == 'ions') &
+                                denominator%of_r = denominator%of_r - &
+                                                   fact * (1.D0 - gamma)
+                            !
+                        END IF
+                        !
+                    ELSE ! full PB
+                        !
+                        DO j = 1, cell%ir_end
+                            !
+                            !------------------------------------------------------------
+                            ! Numerical problems arise when computing exp( -z*pot/kT )
+                            ! in regions close to the nuclei (exponent is too large).
+                            !
+                            arg = -z * pot(j) / kT
+                            !
+                            IF (arg > exp_arg_limit) THEN
+                                cfactor(j) = EXP(exp_arg_limit)
+                            ELSE IF (arg < -exp_arg_limit) THEN
+                                cfactor(j) = EXP(-exp_arg_limit)
+                            ELSE
+                                cfactor(j) = EXP(arg)
+                            END IF
+                            !
+                        END DO
+                        !
+                        IF (cionmax /= 0.D0) THEN ! full modified PB
+                            fact = cbulk / cionmax
+                            !
+                            SELECT CASE (base%electrolyte_entropy)
+                                !
+                            CASE ('full')
+                                denominator%of_r = denominator%of_r - &
+                                                   fact * (1.D0 - cfactor)
+                                !
+                            CASE ('ions')
+                                !
+                                denominator%of_r = denominator%of_r - &
+                                                   fact * (1.D0 - gamma * cfactor)
+                                !
+                            CASE DEFAULT
+                                CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                                !
+                            END SELECT
+                            !
+                        END IF
+                        !
+                    END IF
+                    !
+                END ASSOCIATE
                 !
-                this%de_dboundary_second_order%of_r = &
-                    -0.5D0 * base%k2 / e2 / fpi * (1.D0 - sumcbulk / cionmax) * &
-                    (pot / denominator%of_r)**2 * this%dgamma%of_r
+            END DO
+            !
+            DO i = 1, base%ntyp
                 !
-            ELSE
+                ASSOCIATE (c => base%ioncctype(i)%c%of_r, &
+                           cbulk => base%ioncctype(i)%cbulk, &
+                           cfactor => base%ioncctype(i)%cfactor%of_r, &
+                           z => base%ioncctype(i)%z)
+                    !
+                    c = gamma * cbulk * cfactor / denominator%of_r
+                    rho%of_r = rho%of_r + c * z
+                    !
+                END ASSOCIATE
                 !
-                this%de_dboundary_second_order%of_r = -0.5D0 * base%k2 / e2 / fpi * &
-                                                      pot * pot * this%dgamma%of_r
+            END DO
+            !
+            this%charge = rho%integrate()
+            !
+            IF (base%linearized) THEN
+                !
+                !------------------------------------------------------------------------
+                ! Compute energy and de_dboundary terms that depend on the potential.
+                ! These are the second order terms, first order terms are equal to zero.
+                !
+                ! NOTE: the energy is equal to minus the electrostatic interaction of the
+                !       electrolyte, and is identical for the various implementations of
+                !       the entropy.
+                !
+                this%energy_second_order = 0.5D0 * rho%scalar_product(potential)
+                !
+                IF (base%electrolyte_entropy == 'ions' .AND. cionmax > 0.D0) THEN
+                    sumcbulk = SUM(base%ioncctype%cbulk)
+                    !
+                    de_dboundary_second_order = &
+                        -0.5D0 * k2 / e2 / fpi * (1.D0 - sumcbulk / cionmax) * &
+                        (pot / denominator%of_r)**2 * dgamma
+                    !
+                ELSE
+                    de_dboundary_second_order = -0.5D0 * k2 / e2 / fpi * dgamma * pot**2
+                END IF
                 !
             END IF
             !
-        END IF
-        !
-        CALL denominator%destroy()
+            CALL denominator%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrolyte_of_potential
@@ -448,10 +451,7 @@ CONTAINS
         REAL(DP), INTENT(OUT) :: energy
         !
         INTEGER :: i
-        REAL(DP) :: kT, sumcbulk, logterm, integral
-
-        REAL(DP), POINTER :: cionmax
-        TYPE(environ_electrolyte_base), POINTER :: base
+        REAL(DP) :: logterm, integral
         !
         TYPE(environ_density) :: arg, f
         !
@@ -459,91 +459,97 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        base => this%base
-        cionmax => base%cionmax
-        !
-        energy = 0.D0
-        !
-        kT = K_BOLTZMANN_RY * base%temperature
-        sumcbulk = SUM(base%ioncctype%cbulk)
-        !
-        CALL arg%init(this%gamma%cell)
-        !
-        CALL f%init(this%gamma%cell)
-        !
-        IF (base%linearized) THEN
+        ASSOCIATE (cell => this%gamma%cell, &
+                   omega => this%gamma%cell%omega, &
+                   gamma => this%gamma%of_r, &
+                   base => this%base, &
+                   cionmax => this%base%cionmax, &
+                   kT => K_BOLTZMANN_RY * this%base%temperature, &
+                   sumcbulk => SUM(this%base%ioncctype%cbulk))
             !
-            IF (cionmax == 0.D0) THEN ! Linearized PB
-                integral = this%gamma%integrate()
-                energy = kT * sumcbulk * (this%gamma%cell%omega - integral)
-            ELSE ! Linearized modified PB
+            !----------------------------------------------------------------------------
+            !
+            energy = 0.D0
+            !
+            CALL arg%init(cell)
+            !
+            CALL f%init(cell)
+            !
+            IF (base%linearized) THEN
                 !
-                SELECT CASE (base%electrolyte_entropy)
-                    !
-                CASE ('full')
+                IF (cionmax == 0.D0) THEN ! Linearized PB
                     integral = this%gamma%integrate()
-                    logterm = LOG(1.D0 - sumcbulk / cionmax)
-                    energy = kT * cionmax * logterm * (integral - this%gamma%cell%omega)
+                    energy = kT * sumcbulk * (omega - integral)
+                ELSE ! Linearized modified PB
                     !
-                CASE ('ions')
-                    arg%of_r = 1.D0 - sumcbulk / cionmax * (1.D0 - this%gamma%of_r)
-                    f%of_r = LOG(arg%of_r)
+                    SELECT CASE (base%electrolyte_entropy)
+                        !
+                    CASE ('full')
+                        integral = this%gamma%integrate()
+                        logterm = LOG(1.D0 - sumcbulk / cionmax)
+                        energy = kT * cionmax * logterm * (integral - omega)
+                        !
+                    CASE ('ions')
+                        arg%of_r = 1.D0 - sumcbulk / cionmax * (1.D0 - gamma)
+                        f%of_r = LOG(arg%of_r)
+                        integral = f%integrate()
+                        energy = -kT * cionmax * integral
+                        !
+                    CASE DEFAULT
+                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        !
+                    END SELECT
+                    !
+                END IF
+                !
+                energy = energy + this%energy_second_order
+            ELSE
+                arg%of_r = 0.D0
+                !
+                DO i = 1, base%ntyp
+                    !
+                    arg%of_r = arg%of_r + base%ioncctype(i)%cfactor%of_r * &
+                               base%ioncctype(i)%cbulk
+                    !
+                END DO
+                !
+                IF (cionmax == 0.D0) THEN ! Full PB
+                    f%of_r = gamma * arg%of_r - sumcbulk
                     integral = f%integrate()
-                    energy = -kT * cionmax * integral
+                    energy = -kT * integral
+                ELSE ! full modified PB
                     !
-                CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                    SELECT CASE (base%electrolyte_entropy)
+                        !
+                    CASE ('full')
+                        arg%of_r = arg%of_r / (cionmax - sumcbulk)
+                        arg%of_r = arg%of_r + 1.D0
+                        f%of_r = gamma * LOG(arg%of_r)
+                        integral = f%integrate()
+                        logterm = LOG(1.D0 - sumcbulk / cionmax)
+                        energy = -kT * cionmax * (integral + logterm * omega)
+                        !
+                    CASE ('ions')
+                        arg%of_r = arg%of_r / cionmax * gamma
+                        arg%of_r = arg%of_r + 1.D0 - sumcbulk / cionmax
+                        f%of_r = LOG(arg%of_r)
+                        integral = f%integrate()
+                        energy = -kT * cionmax * integral
+                        !
+                    CASE DEFAULT
+                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        !
+                    END SELECT
                     !
-                END SELECT
+                END IF
                 !
             END IF
             !
-            energy = energy + this%energy_second_order
-        ELSE
-            arg%of_r = 0.D0
+            CALL arg%destroy()
             !
-            DO i = 1, base%ntyp
-                !
-                arg%of_r = arg%of_r + base%ioncctype(i)%cfactor%of_r * &
-                           base%ioncctype(i)%cbulk
-                !
-            END DO
+            CALL f%destroy()
             !
-            IF (cionmax == 0.D0) THEN ! Full PB
-                f%of_r = this%gamma%of_r * arg%of_r - sumcbulk
-                integral = f%integrate()
-                energy = -kT * integral
-            ELSE ! full modified PB
-                !
-                SELECT CASE (base%electrolyte_entropy)
-                    !
-                CASE ('full')
-                    arg%of_r = arg%of_r / (cionmax - sumcbulk)
-                    arg%of_r = arg%of_r + 1.D0
-                    f%of_r = this%gamma%of_r * LOG(arg%of_r)
-                    integral = f%integrate()
-                    logterm = LOG(1.D0 - sumcbulk / cionmax)
-                    energy = -kT * cionmax * (integral + logterm * this%gamma%cell%omega)
-                    !
-                CASE ('ions')
-                    arg%of_r = arg%of_r / cionmax * this%gamma%of_r
-                    arg%of_r = arg%of_r + 1.D0 - sumcbulk / cionmax
-                    f%of_r = LOG(arg%of_r)
-                    integral = f%integrate()
-                    energy = -kT * cionmax * integral
-                    !
-                CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
-                    !
-                END SELECT
-                !
-            END IF
-            !
-        END IF
-        !
-        CALL arg%destroy()
-        !
-        CALL f%destroy()
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_eelectrolyte
@@ -561,10 +567,6 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(INOUT) :: de_dboundary
         !
         INTEGER :: i
-        REAL(DP) :: kT, sumcbulk
-        !
-        REAL(DP), POINTER :: gam(:), cionmax
-        TYPE(environ_electrolyte_base), POINTER :: base
         !
         TYPE(environ_density) :: arg
         !
@@ -572,84 +574,90 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        gam => this%gamma%of_r
-        base => this%base
-        cionmax => base%cionmax
-        !
-        kT = K_BOLTZMANN_RY * base%temperature
-        sumcbulk = SUM(base%ioncctype%cbulk)
-        !
-        IF (base%linearized) THEN
+        ASSOCIATE (gamma => this%gamma%of_r, &
+                   dgamma => this%dgamma%of_r, &
+                   base => this%base, &
+                   cionmax => this%base%cionmax, &
+                   kT => K_BOLTZMANN_RY * this%base%temperature, &
+                   sumcbulk => SUM(this%base%ioncctype%cbulk))
             !
-            IF (cionmax == 0.D0) THEN ! linearized PB
-                de_dboundary%of_r = de_dboundary%of_r - this%dgamma%of_r * kT * sumcbulk
-            ELSE ! linearized modified PB
+            !----------------------------------------------------------------------------
+            !
+            IF (base%linearized) THEN
                 !
-                SELECT CASE (base%electrolyte_entropy)
+                IF (cionmax == 0.D0) THEN ! linearized PB
+                    de_dboundary%of_r = de_dboundary%of_r - dgamma * kT * sumcbulk
+                ELSE ! linearized modified PB
                     !
-                CASE ('full')
+                    SELECT CASE (base%electrolyte_entropy)
+                        !
+                    CASE ('full')
+                        !
+                        de_dboundary%of_r = de_dboundary%of_r + &
+                                            dgamma * kT * cionmax * &
+                                            LOG(1.D0 - sumcbulk / cionmax)
+                        !
+                    CASE ('ions')
+                        !
+                        de_dboundary%of_r = de_dboundary%of_r - &
+                                            dgamma * kT * sumcbulk / &
+                                            (1.D0 - sumcbulk / cionmax * (1.D0 - gamma))
+                        !
+                    CASE DEFAULT
+                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        !
+                    END SELECT
                     !
-                    de_dboundary%of_r = de_dboundary%of_r + &
-                                        this%dgamma%of_r * kT * cionmax * &
-                                        LOG(1.D0 - sumcbulk / cionmax)
+                END IF
+                !
+                de_dboundary%of_r = de_dboundary%of_r + &
+                                    this%de_dboundary_second_order%of_r
+                !
+            ELSE
+                !
+                CALL arg%init(de_dboundary%cell)
+                !
+                arg%of_r = 0.D0
+                !
+                DO i = 1, base%ntyp
                     !
-                CASE ('ions')
+                    arg%of_r = arg%of_r + &
+                               base%ioncctype(i)%cfactor%of_r * base%ioncctype(i)%cbulk
                     !
-                    de_dboundary%of_r = de_dboundary%of_r - &
-                                        this%dgamma%of_r * kT * sumcbulk / &
-                                        (1.D0 - sumcbulk / cionmax * (1.D0 - gam))
+                END DO
+                !
+                IF (cionmax == 0.D0) THEN ! full PB
+                    de_dboundary%of_r = de_dboundary%of_r - dgamma * kT * arg%of_r
+                ELSE ! full modified PB
                     !
-                CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                    SELECT CASE (base%electrolyte_entropy)
+                        !
+                    CASE ('full')
+                        arg%of_r = arg%of_r / (cionmax - sumcbulk)
+                        arg%of_r = arg%of_r + 1.D0
+                        !
+                        de_dboundary%of_r = de_dboundary%of_r - &
+                                            dgamma * kT * cionmax * LOG(arg%of_r)
+                        !
+                    CASE ('ions')
+                        !
+                        de_dboundary%of_r = &
+                            de_dboundary%of_r - &
+                            dgamma * kT * arg%of_r / &
+                            (1.D0 - (sumcbulk - arg%of_r * gamma) / cionmax)
+                        !
+                    CASE DEFAULT
+                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        !
+                    END SELECT
                     !
-                END SELECT
+                END IF
+                !
+                CALL arg%destroy()
                 !
             END IF
             !
-            de_dboundary%of_r = de_dboundary%of_r + this%de_dboundary_second_order%of_r
-        ELSE
-            !
-            CALL arg%init(de_dboundary%cell)
-            !
-            arg%of_r = 0.D0
-            !
-            DO i = 1, base%ntyp
-                !
-                arg%of_r = arg%of_r + &
-                           base%ioncctype(i)%cfactor%of_r * &
-                           base%ioncctype(i)%cbulk
-                !
-            END DO
-            !
-            IF (cionmax == 0.D0) THEN ! full PB
-                de_dboundary%of_r = de_dboundary%of_r - this%dgamma%of_r * kT * arg%of_r
-            ELSE ! full modified PB
-                !
-                SELECT CASE (base%electrolyte_entropy)
-                    !
-                CASE ('full')
-                    arg%of_r = arg%of_r / (cionmax - sumcbulk)
-                    arg%of_r = arg%of_r + 1.D0
-                    !
-                    de_dboundary%of_r = de_dboundary%of_r - &
-                                        this%dgamma%of_r * kT * cionmax * LOG(arg%of_r)
-                    !
-                CASE ('ions')
-                    !
-                    de_dboundary%of_r = de_dboundary%of_r - &
-                                        this%dgamma%of_r * kT * arg%of_r / &
-                                        (1.D0 - (sumcbulk - arg%of_r * gam) / cionmax)
-                    !
-                CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
-                    !
-                END SELECT
-                !
-            END IF
-            !
-            CALL arg%destroy()
-            !
-        END IF
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_deelectrolyte_dboundary

@@ -211,44 +211,42 @@ CONTAINS
         INTEGER :: i
         REAL(DP) :: r(3), r2
         !
-        INTEGER, POINTER :: dim, axis
-        TYPE(environ_cell), POINTER :: cell
-        !
         CHARACTER(LEN=80) :: sub_name = 'update_core_1da_origin'
         !
         !--------------------------------------------------------------------------------
         !
-        cell => this%cell
-        dim => this%dim
-        axis => this%axis
-        !
         this%origin = origin
         !
-        IF (dim == 0) THEN
+        ASSOCIATE (cell => this%cell, &
+                   dim => this%dim)
             !
-            DO i = 1, cell%ir_end
+            IF (dim == 0) THEN
                 !
-                CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
+                DO i = 1, cell%ir_end
+                    !
+                    CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    this%x(:, i) = r
+                END DO
                 !
-                IF (.NOT. physical) CYCLE
+            ELSE IF (dim == 1) THEN
+                CALL io%error(sub_name, 'Option not yet implemented', 1)
+            ELSE IF (dim == 2) THEN
                 !
-                this%x(:, i) = r
-            END DO
+                DO i = 1, cell%ir_end
+                    !
+                    CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    this%x(1, i) = r(this%axis)
+                END DO
+                !
+            END IF
             !
-        ELSE IF (dim == 1) THEN
-            CALL io%error(sub_name, 'Option not yet implemented', 1)
-        ELSE IF (dim == 2) THEN
-            !
-            DO i = 1, cell%ir_end
-                !
-                CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
-                !
-                IF (.NOT. physical) CYCLE
-                !
-                this%x(1, i) = r(axis)
-            END DO
-            !
-        END IF
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_core_1da_origin
@@ -514,11 +512,9 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
-        REAL(DP), POINTER :: Z
-        !
         INTEGER :: i
         !
-        REAL(DP) :: fact, pos(3)
+        REAL(DP) :: fact
         REAL(DP) :: charge, dipole(3), quadrupole(3)
         REAL(DP) :: ftmp(3, nat)
         !
@@ -564,29 +560,33 @@ CONTAINS
             ftmp = 0.D0
             !
             DO i = 1, nat
-                pos = ions%array(i)%pos - origin
-                Z => ions%array(i)%volume
                 !
-                SELECT CASE (this%dim)
+                ASSOCIATE (pos => ions%array(i)%pos - origin, &
+                           Z => ions%array(i)%volume)
                     !
-                CASE (0)
-                    ftmp(:, i) = (charge * pos - dipole) / 3.D0
+                    SELECT CASE (this%dim)
+                        !
+                    CASE (0)
+                        ftmp(:, i) = (charge * pos - dipole) / 3.D0
+                        !
+                    CASE (1)
+                        CALL io%error(sub_name, "Option not yet implemented", 1)
+                        !
+                    CASE (2)
+                        ftmp(slab_axis, i) = charge * pos(slab_axis) - dipole(slab_axis)
+                        !
+                    CASE (3)
+                        ftmp = 0.D0
+                        !
+                    CASE DEFAULT
+                        CALL io%error(sub_name, "Unexpected system dimensions", 1)
+                        !
+                    END SELECT
                     !
-                CASE (1)
-                    CALL io%error(sub_name, 'Option not yet implemented', 1)
+                    ftmp(:, i) = ftmp(:, i) * fact * Z
                     !
-                CASE (2)
-                    ftmp(slab_axis, i) = charge * pos(slab_axis) - dipole(slab_axis)
-                    !
-                CASE (3)
-                    ftmp = 0.D0
-                    !
-                CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected system dimensions', 1)
-                    !
-                END SELECT
+                END ASSOCIATE
                 !
-                ftmp(:, i) = ftmp(:, i) * fact * Z
             END DO
             !
             force = force + ftmp

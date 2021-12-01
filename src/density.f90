@@ -372,6 +372,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ir_end => this%cell%ir_end
+        !
         euclidean_norm = DOT_PRODUCT(this%of_r(1:ir_end), this%of_r(1:ir_end))
         !
         CALL env_mp_sum(euclidean_norm, this%cell%dfft%comm)
@@ -396,6 +397,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ir_end => this%cell%ir_end
+        !
         quadratic_mean = DOT_PRODUCT(this%of_r(1:ir_end), this%of_r(1:ir_end))
         !
         CALL env_mp_sum(quadratic_mean, this%cell%dfft%comm)
@@ -427,7 +429,10 @@ CONTAINS
         IF (.NOT. ASSOCIATED(this%cell, density2%cell)) &
             CALL io%error(fun_name, 'Operation on fields with inconsistent domains', 1)
         !
+        !--------------------------------------------------------------------------------
+        !
         ir_end => this%cell%ir_end
+        !
         scalar_product = DOT_PRODUCT(this%of_r(1:ir_end), density2%of_r(1:ir_end))
         !
         CALL env_mp_sum(scalar_product, this%cell%dfft%comm)

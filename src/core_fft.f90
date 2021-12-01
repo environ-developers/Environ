@@ -939,9 +939,6 @@ CONTAINS
         !
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
-        REAL(DP), POINTER :: Z ! ionic charge
-        REAL(DP), POINTER :: D ! gaussian spread of smeared ion function
-        !
         CHARACTER(LEN=80) :: sub_name = 'force_fft'
         !
         !--------------------------------------------------------------------------------
@@ -985,25 +982,31 @@ CONTAINS
             force = 0.D0
             !
             DO i = 1, nat
-                Z => ions%array(i)%volume
-                D => ions%array(i)%spread
-                R = ions%array(i)%pos - this%cell%origin ! account for any origin shift
                 !
-                DO j = this%cell%gstart, ngm
-                    fpibg2 = fpi / (G2(j) * tpi2)
+                ASSOCIATE (Z => ions%array(i)%volume, & ! ionic charge
+                           D => ions%array(i)%spread, & ! gaussian spread of smeared ion
+                           R => ions%array(i)%pos - this%cell%origin) ! ion position
                     !
-                    t_arg = tpi * SUM(G(:, j) * R)
-                    euler_term = SIN(t_arg) * DBLE(auxg(j)) + COS(t_arg) * AIMAG(auxg(j))
+                    DO j = this%cell%gstart, ngm
+                        fpibg2 = fpi / (G2(j) * tpi2)
+                        !
+                        t_arg = tpi * SUM(G(:, j) * R)
+                        !
+                        euler_term = SIN(t_arg) * DBLE(auxg(j)) + &
+                                     COS(t_arg) * AIMAG(auxg(j))
+                        !
+                        e_arg = -0.25D0 * D**2 * G2(j) * tpi2
+                        gauss_term = fpibg2 * EXP(e_arg)
+                        !
+                        main_term = gauss_term + this%correction(j)
+                        !
+                        force(:, i) = force(:, i) + G(:, j) * euler_term * main_term
+                    END DO
                     !
-                    e_arg = -0.25D0 * D**2 * G2(j) * tpi2
-                    gauss_term = fpibg2 * EXP(e_arg)
+                    force(:, i) = force(:, i) * Z
                     !
-                    main_term = gauss_term + this%correction(j)
-                    !
-                    force(:, i) = force(:, i) + G(:, j) * euler_term * main_term
-                END DO
+                END ASSOCIATE
                 !
-                force(:, i) = force(:, i) * Z
             END DO
             !
             force = force * tpi * e2 * fact

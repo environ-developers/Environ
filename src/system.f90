@@ -149,6 +149,7 @@ CONTAINS
         INTEGER :: i, j
         INTEGER :: max_ntyp
         REAL(DP) :: charge, dist
+        !
         INTEGER, POINTER :: ityp
         REAL(DP), POINTER :: zv
         !

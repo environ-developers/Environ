@@ -208,8 +208,6 @@ CONTAINS
         TYPE(environ_density) :: residual, rhotot, numerator, denominator, &
                                  cfactor, rhoaux, screening
         !
-        REAL(DP), POINTER :: cbulki, cbulkj, zi, zj
-        !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
         CHARACTER(LEN=80) :: sub_name = 'pb_newton'
@@ -297,91 +295,103 @@ CONTAINS
                 ! General solution for symmetric & asymmetric electrolyte
                 !
                 DO j = 1, base%ntyp
-                    zi => base%ioncctype(j)%z
-                    cbulki => base%ioncctype(j)%cbulk
                     !
-                    cfactor%of_r = 1.D0
-                    !
-                    DO k = 1, cell%ir_end
-                        arg = -zi * v%of_r(k) / kT
+                    ASSOCIATE (zi => electrolyte%base%ioncctype(j)%z, &
+                               cbulki => electrolyte%base%ioncctype(j)%cbulk)
                         !
-                        IF (arg > exp_arg_limit) THEN
-                            cfactor%of_r(k) = EXP(exp_arg_limit)
-                        ELSE IF (arg < -exp_arg_limit) THEN
-                            cfactor%of_r(k) = EXP(-exp_arg_limit)
-                        ELSE
-                            cfactor%of_r(k) = EXP(arg)
+                        cfactor%of_r = 1.D0
+                        !
+                        DO k = 1, cell%ir_end
+                            arg = -zi * v%of_r(k) / kT
+                            !
+                            IF (arg > exp_arg_limit) THEN
+                                cfactor%of_r(k) = EXP(exp_arg_limit)
+                            ELSE IF (arg < -exp_arg_limit) THEN
+                                cfactor%of_r(k) = EXP(-exp_arg_limit)
+                            ELSE
+                                cfactor%of_r(k) = EXP(arg)
+                            END IF
+                            !
+                        END DO
+                        !
+                        rhoaux%of_r = rhoaux%of_r + zi * cbulki * cfactor%of_r
+                        numerator%of_r = 1.D0
+                        !
+                        IF (cionmax > 0.D0) THEN
+                            !
+                            SELECT CASE (base%electrolyte_entropy)
+                                !
+                            CASE ('full')
+                                !
+                                denominator%of_r = &
+                                    denominator%of_r - &
+                                    cbulki / cionmax * (1.D0 - cfactor%of_r)
+                                !
+                                DO l = 1, base%ntyp
+                                    !
+                                    ASSOCIATE (zj => electrolyte%base%ioncctype(l)%z, &
+                                               cbulkj => electrolyte%base%ioncctype(l)%cbulk)
+                                        !
+                                        IF (l == j) THEN
+                                            !
+                                            numerator%of_r = numerator%of_r - &
+                                                             cbulkj / cionmax
+                                            !
+                                        ELSE
+                                            !
+                                            numerator%of_r = &
+                                                numerator%of_r - cbulkj / cionmax * &
+                                                (1.D0 - (1.D0 - zj / zi) * &
+                                                 cfactor%of_r**(zj / zi))
+                                            !
+                                        END IF
+                                        !
+                                    END ASSOCIATE
+                                    !
+                                END DO
+                                !
+                            CASE ('ions')
+                                !
+                                denominator%of_r = &
+                                    denominator%of_r - cbulki / cionmax * &
+                                    (1.D0 - gam%of_r * cfactor%of_r)
+                                !
+                                DO l = 1, base%ntyp
+                                    !
+                                    ASSOCIATE (zj => electrolyte%base%ioncctype(l)%z, &
+                                               cbulkj => electrolyte%base%ioncctype(l)%cbulk)
+                                        !
+                                        IF (l == j) THEN
+                                            !
+                                            numerator%of_r = numerator%of_r - &
+                                                             cbulkj / cionmax
+                                            !
+                                        ELSE
+                                            !
+                                            numerator%of_r = &
+                                                numerator%of_r - cbulkj / cionmax * &
+                                                (1.D0 - (1.D0 - zj / zi) * gam%of_r * &
+                                                 cfactor%of_r**(zj / zi))
+                                            !
+                                        END IF
+                                        !
+                                    END ASSOCIATE
+                                    !
+                                END DO
+                                !
+                            CASE DEFAULT
+                                CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                                !
+                            END SELECT
+                            !
                         END IF
                         !
-                    END DO
-                    !
-                    rhoaux%of_r = rhoaux%of_r + zi * cbulki * cfactor%of_r
-                    numerator%of_r = 1.D0
-                    !
-                    IF (cionmax > 0.D0) THEN
+                        screening%of_r = &
+                            screening%of_r + &
+                            cbulki * zi**2 / kT * cfactor%of_r * numerator%of_r
                         !
-                        SELECT CASE (base%electrolyte_entropy)
-                            !
-                        CASE ('full')
-                            !
-                            denominator%of_r = denominator%of_r - &
-                                               cbulki / cionmax * (1.D0 - cfactor%of_r)
-                            !
-                            DO l = 1, base%ntyp
-                                zj => base%ioncctype(l)%z
-                                cbulkj => base%ioncctype(l)%cbulk
-                                !
-                                IF (l == j) THEN
-                                    numerator%of_r = numerator%of_r - cbulkj / cionmax
-                                ELSE
-                                    !
-                                    numerator%of_r = &
-                                        numerator%of_r - cbulkj / cionmax * &
-                                        (1.D0 - (1.D0 - zj / zi) * &
-                                         cfactor%of_r**(zj / zi))
-                                    !
-                                END IF
-                                !
-                                NULLIFY (zj)
-                                NULLIFY (cbulkj)
-                            END DO
-                            !
-                        CASE ('ions')
-                            !
-                            denominator%of_r = denominator%of_r - cbulki / cionmax * &
-                                               (1.D0 - gam%of_r * cfactor%of_r)
-                            !
-                            DO l = 1, base%ntyp
-                                zj => base%ioncctype(l)%z
-                                cbulkj => base%ioncctype(l)%cbulk
-                                !
-                                IF (l == j) THEN
-                                    numerator%of_r = numerator%of_r - cbulkj / cionmax
-                                ELSE
-                                    !
-                                    numerator%of_r = &
-                                        numerator%of_r - cbulkj / cionmax * &
-                                        (1.D0 - (1.D0 - zj / zi) * gam%of_r * &
-                                         cfactor%of_r**(zj / zi))
-                                    !
-                                END IF
-                                !
-                                NULLIFY (zj)
-                                NULLIFY (cbulkj)
-                            END DO
-                            !
-                        CASE DEFAULT
-                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
-                            !
-                        END SELECT
-                        !
-                    END IF
+                    END ASSOCIATE
                     !
-                    screening%of_r = screening%of_r + &
-                                     cbulki * zi**2 / kT * cfactor%of_r * numerator%of_r
-                    !
-                    NULLIFY (zi)
-                    NULLIFY (cbulki)
                 END DO
                 !
                 rhoaux%of_r = gam%of_r * rhoaux%of_r / denominator%of_r

@@ -504,8 +504,6 @@ CONTAINS
         REAL(DP) :: total, totaux, delta_qm, delta_en, kT, factor, arg
         TYPE(environ_density) :: residual, rhotot, denominator, rhoaux, cfactor
         !
-        REAL(DP), POINTER :: cbulk, z
-        !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
         CHARACTER(LEN=80) :: sub_name = 'pb_fixedpoint'
@@ -593,50 +591,52 @@ CONTAINS
                 denominator%of_r = 1.D0
                 !
                 DO j = 1, base%ntyp
-                    cbulk => base%ioncctype(j)%cbulk
-                    z => base%ioncctype(j)%z
                     !
-                    cfactor%of_r = 1.D0
-                    !
-                    DO k = 1, cell%ir_end
-                        arg = -z * v%of_r(k) / kT
+                    ASSOCIATE (cbulk => base%ioncctype(j)%cbulk, &
+                               z => base%ioncctype(j)%z)
                         !
-                        IF (arg > exp_arg_limit) THEN
-                            cfactor%of_r(k) = EXP(exp_arg_limit)
-                        ELSE IF (arg < -exp_arg_limit) THEN
-                            cfactor%of_r(k) = EXP(-exp_arg_limit)
-                        ELSE
-                            cfactor%of_r(k) = EXP(arg)
+                        cfactor%of_r = 1.D0
+                        !
+                        DO k = 1, cell%ir_end
+                            arg = -z * v%of_r(k) / kT
+                            !
+                            IF (arg > exp_arg_limit) THEN
+                                cfactor%of_r(k) = EXP(exp_arg_limit)
+                            ELSE IF (arg < -exp_arg_limit) THEN
+                                cfactor%of_r(k) = EXP(-exp_arg_limit)
+                            ELSE
+                                cfactor%of_r(k) = EXP(arg)
+                            END IF
+                            !
+                        END DO
+                        !
+                        residual%of_r = residual%of_r + z * cbulk * cfactor%of_r
+                        !
+                        IF (cionmax > 0.D0) THEN
+                            factor = cbulk / cionmax
+                            !
+                            SELECT CASE (base%electrolyte_entropy)
+                                !
+                            CASE ('full')
+                                !
+                                denominator%of_r = denominator%of_r - &
+                                                   factor * (1.D0 - cfactor%of_r)
+                                !
+                            CASE ('ions')
+                                !
+                                denominator%of_r = &
+                                    denominator%of_r - &
+                                    factor * (1.D0 - gam%of_r * cfactor%of_r)
+                                !
+                            CASE DEFAULT
+                                CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                                !
+                            END SELECT
+                            !
                         END IF
                         !
-                    END DO
+                    END ASSOCIATE
                     !
-                    residual%of_r = residual%of_r + z * cbulk * cfactor%of_r
-                    !
-                    IF (cionmax > 0.D0) THEN
-                        factor = cbulk / cionmax
-                        !
-                        SELECT CASE (base%electrolyte_entropy)
-                            !
-                        CASE ('full')
-                            !
-                            denominator%of_r = denominator%of_r - &
-                                               factor * (1.D0 - cfactor%of_r)
-                            !
-                        CASE ('ions')
-                            !
-                            denominator%of_r = denominator%of_r - &
-                                               factor * (1.D0 - gam%of_r * cfactor%of_r)
-                            !
-                        CASE DEFAULT
-                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
-                            !
-                        END SELECT
-                        !
-                    END IF
-                    !
-                    NULLIFY (z)
-                    NULLIFY (cbulk)
                 END DO
                 !
                 residual%of_r = gam%of_r * residual%of_r / denominator%of_r
