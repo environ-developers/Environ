@@ -458,7 +458,7 @@ CONTAINS
         !
         WRITE (io%unit, 20) TRIM(ADJUSTL(cerr)), message
         !
-20      FORMAT(/, "ENVIRON WARNING (", A, "): ", A,/)
+20      FORMAT(/, "Environ Warning (", A, "): ", A,/)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_warning
