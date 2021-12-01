@@ -113,8 +113,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: environ_unit_input
         !
-        LOGICAL :: lboundary, lelectrostatic
         INTEGER :: ios
+        LOGICAL :: lboundary, lelectrostatic
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_read_namelist'
         !
@@ -146,7 +146,7 @@ CONTAINS
         !
         CALL environ_checkin() ! check &ENVIRON variables
         !
-        CALL fix_boundary(lboundary) ! TRUE/FALSE depending on &ENVIRON
+        lboundary = needs_boundary() ! TRUE/FALSE depending on &ENVIRON
         !
         !--------------------------------------------------------------------------------
         ! &BOUNDARY namelist (only if needed)
@@ -176,7 +176,7 @@ CONTAINS
         !
         CALL set_environ_type() ! set up environment according to the boundary
         !
-        CALL fix_electrostatic(lelectrostatic) ! TRUE/FALSE depending on &ENVIRON
+        lelectrostatic = needs_electrostatics() ! TRUE/FALSE depending on &ENVIRON
         !
         !--------------------------------------------------------------------------------
         ! &ELECTROSTATIC namelist (only if needed)
@@ -1140,24 +1140,16 @@ CONTAINS
     !! according to the ENVIRON namelist
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE fix_boundary(lboundary)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(OUT) :: lboundary
-        !
-        CHARACTER(LEN=80) :: sub_name = 'fix_boundary'
-        !
+    LOGICAL FUNCTION needs_boundary() RESULT(lboundary)
         !--------------------------------------------------------------------------------
         !
         lboundary = .FALSE.
         !
-        IF (environ_type /= 'input' .AND. environ_type /= 'vacuum') &
-            lboundary = .TRUE.
+        IF (environ_type /= 'input' .AND. environ_type /= 'vacuum') lboundary = .TRUE.
         !
-        IF (env_static_permittivity > 1.D0 .OR. env_optical_permittivity > 1.D0) &
-            lboundary = .TRUE.
+        IF (env_static_permittivity > 1.D0) lboundary = .TRUE.
+        !
+        IF (env_optical_permittivity > 1.D0) lboundary = .TRUE.
         !
         IF (env_surface_tension > 0.D0) lboundary = .TRUE.
         !
@@ -1169,11 +1161,12 @@ CONTAINS
         !
         IF (env_dielectric_regions > 0) lboundary = .TRUE.
         !
-        IF (sc_permittivity > 1.D0 .OR. sc_carrier_density > 0) &
-            lboundary = .TRUE.
+        IF (sc_permittivity > 1.D0) lboundary = .TRUE.
+        !
+        IF (sc_carrier_density > 0) lboundary = .TRUE.
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE fix_boundary
+    END FUNCTION needs_boundary
     !------------------------------------------------------------------------------------
     !>
     !! Set values according to the environ_type keyword and boundary mode
@@ -1330,21 +1323,14 @@ CONTAINS
     !! Set values according to the &ENVIRON namelist
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE fix_electrostatic(lelectrostatic)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(OUT) :: lelectrostatic
-        !
-        CHARACTER(LEN=80) :: sub_name = 'fix_electrostatic'
-        !
+    LOGICAL FUNCTION needs_electrostatics() RESULT(lelectrostatic)
         !--------------------------------------------------------------------------------
         !
         lelectrostatic = env_electrostatic
         !
-        IF (env_static_permittivity > 1.D0 .OR. env_optical_permittivity > 1.D0) &
-            lelectrostatic = .TRUE.
+        IF (env_static_permittivity > 1.D0) lelectrostatic = .TRUE.
+        !
+        IF (env_optical_permittivity > 1.D0) lelectrostatic = .TRUE.
         !
         IF (env_external_charges > 0) lelectrostatic = .TRUE.
         !
@@ -1352,11 +1338,12 @@ CONTAINS
         !
         IF (env_electrolyte_ntyp > 0) lelectrostatic = .TRUE.
         !
-        IF (sc_permittivity > 1.D0 .OR. sc_carrier_density > 0) &
-            lelectrostatic = .TRUE.
+        IF (sc_permittivity > 1.D0) lelectrostatic = .TRUE.
+        !
+        IF (sc_carrier_density > 0) lelectrostatic = .TRUE.
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE fix_electrostatic
+    END FUNCTION needs_electrostatics
     !------------------------------------------------------------------------------------
     !>
     !! Set problem according to the ENVIRON and ELECTROSTATIC namelists
