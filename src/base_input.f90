@@ -620,7 +620,7 @@ MODULE env_base_input
     !
     DATA core_allowed/'fft'/
     !
-    ! choice of the core numerical methods to be exploited for the different operations
+    ! choice of the core numerical methods to be exploited for electrostatics
     !
     ! fft = fast Fourier transforms (default)
     !
@@ -628,9 +628,6 @@ MODULE env_base_input
     !
     !------------------------------------------------------------------------------------
     ! Periodic correction keywords
-    !
-    INTEGER :: pbc_dim = -3 ! dimensionality of the simulation cell
-    ! periodic boundary conditions on 3/2/1/0 sides of the cell
     !
     CHARACTER(LEN=80) :: pbc_correction = 'none'
     CHARACTER(LEN=80) :: pbc_correction_allowed(4)
@@ -645,10 +642,22 @@ MODULE env_base_input
     !
     ! ms        = mott-schottky correction for semiconductor
     !
+    INTEGER :: pbc_dim = -3 ! dimensionality of the simulation cell
+    ! periodic boundary conditions on 3/2/1/0 sides of the cell
+    !
     INTEGER :: pbc_axis = 3 ! choice of the sides with periodic boundary conditions
     ! 1 = x, 2 = y, 3 = z, where
     ! if pbc_dim = 2, cell_axis is orthogonal to 2D plane
     ! if pbc_dim = 1, cell_axis is along the 1D direction
+    !
+    CHARACTER(LEN=80) :: pbc_core = '1da'
+    CHARACTER(LEN=80) :: pbc_core_allowed(1)
+    !
+    DATA pbc_core_allowed/'1da'/
+    !
+    ! choice of the core numerical methods to be exploited for pbc corrections
+    !
+    ! 1da = 1d-analytic
     !
     !------------------------------------------------------------------------------------
     !

@@ -800,7 +800,7 @@ CONTAINS
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
-        CLASS(numerical_core), POINTER :: outer_core, inner_core
+        CLASS(numerical_core), POINTER :: outer_core, inner_core, correction_core
         !
         CHARACTER(LEN=80) :: local_type
         !
@@ -835,32 +835,22 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Correction cores
         !
-        SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
-            !
-        CASE ('none')
-            !
-        CASE ('parabolic')
-            this%l1da = .TRUE.
-            local_type = 'parabolic'
-            !
-        CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
-            this%l1da = .TRUE.
-            local_type = 'gcs'
-            !
-        CASE ('ms', 'mott-schottky')
-            this%l1da = .TRUE.
-            local_type = 'ms'
-            !
-        END SELECT
-        !
         IF (this%lperiodic) THEN
             !
-            IF (this%l1da) CALL this%pbc_core%init(this%core_1da_elect, local_type)
+            SELECT CASE (pbc_core)
+                !
+            CASE ('1da')
+                this%l1da = .TRUE.
+                correction_core => this%core_1da_elect
+                !
+            END SELECT
             !
-            CALL this%outer_cores%add_correction(this%pbc_core)
+            CALL this%pbc_cores%init(correction_core, pbc_correction)
+            !
+            CALL this%outer_cores%add_correction(this%pbc_cores)
             !
             IF (inner_solver /= 'none') &
-                CALL this%inner_cores%add_correction(this%pbc_core)
+                CALL this%inner_cores%add_correction(this%pbc_cores)
             !
         END IF
         !
