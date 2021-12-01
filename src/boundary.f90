@@ -271,7 +271,7 @@ CONTAINS
         TYPE(environ_system), TARGET, INTENT(IN) :: system
         TYPE(environ_cell), INTENT(IN) :: cell
         TYPE(core_container), TARGET, INTENT(IN) :: cores
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
@@ -1113,7 +1113,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), TARGET, INTENT(IN), OPTIONAL :: density
+        TYPE(environ_density), OPTIONAL, TARGET, INTENT(IN) :: density
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
@@ -1973,7 +1973,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_boundary), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !

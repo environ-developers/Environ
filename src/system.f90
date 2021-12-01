@@ -142,7 +142,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN), OPTIONAL :: pos(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: pos(3)
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
@@ -260,7 +260,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_system), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !

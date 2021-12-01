@@ -90,7 +90,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density
         !
@@ -184,7 +184,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
@@ -263,7 +263,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
@@ -364,7 +364,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !

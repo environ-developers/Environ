@@ -395,7 +395,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN), OPTIONAL :: lblank
+        LOGICAL, OPTIONAL, INTENT(IN) :: lblank
         !
         LOGICAL :: local_blank = .FALSE.
         !

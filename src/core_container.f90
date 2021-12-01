@@ -118,10 +118,10 @@ CONTAINS
         IMPLICIT NONE
         !
         CHARACTER(LEN=*), INTENT(IN) :: label
-        CLASS(environ_core), INTENT(IN), OPTIONAL :: deriv_core
-        CLASS(environ_core), INTENT(IN), OPTIONAL :: elect_core
-        CLASS(environ_core), INTENT(IN), OPTIONAL :: corr_core
-        LOGICAL, INTENT(IN), OPTIONAL :: inter_corr
+        CLASS(environ_core), OPTIONAL, INTENT(IN) :: deriv_core
+        CLASS(environ_core), OPTIONAL, INTENT(IN) :: elect_core
+        CLASS(environ_core), OPTIONAL, INTENT(IN) :: corr_core
+        LOGICAL, OPTIONAL, INTENT(IN) :: inter_corr
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !

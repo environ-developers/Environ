@@ -126,7 +126,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: f_type, f_dim, f_axis
         REAL(DP), INTENT(IN) :: f_width, f_spread, f_volume
-        REAL(DP), TARGET, INTENT(IN), OPTIONAL :: f_pos(:)
+        REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: f_pos(:)
         !
         CLASS(environ_function), INTENT(INOUT) :: this
         !
@@ -211,7 +211,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density
         !
@@ -233,7 +233,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
@@ -255,7 +255,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
@@ -277,7 +277,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !

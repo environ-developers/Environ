@@ -246,7 +246,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
+        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
@@ -289,7 +289,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: comm_in
         REAL(DP), INTENT(IN) :: at(3, 3)
         REAL(DP), INTENT(IN) :: gcutm
-        INTEGER, INTENT(IN), OPTIONAL :: nr(3)
+        INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
@@ -1341,7 +1341,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: passed_unit
+        INTEGER, OPTIONAL, INTENT(IN) :: passed_unit
         !
         INTEGER :: actual_unit
         !

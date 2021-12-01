@@ -139,7 +139,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
@@ -464,8 +464,8 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_density), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
-        LOGICAL, INTENT(IN), OPTIONAL :: lcube
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
+        LOGICAL, OPTIONAL, INTENT(IN) :: lcube
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
@@ -558,8 +558,8 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_density), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: idx
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
+        INTEGER, OPTIONAL, INTENT(IN) :: idx
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CHARACTER(LEN=100) :: filename, filemod, local_label
         !

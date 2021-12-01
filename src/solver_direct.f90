@@ -97,7 +97,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(core_container), INTENT(IN) :: cores
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: corr_method
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: corr_method
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !
@@ -214,8 +214,8 @@ CONTAINS
         !
         CLASS(solver_direct), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
-        TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
-        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
+        TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
@@ -357,8 +357,8 @@ CONTAINS
         !
         CLASS(solver_direct), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
-        TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
-        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
+        TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !

@@ -115,8 +115,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
-        !
-        REAL(DP), INTENT(IN), OPTIONAL :: nelec
+        REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
@@ -194,7 +193,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_electrons), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !

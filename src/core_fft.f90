@@ -141,7 +141,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
+        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
         !
         CLASS(core_fft), INTENT(INOUT) :: this
         !

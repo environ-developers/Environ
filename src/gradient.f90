@@ -124,7 +124,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_gradient), INTENT(INOUT) :: this
         !
@@ -342,7 +342,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_gradient), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !

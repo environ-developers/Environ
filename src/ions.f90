@@ -292,7 +292,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
-        REAL(DP), INTENT(IN), OPTIONAL :: center(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: center(3)
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
@@ -590,7 +590,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_ions), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit, i
         !

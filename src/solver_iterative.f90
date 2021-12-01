@@ -112,7 +112,7 @@ CONTAINS
         TYPE(solver_direct), TARGET, INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: auxiliary
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: auxiliary
         !
         CLASS(solver_iterative), INTENT(INOUT) :: this
         !

@@ -230,6 +230,9 @@ TYPE2 :: name8 ! comment
 TYPE3 :: name9, name10
 ```
 
+- use `TYPE, ATTRIBUTE, INTENT :: var` order for argument declarations
+  - `ATTRIBUTE` is alphabetized, e.g. (O)PTIONAL, (T)ARGET, etc.
+
 # Dimensions
 
 - `TYPE :: name(dim)`

@@ -98,7 +98,7 @@ CONTAINS
         TYPE(solver_direct), INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: auxiliary
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: auxiliary
         !
         CLASS(solver_newton), INTENT(INOUT) :: this
         !
@@ -126,7 +126,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(solver_newton), INTENT(IN) :: this
-        CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner ! # TODO should it be optional?
+        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner ! # TODO should it be optional?
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
@@ -162,10 +162,10 @@ CONTAINS
         CLASS(solver_newton), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
-        CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner
+        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
         !
         TYPE(environ_density), INTENT(INOUT) :: v
-        TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
+        TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
         CHARACTER(LEN=80) :: sub_name = 'pb_nested_density'
         !
@@ -197,10 +197,10 @@ CONTAINS
         CLASS(solver_newton), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
-        CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner
+        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
         !
         TYPE(environ_density), INTENT(INOUT) :: v
-        TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
+        TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
         INTEGER :: i, j, k, l
         REAL(DP) :: totaux, delta_qm, delta_en, kT, z, arg

@@ -81,7 +81,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_gaussian), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density
         !
@@ -171,7 +171,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_gaussian), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !

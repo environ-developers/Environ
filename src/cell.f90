@@ -176,8 +176,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: comm
         REAL(DP), INTENT(IN) :: gcutm, at(3, 3)
-        INTEGER, INTENT(IN), OPTIONAL :: nr(3)
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
+        INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !
@@ -1190,7 +1190,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_cell), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !

@@ -220,7 +220,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: density(nnr)
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_obj), INTENT(INOUT) :: this
         !
@@ -318,7 +318,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
-        REAL(DP), INTENT(IN), OPTIONAL :: center(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: center(3)
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
@@ -437,7 +437,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
-        REAL(DP), INTENT(IN), OPTIONAL :: nelec
+        REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
@@ -930,7 +930,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CHARACTER(LEN=*), INTENT(IN) :: prog
-        LOGICAL, INTENT(IN), OPTIONAL :: de_flag
+        LOGICAL, OPTIONAL, INTENT(IN) :: de_flag
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !

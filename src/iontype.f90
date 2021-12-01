@@ -325,7 +325,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: ntyp
         TYPE(environ_iontype), INTENT(IN) :: this(ntyp)
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: i
         INTEGER :: base_verbose, local_verbose, local_unit

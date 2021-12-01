@@ -118,7 +118,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol, step, screening
         CHARACTER(LEN=*), INTENT(IN) :: step_type, preconditioner, screening_type
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: auxiliary
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: auxiliary
         !
         CLASS(solver_gradient), INTENT(INOUT) :: this
         !
@@ -217,8 +217,8 @@ CONTAINS
         !
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
-        TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
-        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
+        TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
@@ -271,7 +271,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(solver_gradient), INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN), OPTIONAL :: screening
+        TYPE(environ_density), OPTIONAL, INTENT(IN) :: screening
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
@@ -356,10 +356,10 @@ CONTAINS
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
-        TYPE(environ_density), INTENT(IN), OPTIONAL :: screening
+        TYPE(environ_density), OPTIONAL, INTENT(IN) :: screening
         !
         TYPE(environ_density), INTENT(INOUT) :: v
-        TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
+        TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
         TYPE(environ_density) :: local_screening
         !
@@ -443,8 +443,8 @@ CONTAINS
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_dielectric), INTENT(IN) :: dielectric
-        TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
-        TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
+        TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
@@ -662,8 +662,8 @@ CONTAINS
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_dielectric), INTENT(IN) :: dielectric
-        TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
-        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
+        TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
@@ -920,8 +920,8 @@ CONTAINS
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_dielectric), INTENT(IN) :: dielectric
-        TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
-        TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
+        TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
@@ -1129,7 +1129,7 @@ CONTAINS
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_density), INTENT(IN) :: screening
-        TYPE(environ_dielectric), TARGET, INTENT(IN), OPTIONAL :: dielectric
+        TYPE(environ_dielectric), OPTIONAL, TARGET, INTENT(IN) :: dielectric
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !

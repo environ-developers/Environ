@@ -66,8 +66,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: filename
-        INTEGER, INTENT(IN), OPTIONAL :: nsx
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: filename
+        INTEGER, OPTIONAL, INTENT(IN) :: nsx
         !
         LOGICAL :: ext
         INTEGER :: environ_unit_input
@@ -205,7 +205,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN), OPTIONAL :: unit
+        INTEGER, OPTIONAL, INTENT(IN) :: unit
         !
         INTEGER :: local_unit = 5
         LOGICAL :: tend = .FALSE.

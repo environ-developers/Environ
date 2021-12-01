@@ -291,7 +291,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_functions), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density
         !
@@ -319,7 +319,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_functions), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
@@ -347,7 +347,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_functions), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
@@ -375,7 +375,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_functions), INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
@@ -416,7 +416,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_functions), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit, i
         !

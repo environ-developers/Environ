@@ -95,7 +95,7 @@ CONTAINS
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: update
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+        INTEGER, OPTIONAL, INTENT(IN) :: local_verbose
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: env
         !
