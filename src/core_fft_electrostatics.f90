@@ -43,10 +43,10 @@ MODULE class_core_fft_electrostatics
     USE class_cell
     USE class_density
     USE class_gradient
+    USE class_function
+    USE class_function_gaussian
     !
     USE class_core_fft_derivatives
-    !
-    USE class_ions
     !
     USE tools_math, ONLY: environ_erf, environ_erfc
     !
@@ -365,7 +365,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat
         CLASS(core_fft_electrostatics), TARGET, INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: rho
-        TYPE(environ_ions), TARGET, INTENT(IN) :: ions
+        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
@@ -390,7 +390,25 @@ CONTAINS
         INTEGER, POINTER :: ngm, gstart
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
+        TYPE(environ_function_gaussian), POINTER :: local_ions(:)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'force_fft'
+        !
         !--------------------------------------------------------------------------------
+        !
+        SELECT TYPE (ions)
+            !
+        TYPE IS (environ_function_gaussian)
+            local_ions => ions
+            !
+        CLASS DEFAULT
+            CALL io%error(sub_name, "Unexpected function type", 1)
+            !
+        END SELECT
+        !
+        IF (nat /= SIZE(local_ions)) &
+            CALL io%error(sub_name, &
+                          'Mismatch in numbers of atoms passed in input and stored', 1)
         !
         ngm => this%ngm
         gstart => this%gstart
@@ -426,9 +444,9 @@ CONTAINS
         force = 0.D0
         !
         DO iat = 1, nat
-            Z => ions%iontype(ions%ityp(iat))%zv
-            D => ions%iontype(ions%ityp(iat))%atomicspread
-            R = ions%tau(:, iat) - this%cell%origin ! account for any origin shift
+            Z => local_ions(iat)%volume
+            D => local_ions(iat)%spread
+            R = local_ions(iat)%pos - this%cell%origin ! account for any origin shift
             !
             DO ig = gstart, ngm
                 fpibg2 = fpi / (G2(ig) * tpi2)

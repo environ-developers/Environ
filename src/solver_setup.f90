@@ -589,7 +589,7 @@ CONTAINS
         SELECT TYPE (core => this%solver%cores%core)
             !
         TYPE IS (core_fft_electrostatics)
-            CALL this%solver%cores%force(natoms, aux, charges%ions, force)
+            CALL this%solver%cores%force(natoms, aux, charges%ions%smeared_ions, force)
             !
         END SELECT
         !

@@ -35,12 +35,11 @@ MODULE class_core_container_electrostatics
     !
     USE class_density
     USE class_gradient
+    USE class_function
     !
     USE class_core_container_corrections
     USE class_core_container_derivatives
     USE class_core_fft_electrostatics
-    !
-    USE class_ions
     !
     !------------------------------------------------------------------------------------
     !
@@ -208,7 +207,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: natoms
         TYPE(environ_density), INTENT(IN) :: density
-        TYPE(environ_ions), TARGET, INTENT(IN) :: ions
+        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
         !
         CLASS(container_electrostatics), INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: force(3, natoms)
