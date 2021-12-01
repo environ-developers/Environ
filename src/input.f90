@@ -1019,6 +1019,10 @@ CONTAINS
         IF (pbc_dim < -3 .OR. pbc_dim > 3) &
             CALL io%error(sub_name, 'pbc_dim out of range', 1)
         !
+        IF (TRIM(pbc_correction) /= 'none' .AND. pbc_dim < 0) &
+            CALL io%error(sub_name, &
+                          'pbc_correction requires manually setting pbc_dim', 1)
+        !
         IF (pbc_dim == 1) CALL io%error(sub_name, '1d pbc correction not implemented', 1)
         !
         IF (pbc_axis < 1 .OR. pbc_axis > 3) &
@@ -2218,12 +2222,12 @@ CONTAINS
     SUBROUTINE allocate_registers()
         !--------------------------------------------------------------------------------
         !
-        ALLOCATE(atomicspread(local_nsx))
-        ALLOCATE(solvationrad(local_nsx))
-        ALLOCATE(corespread(local_nsx))
+        ALLOCATE (atomicspread(local_nsx))
+        ALLOCATE (solvationrad(local_nsx))
+        ALLOCATE (corespread(local_nsx))
         !
-        ALLOCATE(cion(local_nsx))
-        ALLOCATE(zion(local_nsx))
+        ALLOCATE (cion(local_nsx))
+        ALLOCATE (zion(local_nsx))
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_registers
