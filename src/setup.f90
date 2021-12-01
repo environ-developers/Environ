@@ -522,7 +522,7 @@ CONTAINS
     REAL(DP) FUNCTION get_threshold(this)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -537,7 +537,7 @@ CONTAINS
     INTEGER FUNCTION get_nskip(this)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -552,7 +552,7 @@ CONTAINS
     LOGICAL FUNCTION is_tddfpt(this)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -567,7 +567,7 @@ CONTAINS
     LOGICAL FUNCTION is_restart(this)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -1141,7 +1141,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -1314,7 +1314,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -1340,7 +1340,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         INTEGER, OPTIONAL, INTENT(IN) :: passed_unit
         !
         INTEGER :: actual_unit

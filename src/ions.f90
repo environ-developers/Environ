@@ -444,7 +444,7 @@ CONTAINS
         CLASS(environ_ions), INTENT(IN) :: this
         CHARACTER(LEN=*), INTENT(IN) :: item
         !
-        CHARACTER(LEN=*), ALLOCATABLE, INTENT(INOUT) :: array(:)
+        CHARACTER(LEN=*), ALLOCATABLE, INTENT(OUT) :: array(:)
         !
         INTEGER :: i
         !
@@ -481,7 +481,7 @@ CONTAINS
         CLASS(environ_ions), INTENT(IN) :: this
         CHARACTER(LEN=*), INTENT(IN) :: item
         !
-        INTEGER, ALLOCATABLE, INTENT(INOUT) :: array(:)
+        INTEGER, ALLOCATABLE, INTENT(OUT) :: array(:)
         !
         INTEGER :: i
         !
@@ -524,7 +524,7 @@ CONTAINS
         CLASS(environ_ions), INTENT(IN) :: this
         CHARACTER(LEN=*), INTENT(IN) :: item
         !
-        REAL(DP), ALLOCATABLE, INTENT(INOUT) :: array(:)
+        REAL(DP), ALLOCATABLE, INTENT(OUT) :: array(:)
         !
         INTEGER :: i
         !

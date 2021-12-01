@@ -505,9 +505,8 @@ CONTAINS
         INTEGER, INTENT(IN) :: ir, dim, axis
         REAL(DP), INTENT(IN) :: origin(3)
         !
-        REAL(DP), INTENT(OUT) :: r(3), r2
-        !
         LOGICAL, INTENT(INOUT) :: physical
+        REAL(DP), INTENT(OUT) :: r(3), r2
         !
         !--------------------------------------------------------------------------------
         !

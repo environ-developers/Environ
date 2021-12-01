@@ -358,6 +358,8 @@ ASSOCIATE (item1 => SUM(some_items))
 
 # GENERAL SYNTAX
 
+- use correct INTENT for arguments
+
 - avoid GOTO statements
 
 - DO NOT exceed col 90

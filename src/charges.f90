@@ -356,9 +356,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
+        CLASS(environ_charges), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: potential
-        !
-        CLASS(environ_charges), INTENT(INOUT) :: this
         !
         TYPE(environ_density) :: tot_charge_density
         !

@@ -1997,8 +1997,7 @@ CONTAINS
         !
         SELECT CASE (length_format)
             !
-        CASE ('bohr')
-            length = length ! input length are in a.u., do nothing
+        CASE ('bohr') ! input length are in a.u., do nothing
             !
         CASE ('angstrom')
             length = length / BOHR_RADIUS_ANGS ! length in A: convert to a.u.

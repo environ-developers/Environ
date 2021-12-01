@@ -173,10 +173,6 @@ CONTAINS
             CALL io%error(sub_name, 'Trying to create an existing object', 1)
         !
         !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%setup)
-        !
-        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_base
     !------------------------------------------------------------------------------------
     !>
@@ -929,10 +925,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
+        CLASS(environ_obj), TARGET, INTENT(IN) :: this
         CHARACTER(LEN=*), INTENT(IN) :: prog
         LOGICAL, OPTIONAL, INTENT(IN) :: de_flag
-        !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         INTEGER, POINTER :: unit
         TYPE(environ_setup), POINTER :: setup
@@ -1010,7 +1005,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
