@@ -1762,7 +1762,7 @@ CONTAINS
                 CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
                                         this%hessian, this%dsurface)
             !
-        CASE ('chain', 'highmem')
+        CASE ('chain', 'highmem', 'lowmem')
             !
             !----------------------------------------------------------------------------
             ! Allocate local fields for derivatives of convolution
