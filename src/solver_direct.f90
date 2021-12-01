@@ -97,7 +97,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(core_container), TARGET, INTENT(IN) :: cores
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: corr_method
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: corr_method
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !

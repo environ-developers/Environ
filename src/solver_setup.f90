@@ -128,7 +128,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80), INTENT(IN) :: problem
+        CHARACTER(LEN=*), INTENT(IN) :: problem
         CLASS(electrostatic_solver), TARGET, INTENT(IN) :: solver
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this

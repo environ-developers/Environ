@@ -117,7 +117,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80), INTENT(IN) :: label
+        CHARACTER(LEN=*), INTENT(IN) :: label
         CLASS(environ_core), INTENT(IN), OPTIONAL :: deriv_core
         CLASS(environ_core), INTENT(IN), OPTIONAL :: elect_core
         CLASS(environ_core), INTENT(IN), OPTIONAL :: corr_core

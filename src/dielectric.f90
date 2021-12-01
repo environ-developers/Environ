@@ -189,8 +189,6 @@ CONTAINS
         !
         REAL(DP) :: constant
         !
-        CHARACTER(LEN=80) :: local_label
-        !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
@@ -209,63 +207,31 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Densities
         !
-        local_label = 'background'
-        !
-        CALL this%background%init(cell, local_label)
+        CALL this%background%init(cell, 'background')
         !
         this%background%of_r(:) = this%constant
         !
         IF (nregions > 0) THEN
             !
-            local_label = 'gradbackground'
+            CALL this%gradbackground%init(cell, 'gradbackground')
             !
-            CALL this%gradbackground%init(cell, local_label)
-            !
-            IF (this%need_factsqrt) THEN
-                local_label = 'laplbackground'
-                !
-                CALL this%laplbackground%init(cell, local_label)
-                !
-            END IF
+            IF (this%need_factsqrt) CALL this%laplbackground%init(cell, 'laplbackground')
             !
         END IF
         !
-        local_label = 'epsilon'
+        CALL this%epsilon%init(cell, 'epsilon')
         !
-        CALL this%epsilon%init(cell, local_label)
+        CALL this%depsilon%init(cell, 'depsilon')
         !
-        local_label = 'depsilon'
+        CALL this%gradlog%init(cell, 'epsilon_gradlog')
         !
-        CALL this%depsilon%init(cell, local_label)
+        IF (this%need_gradient) CALL this%gradient%init(cell, 'epsilon_gradient')
         !
-        local_label = 'epsilon_gradlog'
+        IF (this%need_factsqrt) CALL this%factsqrt%init(cell, 'epsilon_factsqrt')
         !
-        CALL this%gradlog%init(cell, local_label)
+        CALL this%density%init(cell, 'polarization_density')
         !
-        IF (this%need_gradient) THEN
-            local_label = 'epsilon_gradient'
-            !
-            CALL this%gradient%init(cell, local_label)
-            !
-        END IF
-        !
-        IF (this%need_factsqrt) THEN
-            local_label = 'epsilon_factsqrt'
-            !
-            CALL this%factsqrt%init(cell, local_label)
-            !
-        END IF
-        !
-        local_label = 'polarization_density'
-        !
-        CALL this%density%init(cell, local_label)
-        !
-        IF (this%need_auxiliary) THEN
-            local_label = 'iterative'
-            !
-            CALL this%iterative%init(cell, local_label)
-            !
-        END IF
+        IF (this%need_auxiliary) CALL this%iterative%init(cell, 'iterative')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_dielectric

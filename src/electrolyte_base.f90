@@ -119,7 +119,7 @@ CONTAINS
         !
         LOGICAL, INTENT(IN) :: linearized
         INTEGER, INTENT(IN) :: ntyp
-        CHARACTER(LEN=80), INTENT(IN) :: electrolyte_entropy
+        CHARACTER(LEN=*), INTENT(IN) :: electrolyte_entropy
         REAL(DP), INTENT(IN) :: const, distance, spread, temperature, cionmax, radius
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: cbulk, z
         TYPE(environ_cell), INTENT(IN) :: cell

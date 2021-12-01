@@ -195,7 +195,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: nelec, ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
+        CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
@@ -653,8 +653,6 @@ CONTAINS
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label
-        !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
@@ -669,47 +667,31 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Create local storage for base potential, that needs to be modified
         !
-        local_label = 'vzero'
+        CALL this%vzero%init(system_cell, 'vzero')
         !
-        CALL this%vzero%init(system_cell, local_label)
-        !
-        local_label = 'dvtot'
-        !
-        CALL this%dvtot%init(system_cell, local_label)
+        CALL this%dvtot%init(system_cell, 'dvtot')
         !
         !--------------------------------------------------------------------------------
         ! Electrostatic contribution
         !
         IF (setup%lelectrostatic) THEN
-            local_label = 'velectrostatic'
             !
-            CALL this%velectrostatic%init(environment_cell, local_label)
+            CALL this%velectrostatic%init(environment_cell, 'velectrostatic')
             !
-            local_label = 'vreference'
-            !
-            CALL this%vreference%init(system_cell, local_label)
+            CALL this%vreference%init(system_cell, 'vreference')
             !
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Contribution to the potential due to boundary
         !
-        IF (setup%lsoftcavity) THEN
-            local_label = 'vsoftcavity'
-            !
-            CALL this%vsoftcavity%init(environment_cell, local_label)
-            !
-        END IF
+        IF (setup%lsoftcavity) &
+            CALL this%vsoftcavity%init(environment_cell, 'vsoftcavity')
         !
         !--------------------------------------------------------------------------------
         ! Confinement contribution
         !
-        IF (setup%lconfine) THEN
-            local_label = 'vconfine'
-            !
-            CALL this%vconfine%init(environment_cell, local_label)
-            !
-        END IF
+        IF (setup%lconfine) CALL this%vconfine%init(environment_cell, 'vconfine')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_init_potential
@@ -725,11 +707,9 @@ CONTAINS
         INTEGER, INTENT(IN) :: nelec, nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
+        CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: local_label
         !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
@@ -838,7 +818,6 @@ CONTAINS
         ! Solvent boundary
         !
         IF (setup%lsolvent) THEN
-            local_label = 'solvent'
             !
             CALL this%solvent%init( &
                 setup%lgradient, setup%need_factsqrt, setup%lsurface, &
@@ -848,7 +827,7 @@ CONTAINS
                 field_awareness, charge_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
                 this%environment_system, setup%outer_container, deriv_method, &
-                environment_cell, local_label)
+                environment_cell, 'solvent')
             !
         END IF
         !
@@ -950,7 +929,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=2), INTENT(IN) :: prog
+        CHARACTER(LEN=*), INTENT(IN) :: prog
         LOGICAL, INTENT(IN), OPTIONAL :: de_flag
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this

@@ -172,9 +172,9 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(ntyp)
+        CHARACTER(LEN=*), INTENT(IN) :: atom_label(ntyp)
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: atomicspread, corespread, solvationrad
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions, lcoredensity
         TYPE(environ_cell), INTENT(IN) :: cell
         !
@@ -188,9 +188,6 @@ CONTAINS
         CHARACTER(LEN=3), ALLOCATABLE :: labels(:)
         REAL(DP), ALLOCATABLE :: atomic_spreads(:), core_spreads(:)
         REAL(DP), ALLOCATABLE :: solvation_radii(:), ionic_charges(:)
-        !
-        CHARACTER(LEN=20) :: local_item
-        CHARACTER(LEN=80) :: local_label
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_ions'
         !
@@ -223,13 +220,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (lsmearedions .OR. lcoredensity) THEN
-            local_item = 'label'
             !
-            CALL this%get_iontype_array(labels, local_item)
+            CALL this%get_iontype_array(labels, 'label')
             !
-            local_item = 'zv'
-            !
-            CALL this%get_iontype_array(ionic_charges, local_item)
+            CALL this%get_iontype_array(ionic_charges, 'zv')
             !
             axes = 1
             dims = 0
@@ -247,16 +241,13 @@ CONTAINS
         ! Smeared ions
         !
         IF (lsmearedions) THEN
-            local_label = 'smeared_ions'
             !
-            CALL this%density%init(cell, local_label)
+            CALL this%density%init(cell, 'smeared_ions')
             !
             !----------------------------------------------------------------------------
             ! Build smeared ions from iontype data
             !
-            local_item = 'atomicspread'
-            !
-            CALL this%get_iontype_array(atomic_spreads, local_item)
+            CALL this%get_iontype_array(atomic_spreads, 'atomicspread')
             !
             CALL this%smeared_ions%init(this%number, 1, axes, dims, widths, &
                                         atomic_spreads, ionic_charges, this%tau)
@@ -270,16 +261,13 @@ CONTAINS
         ! Core electrons
         !
         IF (lcoredensity) THEN
-            local_label = 'core_electrons'
             !
-            CALL this%core%init(cell, local_label)
+            CALL this%core%init(cell, 'core_electrons')
             !
             !----------------------------------------------------------------------------
             ! Build core electrons from iontype data
             !
-            local_item = 'corespread'
-            !
-            CALL this%get_iontype_array(core_spreads, local_item)
+            CALL this%get_iontype_array(core_spreads, 'corespread')
             !
             CALL this%core_electrons%init(this%number, 1, axes, dims, widths, &
                                           core_spreads, -ionic_charges, this%tau)
@@ -454,9 +442,9 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_ions), INTENT(IN) :: this
-        CHARACTER(LEN=20), INTENT(IN) :: item
+        CHARACTER(LEN=*), INTENT(IN) :: item
         !
-        CHARACTER(LEN=3), ALLOCATABLE, INTENT(INOUT) :: array(:)
+        CHARACTER(LEN=*), ALLOCATABLE, INTENT(INOUT) :: array(:)
         !
         INTEGER :: i
         !
@@ -491,7 +479,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_ions), INTENT(IN) :: this
-        CHARACTER(LEN=20), INTENT(IN) :: item
+        CHARACTER(LEN=*), INTENT(IN) :: item
         !
         INTEGER, ALLOCATABLE, INTENT(INOUT) :: array(:)
         !
@@ -534,7 +522,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_ions), INTENT(IN) :: this
-        CHARACTER(LEN=20), INTENT(IN) :: item
+        CHARACTER(LEN=*), INTENT(IN) :: item
         !
         REAL(DP), ALLOCATABLE, INTENT(INOUT) :: array(:)
         !

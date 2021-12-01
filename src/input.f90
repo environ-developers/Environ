@@ -60,7 +60,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: filename
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: filename
         INTEGER, INTENT(IN), OPTIONAL :: nsx
         !
         LOGICAL :: ext
@@ -1695,7 +1695,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: unit
         !
-        CHARACTER(LEN=256) :: input_line
+        CHARACTER(LEN=*), INTENT(OUT) :: input_line
+        !
         INTEGER :: ie, ix, ierr, nfield
         LOGICAL :: tend
         CHARACTER(LEN=4) :: lb_pos
@@ -1912,7 +1913,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: unit
         !
-        CHARACTER(LEN=256) :: input_line
+        CHARACTER(LEN=*), INTENT(OUT) :: input_line
+        !
         INTEGER :: ie, ix, ierr, nfield
         LOGICAL :: tend
         CHARACTER(LEN=4) :: lb_pos
@@ -2234,7 +2236,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CHARACTER(LEN=*), INTENT(IN) :: line
-        CHARACTER(LEN=1), OPTIONAL, INTENT(IN) :: car
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: car
         !
         INTEGER, INTENT(OUT) :: num
         !
@@ -2325,7 +2327,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         CHARACTER(LEN=*), INTENT(IN) :: str
-        CHARACTER(LEN=1), OPTIONAL, INTENT(IN) :: sep
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: sep
         !
         CHARACTER(LEN=*), INTENT(OUT) :: field
         !

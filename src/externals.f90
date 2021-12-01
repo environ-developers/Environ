@@ -109,11 +109,9 @@ CONTAINS
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label = 'externals'
-        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%density%init(cell, local_label)
+        CALL this%density%init(cell, 'externals')
         !
         this%number = n
         !

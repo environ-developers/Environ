@@ -297,13 +297,11 @@ CONTAINS
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
-        CHARACTER(LEN=80) :: local_label
-        !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%system_cell%init(gcutm, comm_in, at, nr)
+        CALL this%system_cell%init(gcutm, comm_in, at, nr, 'system')
         !
         !--------------------------------------------------------------------------------
         ! Double cell and mapping
@@ -322,10 +320,8 @@ CONTAINS
             environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
             environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
             !
-            local_label = 'environment'
-            !
             CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
-                                            environment_nr, local_label)
+                                            environment_nr, 'environment')
             !
         ELSE
             this%environment_cell => this%system_cell
@@ -801,33 +797,24 @@ CONTAINS
         CLASS(environ_core), POINTER :: &
             local_outer_core, local_inner_core, local_pbc_core, local_deriv_core
         !
-        CHARACTER(LEN=80) :: local_label
-        !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_core_containers'
         !
         !--------------------------------------------------------------------------------
         ! Calling program reference core
         !
         this%lfft_system = .TRUE.
-        local_label = 'system'
         !
-        CALL this%reference_container%init(local_label, &
+        CALL this%reference_container%init('system', &
                                            elect_core=this%ref_fft, &
                                            inter_corr=this%use_inter_corr)
         !
         !--------------------------------------------------------------------------------
         ! Environment core containers
         !
-        local_label = 'environment'
+        CALL this%outer_container%init('environment', inter_corr=this%use_inter_corr)
         !
-        CALL this%outer_container%init(local_label, inter_corr=this%use_inter_corr)
-        !
-        IF (this%need_inner) THEN
-            local_label = local_label//'_inner'
-            !
-            CALL this%inner_container%init(local_label, inter_corr=this%use_inter_corr)
-            !
-        END IF
+        IF (this%need_inner) &
+            CALL this%inner_container%init('inner', inter_corr=this%use_inter_corr)
         !
         !--------------------------------------------------------------------------------
         ! Derivatives core
@@ -1157,8 +1144,6 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label
-        !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
@@ -1218,9 +1203,7 @@ CONTAINS
             WRITE (io%unit, 1017) auxiliary
             WRITE (io%unit, 1018) core
             !
-            local_label = '1d-analytic'
-            !
-            IF (this%lperiodic) WRITE (io%unit, 1019) ADJUSTL(local_label)
+            IF (this%lperiodic) WRITE (io%unit, 1019) ADJUSTL('1d-analytic')
             !
         END IF
         !

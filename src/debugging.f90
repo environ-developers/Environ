@@ -441,8 +441,6 @@ CONTAINS
         !
         INTEGER :: debugcubes = 0
         !
-        CHARACTER(len=100) :: local_label = 'None'
-        !
         CHARACTER(len=80) :: sub_name = 'update_test_boundary'
         !
         !--------------------------------------------------------------------------------
@@ -460,14 +458,10 @@ CONTAINS
             SELECT CASE (debugcubes)
                 !
             CASE (2)
-                local_label = "standard"
-                !
-                CALL bound%scaled%write_cube_no_ions(label=local_label)
+                CALL bound%scaled%write_cube_no_ions(label='standard')
                 !
             CASE (1)
-                local_label = "standard"
-                !
-                CALL bound%density%write_cube_no_ions(label=local_label)
+                CALL bound%density%write_cube_no_ions(label='standard')
                 !
             CASE DEFAULT
                 !
@@ -808,9 +802,6 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        CHARACTER(len=100) :: strg = 'e'
-        CHARACTER(len=100) :: strl = 'i'
-        !
         CHARACTER(LEN=80) :: sub_name = 'extract_boundary_data'
         !
         !--------------------------------------------------------------------------------
@@ -820,9 +811,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Compute the field and the field-aware interface
         !
-        CALL bound%electrons%density%write_cube_no_ions(label=strg)
+        CALL bound%electrons%density%write_cube_no_ions(label='e')
         !
-        CALL bound%ions%density%write_cube_no_ions(label=strl)
+        CALL bound%ions%density%write_cube_no_ions(label='i')
         !
         STOP
         !

@@ -116,14 +116,12 @@ CONTAINS
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label = 'semiconductor'
-        !
         !--------------------------------------------------------------------------------
         !
         CALL this%base%init(temperature, sc_permittivity, sc_carrier_density, &
                             sc_electrode_chg, sc_distance, sc_spread, sc_chg_thr)
         !
-        CALL this%density%init(cell, local_label)
+        CALL this%density%init(cell, 'semiconductor')
         !
         CALL this%simple%init(3, system%axis, system%dim, sc_distance, sc_spread, &
                               1.D0, system%pos)

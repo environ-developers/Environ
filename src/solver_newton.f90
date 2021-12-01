@@ -98,7 +98,7 @@ CONTAINS
         TYPE(solver_direct), TARGET, INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: auxiliary
         !
         CLASS(solver_newton), INTENT(INOUT) :: this
         !

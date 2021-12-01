@@ -177,7 +177,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: comm
         REAL(DP), INTENT(IN) :: gcutm, at(3, 3)
         INTEGER, INTENT(IN), OPTIONAL :: nr(3)
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !

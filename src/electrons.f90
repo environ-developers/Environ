@@ -96,11 +96,9 @@ CONTAINS
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label = 'electrons'
-        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%density%init(cell, local_label)
+        CALL this%density%init(cell, 'electrons')
         !
         this%number = nelec
         !

@@ -120,7 +120,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_hessian), INTENT(INOUT) :: this
         !

@@ -259,7 +259,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: stype
-        CHARACTER(LEN=80), INTENT(IN) :: mode, deriv_method
+        CHARACTER(LEN=*), INTENT(IN) :: mode, deriv_method
         LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, alpha, softness, &
@@ -273,13 +273,11 @@ CONTAINS
         TYPE(environ_system), TARGET, INTENT(IN) :: system
         TYPE(environ_cell), INTENT(IN) :: cell
         TYPE(core_container), TARGET, INTENT(IN) :: cores
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
         INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: local_label
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary'
         !
@@ -381,71 +379,36 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Densities
         !
-        local_label = 'boundary_'//TRIM(ADJUSTL(label))
-        !
-        CALL this%scaled%init(cell, local_label)
+        CALL this%scaled%init(cell, 'boundary_'//label)
         !
         IF (this%mode == 'electronic' .OR. this%mode == 'full' .OR. &
             this%mode == 'fa-electronic' .OR. this%mode == 'fa-full') THEN
             !
-            local_label = 'boundary_density_'//TRIM(ADJUSTL(label))
+            CALL this%density%init(cell, 'boundary_density_'//label)
             !
-            CALL this%density%init(cell, local_label)
+            CALL this%dscaled%init(cell, 'dboundary_'//label)
             !
-            local_label = 'dboundary_'//TRIM(ADJUSTL(label))
-            !
-            CALL this%dscaled%init(cell, local_label)
-            !
-            local_label = 'd2boundary_'//TRIM(ADJUSTL(label))
-            !
-            CALL this%d2scaled%init(cell, local_label)
+            CALL this%d2scaled%init(cell, 'd2boundary_'//label)
             !
         END IF
         !
-        IF (this%deriv >= 1) THEN
-            local_label = 'gradboundary_'//TRIM(ADJUSTL(label))
-            !
-            CALL this%gradient%init(cell, local_label)
-            !
-        END IF
+        IF (this%deriv >= 1) CALL this%gradient%init(cell, 'gradboundary_'//label)
         !
-        IF (this%deriv >= 2) THEN
-            local_label = 'laplboundary_'//TRIM(ADJUSTL(label))
-            !
-            CALL this%laplacian%init(cell, local_label)
-            !
-        END IF
+        IF (this%deriv >= 2) CALL this%laplacian%init(cell, 'laplboundary_'//label)
         !
-        IF (this%deriv >= 3) THEN
-            local_label = 'dsurface_'//TRIM(ADJUSTL(label))
-            !
-            CALL this%dsurface%init(cell, local_label)
-            !
-        END IF
+        IF (this%deriv >= 3) CALL this%dsurface%init(cell, 'dsurface_'//label)
         !
         IF (this%solvent_aware) THEN
-            local_label = 'local_'//TRIM(ADJUSTL(label))
             !
-            CALL this%local%init(cell, local_label)
+            CALL this%local%init(cell, 'local_'//label)
             !
-            local_label = 'probe_'//TRIM(ADJUSTL(label))
+            CALL this%probe%init(cell, 'probe_'//label)
             !
-            CALL this%probe%init(cell, local_label)
+            CALL this%filling%init(cell, 'filling_'//label)
             !
-            local_label = 'filling_'//TRIM(ADJUSTL(label))
+            CALL this%dfilling%init(cell, 'dfilling_'//label)
             !
-            CALL this%filling%init(cell, local_label)
-            !
-            local_label = 'dfilling_'//TRIM(ADJUSTL(label))
-            !
-            CALL this%dfilling%init(cell, local_label)
-            !
-            IF (this%deriv >= 3) THEN
-                local_label = 'hessboundary_'//TRIM(ADJUSTL(label))
-                !
-                CALL this%hessian%init(cell, local_label)
-                !
-            END IF
+            IF (this%deriv >= 3) CALL this%hessian%init(cell, 'hessboundary_'//label)
             !
         END IF
         !
@@ -456,9 +419,7 @@ CONTAINS
             IF (this%mode == 'fa-electronic' .OR. &
                 this%mode == 'fa-full') THEN
                 !
-                local_label = 'normal_field_'//TRIM(ADJUSTL(label))
-                !
-                CALL this%normal_field%init(cell, local_label)
+                CALL this%normal_field%init(cell, 'normal_field_'//label)
                 !
             ELSE IF (this%mode == 'fa-ionic') THEN
                 !
@@ -618,9 +579,7 @@ CONTAINS
         !
         LOGICAL :: update_anything
         !
-        INTEGER :: i
         TYPE(environ_cell), POINTER :: cell
-        CHARACTER(LEN=80) :: label
         !
         CHARACTER(LEN=80) :: sub_name = 'update_environ_boundary'
         !
@@ -776,8 +735,6 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
         !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_boundary'
         !
@@ -1206,8 +1163,6 @@ CONTAINS
         TYPE(environ_hessian), ALLOCATABLE :: hesslocal(:)
         TYPE(environ_hessian), POINTER :: hessian
         !
-        CHARACTER(LEN=80) :: label
-        !
         CHARACTER(LEN=80) :: sub_name = 'boundary_of_functions'
         !
         !--------------------------------------------------------------------------------
@@ -1459,8 +1414,6 @@ CONTAINS
         !
         TYPE(environ_hessian), POINTER :: hesslocal
         !
-        INTEGER :: i
-        !
         CHARACTER(LEN=80) :: sub_name = 'boundary_of_system'
         !
         !--------------------------------------------------------------------------------
@@ -1706,8 +1659,6 @@ CONTAINS
         TYPE(environ_gradient) :: gradlocal
         TYPE(environ_density) :: lapllocal
         TYPE(environ_hessian) :: hesslocal
-        !
-        CHARACTER(LEN=80) :: label
         !
         CHARACTER(LEN=80) :: sub_name = 'solvent_aware_boundary'
         !
@@ -2034,8 +1985,6 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
         !
         INTEGER, DIMENSION(this%ions%number) :: axes, dims
         REAL(DP), DIMENSION(this%ions%number) :: spreads, volumes

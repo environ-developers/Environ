@@ -131,7 +131,7 @@ CONTAINS
         !
         LOGICAL, INTENT(IN) :: linearized
         INTEGER, INTENT(IN) :: ntyp, stype
-        CHARACTER(LEN=80), INTENT(IN) :: mode, electrolyte_entropy, deriv_method
+        CHARACTER(LEN=*), INTENT(IN) :: mode, electrolyte_entropy, deriv_method
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, &
                                 alpha, softness, temperature, solvent_radius, &
@@ -149,8 +149,6 @@ CONTAINS
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label = 'electrolyte'
-        !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
@@ -163,20 +161,16 @@ CONTAINS
                                 spread, solvent_radius, radial_scale, radial_spread, &
                                 filling_threshold, filling_spread, field_awareness, &
                                 charge_asymmetry, field_max, field_min, electrons, &
-                                ions, system, cores, deriv_method, cell, local_label)
+                                ions, system, cores, deriv_method, cell, 'electrolyte')
         !
         !--------------------------------------------------------------------------------
         ! Densities
         !
-        CALL this%density%init(cell, local_label)
+        CALL this%density%init(cell, 'electrolyte')
         !
-        local_label = 'gamma'
+        CALL this%gamma%init(cell, 'gamma')
         !
-        CALL this%gamma%init(cell, local_label)
-        !
-        local_label = 'dgamma'
-        !
-        CALL this%dgamma%init(cell, local_label)
+        CALL this%dgamma%init(cell, 'dgamma')
         !
         IF (this%base%linearized) CALL this%de_dboundary_second_order%init(cell)
         !

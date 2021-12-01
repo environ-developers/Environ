@@ -164,8 +164,8 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        CHARACTER(LEN=*), INTENT(IN) :: atom_label
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         REAL(DP), INTENT(IN) :: zv, atomicspread, corespread, solvationrad
         LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions
         !
@@ -221,8 +221,8 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
-        CHARACTER(LEN=3), INTENT(IN) :: label
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        CHARACTER(LEN=*), INTENT(IN) :: label
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
@@ -278,7 +278,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=3), INTENT(IN) :: label
+        CHARACTER(LEN=*), INTENT(IN) :: label
         !
         INTEGER :: i, get_atmnum
         CHARACTER(LEN=2) :: lowcase_label

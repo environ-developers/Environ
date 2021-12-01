@@ -139,7 +139,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
@@ -554,7 +554,7 @@ CONTAINS
         !
         CLASS(environ_density), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN), OPTIONAL :: idx
-        CHARACTER(LEN=100), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
         !
         CHARACTER(LEN=100) :: filename, filemod, local_label
         !

@@ -166,13 +166,11 @@ CONTAINS
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label = 'charge'
-        !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
         !
-        CALL this%density%init(cell, local_label)
+        CALL this%density%init(cell, 'charge')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_charges

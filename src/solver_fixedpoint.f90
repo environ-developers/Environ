@@ -109,8 +109,8 @@ CONTAINS
         TYPE(solver_direct), TARGET, INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: ndiis, maxiter
         REAL(DP), INTENT(IN) :: tol, mix
-        CHARACTER(LEN=80), INTENT(IN) :: mix_type
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
+        CHARACTER(LEN=*), INTENT(IN) :: mix_type
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: auxiliary
         !
         CLASS(solver_fixedpoint), INTENT(INOUT) :: this
         !
