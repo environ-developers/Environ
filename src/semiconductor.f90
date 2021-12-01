@@ -125,7 +125,7 @@ CONTAINS
         !
         CALL this%density%init(cell, local_label)
         !
-        CALL this%simple%init(4, system%axis, system%dim, sc_distance, sc_spread, &
+        CALL this%simple%init(3, system%axis, system%dim, sc_distance, sc_spread, &
                               1.D0, system%pos)
         !
         !--------------------------------------------------------------------------------

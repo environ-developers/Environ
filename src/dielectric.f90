@@ -294,7 +294,7 @@ CONTAINS
         !
         IF (nregions > 0) THEN
             !
-            CALL init_environ_functions(this%regions, fsrc, nregions, 4, axes, dims, &
+            CALL init_environ_functions(this%regions, fsrc, nregions, 3, axes, dims, &
                                         widths, spreads, eps, pos)
             !
         END IF

@@ -103,7 +103,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%f_type == 5) THEN
+        IF (this%f_type == 4) THEN
             density%of_r = this%volume
         ELSE IF (PRESENT(zero)) THEN
             IF (zero) density%of_r = 0.D0
@@ -511,10 +511,10 @@ CONTAINS
             CASE (2)
                 get_charge = charge
                 !
-            CASE (4)
+            CASE (3)
                 get_charge = this%erfcvolume(cell) * charge
                 !
-            CASE (5)
+            CASE (4)
                 get_charge = -this%erfcvolume(cell) * charge
                 !
             CASE DEFAULT

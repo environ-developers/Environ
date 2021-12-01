@@ -340,7 +340,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (this%need_system) &
-            CALL this%simple%init(4, system%axis, system%dim, system_distance, &
+            CALL this%simple%init(3, system%axis, system%dim, system_distance, &
                                   system_spread, 1.D0, system%pos)
         !
         !--------------------------------------------------------------------------------
@@ -2052,7 +2052,7 @@ CONTAINS
         DO i = 1, this%ions%number
             radius = this%ions%iontype(this%ions%ityp(i))%solvationrad * this%alpha
             !
-            CALL this%soft_spheres(i)%init(5, 1, 0, radius, this%softness, 1.D0, &
+            CALL this%soft_spheres(i)%init(4, 1, 0, radius, this%softness, 1.D0, &
                                            this%ions%tau(:, i))
             !
         END DO

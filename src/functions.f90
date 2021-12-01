@@ -416,9 +416,8 @@ CONTAINS
         !
 1002    FORMAT(/, ' 1 - Gaussian', /, &
                 ' 2 - Complementary error function', /, &
-                ' 3 - Exponential', /, &
-                ' 4 - Scaled complementary error function', /, &
-                ' 5 - Scaled error function')
+                ' 3 - Scaled complementary error function', /, &
+                ' 4 - Scaled error function')
         !
 1003    FORMAT(/, '   i | type | dim | axis | width | spread |  volume  | position', /, &
                 1X, 84('-'))
