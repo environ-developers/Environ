@@ -264,9 +264,6 @@ CONTAINS
             !
             DO i = 1, this%number
                 !
-                IF (TRIM(this%iontype(this%ityp(i))%label) == 'H') &
-                    this%iontype(this%ityp(i))%corespread = 1.D-10
-                !
                 CALL this%core_electrons(i)%init( &
                     1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%corespread, &
                     -this%iontype(this%ityp(i))%zv, this%tau(:, i))

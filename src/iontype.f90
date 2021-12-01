@@ -181,7 +181,11 @@ CONTAINS
         !
         IF (atomicspread > 0) this%atomicspread = atomicspread
         !
-        IF (corespread > 0) this%corespread = corespread
+        IF (this%label == 'H') THEN
+            this%corespread = 1.D-10
+        ELSE IF (corespread > 0) THEN
+            this%corespread = corespread
+        END IF
         !
         IF (solvationrad > 0) this%solvationrad = solvationrad
         !
