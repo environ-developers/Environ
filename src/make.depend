@@ -48,7 +48,7 @@ core_1da_electrostatics.o : ../utils/mp.o
 core_1da_electrostatics.o : constants.o
 core_1da_electrostatics.o : core_1da.o
 core_1da_electrostatics.o : density.o
-core_1da_electrostatics.o : electrolyte.o
+core_1da_electrostatics.o : electrolyte_base.o
 core_1da_electrostatics.o : function.o
 core_1da_electrostatics.o : function_gaussian.o
 core_1da_electrostatics.o : gradient.o
@@ -60,7 +60,7 @@ core_container_corrections.o : constants.o
 core_container_corrections.o : core_1da_electrostatics.o
 core_container_corrections.o : core_container.o
 core_container_corrections.o : density.o
-core_container_corrections.o : electrolyte.o
+core_container_corrections.o : electrolyte_base.o
 core_container_corrections.o : function.o
 core_container_corrections.o : gradient.o
 core_container_corrections.o : semiconductor.o
@@ -151,11 +151,14 @@ electrolyte.o : cell.o
 electrolyte.o : constants.o
 electrolyte.o : core_container_derivatives.o
 electrolyte.o : density.o
+electrolyte.o : electrolyte_base.o
 electrolyte.o : electrons.o
-electrolyte.o : functions.o
-electrolyte.o : ioncctype.o
 electrolyte.o : ions.o
 electrolyte.o : system.o
+electrolyte_base.o : ../utils/io.o
+electrolyte_base.o : cell.o
+electrolyte_base.o : constants.o
+electrolyte_base.o : ioncctype.o
 electrons.o : ../utils/io.o
 electrons.o : cell.o
 electrons.o : constants.o

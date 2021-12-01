@@ -46,7 +46,7 @@ MODULE class_core_1da_electrostatics
     !
     USE class_core_1da
     !
-    USE class_electrolyte
+    USE class_electrolyte_base
     USE class_semiconductor
     !
     !------------------------------------------------------------------------------------
@@ -439,7 +439,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
+        TYPE(environ_electrolyte_base), TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
         CLASS(core_1da_electrostatics), TARGET, INTENT(INOUT) :: this
@@ -486,7 +486,7 @@ CONTAINS
                    axis => this%x, &
                    cion => electrolyte%ioncctype(1)%cbulk, &
                    permittivity => electrolyte%permittivity, &
-                   xstern => electrolyte%boundary%simple%width)
+                   xstern => electrolyte%distance)
             !
             !----------------------------------------------------------------------------
             ! Get parameters of electrolyte to compute analytic correction
@@ -686,7 +686,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
+        TYPE(environ_electrolyte_base), TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
         CLASS(core_1da_electrostatics), TARGET, INTENT(INOUT) :: this
@@ -732,7 +732,7 @@ CONTAINS
                    axis => this%x, &
                    cion => electrolyte%ioncctype(1)%cbulk, &
                    permittivity => electrolyte%permittivity, &
-                   xstern => electrolyte%boundary%simple%width)
+                   xstern => electrolyte%distance)
             !
             !----------------------------------------------------------------------------
             ! Get parameters of electrolyte to compute analytic correction

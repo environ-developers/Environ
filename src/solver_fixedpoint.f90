@@ -544,7 +544,8 @@ CONTAINS
                    mix => this%mix, &
                    tolrhoaux => this%tol, &
                    x => potential, &
-                   cionmax => electrolyte%cionmax, &
+                   base => electrolyte%base, &
+                   cionmax => electrolyte%base%cionmax, &
                    gam => electrolyte%gamma)
             !
             !----------------------------------------------------------------------------
@@ -562,7 +563,7 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            kT = K_BOLTZMANN_RY * electrolyte%temperature
+            kT = K_BOLTZMANN_RY * base%temperature
             !
             x%of_r = 0.D0
             rhoaux%of_r = 0.D0
@@ -609,9 +610,9 @@ CONTAINS
                 residual%of_r = 0.D0
                 denominator%of_r = 1.D0
                 !
-                DO ityp = 1, electrolyte%ntyp
-                    cbulk => electrolyte%ioncctype(ityp)%cbulk
-                    z => electrolyte%ioncctype(ityp)%z
+                DO ityp = 1, base%ntyp
+                    cbulk => base%ioncctype(ityp)%cbulk
+                    z => base%ioncctype(ityp)%z
                     !
                     cfactor%of_r = 1.D0
                     !
@@ -633,7 +634,7 @@ CONTAINS
                     IF (cionmax > 0.D0) THEN
                         factor = cbulk / cionmax
                         !
-                        SELECT CASE (electrolyte%electrolyte_entropy)
+                        SELECT CASE (base%electrolyte_entropy)
                             !
                         CASE ('full')
                             !

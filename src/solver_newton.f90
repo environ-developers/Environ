@@ -238,7 +238,8 @@ CONTAINS
                    ir_end => charges%cell%ir_end, &
                    maxiter => this%maxiter, &
                    tol => this%tol, &
-                   cionmax => electrolyte%cionmax, &
+                   base => electrolyte%base, &
+                   cionmax => electrolyte%base%cionmax, &
                    x => potential, &
                    gam => electrolyte%gamma)
             !
@@ -259,11 +260,11 @@ CONTAINS
             !
             CALL screening%init(cell)
             !
-            kT = K_BOLTZMANN_RY * electrolyte%temperature
+            kT = K_BOLTZMANN_RY * base%temperature
             !
             x%of_r = 0.D0
             rhoaux%of_r = 0.D0
-            screening%of_r = electrolyte%k2 / e2 / fpi * gam%of_r
+            screening%of_r = base%k2 / e2 / fpi * gam%of_r
             residual%of_r = 0.D0
             !
             !----------------------------------------------------------------------------
@@ -305,9 +306,9 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! General solution for symmetric & asymmetric electrolyte
                 !
-                DO itypi = 1, electrolyte%ntyp
-                    zi => electrolyte%ioncctype(itypi)%z
-                    cbulki => electrolyte%ioncctype(itypi)%cbulk
+                DO itypi = 1, base%ntyp
+                    zi => base%ioncctype(itypi)%z
+                    cbulki => base%ioncctype(itypi)%cbulk
                     !
                     cfactor%of_r = 1.D0
                     !
@@ -329,16 +330,16 @@ CONTAINS
                     !
                     IF (cionmax > 0.D0) THEN
                         !
-                        SELECT CASE (electrolyte%electrolyte_entropy)
+                        SELECT CASE (base%electrolyte_entropy)
                             !
                         CASE ('full')
                             !
                             denominator%of_r = denominator%of_r - &
                                                cbulki / cionmax * (1.D0 - cfactor%of_r)
                             !
-                            DO itypj = 1, electrolyte%ntyp
-                                zj => electrolyte%ioncctype(itypj)%z
-                                cbulkj => electrolyte%ioncctype(itypj)%cbulk
+                            DO itypj = 1, base%ntyp
+                                zj => base%ioncctype(itypj)%z
+                                cbulkj => base%ioncctype(itypj)%cbulk
                                 !
                                 IF (itypj == itypi) THEN
                                     numerator%of_r = numerator%of_r - cbulkj / cionmax
@@ -360,9 +361,9 @@ CONTAINS
                             denominator%of_r = denominator%of_r - cbulki / cionmax * &
                                                (1.D0 - gam%of_r * cfactor%of_r)
                             !
-                            DO itypj = 1, electrolyte%ntyp
-                                zj => electrolyte%ioncctype(itypj)%z
-                                cbulkj => electrolyte%ioncctype(itypj)%cbulk
+                            DO itypj = 1, base%ntyp
+                                zj => base%ioncctype(itypj)%z
+                                cbulkj => base%ioncctype(itypj)%cbulk
                                 !
                                 IF (itypj == itypi) THEN
                                     numerator%of_r = numerator%of_r - cbulkj / cionmax

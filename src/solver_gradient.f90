@@ -295,25 +295,24 @@ CONTAINS
             local_screening%of_r = screening%of_r ! external screening
         ELSE
             !
-            !------------------------------------------------------------------------
+            !----------------------------------------------------------------------------
             ! Screening as in linearized pb problem
             !
-            IF (charges%electrolyte%electrolyte_entropy == 'ions' &
-                .AND. charges%electrolyte%cionmax > 0.D0) THEN
+            ASSOCIATE (base => charges%electrolyte%base, &
+                       electrolyte => charges%electrolyte)
                 !
-                local_screening%of_r = &
-                    charges%electrolyte%k2 / e2 / fpi * &
-                    charges%electrolyte%gamma%of_r / &
-                    (1.D0 - SUM(charges%electrolyte%ioncctype(:)%cbulk) / &
-                     charges%electrolyte%cionmax * &
-                     (1.D0 - charges%electrolyte%gamma%of_r))
+                IF (base%electrolyte_entropy == 'ions' .AND. base%cionmax > 0.D0) THEN
+                    !
+                    local_screening%of_r = &
+                        base%k2 / e2 / fpi * electrolyte%gamma%of_r / &
+                        (1.D0 - SUM(base%ioncctype(:)%cbulk) / base%cionmax * &
+                         (1.D0 - electrolyte%gamma%of_r))
+                    !
+                ELSE
+                    local_screening%of_r = base%k2 / e2 / fpi * electrolyte%gamma%of_r
+                END IF
                 !
-            ELSE
-                !
-                local_screening%of_r = charges%electrolyte%k2 / e2 / fpi * &
-                                       charges%electrolyte%gamma%of_r
-                !
-            END IF
+            END ASSOCIATE
             !
         END IF
         !
@@ -382,20 +381,23 @@ CONTAINS
             local_screening%of_r = screening%of_r ! external screening
         ELSE
             !
-            !------------------------------------------------------------------------
+            !----------------------------------------------------------------------------
             ! Screening as in linearized pb problem
             !
-            IF (electrolyte%electrolyte_entropy == 'ions' .AND. &
-                electrolyte%cionmax > 0.D0) THEN
+            ASSOCIATE (base => electrolyte%base)
                 !
-                local_screening%of_r = &
-                    electrolyte%k2 / e2 / fpi * electrolyte%gamma%of_r / &
-                    (1.D0 - SUM(electrolyte%ioncctype(:)%cbulk) / &
-                     electrolyte%cionmax * (1.D0 - electrolyte%gamma%of_r))
+                IF (base%electrolyte_entropy == 'ions' .AND. base%cionmax > 0.D0) THEN
+                    !
+                    local_screening%of_r = &
+                        base%k2 / e2 / fpi * electrolyte%gamma%of_r / &
+                        (1.D0 - SUM(base%ioncctype(:)%cbulk) / &
+                         base%cionmax * (1.D0 - electrolyte%gamma%of_r))
+                    !
+                ELSE
+                    local_screening%of_r = base%k2 / e2 / fpi * electrolyte%gamma%of_r
+                END IF
                 !
-            ELSE
-                local_screening%of_r = electrolyte%k2 / e2 / fpi * electrolyte%gamma%of_r
-            END IF
+            END ASSOCIATE
             !
         END IF
         !

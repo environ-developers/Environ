@@ -26,7 +26,8 @@
 !          Edan Bainglass     (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
-!> Module containing the main routines to handle environ_electrolyte
+!>
+!! Module containing the main routines to handle environ_electrolyte
 !! derived data types.
 !!
 !! Environ_electrolyte contains all the specifications and the details of
@@ -42,14 +43,13 @@ MODULE class_electrolyte
     !
     USE class_cell
     USE class_density
-    USE class_functions
     !
     USE class_core_container_derivatives
     !
     USE class_boundary
     USE class_electrons
+    USE class_electrolyte_base
     USE class_ions
-    USE class_ioncctype
     USE class_system
     !
     !------------------------------------------------------------------------------------
@@ -66,16 +66,10 @@ MODULE class_electrolyte
         !--------------------------------------------------------------------------------
         !
         LOGICAL :: lupdate = .FALSE.
-        LOGICAL :: linearized = .FALSE.
         !
-        CHARACTER(LEN=80) :: electrolyte_entropy
-        INTEGER :: ntyp
-        TYPE(environ_ioncctype), ALLOCATABLE :: ioncctype(:)
+        TYPE(environ_electrolyte_base) :: base
         !
-        REAL(DP) :: temperature
-        REAL(DP) :: k2
-        REAL(DP) :: cionmax
-        REAL(DP) :: permittivity
+        !--------------------------------------------------------------------------------
         !
         TYPE(environ_boundary) :: boundary
         TYPE(environ_density) :: density
@@ -95,7 +89,6 @@ MODULE class_electrolyte
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create => create_environ_electrolyte
         PROCEDURE :: init => init_environ_electrolyte
         PROCEDURE :: update => update_environ_electrolyte
         PROCEDURE :: destroy => destroy_environ_electrolyte
@@ -119,25 +112,6 @@ CONTAINS
     !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_electrolyte(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_electrolyte), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrolyte'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ALLOCATED(this%ioncctype)) CALL io%create_error(sub_name)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_environ_electrolyte
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -175,18 +149,14 @@ CONTAINS
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
-        INTEGER :: ityp
-        REAL(DP) :: neutral, sumcbulk, sum_cz2, arg, kT, e
-        !
-        CHARACTER(LEN=80) :: ityps, local_label
+        CHARACTER(LEN=80) :: local_label = 'electrolyte'
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%create()
-        !
-        local_label = 'electrolyte'
+        CALL this%base%init(ntyp, const, distance, spread, temperature, cbulk, cionmax, &
+                            radius, z, electrolyte_entropy, linearized, cell)
         !
         CALL this%boundary%init(.TRUE., .TRUE., .FALSE., mode, stype, rhomax, &
                                 rhomin, tbeta, const, alpha, softness, distance, &
@@ -196,54 +166,7 @@ CONTAINS
                                 ions, system, derivatives, cell, local_label)
         !
         !--------------------------------------------------------------------------------
-        ! Setup all electrolyte parameters (with checks)
-        !
-        this%linearized = linearized
-        this%ntyp = ntyp
-        this%electrolyte_entropy = TRIM(electrolyte_entropy)
-        this%temperature = temperature
-        this%permittivity = const
-        !
-        ALLOCATE (this%ioncctype(ntyp))
-        !
-        neutral = 0.D0
-        sum_cz2 = 0.D0
-        !
-        DO ityp = 1, ntyp
-            !
-            CALL this%ioncctype(ityp)%init(ityp, cbulk(ityp), z(ityp), cell)
-            !
-            neutral = neutral + cbulk(ityp) * z(ityp)
-            sum_cz2 = sum_cz2 + this%ioncctype(ityp)%cbulk * this%ioncctype(ityp)%z**2
-        END DO
-        !
-        IF (neutral > 1.D-8) &
-            CALL io%error(sub_name, 'Bulk electrolyte is not neutral', 1)
-        !
-        kT = K_BOLTZMANN_RY * temperature
-        !
-        this%k2 = sum_cz2 / kT * e2 * fpi ! k^2 = eps / lambda_D^2
-        !
-        this%cionmax = cionmax * BOHR_RADIUS_SI**3 / AMU_SI
-        !
-        !--------------------------------------------------------------------------------
-        ! If not given cionmax in input, but given radius, calculate cionmax
-        !
-        IF (cionmax == 0.D0 .AND. radius > 0.D0) &
-            this%cionmax = 0.64D0 * 3.D0 / fpi / radius**3
-        !
-        !--------------------------------------------------------------------------------
-        ! Check suitability of cionmax value
-        !
-        sumcbulk = SUM(this%ioncctype(:)%cbulk)
-        !
-        IF (this%cionmax > 0.D0 .AND. this%cionmax <= sumcbulk) &
-            CALL io%error(sub_name, 'cionmax should be larger than the sum of cbulks', 1)
-        !
-        !--------------------------------------------------------------------------------
         ! Densities
-        !
-        local_label = 'electrolyte'
         !
         CALL this%density%init(cell, local_label)
         !
@@ -255,7 +178,7 @@ CONTAINS
         !
         CALL this%dgamma%init(cell, local_label)
         !
-        IF (this%linearized) CALL this%de_dboundary_second_order%init(cell)
+        IF (this%base%linearized) CALL this%de_dboundary_second_order%init(cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrolyte
@@ -319,29 +242,21 @@ CONTAINS
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
-        INTEGER :: ityp
-        !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%boundary%destroy()
         !
-        DO ityp = 1, this%ntyp
-            CALL this%ioncctype(ityp)%destroy()
-        END DO
+        CALL this%density%destroy()
         !
         CALL this%gamma%destroy()
         !
         CALL this%dgamma%destroy()
         !
-        CALL this%density%destroy()
+        IF (this%base%linearized) CALL this%de_dboundary_second_order%destroy()
         !
-        IF (this%linearized) CALL this%de_dboundary_second_order%destroy()
-        !
-        IF (.NOT. ALLOCATED(this%ioncctype)) CALL io%destroy_error(sub_name)
-        !
-        DEALLOCATE (this%ioncctype)
+        CALL this%base%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrolyte
@@ -385,10 +300,11 @@ CONTAINS
         !
         CLASS(environ_electrolyte), TARGET, INTENT(INOUT) :: this
         !
-        REAL(DP), POINTER :: z, cbulk
+        REAL(DP), POINTER :: z, cbulk, cionmax
         REAL(DP), DIMENSION(:), POINTER :: pot, rho, c, cfactor, gam
+        TYPE(environ_electrolyte_base), POINTER :: base
         !
-        REAL(DP) :: kT, e, factor, sumcbulk, arg
+        REAL(DP) :: kT, factor, sumcbulk, arg
         INTEGER :: ityp, ir
         TYPE(environ_density) :: denominator
         !
@@ -401,28 +317,30 @@ CONTAINS
         gam => this%gamma%of_r
         pot => potential%of_r
         rho => this%density%of_r
+        base => this%base
+        cionmax => base%cionmax
         !
         rho = 0.D0
-        kT = K_BOLTZMANN_RY * this%temperature
+        kT = K_BOLTZMANN_RY * base%temperature
         !
         CALL denominator%init(potential%cell)
         !
         denominator%of_r = 1.D0
         !
-        DO ityp = 1, this%ntyp
-            cfactor => this%ioncctype(ityp)%cfactor%of_r
-            cbulk => this%ioncctype(ityp)%cbulk
-            z => this%ioncctype(ityp)%z
+        DO ityp = 1, base%ntyp
+            cfactor => base%ioncctype(ityp)%cfactor%of_r
+            cbulk => base%ioncctype(ityp)%cbulk
+            z => base%ioncctype(ityp)%z
+            !
             cfactor = 1.D0
             !
-            IF (this%linearized) THEN ! Linearized PB and modified PB
-                !
+            IF (base%linearized) THEN ! Linearized PB and modified PB
                 cfactor = 1.D0 - z * pot / kT
                 !
-                IF (this%cionmax > 0.D0) THEN
-                    factor = cbulk / this%cionmax
+                IF (cionmax > 0.D0) THEN
+                    factor = cbulk / cionmax
                     !
-                    IF (this%electrolyte_entropy == 'ions') &
+                    IF (base%electrolyte_entropy == 'ions') &
                         denominator%of_r = denominator%of_r - factor * (1.D0 - gam)
                     !
                 END IF
@@ -447,11 +365,10 @@ CONTAINS
                     !
                 END DO
                 !
-                IF (this%cionmax /= 0.D0) THEN ! full modified PB
+                IF (cionmax /= 0.D0) THEN ! full modified PB
+                    factor = cbulk / cionmax
                     !
-                    factor = cbulk / this%cionmax
-                    !
-                    SELECT CASE (this%electrolyte_entropy)
+                    SELECT CASE (base%electrolyte_entropy)
                         !
                     CASE ('full')
                         denominator%of_r = denominator%of_r - factor * (1.D0 - cfactor)
@@ -470,14 +387,14 @@ CONTAINS
             NULLIFY (cfactor)
             NULLIFY (cbulk)
             NULLIFY (z)
-            !
         END DO
         !
-        DO ityp = 1, this%ntyp
-            c => this%ioncctype(ityp)%c%of_r
-            cfactor => this%ioncctype(ityp)%cfactor%of_r
-            cbulk => this%ioncctype(ityp)%cbulk
-            z => this%ioncctype(ityp)%z
+        DO ityp = 1, base%ntyp
+            c => base%ioncctype(ityp)%c%of_r
+            cfactor => base%ioncctype(ityp)%cfactor%of_r
+            cbulk => base%ioncctype(ityp)%cbulk
+            z => base%ioncctype(ityp)%z
+            !
             c = gam * cbulk * cfactor / denominator%of_r
             rho = rho + c * z
             !
@@ -489,7 +406,7 @@ CONTAINS
         !
         this%charge = this%density%integrate()
         !
-        IF (this%linearized) THEN
+        IF (base%linearized) THEN
             !
             !----------------------------------------------------------------------------
             ! Compute energy and de_dboundary terms that depend on the potential.
@@ -499,19 +416,17 @@ CONTAINS
             !
             this%energy_second_order = 0.5D0 * this%density%scalar_product(potential)
             !
-            IF (this%electrolyte_entropy == 'ions' .AND. &
-                this%cionmax > 0.D0) THEN
+            IF (base%electrolyte_entropy == 'ions' .AND. cionmax > 0.D0) THEN
                 !
-                sumcbulk = SUM(this%ioncctype(:)%cbulk)
+                sumcbulk = SUM(base%ioncctype(:)%cbulk)
                 !
                 this%de_dboundary_second_order%of_r = &
-                    -0.5D0 * this%k2 / e2 / fpi * &
-                    (1.D0 - sumcbulk / this%cionmax) * &
+                    -0.5D0 * base%k2 / e2 / fpi * (1.D0 - sumcbulk / cionmax) * &
                     (pot / denominator%of_r)**2 * this%dgamma%of_r
                 !
             ELSE
                 !
-                this%de_dboundary_second_order%of_r = -0.5D0 * this%k2 / e2 / fpi * &
+                this%de_dboundary_second_order%of_r = -0.5D0 * base%k2 / e2 / fpi * &
                                                       pot * pot * this%dgamma%of_r
                 !
             END IF
@@ -531,53 +446,51 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_electrolyte), INTENT(IN) :: this
+        CLASS(environ_electrolyte), TARGET, INTENT(IN) :: this
         !
         REAL(DP), INTENT(OUT) :: energy
         !
-        REAL(DP) :: kT, sumcbulk, logterm, integral
         INTEGER :: ityp
+        REAL(DP) :: kT, sumcbulk, logterm, integral
+
+        REAL(DP), POINTER :: cionmax
+        TYPE(environ_electrolyte_base), POINTER :: base
+        !
         TYPE(environ_density) :: arg, f
         !
         !--------------------------------------------------------------------------------
         !
+        base => this%base
+        cionmax => base%cionmax
+        !
         energy = 0.D0
         !
-        kT = K_BOLTZMANN_RY * this%temperature
-        sumcbulk = SUM(this%ioncctype(:)%cbulk)
+        kT = K_BOLTZMANN_RY * base%temperature
+        sumcbulk = SUM(base%ioncctype(:)%cbulk)
         !
         CALL arg%init(this%gamma%cell)
         !
         CALL f%init(this%gamma%cell)
         !
-        IF (this%linearized) THEN
+        IF (base%linearized) THEN
             !
-            IF (this%cionmax == 0.D0) THEN ! Linearized PB
-                !
+            IF (cionmax == 0.D0) THEN ! Linearized PB
                 integral = this%gamma%integrate()
                 energy = kT * sumcbulk * (this%gamma%cell%omega - integral)
-                !
             ELSE ! Linearized modified PB
                 !
-                SELECT CASE (this%electrolyte_entropy)
+                SELECT CASE (base%electrolyte_entropy)
                     !
                 CASE ('full')
                     integral = this%gamma%integrate()
-                    logterm = LOG(1.D0 - sumcbulk / this%cionmax)
-                    !
-                    energy = kT * this%cionmax * logterm * &
-                             (integral - this%gamma%cell%omega)
+                    logterm = LOG(1.D0 - sumcbulk / cionmax)
+                    energy = kT * cionmax * logterm * (integral - this%gamma%cell%omega)
                     !
                 CASE ('ions')
-                    !
-                    arg%of_r = 1.D0 - &
-                               sumcbulk / this%cionmax * &
-                               (1.D0 - this%gamma%of_r)
-                    !
+                    arg%of_r = 1.D0 - sumcbulk / cionmax * (1.D0 - this%gamma%of_r)
                     f%of_r = LOG(arg%of_r)
                     integral = f%integrate()
-                    !
-                    energy = -kT * this%cionmax * integral
+                    energy = -kT * cionmax * integral
                     !
                 END SELECT
                 !
@@ -587,40 +500,35 @@ CONTAINS
         ELSE
             arg%of_r = 0.D0
             !
-            DO ityp = 1, this%ntyp
+            DO ityp = 1, base%ntyp
                 !
-                arg%of_r = arg%of_r + this%ioncctype(ityp)%cfactor%of_r * &
-                           this%ioncctype(ityp)%cbulk
+                arg%of_r = arg%of_r + base%ioncctype(ityp)%cfactor%of_r * &
+                           base%ioncctype(ityp)%cbulk
                 !
             END DO
             !
-            IF (this%cionmax == 0.D0) THEN ! Full PB
-                !
+            IF (cionmax == 0.D0) THEN ! Full PB
                 f%of_r = this%gamma%of_r * arg%of_r - sumcbulk
                 integral = f%integrate()
-                !
                 energy = -kT * integral
-                !
             ELSE ! full modified PB
                 !
-                SELECT CASE (this%electrolyte_entropy)
+                SELECT CASE (base%electrolyte_entropy)
                     !
                 CASE ('full')
-                    arg%of_r = arg%of_r / (this%cionmax - sumcbulk)
+                    arg%of_r = arg%of_r / (cionmax - sumcbulk)
                     arg%of_r = arg%of_r + 1.D0
                     f%of_r = this%gamma%of_r * LOG(arg%of_r)
                     integral = f%integrate()
-                    logterm = LOG(1.D0 - sumcbulk / this%cionmax)
-                    !
-                    energy = -kT * this%cionmax * &
-                             (integral + logterm * this%gamma%cell%omega)
+                    logterm = LOG(1.D0 - sumcbulk / cionmax)
+                    energy = -kT * cionmax * (integral + logterm * this%gamma%cell%omega)
                     !
                 CASE ('ions')
-                    arg%of_r = arg%of_r / this%cionmax * this%gamma%of_r
-                    arg%of_r = arg%of_r + 1.D0 - sumcbulk / this%cionmax
+                    arg%of_r = arg%of_r / cionmax * this%gamma%of_r
+                    arg%of_r = arg%of_r + 1.D0 - sumcbulk / cionmax
                     f%of_r = LOG(arg%of_r)
                     integral = f%integrate()
-                    energy = -kT * this%cionmax * integral
+                    energy = -kT * cionmax * integral
                     !
                 END SELECT
                 !
@@ -647,90 +555,80 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: de_dboundary
         !
-        REAL(DP), POINTER :: gam(:)
+        REAL(DP), POINTER :: gam(:), cionmax
+        TYPE(environ_electrolyte_base), POINTER :: base
         !
-        REAL(DP) :: kT, sumcbulk
         INTEGER :: ityp
+        REAL(DP) :: kT, sumcbulk
+        !
         TYPE(environ_density) :: arg
         !
         !--------------------------------------------------------------------------------
         !
         gam => this%gamma%of_r
+        base => this%base
+        cionmax => base%cionmax
         !
-        kT = K_BOLTZMANN_RY * this%temperature
-        sumcbulk = SUM(this%ioncctype(:)%cbulk)
+        kT = K_BOLTZMANN_RY * base%temperature
+        sumcbulk = SUM(base%ioncctype(:)%cbulk)
         !
-        IF (this%linearized) THEN
+        IF (base%linearized) THEN
             !
-            IF (this%cionmax == 0.D0) THEN ! linearized PB
-                !
-                de_dboundary%of_r = de_dboundary%of_r - &
-                     & this%dgamma%of_r * kT * sumcbulk
-                !
+            IF (cionmax == 0.D0) THEN ! linearized PB
+                de_dboundary%of_r = de_dboundary%of_r - this%dgamma%of_r * kT * sumcbulk
             ELSE ! linearized modified PB
                 !
-                SELECT CASE (this%electrolyte_entropy)
+                SELECT CASE (base%electrolyte_entropy)
                     !
                 CASE ('full')
                     !
-                    de_dboundary%of_r = &
-                        de_dboundary%of_r + &
-                        this%dgamma%of_r * kT * this%cionmax * &
-                        LOG(1.D0 - sumcbulk / this%cionmax)
+                    de_dboundary%of_r = de_dboundary%of_r + &
+                                        this%dgamma%of_r * kT * cionmax * &
+                                        LOG(1.D0 - sumcbulk / cionmax)
                     !
                 CASE ('ions')
                     !
-                    de_dboundary%of_r = &
-                        de_dboundary%of_r - &
-                        this%dgamma%of_r * kT * sumcbulk / &
-                        (1.D0 - sumcbulk / this%cionmax * (1.D0 - gam))
+                    de_dboundary%of_r = de_dboundary%of_r - &
+                                        this%dgamma%of_r * kT * sumcbulk / &
+                                        (1.D0 - sumcbulk / cionmax * (1.D0 - gam))
                     !
                 END SELECT
                 !
             END IF
             !
-            de_dboundary%of_r = de_dboundary%of_r + &
-                                this%de_dboundary_second_order%of_r
-            !
+            de_dboundary%of_r = de_dboundary%of_r + this%de_dboundary_second_order%of_r
         ELSE
             !
             CALL arg%init(de_dboundary%cell)
             !
             arg%of_r = 0.D0
             !
-            DO ityp = 1, this%ntyp
+            DO ityp = 1, base%ntyp
                 !
                 arg%of_r = arg%of_r + &
-                           this%ioncctype(ityp)%cfactor%of_r * &
-                           this%ioncctype(ityp)%cbulk
+                           base%ioncctype(ityp)%cfactor%of_r * &
+                           base%ioncctype(ityp)%cbulk
                 !
             END DO
             !
-            IF (this%cionmax == 0.D0) THEN ! full PB
-                !
-                de_dboundary%of_r = de_dboundary%of_r - &
-                                    this%dgamma%of_r * kT * arg%of_r
-                !
+            IF (cionmax == 0.D0) THEN ! full PB
+                de_dboundary%of_r = de_dboundary%of_r - this%dgamma%of_r * kT * arg%of_r
             ELSE ! full modified PB
                 !
-                SELECT CASE (this%electrolyte_entropy)
+                SELECT CASE (base%electrolyte_entropy)
                     !
                 CASE ('full')
-                    !
-                    arg%of_r = arg%of_r / (this%cionmax - sumcbulk)
+                    arg%of_r = arg%of_r / (cionmax - sumcbulk)
                     arg%of_r = arg%of_r + 1.D0
                     !
-                    de_dboundary%of_r = &
-                        de_dboundary%of_r - &
-                        this%dgamma%of_r * kT * &
-                        this%cionmax * LOG(arg%of_r)
+                    de_dboundary%of_r = de_dboundary%of_r - &
+                                        this%dgamma%of_r * kT * cionmax * LOG(arg%of_r)
                     !
                 CASE ('ions')
                     !
-                    de_dboundary%of_r = &
-                        de_dboundary%of_r - &
-                        this%dgamma%of_r * kT * arg%of_r / &
-                        (1.D0 - (sumcbulk - arg%of_r * gam) / this%cionmax)
+                    de_dboundary%of_r = de_dboundary%of_r - &
+                                        this%dgamma%of_r * kT * arg%of_r / &
+                                        (1.D0 - (sumcbulk - arg%of_r * gam) / cionmax)
                     !
                 END SELECT
                 !
@@ -764,10 +662,12 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_electrolyte), INTENT(IN) :: this
+        CLASS(environ_electrolyte), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit, ityp
+        !
+        TYPE(environ_electrolyte_base), POINTER :: base
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_electrolyte'
         !
@@ -805,17 +705,19 @@ CONTAINS
             local_unit = io%debug_unit
         END IF
         !
+        base => this%base
+        !
         IF (local_verbose >= 1) THEN
             !
             IF (io%lnode) THEN
                 WRITE (local_unit, 1000)
                 !
                 WRITE (local_unit, 1001) &
-                    this%ntyp, this%temperature, 1.D0 / SQRT(this%k2)
+                    base%ntyp, base%temperature, 1.D0 / SQRT(base%k2)
                 !
-                IF (this%cionmax > 0.D0) WRITE (local_unit, 1002) this%cionmax
+                IF (base%cionmax > 0.D0) WRITE (local_unit, 1002) base%cionmax
                 !
-                WRITE (local_unit, 1003) this%linearized
+                WRITE (local_unit, 1003) base%linearized
                 WRITE (local_unit, 1004) this%charge
             END IF
             !
@@ -835,24 +737,24 @@ CONTAINS
                 WRITE (local_unit, 1006) ! header
             END IF
             !
-            DO ityp = 1, this%ntyp
+            DO ityp = 1, base%ntyp
                 !
                 IF (io%lnode) &
                     WRITE (local_unit, 1007) &
-                    this%ioncctype(ityp)%index, this%ioncctype(ityp)%cbulk, &
-                    this%ioncctype(ityp)%cbulk * AMU_SI / BOHR_RADIUS_SI**3, &
-                    this%ioncctype(ityp)%z
+                    base%ioncctype(ityp)%index, base%ioncctype(ityp)%cbulk, &
+                    base%ioncctype(ityp)%cbulk * AMU_SI / BOHR_RADIUS_SI**3, &
+                    base%ioncctype(ityp)%z
                 !
             END DO
             !
             IF (local_verbose >= 5) THEN
                 !
-                DO ityp = 1, this%ntyp
+                DO ityp = 1, base%ntyp
                     !
-                    CALL this%ioncctype(ityp)%c%printout(passed_verbose, debug_verbose, &
+                    CALL base%ioncctype(ityp)%c%printout(passed_verbose, debug_verbose, &
                                                          local_unit)
                     !
-                    CALL this%ioncctype(ityp)%cfactor%printout(passed_verbose, &
+                    CALL base%ioncctype(ityp)%cfactor%printout(passed_verbose, &
                                                                debug_verbose, &
                                                                local_unit)
                     !

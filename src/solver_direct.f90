@@ -180,7 +180,7 @@ CONTAINS
                                   'Missing electrolyte for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_v(charges%electrolyte, &
+                CALL this%cores%correction%calc_v(charges%electrolyte%base, &
                                                   charges%density, potential)
                 !
             CASE ('ms', 'mott-schottky')
@@ -270,7 +270,7 @@ CONTAINS
                                   'Missing electrolyte for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_v(electrolyte, charges, local)
+                CALL this%cores%correction%calc_v(electrolyte%base, charges, local)
                 !
             CASE ('ms', 'mott-schottky')
                 !
@@ -348,7 +348,7 @@ CONTAINS
                                   'Missing electrolyte for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_gradv(charges%electrolyte, &
+                CALL this%cores%correction%calc_gradv(charges%electrolyte%base, &
                                                       charges%density, gradient)
                 !
             CASE ('ms', 'mott-schottky')
@@ -428,7 +428,8 @@ CONTAINS
                                   'Missing electrolyte for &
                                   &electrochemical boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_gradv(electrolyte, charges, gradient)
+                CALL this%cores%correction%calc_gradv(electrolyte%base, charges, &
+                                                      gradient)
                 !
             CASE ('ms', 'mott-schottky')
                 !
