@@ -122,16 +122,16 @@ CONTAINS
                                         radial_spread, filling_threshold, &
                                         filling_spread, field_awareness, &
                                         charge_asymmetry, field_max, field_min, &
-                                        electrons, ions, system, cores, &
-                                        temperature, cbulk, cionmax, radius, z, &
-                                        electrolyte_entropy, linearized, cell)
+                                        electrons, ions, system, temperature, cbulk, &
+                                        cionmax, radius, z, electrolyte_entropy, &
+                                        linearized, cores, deriv_method, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: linearized
         INTEGER, INTENT(IN) :: ntyp, stype
-        CHARACTER(LEN=80), INTENT(IN) :: mode, electrolyte_entropy
+        CHARACTER(LEN=80), INTENT(IN) :: mode, electrolyte_entropy, deriv_method
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, &
                                 alpha, softness, temperature, solvent_radius, &
@@ -163,7 +163,7 @@ CONTAINS
                                 spread, solvent_radius, radial_scale, radial_spread, &
                                 filling_threshold, filling_spread, field_awareness, &
                                 charge_asymmetry, field_max, field_min, electrons, &
-                                ions, system, cores, cell, local_label)
+                                ions, system, cores, deriv_method, cell, local_label)
         !
         !--------------------------------------------------------------------------------
         ! Densities
@@ -379,7 +379,7 @@ CONTAINS
                                            factor * (1.D0 - gam * cfactor)
                         !
                     CASE DEFAULT
-                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
                         !
                     END SELECT
                     !
@@ -606,7 +606,7 @@ CONTAINS
                                         (1.D0 - sumcbulk / cionmax * (1.D0 - gam))
                     !
                 CASE DEFAULT
-                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                    CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
                     !
                 END SELECT
                 !
@@ -647,7 +647,7 @@ CONTAINS
                                         (1.D0 - (sumcbulk - arg%of_r * gam) / cionmax)
                     !
                 CASE DEFAULT
-                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                    CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
                     !
                 END SELECT
                 !

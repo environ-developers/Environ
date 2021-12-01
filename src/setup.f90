@@ -845,7 +845,7 @@ CONTAINS
                 !
             END SELECT
             !
-            CALL this%outer_container%set_derivatives(local_deriv_core, deriv_method)
+            CALL this%outer_container%set_derivatives(local_deriv_core)
             !
         END IF
         !

@@ -110,6 +110,8 @@ MODULE class_boundary
         !
         TYPE(core_container), POINTER :: cores => NULL()
         !
+        CHARACTER(LEN=80) :: derivatives_method
+        !
         !--------------------------------------------------------------------------------
         ! Global properties of the boundary
         !
@@ -256,13 +258,13 @@ CONTAINS
                                      solvent_radius, radial_scale, radial_spread, &
                                      filling_threshold, filling_spread, field_factor, &
                                      charge_asymmetry, field_max, field_min, electrons, &
-                                     ions, system, cores, cell, label)
+                                     ions, system, cores, deriv_method, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: stype
-        CHARACTER(LEN=80), INTENT(IN) :: mode
+        CHARACTER(LEN=80), INTENT(IN) :: mode, deriv_method
         LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, alpha, softness, &
@@ -274,8 +276,8 @@ CONTAINS
         TYPE(environ_electrons), TARGET, INTENT(IN) :: electrons
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
-        TYPE(core_container), TARGET, INTENT(IN) :: cores
         TYPE(environ_cell), INTENT(IN) :: cell
+        TYPE(core_container), TARGET, INTENT(IN) :: cores
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
@@ -335,9 +337,20 @@ CONTAINS
         this%alpha = alpha
         this%softness = softness
         !
+        !--------------------------------------------------------------------------------
+        !
         IF (this%need_system) &
             CALL this%simple%init(4, system%axis, system%dim, system_distance, &
                                   system_spread, 1.D0, system%pos)
+        !
+        !--------------------------------------------------------------------------------
+        ! Derivatives
+        !
+        this%cores => cores
+        this%derivatives_method = deriv_method
+        !
+        !--------------------------------------------------------------------------------
+        ! Solvent aware
         !
         this%solvent_aware = solvent_radius > 0.D0
         !
@@ -348,7 +361,8 @@ CONTAINS
         this%filling_threshold = filling_threshold
         this%filling_spread = filling_spread
         !
-        this%cores => cores
+        !--------------------------------------------------------------------------------
+        ! Field aware
         !
         this%field_aware = field_factor > 0.D0
         this%field_factor = field_factor
@@ -1092,7 +1106,7 @@ CONTAINS
         !
         ASSOCIATE (derivatives => this%cores%derivatives)
             !
-            SELECT CASE (this%cores%derivatives_method)
+            SELECT CASE (this%derivatives_method)
                 !
             CASE ('fft')
                 !
@@ -1249,7 +1263,7 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%cores%derivatives_method)
+        SELECT CASE (this%derivatives_method)
             !
         CASE ('fft')
             !
@@ -1481,7 +1495,7 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%cores%derivatives_method)
+        SELECT CASE (this%derivatives_method)
             !
         CASE ('fft')
             !
@@ -1708,7 +1722,7 @@ CONTAINS
         !
         ASSOCIATE (cell => this%scaled%cell, &
                    derivatives => this%cores%derivatives, &
-                   derivatives_method => this%cores%derivatives_method, &
+                   derivatives_method => this%derivatives_method, &
                    ir_end => this%scaled%cell%ir_end, &
                    deriv => this%deriv, &
                    thr => this%filling_threshold, &

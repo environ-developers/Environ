@@ -52,7 +52,6 @@ MODULE class_core_container
         LOGICAL :: internal_correction = .FALSE.
         !
         LOGICAL :: has_derivatives = .FALSE.
-        CHARACTER(LEN=80) :: derivatives_method = 'default'
         CLASS(environ_core), POINTER :: derivatives => NULL()
         !
         LOGICAL :: has_electrostatics = .FALSE.
@@ -113,8 +112,8 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_container(this, label, deriv_core, deriv_method, &
-                                   elect_core, corr_core, corr_method, inter_corr)
+    SUBROUTINE init_core_container(this, label, deriv_core, elect_core, corr_core, &
+                                   corr_method, inter_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -123,7 +122,6 @@ CONTAINS
         CLASS(environ_core), INTENT(IN), OPTIONAL :: deriv_core
         CLASS(environ_core), INTENT(IN), OPTIONAL :: elect_core
         CLASS(environ_core), INTENT(IN), OPTIONAL :: corr_core
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: deriv_method
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: corr_method
         LOGICAL, INTENT(IN), OPTIONAL :: inter_corr
         !
@@ -139,7 +137,7 @@ CONTAINS
         !
         IF (PRESENT(elect_core)) CALL this%set_electrostatics(elect_core)
         !
-        IF (PRESENT(deriv_core)) CALL this%set_derivatives(deriv_core, deriv_method)
+        IF (PRESENT(deriv_core)) CALL this%set_derivatives(deriv_core)
         !
         IF (PRESENT(corr_core)) CALL this%set_corrections(corr_core, corr_method)
         !
@@ -189,13 +187,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_derivatives(this, core, method)
+    SUBROUTINE set_derivatives(this, core)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_core), TARGET, INTENT(IN) :: core
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: method
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
@@ -209,8 +206,6 @@ CONTAINS
         !
         this%derivatives => core
         this%has_derivatives = .TRUE.
-        !
-        IF (PRESENT(method)) this%derivatives_method = method
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_derivatives

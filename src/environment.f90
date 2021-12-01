@@ -847,8 +847,8 @@ CONTAINS
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
                 field_awareness, charge_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%outer_container, environment_cell, &
-                local_label)
+                this%environment_system, setup%outer_container, deriv_method, &
+                environment_cell, local_label)
             !
         END IF
         !
@@ -864,9 +864,9 @@ CONTAINS
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
                 filling_threshold, filling_spread, field_awareness, charge_asymmetry, &
                 field_max, field_min, this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%outer_container, temperature, cion, &
-                cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized, &
-                environment_cell)
+                this%environment_system, temperature, cion, cionmax, rion, zion, &
+                electrolyte_entropy, electrolyte_linearized, setup%outer_container, &
+                electrolyte_deriv_method, environment_cell)
             !
             CALL this%environment_charges%add(electrolyte=this%electrolyte)
             !
