@@ -43,6 +43,7 @@ MODULE class_semiconductor
     USE class_function_erfc
     USE class_functions
     !
+    USE class_semiconductor_base
     USE class_system
     !
     !------------------------------------------------------------------------------------
@@ -60,20 +61,18 @@ MODULE class_semiconductor
         !
         LOGICAL :: lupdate = .FALSE.
         !
-        REAL(DP) :: temperature
-        REAL(DP) :: permittivity
-        REAL(DP) :: carrier_density
-        REAL(DP) :: electrode_charge
-        REAL(DP) :: charge_threshold
+        TYPE(environ_semiconductor_base) :: base
         !
-        REAL(DP) :: slab_charge = 0.D0
-        REAL(DP) :: charge = 0.D0
-        REAL(DP) :: flatband_fermi = 0.D0
-        REAL(DP) :: bulk_sc_fermi = 0.D0
-        REAL(DP) :: surf_area_per_sq_cm = 0.D0
+        !--------------------------------------------------------------------------------
         !
         TYPE(environ_function_erfc) :: simple
         TYPE(environ_density) :: density
+        !
+        REAL(DP) :: charge = 0.D0
+        REAL(DP) :: slab_charge = 0.D0
+        REAL(DP) :: flatband_fermi = 0.D0
+        REAL(DP) :: bulk_sc_fermi = 0.D0
+        REAL(DP) :: surf_area_per_sq_cm = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -121,20 +120,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%base%init(temperature, sc_permittivity, sc_carrier_density, &
+                            sc_electrode_chg, sc_distance, sc_spread, sc_chg_thr)
+        !
         CALL this%density%init(cell, local_label)
         !
         CALL this%simple%init(4, system%axis, system%dim, sc_distance, sc_spread, &
                               1.D0, system%pos)
-        !
-        this%temperature = temperature
-        this%permittivity = sc_permittivity
-        this%carrier_density = sc_carrier_density
-        !
-        this%carrier_density = this%carrier_density * 1.48D-25
-        ! convert carrier density to units of (bohr)^-3
-        !
-        this%electrode_charge = sc_electrode_chg
-        this%charge_threshold = sc_chg_thr
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor
@@ -177,6 +169,8 @@ CONTAINS
         !
         CALL this%density%destroy()
         !
+        CALL this%simple%destroy()
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_semiconductor
     !------------------------------------------------------------------------------------
@@ -201,10 +195,12 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_semiconductor), INTENT(IN) :: this
+        CLASS(environ_semiconductor), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
+        !
+        TYPE(environ_semiconductor_base), POINTER :: base
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_semiconductor'
         !
@@ -242,14 +238,16 @@ CONTAINS
             local_unit = io%debug_unit
         END IF
         !
+        base => this%base
+        !
         IF (local_verbose >= 1) THEN
             !
             IF (io%lnode) THEN
                 WRITE (local_unit, 1000)
                 !
                 WRITE (local_unit, 1001) &
-                    this%carrier_density / BOHR_RADIUS_CM**3, this%temperature, &
-                    this%permittivity
+                    base%carrier_density / BOHR_RADIUS_CM**3, base%temperature, &
+                    base%permittivity
                 !
                 WRITE (local_unit, 1002) this%charge
             END IF

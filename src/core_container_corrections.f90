@@ -41,7 +41,7 @@ MODULE class_core_container_corrections
     USE class_core_1da_electrostatics
     !
     USE class_electrolyte_base
-    USE class_semiconductor
+    USE class_semiconductor_base
     !
     !------------------------------------------------------------------------------------
     !
@@ -243,7 +243,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_semiconductor), INTENT(IN) :: semiconductor
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
         TYPE(environ_density), INTENT(IN) :: charges
         !
         CLASS(container_corrections), INTENT(INOUT) :: this
@@ -274,7 +274,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_semiconductor), INTENT(IN) :: semiconductor
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
         TYPE(environ_density), INTENT(IN) :: charges
         !
         CLASS(container_corrections), INTENT(INOUT) :: this

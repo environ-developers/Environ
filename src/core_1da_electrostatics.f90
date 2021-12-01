@@ -47,7 +47,7 @@ MODULE class_core_1da_electrostatics
     USE class_core_1da
     !
     USE class_electrolyte_base
-    USE class_semiconductor
+    USE class_semiconductor_base
     !
     !------------------------------------------------------------------------------------
     !
@@ -894,7 +894,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_semiconductor), TARGET, INTENT(IN) :: semiconductor
+        TYPE(environ_semiconductor_base), TARGET, INTENT(IN) :: semiconductor
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
         CLASS(core_1da_electrostatics), TARGET, INTENT(INOUT) :: this
@@ -938,7 +938,7 @@ CONTAINS
                    axis => this%x, &
                    permittivity => semiconductor%permittivity, &
                    carrier_density => semiconductor%carrier_density, &
-                   xstern => semiconductor%simple%width)
+                   xstern => semiconductor%sc_distance)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -1063,7 +1063,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_semiconductor), TARGET, INTENT(IN) :: semiconductor
+        TYPE(environ_semiconductor_base), TARGET, INTENT(IN) :: semiconductor
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
         CLASS(core_1da_electrostatics), TARGET, INTENT(INOUT) :: this
@@ -1106,7 +1106,7 @@ CONTAINS
                    axis => this%x, &
                    permittivity => semiconductor%permittivity, &
                    carrier_density => semiconductor%carrier_density, &
-                   xstern => semiconductor%simple%width)
+                   xstern => semiconductor%sc_distance)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors

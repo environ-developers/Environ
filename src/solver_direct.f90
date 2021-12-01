@@ -190,7 +190,7 @@ CONTAINS
                                   'Missing semiconductor for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_v(charges%semiconductor, &
+                CALL this%cores%correction%calc_v(charges%semiconductor%base, &
                                                   charges%density, potential)
                 !
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
@@ -279,7 +279,7 @@ CONTAINS
                                   'Missing semiconductor for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_v(semiconductor, charges, local)
+                CALL this%cores%correction%calc_v(semiconductor%base, charges, local)
                 !
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
@@ -358,7 +358,7 @@ CONTAINS
                                   'Missing semiconductor for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_gradv(charges%semiconductor, &
+                CALL this%cores%correction%calc_gradv(charges%semiconductor%base, &
                                                       charges%density, gradient)
                 !
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
@@ -438,7 +438,8 @@ CONTAINS
                                   'Missing semiconductor for &
                                   &electrochemical boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_gradv(semiconductor, charges, gradient)
+                CALL this%cores%correction%calc_gradv(semiconductor%base, charges, &
+                                                      gradient)
                 !
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
