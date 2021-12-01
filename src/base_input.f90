@@ -442,6 +442,25 @@ MODULE env_base_input
     ! spread of the interfaces for the electrolyte boundary
     !
     !------------------------------------------------------------------------------------
+    ! Electrolyte boundary derivatives
+    !
+    CHARACTER(LEN=80) :: electrolyte_deriv_method = 'default'
+    CHARACTER(LEN=80) :: electrolyte_deriv_method_allowed(5)
+    !
+    DATA electrolyte_deriv_method_allowed/'default', 'fft', 'chain', 'highmem', 'lowmem'/
+    !
+    ! algorithms for computing derivatives on the electrolyte boundary
+    !
+    ! fft       = fast Fourier transforms
+    !
+    ! chain     = chain-rule derivatives for as much as possible (FFTs for the rest)
+    !
+    ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical
+    !             functions and derivatives
+    !
+    ! lowmem    = more efficient analytic derivatives
+    !
+    !------------------------------------------------------------------------------------
     ! Mott Schottky boundary (system parameters
     !
     REAL(DP) :: sc_distance = 0.D0

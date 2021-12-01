@@ -318,6 +318,8 @@ CONTAINS
         deriv_method = 'default'
         deriv_core = 'fft'
         !
+        electrolyte_deriv_method = 'default'
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_defaults
     !------------------------------------------------------------------------------------
@@ -508,6 +510,8 @@ CONTAINS
         CALL env_mp_bcast(deriv_method, io%node, io%comm)
         !
         CALL env_mp_bcast(deriv_core, io%node, io%comm)
+        !
+        CALL env_mp_bcast(electrolyte_deriv_method, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_bcast
@@ -827,6 +831,21 @@ CONTAINS
         IF (.NOT. allowed) &
             CALL io%invalid_opt(sub_name, 'deriv_core', deriv_method)
         !
+        allowed = .FALSE.
+        !
+        DO i = 1, SIZE(electrolyte_deriv_method_allowed)
+            !
+            IF (TRIM(electrolyte_deriv_method) == electrolyte_deriv_method_allowed(i)) &
+                allowed = .TRUE.
+            !
+        END DO
+        !
+        IF (.NOT. allowed) &
+            CALL io%invalid_opt(sub_name, 'electrolyte_deriv_method', &
+                                electrolyte_deriv_method)
+        !
+        !--------------------------------------------------------------------------------
+        !
         CALL io%header('Checking boundary derivatives')
         !
         SELECT CASE (TRIM(solvent_mode))
@@ -856,6 +875,46 @@ CONTAINS
                 deriv_method = 'lowmem'
                 !
                 CALL io%default('deriv_method', deriv_method, 'SSCS default')
+                !
+            CASE ('chain')
+                !
+                CALL io%error(sub_name, &
+                              "Only 'highmem', 'lowmem', and 'fft' are allowed &
+                              &with ionic interfaces", 1)
+                !
+            END SELECT
+            !
+        END SELECT
+        !
+        SELECT CASE (TRIM(electrolyte_mode))
+            !
+        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+            !
+            SELECT CASE (TRIM(electrolyte_deriv_method))
+                !
+            CASE ('default')
+                electrolyte_deriv_method = 'chain'
+                !
+                CALL io%default('electrolyte_deriv_method', electrolyte_deriv_method, &
+                                'SCCS default')
+                !
+            CASE ('highmem', 'lowmem')
+                !
+                CALL io%error(sub_name, &
+                              "Only 'fft' or 'chain' are allowed &
+                              &with electronic interfaces", 1)
+                !
+            END SELECT
+            !
+        CASE ('ionic', 'fa-ionic')
+            !
+            SELECT CASE (TRIM(electrolyte_deriv_method))
+                !
+            CASE ('default')
+                electrolyte_deriv_method = 'lowmem'
+                !
+                CALL io%default('electrolyte_deriv_method', electrolyte_deriv_method, &
+                                'SSCS default')
                 !
             CASE ('chain')
                 !
