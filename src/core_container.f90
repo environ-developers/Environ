@@ -58,7 +58,6 @@ MODULE class_core_container
         CLASS(environ_core), POINTER :: electrostatics => NULL()
         !
         LOGICAL :: has_corrections = .FALSE.
-        CHARACTER(LEN=80) :: corrections_method = 'none'
         CLASS(environ_core), POINTER :: corrections => NULL()
         !
         !--------------------------------------------------------------------------------
@@ -113,7 +112,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_core_container(this, label, deriv_core, elect_core, corr_core, &
-                                   corr_method, inter_corr)
+                                   inter_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -122,7 +121,6 @@ CONTAINS
         CLASS(environ_core), INTENT(IN), OPTIONAL :: deriv_core
         CLASS(environ_core), INTENT(IN), OPTIONAL :: elect_core
         CLASS(environ_core), INTENT(IN), OPTIONAL :: corr_core
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: corr_method
         LOGICAL, INTENT(IN), OPTIONAL :: inter_corr
         !
         CLASS(core_container), INTENT(INOUT) :: this
@@ -139,7 +137,7 @@ CONTAINS
         !
         IF (PRESENT(deriv_core)) CALL this%set_derivatives(deriv_core)
         !
-        IF (PRESENT(corr_core)) CALL this%set_corrections(corr_core, corr_method)
+        IF (PRESENT(corr_core)) CALL this%set_corrections(corr_core)
         !
         IF (PRESENT(inter_corr)) this%internal_correction = inter_corr
         !
@@ -239,13 +237,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_corrections(this, core, method)
+    SUBROUTINE set_corrections(this, core)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_core), TARGET, INTENT(IN) :: core
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: method
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
@@ -259,8 +256,6 @@ CONTAINS
         !
         this%corrections => core
         this%has_corrections = .TRUE.
-        !
-        IF (PRESENT(method)) this%corrections_method = method
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_corrections

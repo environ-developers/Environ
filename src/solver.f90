@@ -53,6 +53,8 @@ MODULE class_solver
         !
         TYPE(core_container), POINTER :: cores => NULL()
         !
+        CHARACTER(LEN=80) :: corrections_method = 'none'
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------

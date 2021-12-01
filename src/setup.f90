@@ -909,11 +909,10 @@ CONTAINS
                 !
             END SELECT
             !
-            CALL this%outer_container%set_corrections(local_pbc_core, pbc_correction)
+            CALL this%outer_container%set_corrections(local_pbc_core)
             !
             IF (this%need_inner) &
-                CALL this%inner_container%set_corrections(local_pbc_core, &
-                                                          pbc_correction)
+                CALL this%inner_container%set_corrections(local_pbc_core)
             !
         END IF
         !
@@ -1053,14 +1052,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Outer setup
         !
-        CALL this%outer%init(problem, local_outer_solver)
+        CALL this%outer%init(problem, local_outer_solver, pbc_correction)
         !
         !--------------------------------------------------------------------------------
         ! Inner setup
         !
         IF (this%need_inner) THEN
             !
-            CALL this%inner%init(inner_problem, local_inner_solver)
+            CALL this%inner%init(inner_problem, local_inner_solver, pbc_correction)
             !
             this%outer%inner => this%inner
         END IF

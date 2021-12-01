@@ -123,13 +123,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_electrostatic_setup(this, problem, solver)
+    SUBROUTINE init_electrostatic_setup(this, problem, solver, corr_method)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=80), INTENT(IN) :: problem
         CLASS(electrostatic_solver), TARGET, INTENT(IN) :: solver
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: corr_method
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         !
@@ -141,6 +142,8 @@ CONTAINS
         !
         this%problem = problem
         this%solver => solver
+        !
+        IF (PRESENT(corr_method)) this%solver%corrections_method = corr_method
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_electrostatic_setup

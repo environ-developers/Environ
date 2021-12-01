@@ -177,7 +177,7 @@ CONTAINS
                        electrolyte => charges%electrolyte, &
                        semiconductor => charges%semiconductor)
                 !
-                SELECT CASE (this%cores%corrections_method)
+                SELECT CASE (this%corrections_method)
                     !
                 CASE ('parabolic')
                     CALL correction%potential(density, potential)
@@ -201,7 +201,7 @@ CONTAINS
                     CALL correction%potential(semiconductor%base, density, potential)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected correction method', 1)
+                    CALL io%error(sub_name, 'Unexpected corrections method', 1)
                     !
                 END SELECT
                 !
@@ -252,7 +252,7 @@ CONTAINS
             !
             ASSOCIATE (correction => this%cores%corrections)
                 !
-                SELECT CASE (this%cores%corrections_method)
+                SELECT CASE (this%corrections_method)
                     !
                 CASE ('parabolic')
                     CALL correction%potential(charges, local)
@@ -276,7 +276,7 @@ CONTAINS
                     CALL correction%potential(semiconductor%base, charges, local)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected correction method', 1)
+                    CALL io%error(sub_name, 'Unexpected corrections method', 1)
                     !
                 END SELECT
                 !
@@ -325,7 +325,7 @@ CONTAINS
                        electrolyte => charges%electrolyte, &
                        semiconductor => charges%semiconductor)
                 !
-                SELECT CASE (this%cores%corrections_method)
+                SELECT CASE (this%corrections_method)
                     !
                 CASE ('parabolic')
                     CALL correction%grad_potential(density, gradient)
@@ -349,7 +349,7 @@ CONTAINS
                     CALL correction%grad_potential(semiconductor%base, density, gradient)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected correction method', 1)
+                    CALL io%error(sub_name, 'Unexpected corrections method', 1)
                     !
                 END SELECT
                 !
@@ -394,7 +394,7 @@ CONTAINS
             !
             ASSOCIATE (correction => this%cores%corrections)
                 !
-                SELECT CASE (this%cores%corrections_method)
+                SELECT CASE (this%corrections_method)
                     !
                 CASE ('parabolic')
                     CALL correction%grad_potential(charges, gradient)
@@ -418,7 +418,7 @@ CONTAINS
                     CALL correction%grad_potential(semiconductor%base, charges, gradient)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected correction method', 1)
+                    CALL io%error(sub_name, 'Unexpected corrections method', 1)
                     !
                 END SELECT
                 !
