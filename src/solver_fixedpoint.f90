@@ -161,7 +161,7 @@ CONTAINS
             !
         ELSE
             !
-            CALL io%error(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, "Option not yet implemented", 1)
             !
             ! CALL generalized_iterative_velect(charges, dielectric, v) #TODO future-work
             !
@@ -204,7 +204,7 @@ CONTAINS
             !
         ELSE
             !
-            CALL io%error(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, "Option not yet implemented", 1)
             !
             ! CALL generalized_iterative_velect(charges, dielectric, v) #TODO future-work
             !
@@ -240,7 +240,7 @@ CONTAINS
             IF (ASSOCIATED(charges%dielectric)) THEN
                 !
                 IF (.NOT. PRESENT(inner)) &
-                    CALL io%error(sub_name, 'Missing inner solver', 1)
+                    CALL io%error(sub_name, "Missing inner solver", 1)
                 !
                 CALL this%pb_fixedpoint(v, charges%density, charges%electrolyte, &
                                         charges%dielectric, inner=inner)
@@ -250,7 +250,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL io%error(sub_name, 'Option not available', 1)
+            CALL io%error(sub_name, "Option not available", 1)
         END IF
         !
         CALL env_stop_clock(sub_name)
@@ -285,7 +285,7 @@ CONTAINS
             IF (PRESENT(dielectric)) THEN
                 !
                 IF (.NOT. PRESENT(inner)) &
-                    CALL io%error(sub_name, 'Missing inner setup', 1)
+                    CALL io%error(sub_name, "Missing inner setup", 1)
                 !
                 CALL this%pb_fixedpoint(v, charges, electrolyte, dielectric, inner=inner)
                 !
@@ -294,7 +294,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL io%error(sub_name, 'Option not available', 1)
+            CALL io%error(sub_name, "Option not available", 1)
         END IF
         !
         CALL env_stop_clock(sub_name)
@@ -340,10 +340,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -462,24 +462,24 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'),/)
+1000    FORMAT(/, 4('%'), " COMPUTE ELECTROSTATIC POTENTIAL ", 43('%'),/)
         !
-1001    FORMAT(' Starting from polarization: rhoiter = ', F13.6,/)
+1001    FORMAT(" Starting from polarization: rhoiter = ", F13.6,/)
         !
-1002    FORMAT('   i |    delta_qm    |    delta_en    |       tol     | ' &
-               '          total iterative polarization charge', /, 1X, 113('-'))
+1002    FORMAT("   i |    delta_qm    |    delta_en    |       tol     | " &
+               "          total iterative polarization charge", /, 1X, 113('-'))
         !
-1003    FORMAT('   i |    delta_qm    |    delta_en    |       tol', /, 1X, 54('-'))
+1003    FORMAT("   i |    delta_qm    |    delta_en    |       tol", /, 1X, 54('-'))
         !
-1004    FORMAT(1X, I3, 3(' | ', E14.6), ' | ', 4E14.6)
+1004    FORMAT(1X, I3, 3(" | ", E14.6), " | ", 4E14.6)
         !
-1005    FORMAT(1X, I3, 3(' | ', E14.6))
+1005    FORMAT(1X, I3, 3(" | ", E14.6))
         !
-1006    FORMAT(/, ' Charges are converged, EXIT')
+1006    FORMAT(/, " Charges are converged, EXIT")
         !
-1007    FORMAT(' Warning: Polarization charge not converged',/)
+1007    FORMAT(" Warning: Polarization charge not converged",/)
         !
-1008    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+1008    FORMAT("     Polarization accuracy =", 1PE8.1, ", # of iterations = ", i3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_fixedpoint
@@ -515,17 +515,17 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+                CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
             !
-            IF (.NOT. PRESENT(inner)) CALL io%error(sub_name, 'Missing inner solver', 1)
+            IF (.NOT. PRESENT(inner)) CALL io%error(sub_name, "Missing inner solver", 1)
             !
         END IF
         !
@@ -701,22 +701,22 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1100    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'),/)
+1100    FORMAT(/, 4('%'), " COMPUTE ELECTROSTATIC POTENTIAL ", 43('%'),/)
         !
-1101    FORMAT('   i | outer delta_qm |    delta_en    |       tol      | ' &
-               'total iterative electrolyte charge', /, 1X, 91('-'))
+1101    FORMAT("   i | outer delta_qm |    delta_en    |       tol      | " &
+               "total iterative electrolyte charge", /, 1X, 91('-'))
         !
-1102    FORMAT('   i | outer delta_qm |    delta_en    |       tol', /, 1X, 54('-'))
+1102    FORMAT("   i | outer delta_qm |    delta_en    |       tol", /, 1X, 54('-'))
         !
-1103    FORMAT(1X, I3, 4(' | ', E14.6))
+1103    FORMAT(1X, I3, 4(" | ", E14.6))
         !
-1104    FORMAT(1X, I3, 3(' | ', E14.6))
+1104    FORMAT(1X, I3, 3(" | ", E14.6))
         !
-1105    FORMAT(/, ' Outer loop is converged, EXIT')
+1105    FORMAT(/, " Outer loop is converged, EXIT")
         !
-1106    FORMAT(' Warning: Electrolyte charge not converged',/)
+1106    FORMAT(" Warning: Electrolyte charge not converged",/)
         !
-1107    FORMAT('     Electrolyte accuracy =', 1PE8.1, ', # of iterations = ', i3)
+1107    FORMAT("     Electrolyte accuracy =", 1PE8.1, ", # of iterations = ", i3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_fixedpoint

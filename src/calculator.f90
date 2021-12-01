@@ -228,7 +228,7 @@ CONTAINS
                     CALL env%solvent%sa_de_dboundary(de_dboundary)
                 !
                 IF (env%solvent%field_aware) THEN
-                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
+                    CALL io%error(sub_name, "field-aware not yet implimented", 1)
                 ELSE
                     !
                     env%vsoftcavity%of_r = de_dboundary%of_r * env%solvent%dscaled%of_r
@@ -249,7 +249,7 @@ CONTAINS
                     CALL env%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
                 IF (env%electrolyte%boundary%field_aware) THEN
-                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
+                    CALL io%error(sub_name, "field-aware not yet implimented", 1)
                 ELSE
                     !
                     ! multiply for the derivative of the boundary w.r.t electronic density

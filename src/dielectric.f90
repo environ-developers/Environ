@@ -337,7 +337,7 @@ CONTAINS
         ELSE
             !
             IF (this%regions%number /= 0) &
-                CALL io%error(sub_name, 'Found unexpected allocated object', 1)
+                CALL io%error(sub_name, "Found unexpected allocated object", 1)
             !
         END IF
         !
@@ -404,7 +404,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ALLOCATED(this%boundary%gradient%of_r)) &
-            CALL io%error(sub_name, 'Missing required gradient of boundary', 1)
+            CALL io%error(sub_name, "Missing required gradient of boundary", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -430,7 +430,7 @@ CONTAINS
             IF (this%need_factsqrt) THEN
                 !
                 IF (.NOT. ALLOCATED(this%boundary%laplacian%of_r)) &
-                    CALL io%error(sub_name, 'Missing required laplacian of boundary', 1)
+                    CALL io%error(sub_name, "Missing required laplacian of boundary", 1)
                 !
                 ALLOCATE (d2eps(nnr))
             END IF
@@ -492,7 +492,7 @@ CONTAINS
                 END IF
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected boundary type', 1)
+                CALL io%error(sub_name, "Unexpected boundary type", 1)
                 !
             END SELECT
             !
@@ -599,11 +599,11 @@ CONTAINS
         !
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
             CALL io%error(sub_name, &
-                          'Mismatch in domains of potential and charges', 1)
+                          "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(potential%cell, this%density%cell)) &
             CALL io%error(sub_name, &
-                          'Mismatch in domains of potential and dielectric', 1)
+                          "Mismatch in domains of potential and dielectric", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -915,20 +915,20 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' DIELECTRIC ', 65('%'))
+1000    FORMAT(/, 4('%'), " DIELECTRIC ", 65('%'))
         !
-1001    FORMAT(/, ' dielectric build on homogeneous background:', /, &
-                ' environment bulk permitt.  = ', F14.7)
+1001    FORMAT(/, " dielectric build on homogeneous background:", /, &
+                " environment bulk permitt.  = ", F14.7)
         !
-1002    FORMAT(/, ' dielectric build in the presence of dielectric regions:', /, &
-                ' environment bulk permitt.  = ', F14.7, /, &
-                ' number of dielec. regions  = ', I14)
+1002    FORMAT(/, " dielectric build in the presence of dielectric regions:", /, &
+                " environment bulk permitt.  = ", F14.7, /, &
+                " number of dielec. regions  = ", I14)
         !
-1003    FORMAT(/, ' dielectric flags:', /, &
-                ' need gradient              = ', L14, /, &
-                ' need factor depend. sqrt   = ', L14)
+1003    FORMAT(/, " dielectric flags:", /, &
+                " need gradient              = ", L14, /, &
+                " need factor depend. sqrt   = ", L14)
         !
-1004    FORMAT(/, ' total dielectric charge    = ', F14.7)
+1004    FORMAT(/, " total dielectric charge    = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_dielectric

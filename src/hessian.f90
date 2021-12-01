@@ -263,10 +263,10 @@ CONTAINS
         gradout%of_r = 0.D0
         !
         IF (.NOT. ASSOCIATED(gradin%cell, this%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domain of input hessian/gradients', 1)
+            CALL io%error(sub_name, "Mismatch in domain of input hessian/gradients", 1)
         !
         IF (.NOT. ASSOCIATED(gradin%cell, gradout%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domain of input and output', 1)
+            CALL io%error(sub_name, "Mismatch in domain of input and output", 1)
         !
         DO i = 1, this%cell%ir_end
             !
@@ -413,10 +413,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' HESSIAN ', 67('%'))
-1001    FORMAT(/, ' HESSIAN', /, '=======')
+1000    FORMAT(/, 4('%'), " HESSIAN ", 67('%'))
+1001    FORMAT(/, " HESSIAN", /, "=======")
         !
-1002    FORMAT(/, ' hessian label              = ', A50)
+1002    FORMAT(/, " hessian label              = ", A50)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_hessian

@@ -219,15 +219,15 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+                CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
             !
         END IF
         !
@@ -452,22 +452,22 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'),/)
+1000    FORMAT(/, 4('%'), " COMPUTE ELECTROSTATIC POTENTIAL ", 43('%'),/)
         !
-1001    FORMAT('   i | outer delta_qm |    delta_en    |       tol      | ' &
-               'total iterative electrolyte charge', /, 1X, 91('-'))
+1001    FORMAT("   i | outer delta_qm |    delta_en    |       tol      | " &
+               "total iterative electrolyte charge", /, 1X, 91('-'))
         !
-1002    FORMAT('   i | outer delta_qm |    delta_en    |       tol', /, 1X, 54('-'))
+1002    FORMAT("   i | outer delta_qm |    delta_en    |       tol", /, 1X, 54('-'))
         !
-1003    FORMAT(1X, I3, 4(' | ', E14.6))
+1003    FORMAT(1X, I3, 4(" | ", E14.6))
         !
-1004    FORMAT(1X, I3, 3(' | ', E14.6))
+1004    FORMAT(1X, I3, 3(" | ", E14.6))
         !
-1005    FORMAT(/, ' Newton steps are converged, EXIT')
+1005    FORMAT(/, " Newton steps are converged, EXIT")
         !
-1006    FORMAT('  Warning: Electrolyte charge not converged',/)
+1006    FORMAT("  Warning: Electrolyte charge not converged",/)
         !
-1007    FORMAT('     Electrolyte accuracy =', 1PE8.1, ', # of iterations = ', i3)
+1007    FORMAT("     Electrolyte accuracy =", 1PE8.1, ", # of iterations = ", i3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_newton

@@ -496,7 +496,7 @@ CONTAINS
                         energy = -kT * cionmax * integral
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
                         !
                     END SELECT
                     !
@@ -537,7 +537,7 @@ CONTAINS
                         energy = -kT * cionmax * integral
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
                         !
                     END SELECT
                     !
@@ -604,7 +604,7 @@ CONTAINS
                                             (1.D0 - sumcbulk / cionmax * (1.D0 - gamma))
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
                         !
                     END SELECT
                     !
@@ -647,7 +647,7 @@ CONTAINS
                             (1.D0 - (sumcbulk - arg%of_r * gamma) / cionmax)
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
                         !
                     END SELECT
                     !
@@ -789,25 +789,25 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' ELECTROLYTE ', 64('%'))
+1000    FORMAT(/, 4('%'), " ELECTROLYTE ", 64('%'))
         !
-1001    FORMAT(/, ' number electrolyte species = ', I14, /, &
-                ' solvent temperature        = ', F14.1, /, &
-                ' Debye length / sqrt(eps)   = ', F14.7)
+1001    FORMAT(/, " number electrolyte species = ", I14, /, &
+                " solvent temperature        = ", F14.1, /, &
+                " Debye length / sqrt(eps)   = ", F14.7)
         !
-1002    FORMAT(/, ' modified Poisson-Boltzmann:', /, &
-                ' maximum concentration      = ', F14.7)
+1002    FORMAT(/, " modified Poisson-Boltzmann:", /, &
+                " maximum concentration      = ", F14.7)
         !
-1003    FORMAT(/, ' electrolyte flags:', /, &
-                ' linearized                 = ', L14)
+1003    FORMAT(/, " electrolyte flags:", /, &
+                " linearized                 = ", L14)
         !
-1004    FORMAT(/, ' total electrolyte charge   = ', F14.7)
+1004    FORMAT(/, " total electrolyte charge   = ", F14.7)
         !
-1005    FORMAT(/, ' species', /, 1X, 7('='))
+1005    FORMAT(/, " species", /, 1X, 7('='))
         !
-1006    FORMAT(/, '   i |  c_bulk (a.u.) | c_bulk (mol/L) | ionic charge', /, 1X, 52('-'))
+1006    FORMAT(/, "   i |  c_bulk (a.u.) | c_bulk (mol/L) | ionic charge", /, 1X, 52('-'))
         !
-1007    FORMAT(1X, I3, ' | ', E14.4, ' | ', F14.7, ' | ', F12.2)
+1007    FORMAT(1X, I3, " | ", E14.4, " | ", F14.7, " | ", F12.2)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_electrolyte

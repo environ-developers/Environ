@@ -480,7 +480,7 @@ CONTAINS
             CALL bound%boundary_of_density(electrons%density)
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unrecognized boundary mode', 1)
+            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
             !
         END SELECT
         !
@@ -579,7 +579,7 @@ CONTAINS
                 !
                 ! CALL field_aware_de_drho(bound, de_dboundary, vanalytic)
                 !
-                CALL io%error('field-aware6', 'Option not yet implimented ', 1)
+                CALL io%error('field-aware6', "Option not yet implimented", 1)
                 !
             ELSE
                 vanalytic%of_r = bound%dscaled%of_r * de_dboundary%of_r

@@ -305,7 +305,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%number /= nat) CALL io%error(sub_name, 'Mismatch in number of atoms', 1)
+        IF (this%number /= nat) CALL io%error(sub_name, "Mismatch in number of atoms", 1)
         !
         this%tau = tau ! update positions
         !
@@ -325,7 +325,7 @@ CONTAINS
             END DO
             !
             IF (ABS(this%charge) < 1.D-8) &
-                CALL io%error(sub_name, 'Ionic charge equal to zero', 1)
+                CALL io%error(sub_name, "Ionic charge equal to zero", 1)
             !
             this%center = this%center / this%charge
         END IF
@@ -463,7 +463,7 @@ CONTAINS
             END DO
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unexpected keyword', 1)
+            CALL io%error(sub_name, "Unexpected keyword", 1)
             !
         END SELECT
         !
@@ -506,7 +506,7 @@ CONTAINS
             END DO
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unexpected keyword', 1)
+            CALL io%error(sub_name, "Unexpected keyword", 1)
             !
         END SELECT
         !
@@ -561,7 +561,7 @@ CONTAINS
             END DO
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unexpected keyword', 1)
+            CALL io%error(sub_name, "Unexpected keyword", 1)
             !
         END SELECT
         !
@@ -684,16 +684,16 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' IONS ', 70('%'))
+1000    FORMAT(/, 4('%'), " IONS ", 70('%'))
         !
-1001    FORMAT(/, ' total charge               = ', F14.7, /, &
-                ' center of charge           = ', 3F14.7, /, &
-                ' dipole                     = ', 3F14.7, /, &
-                ' quadrupole (pc)            = ', 3F14.7)
+1001    FORMAT(/, " total charge               = ", F14.7, /, &
+                " center of charge           = ", 3F14.7, /, &
+                " dipole                     = ", 3F14.7, /, &
+                " quadrupole (pc)            = ", 3F14.7)
         !
-1002    FORMAT(' quadrupole (gauss)         = ', 3F14.7)
+1002    FORMAT(" quadrupole (gauss)         = ", 3F14.7)
         !
-1003    FORMAT(/, '   i | type | coordinates', /, 1X, 71('-'))
+1003    FORMAT(/, "   i | type | coordinates", /, 1X, 71('-'))
         !
 1004    FORMAT(1X, I3, ' | ', I4, ' |                 ', 3F14.7)
         !

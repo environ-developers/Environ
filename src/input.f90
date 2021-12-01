@@ -2099,13 +2099,13 @@ CONTAINS
         IF (PRESENT(end_of_file)) THEN
             end_of_file = tend
         ELSE IF (tend) THEN
-            CALL io%writer('End of file')
+            CALL io%writer("End of file")
         END IF
         !
         IF (PRESENT(error)) THEN
             error = terr
         ELSE IF (terr) THEN
-            CALL io%writer('Read error')
+            CALL io%writer("Read error")
         END IF
         !
         IF (PRESENT(field) .AND. .NOT. (tend .OR. terr)) &

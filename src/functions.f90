@@ -489,19 +489,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' FUNCTIONS ', 65('%'))
-1001    FORMAT(/, ' FUNCTIONS', /, ' =========')
+1000    FORMAT(/, 4('%'), " FUNCTIONS ", 65('%'))
+1001    FORMAT(/, " FUNCTIONS", /, " =========")
         !
-1002    FORMAT(/, ' 1 - Gaussian', /, &
-                ' 2 - Complementary error function', /, &
-                ' 3 - Scaled complementary error function', /, &
-                ' 4 - Scaled error function')
+1002    FORMAT(/, " 1 - Gaussian", /, &
+                " 2 - Complementary error function", /, &
+                " 3 - Scaled complementary error function", /, &
+                " 4 - Scaled error function")
         !
-1003    FORMAT(/, '   i | type | dim | axis | width | spread |  volume  | position', /, &
+1003    FORMAT(/, "   i | type | dim | axis | width | spread |  volume  | position", /, &
                 1X, 84('-'))
 !
-1004    FORMAT(1X, I3, ' | ', I4, ' | ', I3, ' | ', I4, ' | ', F5.3, ' | ', &
-               F6.3, ' | ', F8.3, ' |', 3F10.5)
+1004    FORMAT(1X, I3, " | ", I4, " | ", I3, " | ", I4, " | ", F5.3, " | ", &
+               F6.3, " | ", F8.3, " |", 3F10.5)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_functions

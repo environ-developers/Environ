@@ -155,7 +155,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, v%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
+            CALL io%error(sub_name, "Mismatch in domains of charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -180,7 +180,7 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                         CALL io%error(sub_name, &
-                                      'Missing electrolyte for electrochemical boundary correction', 1)
+                                      "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(electrolyte%base, density, v)
                     !
@@ -188,12 +188,12 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%semiconductor)) &
                         CALL io%error(sub_name, &
-                                      'Missing semiconductor for electrochemical boundary correction', 1)
+                                      "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(semiconductor%base, density, v)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected corrections method', 1)
+                    CALL io%error(sub_name, "Unexpected corrections method", 1)
                     !
                 END SELECT
                 !
@@ -226,7 +226,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
+            CALL io%error(sub_name, "Mismatch in domains of charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         ! Using a local variable for the potential because the routine may be
@@ -252,7 +252,7 @@ CONTAINS
                     !
                     IF (.NOT. PRESENT(electrolyte)) &
                         CALL io%error(sub_name, &
-                                      'Missing electrolyte for electrochemical boundary correction', 1)
+                                      "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(electrolyte%base, charges, local)
                     !
@@ -260,12 +260,12 @@ CONTAINS
                     !
                     IF (.NOT. PRESENT(semiconductor)) &
                         CALL io%error(sub_name, &
-                                      'Missing semiconductor for electrochemical boundary correction', 1)
+                                      "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(semiconductor%base, charges, local)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected corrections method', 1)
+                    CALL io%error(sub_name, "Unexpected corrections method", 1)
                     !
                 END SELECT
                 !
@@ -298,7 +298,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, grad_v%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of charges and gradient', 1)
+            CALL io%error(sub_name, "Mismatch in domains of charges and gradient", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -323,7 +323,7 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                         CALL io%error(sub_name, &
-                                      'Missing electrolyte for electrochemical boundary correction', 1)
+                                      "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(electrolyte%base, density, grad_v)
                     !
@@ -331,12 +331,12 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%semiconductor)) &
                         CALL io%error(sub_name, &
-                                      'Missing semiconductor for electrochemical boundary correction', 1)
+                                      "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(semiconductor%base, density, grad_v)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected corrections method', 1)
+                    CALL io%error(sub_name, "Unexpected corrections method", 1)
                     !
                 END SELECT
                 !
@@ -367,7 +367,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, grad_v%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of charges and gradient', 1)
+            CALL io%error(sub_name, "Mismatch in domains of charges and gradient", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -389,7 +389,7 @@ CONTAINS
                     !
                     IF (.NOT. PRESENT(electrolyte)) &
                         CALL io%error(sub_name, &
-                                      'Missing electrolyte for electrochemical boundary correction', 1)
+                                      "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(electrolyte%base, charges, grad_v)
                     !
@@ -397,12 +397,12 @@ CONTAINS
                     !
                     IF (.NOT. PRESENT(semiconductor)) &
                         CALL io%error(sub_name, &
-                                      'Missing semiconductor for electrochemical boundary correction', 1)
+                                      "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(semiconductor%base, charges, grad_v)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected corrections method', 1)
+                    CALL io%error(sub_name, "Unexpected corrections method", 1)
                     !
                 END SELECT
                 !

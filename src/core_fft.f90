@@ -1229,7 +1229,7 @@ CONTAINS
             DO WHILE (upperbound > 1.E-7_DP)
                 alpha = alpha - 0.1_DP
                 !
-                IF (alpha <= 0._DP) CALL io%error(sub_name, 'Optimal alpha not found', 1)
+                IF (alpha <= 0._DP) CALL io%error(sub_name, "Optimal alpha not found", 1)
                 !
                 upperbound = e2 * SQRT(2.D0 * alpha / tpi) * &
                              environ_erfc(SQRT(ecutrho / 4.D0 / alpha))

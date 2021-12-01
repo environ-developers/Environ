@@ -128,7 +128,7 @@ CONTAINS
         !
         ! check on dimensions
         IF (nnr /= this%density%cell%nnr) &
-            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+            CALL io%error(sub_name, "Mismatch in grid size", 1)
         !
         this%density%of_r = rho
         !
@@ -142,7 +142,7 @@ CONTAINS
         IF (PRESENT(nelec)) THEN
             !
             IF (ABS(this%charge - nelec) > tol) &
-                CALL io%error(sub_name, 'Mismatch in integrated electronic charge', 1)
+                CALL io%error(sub_name, "Mismatch in integrated electronic charge", 1)
             !
         END IF
         !
@@ -250,11 +250,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' ELECTRONS ', 65('%'))
+1000    FORMAT(/, 4('%'), " ELECTRONS ", 65('%'))
         !
-1001    FORMAT(/, ' number of electrons        = ', I14)
+1001    FORMAT(/, " number of electrons        = ", I14)
         !
-1002    FORMAT(/, ' total electronic charge    = ', F14.7)
+1002    FORMAT(/, " total electronic charge    = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_electrons

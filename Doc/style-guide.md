@@ -373,4 +373,17 @@ ASSOCIATE (item1 => SUM(some_items))
 - use `i`, `j`, `k`, `l`, `m`, `n` for loop indices whenever possible
 
 - do not use `TRIM(ADJUSTL())` for input parameter checks
+
   - input parameters are pre-tested against set values in `checkin` routines
+
+- use "" for messages
+
+```
+CALL io%error(sub_name, "blah blah blah", 1)
+```
+
+- use '' for parameters
+
+```
+CALL routine('value')
+```

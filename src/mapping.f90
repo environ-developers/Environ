@@ -293,10 +293,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= this%small%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
+            CALL io%error(sub_name, "Wrong dimension of small cell", 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of large cell', 1)
+            CALL io%error(sub_name, "Wrong dimension of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -351,10 +351,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL io%error(sub_name, 'Mismatch of small cell', 1)
+            CALL io%error(sub_name, "Mismatch of small cell", 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL io%error(sub_name, 'Mismatch of large cell', 1)
+            CALL io%error(sub_name, "Mismatch of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -410,10 +410,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= this%small%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
+            CALL io%error(sub_name, "Wrong dimension of small cell", 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of large cell', 1)
+            CALL io%error(sub_name, "Wrong dimension of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -469,10 +469,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL io%error(sub_name, 'Mismatch of small cell', 1)
+            CALL io%error(sub_name, "Mismatch of small cell", 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL io%error(sub_name, 'Mismatch of large cell', 1)
+            CALL io%error(sub_name, "Mismatch of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -577,13 +577,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' MAPPING ', 67('%'))
+1000    FORMAT(/, 4('%'), " MAPPING ", 67('%'))
 !
-1001    FORMAT(/, ' number of replicas (x,y,z) = ', 3I14)
+1001    FORMAT(/, " number of replicas (x,y,z) = ", 3I14)
 !
-1002    FORMAT(/, ' cell origins:', /, &
-                ' system                     = ', 3F14.7, /, &
-                ' environment                = ', 3F14.7)
+1002    FORMAT(/, " cell origins:", /, &
+                " system                     = ", 3F14.7, /, &
+                " environment                = ", 3F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_mapping

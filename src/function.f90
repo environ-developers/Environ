@@ -219,7 +219,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, 'Not implemented', 1)
+        CALL io%error(sub_name, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE density_of_function
@@ -241,7 +241,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, 'Not implemented', 1)
+        CALL io%error(sub_name, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE gradient_of_function
@@ -263,7 +263,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, 'Not implemented', 1)
+        CALL io%error(sub_name, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE laplacian_of_function
@@ -285,7 +285,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, 'Not implemented', 1)
+        CALL io%error(sub_name, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function

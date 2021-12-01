@@ -216,26 +216,26 @@ CONTAINS
         CASE ('generalized')
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL io%error(sub_name, 'Missing details of dielectric medium', 1)
+                CALL io%error(sub_name, "Missing details of dielectric medium", 1)
             !
             CALL this%solver%generalized(charges, v)
             !
         CASE ('linpb', 'linmodpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL io%error(sub_name, 'Missing details of electrolyte ions', 1)
+                CALL io%error(sub_name, "Missing details of electrolyte ions", 1)
             !
             CALL this%solver%linearized_pb(charges, v)
             !
         CASE ('pb', 'modpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL io%error(sub_name, 'Missing details of electrolyte ions', 1)
+                CALL io%error(sub_name, "Missing details of electrolyte ions", 1)
             !
             IF (ASSOCIATED(this%inner)) THEN
                 !
                 IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                    CALL io%error(sub_name, 'Missing details of dielectric medium', 1)
+                    CALL io%error(sub_name, "Missing details of dielectric medium", 1)
                 !
                 CALL this%solver%pb_nested(charges, v, this%inner%solver)
                 !
@@ -277,7 +277,7 @@ CONTAINS
         CALL env_start_clock(sub_name)
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
-            CALL io%error(sub_name, 'Mismatch in charges and potential domains', 1)
+            CALL io%error(sub_name, "Mismatch in charges and potential domains", 1)
         !
         energy = 0.D0
         eself = 0.D0
@@ -370,7 +370,7 @@ CONTAINS
         ELSE IF (charges%include_externals) THEN
             !
             IF (.NOT. ASSOCIATED(charges%externals)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             aux%of_r = aux%of_r + charges%externals%density%of_r
         END IF
@@ -378,7 +378,7 @@ CONTAINS
         IF (charges%include_dielectric) THEN
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             aux%of_r = aux%of_r + charges%dielectric%density%of_r
         END IF
@@ -386,7 +386,7 @@ CONTAINS
         IF (charges%include_electrolyte) THEN
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             aux%of_r = aux%of_r + charges%electrolyte%density%of_r
         END IF

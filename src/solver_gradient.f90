@@ -627,26 +627,26 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'),/)
+1000    FORMAT(/, 4('%'), " COMPUTE ELECTROSTATIC POTENTIAL ", 43('%'),/)
         !
-1001    FORMAT('   i | ' &
-               '     alpha     |      beta      |      rznew     |      rzold     | ' &
-               '      pAp      |    delta_qm    |    delta_en    |       tol', /, &
+1001    FORMAT("   i | " &
+               "     alpha     |      beta      |      rznew     |      rzold     | " &
+               "      pAp      |    delta_qm    |    delta_en    |       tol", /, &
                1X, 139('-'))
         !
-1002    FORMAT('   i | ' &
-               '     alpha     |      beta      |       pAp      |    delta_qm    | ' &
-               '   delta_en    |       tol', /, 1X, 105('-'))
+1002    FORMAT("   i | " &
+               "     alpha     |      beta      |       pAp      |    delta_qm    | " &
+               "   delta_en    |       tol", /, 1X, 105('-'))
         !
-1003    FORMAT(1X, I3, 8(' | ', E14.6))
+1003    FORMAT(1X, I3, 8(" | ", E14.6))
         !
-1004    FORMAT(1X, I3, 6(' | ', E14.6))
+1004    FORMAT(1X, I3, 6(" | ", E14.6))
         !
-1005    FORMAT(/, ' Charges are converged, EXIT')
+1005    FORMAT(/, " Charges are converged, EXIT")
         !
-1006    FORMAT(' Warning: Polarization charge not converged',/)
+1006    FORMAT(" Warning: Polarization charge not converged",/)
         !
-1007    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+1007    FORMAT("     Polarization accuracy =", 1PE8.1, ", # of iterations = ", i3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_none
@@ -880,31 +880,31 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1100    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'),/)
+1100    FORMAT(/, 4('%'), " COMPUTE ELECTROSTATIC POTENTIAL ", 43('%'),/)
         !
-1101    FORMAT(' Sqrt-preconditioned input guess with residual norm = ', E14.6,/)
+1101    FORMAT(" Sqrt-preconditioned input guess with residual norm = ", E14.6,/)
         !
-1102    FORMAT(' Warning: Bad guess with residual norm = ', E14.6, &
-               ', reset to no guess',/)
+1102    FORMAT(" Warning: Bad guess with residual norm = ", E14.6, &
+               ", reset to no guess",/)
         !
-1103    FORMAT('   i | ' &
-               '     alpha     |      beta      |      rznew     |      rzold     | ' &
-               '      pAp      |    delta_qm    |    delta_en    |       tol', /, &
+1103    FORMAT("   i | " &
+               "     alpha     |      beta      |      rznew     |      rzold     | " &
+               "      pAp      |    delta_qm    |    delta_en    |       tol", /, &
                1X, 139('-'))
         !
-1104    FORMAT('   i | ' &
-               '     alpha     |       pAp      |      rzold     |    delta_qm    | ' &
-               '   delta_en    |       tol', /, 1X, 105('-'))
+1104    FORMAT("   i | " &
+               "     alpha     |       pAp      |      rzold     |    delta_qm    | " &
+               "   delta_en    |       tol", /, 1X, 105('-'))
         !
-1105    FORMAT(1X, I3, 8(' | ', E14.6))
+1105    FORMAT(1X, I3, 8(" | ", E14.6))
         !
-1106    FORMAT(1X, I3, 6(' | ', E14.6))
+1106    FORMAT(1X, I3, 6(" | ", E14.6))
         !
-1107    FORMAT(/, ' Charges are converged, EXIT')
+1107    FORMAT(/, " Charges are converged, EXIT")
         !
-1108    FORMAT(' Warning: Polarization charge not converged',/)
+1108    FORMAT(" Warning: Polarization charge not converged",/)
         !
-1109    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+1109    FORMAT("     Polarization accuracy =", 1PE8.1, ", # of iterations = ", i3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_sqrt
@@ -1094,26 +1094,26 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1200    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'),/)
+1200    FORMAT(/, 4('%'), " COMPUTE ELECTROSTATIC POTENTIAL ", 43('%'),/)
         !
-1201    FORMAT('   i | ' &
-               '     alpha     |      beta      |      rznew     |      rzold     | ' &
-               '      pAp      |    delta_qm    |    delta_en    |       tol', /, &
+1201    FORMAT("   i | " &
+               "     alpha     |      beta      |      rznew     |      rzold     | " &
+               "      pAp      |    delta_qm    |    delta_en    |       tol", /, &
                1X, 139('-'))
         !
-1202    FORMAT('   i | ' &
-               '     alpha     |       pAp      |      rzold     |    delta_qm    | ' &
-               '   delta_en    |       tol', /, 1X, 105('-'))
+1202    FORMAT("   i | " &
+               "     alpha     |       pAp      |      rzold     |    delta_qm    | " &
+               "   delta_en    |       tol", /, 1X, 105('-'))
         !
-1203    FORMAT(1X, I3, 8(' | ', E14.6))
+1203    FORMAT(1X, I3, 8(" | ", E14.6))
         !
-1204    FORMAT(1X, I3, 6(' | ', E14.6))
+1204    FORMAT(1X, I3, 6(" | ", E14.6))
         !
-1205    FORMAT(/, ' Charges are converged, EXIT')
+1205    FORMAT(/, " Charges are converged, EXIT")
         !
-1206    FORMAT(' Warning: Polarization charge not converged',/)
+1206    FORMAT(" Warning: Polarization charge not converged",/)
         !
-1207    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+1207    FORMAT("     Polarization accuracy =", 1PE8.1, ", # of iterations = ", i3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_left
@@ -1391,31 +1391,31 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1300    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'),/)
+1300    FORMAT(/, 4('%'), " COMPUTE ELECTROSTATIC POTENTIAL ", 43('%'),/)
         !
-1301    FORMAT(' Sqrt-preconditioned input guess with residual norm = ', E14.6,/)
+1301    FORMAT(" Sqrt-preconditioned input guess with residual norm = ", E14.6,/)
         !
-1302    FORMAT(' Warning: Bad guess with residual norm = ', E14.6, &
-               ', reset to no guess',/)
+1302    FORMAT(" Warning: Bad guess with residual norm = ", E14.6, &
+               ", reset to no guess",/)
         !
-1303    FORMAT('   i | ' &
-               '     alpha     |      beta      |      rznew     |      rzold     | ' &
-               '      pAp      |    delta_qm    |    delta_en    |       tol', /, &
+1303    FORMAT("   i | " &
+               "     alpha     |      beta      |      rznew     |      rzold     | " &
+               "      pAp      |    delta_qm    |    delta_en    |       tol", /, &
                1X, 139('-'))
         !
-1304    FORMAT('   i | ' &
-               '     alpha     |       pAp      |      rzold     |    delta_qm    | ' &
-               '   delta_en    |       tol', /, 1X, 105('-'))
+1304    FORMAT("   i | " &
+               "     alpha     |       pAp      |      rzold     |    delta_qm    | " &
+               "   delta_en    |       tol", /, 1X, 105('-'))
         !
-1305    FORMAT(1X, I3, 8(' | ', E14.6))
+1305    FORMAT(1X, I3, 8(" | ", E14.6))
         !
-1306    FORMAT(1X, I3, 6(' | ', E14.6))
+1306    FORMAT(1X, I3, 6(" | ", E14.6))
         !
-1307    FORMAT(/, ' Charges are converged, EXIT')
+1307    FORMAT(/, " Charges are converged, EXIT")
         !
-1308    FORMAT(' Warning: Polarization charge not converged',/)
+1308    FORMAT(" Warning: Polarization charge not converged",/)
         !
-1309    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+1309    FORMAT("     Polarization accuracy =", 1PE8.1, ", # of iterations = ", i3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE linearized_pb_sqrt

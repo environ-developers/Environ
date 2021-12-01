@@ -682,7 +682,7 @@ CONTAINS
             this%lsemiconductor = .TRUE.
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unexpected correction type', 1)
+            CALL io%error(sub_name, "Unexpected correction type", 1)
             !
         END SELECT
         !
@@ -828,7 +828,7 @@ CONTAINS
                 local_deriv_core => this%env_fft
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected derivatives core', 1)
+                CALL io%error(sub_name, "Unexpected derivatives core", 1)
                 !
             END SELECT
             !
@@ -853,7 +853,7 @@ CONTAINS
                 local_outer_core => this%env_fft
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected outer core', 1)
+                CALL io%error(sub_name, "Unexpected outer core", 1)
                 !
             END SELECT
             !
@@ -870,7 +870,7 @@ CONTAINS
                     local_inner_core => this%env_fft
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected inner core', 1)
+                    CALL io%error(sub_name, "Unexpected inner core", 1)
                     !
                 END SELECT
                 !
@@ -892,7 +892,7 @@ CONTAINS
                 local_pbc_core => this%env_1da
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected corrections core', 1)
+                CALL io%error(sub_name, "Unexpected corrections core", 1)
                 !
             END SELECT
             !
@@ -964,7 +964,7 @@ CONTAINS
             local_outer_solver => this%newton
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unexpected outer solver', 1)
+            CALL io%error(sub_name, "Unexpected outer solver", 1)
             !
         END SELECT
         !
@@ -1024,7 +1024,7 @@ CONTAINS
                 local_inner_solver => this%inner_gradient
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected inner solver', 1)
+                CALL io%error(sub_name, "Unexpected inner solver", 1)
                 !
             END SELECT
             !
@@ -1240,68 +1240,68 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(34X, 'Environ Setup Summary')
+1000    FORMAT(34X, "Environ Setup Summary")
 !
-1001    FORMAT(5X, 'Please cite', /, 5X, A77, /, &
-               5X, 'in publications or presentations arising from this work.')
+1001    FORMAT(5X, "Please cite", /, 5X, A77, /, &
+               5X, "in publications or presentations arising from this work.")
         !
-1002    FORMAT(/, 5X, 'Parameters', /, 5X, 10('='),/)
+1002    FORMAT(/, 5X, "Parameters", /, 5X, 10('='),/)
         !
-1003    FORMAT(5X, 'compensation onset threshold      = ', E24.4)
+1003    FORMAT(5X, "compensation onset threshold      = ", E24.4)
         !
-1004    FORMAT(5X, 'static permittivity               = ', F24.2)
+1004    FORMAT(5X, "static permittivity               = ", F24.2)
         !
-1005    FORMAT(5X, 'optical permittivity              = ', F24.4)
+1005    FORMAT(5X, "optical permittivity              = ", F24.4)
         !
-1006    FORMAT(5X, 'surface tension in input (dyn/cm) = ', F24.2, /, &
-               5X, 'surface tension in internal units = ', E24.4)
+1006    FORMAT(5X, "surface tension in input (dyn/cm) = ", F24.2, /, &
+               5X, "surface tension in internal units = ", E24.4)
         !
-1007    FORMAT(5X, 'external pressure in input (GPa)  = ', F24.2, /, &
-               5X, 'external pressure in inter. units = ', E24.4)
+1007    FORMAT(5X, "external pressure in input (GPa)  = ", F24.2, /, &
+               5X, "external pressure in inter. units = ", E24.4)
         !
-1008    FORMAT(/, 5X, 'Solvent Boundary', /, 5X, 16('='),/)
+1008    FORMAT(/, 5X, "Solvent Boundary", /, 5X, 16('='),/)
         !
-1009    FORMAT(5X, 'solvent mode                      = ', A24)
+1009    FORMAT(5X, "solvent mode                      = ", A24)
         !
-1010    FORMAT(5X, 'derivatives method                = ', A24)
-1011    FORMAT(5X, 'electrolyte derivatives method    = ', A24)
-1012    FORMAT(5X, 'numerical core for derivatives    = ', A24)
+1010    FORMAT(5X, "derivatives method                = ", A24)
+1011    FORMAT(5X, "electrolyte derivatives method    = ", A24)
+1012    FORMAT(5X, "numerical core for derivatives    = ", A24)
         !
-1013    FORMAT(5X, 'switching function adopted        = ', A24)
+1013    FORMAT(5X, "switching function adopted        = ", A24)
         !
-1014    FORMAT(5X, 'solvation density threshold       = ', E24.4, /, &
-               5X, 'smoothness exponent (2 x beta)    = ', F24.2)
+1014    FORMAT(5X, "solvation density threshold       = ", E24.4, /, &
+               5X, "smoothness exponent (2 x beta)    = ", F24.2)
         !
-1015    FORMAT(5X, 'density limit for vacuum region   = ', E24.4, /, &
-               5X, 'density limit for bulk solvent    = ', E24.4)
+1015    FORMAT(5X, "density limit for vacuum region   = ", E24.4, /, &
+               5X, "density limit for bulk solvent    = ", E24.4)
         !
-1016    FORMAT(5X, 'soft-sphere radius mode           = ', A24, /, &
-               5X, 'soft-sphere softness              = ', F24.2, /, &
-               5X, 'alpha                             = ', F24.2)
+1016    FORMAT(5X, "soft-sphere radius mode           = ", A24, /, &
+               5X, "soft-sphere softness              = ", F24.2, /, &
+               5X, "alpha                             = ", F24.2)
         !
-1017    FORMAT(5X, 'interface is solvent aware')
+1017    FORMAT(5X, "interface is solvent aware")
         !
-1018    FORMAT(5X, 'interface is field aware')
+1018    FORMAT(5X, "interface is field aware")
         !
-1019    FORMAT(5X, 'field aware factor                = ', F24.2, /, &
-               5X, 'asymmetry of field-awareness      = ', F24.2, /, &
-               5X, 'field limit for no correction     = ', F24.2, /, &
-               5X, 'field limit for full correction   = ', F24.2)
+1019    FORMAT(5X, "field aware factor                = ", F24.2, /, &
+               5X, "asymmetry of field-awareness      = ", F24.2, /, &
+               5X, "field limit for no correction     = ", F24.2, /, &
+               5X, "field limit for full correction   = ", F24.2)
         !
-1020    FORMAT(/, 5X, 'Electrostatic Setup', /, 5X, 19('='),/)
+1020    FORMAT(/, 5X, "Electrostatic Setup", /, 5X, 19('='),/)
         !
-1021    FORMAT(5X, 'electrostatic problem to solve    = ', A24, /, &
-               5X, 'numerical solver adopted          = ', A24, /, &
-               5X, 'type of auxiliary density adopted = ', A24, /, &
-               5X, 'numerical core for poisson        = ', A24)
+1021    FORMAT(5X, "electrostatic problem to solve    = ", A24, /, &
+               5X, "numerical solver adopted          = ", A24, /, &
+               5X, "type of auxiliary density adopted = ", A24, /, &
+               5X, "numerical core for poisson        = ", A24)
         !
-1022    FORMAT(5X, 'adopting a nested solver scheme')
+1022    FORMAT(5X, "adopting a nested solver scheme")
         !
-1023    FORMAT(5X, 'inner solver                      = ', A24, /, &
-               5X, 'inner core                        = ', A24)
+1023    FORMAT(5X, "inner solver                      = ", A24, /, &
+               5X, "inner core                        = ", A24)
         !
-1024    FORMAT(5X, 'type of pbc corrections           = ', A24, /, &
-               5X, 'numerical core for corrections    = ', A24)
+1024    FORMAT(5X, "type of pbc corrections           = ", A24, /, &
+               5X, "numerical core for corrections    = ", A24)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_setup_summary
@@ -1323,9 +1323,9 @@ CONTAINS
         IF (this%lperiodic) WRITE (io%unit, 1100)
         !
 1100    FORMAT(/, &
-                5(' '), 'WARNING: you are using the parabolic pbc correction;', /, &
-                5(' '), '         the potential shift above must be added to ', /, &
-                5(' '), '         band and Fermi energies.')
+                5(' '), "WARNING: you are using the parabolic pbc correction;", /, &
+                5(' '), "         the potential shift above must be added to ", /, &
+                5(' '), "         band and Fermi energies.")
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_potential_warning

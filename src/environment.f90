@@ -170,7 +170,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (ASSOCIATED(this%setup)) &
-            CALL io%error(sub_name, 'Trying to create an existing object', 1)
+            CALL io%error(sub_name, "Trying to create an existing object", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_base
@@ -260,7 +260,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(this%vzero%cell)) RETURN
         !
         IF (this%vzero%cell%nnr /= nnr) &
-            CALL io%error(sub_name, 'Inconsistent size in input potential', 1)
+            CALL io%error(sub_name, "Inconsistent size in input potential", 1)
         !
         this%vzero%of_r = vltot
         !
@@ -599,7 +599,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (nnr /= this%vzero%cell%nnr) &
-            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+            CALL io%error(sub_name, "Mismatch in grid size", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -624,7 +624,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (nnr /= this%dvtot%cell%nnr) &
-            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+            CALL io%error(sub_name, "Mismatch in grid size", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -974,24 +974,24 @@ CONTAINS
             IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte * 0.5D0
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unexpected calling program', 1)
+            CALL io%error(sub_name, "Unexpected calling program", 1)
             !
         END SELECT
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT('     electrostatic embedding   =', F17.8, ' Ry')
-1001    FORMAT('     cavitation energy         =', F17.8, ' Ry')
-1002    FORMAT('     PV energy                 =', F17.8, ' Ry')
-1003    FORMAT('     confinement energy        =', F17.8, ' Ry')
-1004    FORMAT('     electrolyte free energy   =', F17.8, ' Ry')
-1005    FORMAT('     correction to one-el term =', F17.8, ' Ry')
+1000    FORMAT("     electrostatic embedding   =", F17.8, " Ry")
+1001    FORMAT("     cavitation energy         =", F17.8, " Ry")
+1002    FORMAT("     PV energy                 =", F17.8, " Ry")
+1003    FORMAT("     confinement energy        =", F17.8, " Ry")
+1004    FORMAT("     electrolyte free energy   =", F17.8, " Ry")
+1005    FORMAT("     correction to one-el term =", F17.8, " Ry")
         !
-1006    FORMAT('     electrostatic embedding = ', F14.5, ' Hartree a.u.')
-1007    FORMAT('           cavitation energy = ', F14.5, ' Hartree a.u.')
-1008    FORMAT('                   PV energy = ', F14.5, ' Hartree a.u.')
-1009    FORMAT('     electrolyte free energy = ', F14.5, ' Hartree a.u.')
-1010    FORMAT('          confinement energy = ', F14.5, ' Hartree a.u.')
+1006    FORMAT("     electrostatic embedding = ", F14.5, " Hartree a.u.")
+1007    FORMAT("           cavitation energy = ", F14.5, " Hartree a.u.")
+1008    FORMAT("                   PV energy = ", F14.5, " Hartree a.u.")
+1009    FORMAT("     electrolyte free energy = ", F14.5, " Hartree a.u.")
+1010    FORMAT("          confinement energy = ", F14.5, " Hartree a.u.")
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_energies
@@ -1015,8 +1015,8 @@ CONTAINS
             WRITE (io%unit, 1100) this%environment_ions%potential_shift * RYTOEV
         !
 1100    FORMAT(/, 5(' '), &
-                'the potential shift due to the Gaussian-smeared nuclei is ', &
-                F10.4, ' ev')
+                "the potential shift due to the Gaussian-smeared nuclei is ", &
+                F10.4, " ev")
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_potential_shift

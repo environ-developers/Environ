@@ -167,7 +167,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (i > n) CALL io%error(sub_name, 'Index out of bound', 1)
+        IF (i > n) CALL io%error(sub_name, "Index out of bound", 1)
         !
         DO j = 1, 3
             partial%of_r(j, :) = gradloc(i)%of_r(j, :)
@@ -784,7 +784,7 @@ CONTAINS
                 (const - 1.D0)
             !
         CASE DEFAULT
-            CALL io%error(fun_name, 'Unknown boundary type', 1)
+            CALL io%error(fun_name, "Unknown boundary type", 1)
             !
         END SELECT
         !
@@ -840,7 +840,7 @@ CONTAINS
                           dsfunct1(rho, rhomax, rhomin, tbeta)
             !
         CASE DEFAULT
-            CALL io%error(fun_name, 'Unknown boundary type', 1)
+            CALL io%error(fun_name, "Unknown boundary type", 1)
             !
         END SELECT
         !
@@ -884,7 +884,7 @@ CONTAINS
         SELECT CASE (ifunct)
             !
         CASE (0)
-            CALL io%error(fun_name, 'Option not yet implemented', 1)
+            CALL io%error(fun_name, "Option not yet implemented", 1)
             !
         CASE (1)
             d2boundfunct = -d2sfunct1(rho, rhomax, rhomin, tbeta)
@@ -897,7 +897,7 @@ CONTAINS
                             d2sfunct1(rho, rhomax, rhomin, tbeta))
             !
         CASE DEFAULT
-            CALL io%error(fun_name, 'Unknown boundary type', 1)
+            CALL io%error(fun_name, "Unknown boundary type", 1)
             !
         END SELECT
         !

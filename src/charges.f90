@@ -198,7 +198,7 @@ CONTAINS
         IF (this%include_electrons) THEN
             !
             IF (.NOT. ASSOCIATED(this%electrons)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             this%number = this%number + this%electrons%number
             this%charge = this%charge + this%electrons%charge
@@ -208,7 +208,7 @@ CONTAINS
         IF (this%include_ions) THEN
             !
             IF (.NOT. ASSOCIATED(this%ions)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             this%number = this%number + this%ions%number
             this%charge = this%charge + this%ions%charge
@@ -218,7 +218,7 @@ CONTAINS
         IF (this%include_externals) THEN
             !
             IF (.NOT. ASSOCIATED(this%externals)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             this%number = this%number + this%externals%number
             this%charge = this%charge + this%externals%charge
@@ -228,7 +228,7 @@ CONTAINS
         IF (this%include_additional_charges) THEN
             !
             IF (.NOT. ASSOCIATED(this%additional_charges)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             this%charge = this%charge + this%additional_charges%charge
             this%density%of_r = this%density%of_r + this%additional_charges%of_r
@@ -237,7 +237,7 @@ CONTAINS
         local_charge = this%density%integrate()
         !
         IF (ABS(local_charge - this%charge) > 1.D-5) &
-            CALL io%error(sub_name, 'Inconsistent integral of total charge', 1)
+            CALL io%error(sub_name, "Inconsistent integral of total charge", 1)
         !
         !--------------------------------------------------------------------------------
         ! Output current state
@@ -372,7 +372,7 @@ CONTAINS
         IF (this%include_electrolyte) THEN
             !
             IF (.NOT. ASSOCIATED(this%electrolyte)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             CALL this%electrolyte%of_potential(potential)
             !
@@ -388,7 +388,7 @@ CONTAINS
         IF (this%include_dielectric) THEN
             !
             IF (.NOT. ASSOCIATED(this%dielectric)) &
-                CALL io%error(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, "Missing expected charge component", 1)
             !
             CALL this%dielectric%of_potential(tot_charge_density, potential)
             !
@@ -478,11 +478,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' CHARGES ', 67('%'))
+1000    FORMAT(/, 4('%'), " CHARGES ", 67('%'))
         !
-1001    FORMAT(/, ' total number of charges    = ', I14)
+1001    FORMAT(/, " total number of charges    = ", I14)
         !
-1002    FORMAT(/, ' total charge               = ', F14.7)
+1002    FORMAT(/, " total charge               = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_charges

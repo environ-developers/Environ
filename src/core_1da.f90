@@ -151,14 +151,14 @@ CONTAINS
         !
         IF (dim == 3 .OR. dim < 0) &
             CALL io%error(sub_name, &
-                          'Wrong dimensions for analytic one dimensional core', 1)
+                          "Wrong dimensions for analytic one dimensional core", 1)
         !
         this%dim = dim
         this%pdim = 3 - dim
         !
         IF ((dim == 1 .OR. dim == 2) .AND. (axis > 3 .OR. axis < 1)) &
             CALL io%error(sub_name, &
-                          'Wrong choice of axis for analytic one dimensional core', 1)
+                          "Wrong choice of axis for analytic one dimensional core", 1)
         !
         this%axis = axis
         this%nnr = cell%nnr
@@ -232,7 +232,7 @@ CONTAINS
                 END DO
                 !
             ELSE IF (dim == 1) THEN
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, "Option not yet implemented", 1)
             ELSE IF (dim == 2) THEN
                 !
                 DO i = 1, cell%ir_end
@@ -315,14 +315,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
         IF (this%dim == 0 .AND. .NOT. v%cell%cubic) &
             CALL io%error(sub_name, &
-                          'Parabolic correction in 0D is only for cubic cells', 1)
+                          "Parabolic correction in 0D is only for cubic cells", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -366,7 +366,7 @@ CONTAINS
                 vperiodic = fact / 3.D0 * vperiodic + const
                 !
             CASE (1)
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, "Option not yet implemented", 1)
                 !
             CASE (2)
                 !
@@ -383,7 +383,7 @@ CONTAINS
                 vperiodic = 0.D0
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected system dimensions', 1)
+                CALL io%error(sub_name, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -432,10 +432,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of gradient and charges', 1)
+            CALL io%error(sub_name, "Mismatch in domains of gradient and charges", 1)
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of gradient and solver', 1)
+            CALL io%error(sub_name, "Mismatch in domains of gradient and solver", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -468,7 +468,7 @@ CONTAINS
                 END DO
                 !
             CASE (1)
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, "Option not yet implemented", 1)
                 !
             CASE (2)
                 gvperiodic(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
@@ -477,7 +477,7 @@ CONTAINS
                 gvperiodic = 0.D0
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected system dimensions', 1)
+                CALL io%error(sub_name, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -530,10 +530,10 @@ CONTAINS
         !
         IF (nat /= ions%number) &
             CALL io%error(sub_name, &
-                          'Mismatch between input and stored number of ions', 1)
+                          "Mismatch between input and stored number of ions", 1)
         !
         IF (.NOT. ASSOCIATED(auxiliary%cell, this%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of charges and solver', 1)
+            CALL io%error(sub_name, "Mismatch in domains of charges and solver", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -642,18 +642,18 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
         IF (electrolyte%ntyp /= 2) &
             CALL io%error(sub_name, &
-                          'Unexpected number of counterionic species, different from two', 1)
+                          "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
-                          'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems', 1)
+                          "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -880,18 +880,18 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
         IF (electrolyte%ntyp /= 2) &
             CALL io%error(sub_name, &
-                          'Unexpected number of counterionic species, different from two', 1)
+                          "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
-                          'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems', 1)
+                          "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1076,14 +1076,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
         !
         IF (v%cell%nnr /= this%nnr) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
-                          'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems', 1)
+                          "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1240,14 +1240,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
         !
         IF (grad_v%cell%nnr /= this%nnr) &
-            CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
+            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
-                          'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems', 1)
+                          "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
         !

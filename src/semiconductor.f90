@@ -259,14 +259,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' SEMICONDUCTOR ', 64('%'))
+1000    FORMAT(/, 4('%'), " SEMICONDUCTOR ", 64('%'))
         !
-1001    FORMAT(/, ' Mott-Schottky:', /, &
-                ' dopant concent.    (cm^-3) = ', E18.4, /, &
-                ' semiconductor temp.    (K) = ', F14.1, /, &
-                ' dielectric constant        = ', F14.2)
+1001    FORMAT(/, " Mott-Schottky:", /, &
+                " dopant concent.    (cm^-3) = ", E18.4, /, &
+                " semiconductor temp.    (K) = ", F14.1, /, &
+                " dielectric constant        = ", F14.2)
         !
-1002    FORMAT(/, ' total semiconductor charge = ', F14.7)
+1002    FORMAT(/, " total semiconductor charge = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_semiconductor

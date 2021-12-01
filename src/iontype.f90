@@ -258,7 +258,7 @@ CONTAINS
             this%solvationrad = MUFF_diameters(this%atmnum) * 0.5_DP
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unknown radius_mode', 1)
+            CALL io%error(sub_name, "Unknown radius_mode", 1)
             !
         END SELECT
         !
@@ -410,19 +410,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' IONTYPES ', 66('%'))
-1001    FORMAT(/, ' IONTYPES', /, ' ========')
+1000    FORMAT(/, 4('%'), " IONTYPES ", 66('%'))
+1001    FORMAT(/, " IONTYPES", /, " ========")
         !
-1002    FORMAT(/, '               atomic', /, &
-                '   i | label | number | charge', /, 1X, 29('-'))
+1002    FORMAT(/, "               atomic", /, &
+                "   i | label | number | charge", /, 1X, 29('-'))
         !
-1003    FORMAT(1X, I3, ' | ', A5, ' | ', I6, ' | ', F6.2)
+1003    FORMAT(1X, I3, " | ", A5, " | ", I6, " | ", F6.2)
 !
-1004    FORMAT(/, '               atomic            atomic    core    solvation', /, &
-                '   i | label | number | charge | spread | spread |    radius', /, &
+1004    FORMAT(/, "               atomic            atomic    core    solvation", /, &
+                "   i | label | number | charge | spread | spread |    radius", /, &
                 1X, 59('-'))
 !
-1005    FORMAT(1X, I3, ' | ', A5, ' | ', I6, 3(' | ', F6.2), ' |', F10.2)
+1005    FORMAT(1X, I3, " | ", A5, " | ", I6, 3(" | ", F6.2), " |", F10.2)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_iontypes

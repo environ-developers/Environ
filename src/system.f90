@@ -183,7 +183,7 @@ CONTAINS
                 this%pos = this%pos + this%ions%tau(:, i) * zv
             END DO
             !
-            IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, 'System charge is zero', 1)
+            IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, "System charge is zero", 1)
             !
             this%pos = this%pos / charge
         END IF
@@ -316,17 +316,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' SYSTEM ', 68('%'))
+1000    FORMAT(/, 4('%'), " SYSTEM ", 68('%'))
 !
-1001    FORMAT(/, ' system is built from all present ionic types')
+1001    FORMAT(/, " system is built from all present ionic types")
 !
-1002    FORMAT(/, ' system is built from the first ', I3, ' ionic types')
+1002    FORMAT(/, " system is built from the first ", I3, " ionic types")
         !
-1003    FORMAT(/, ' system defined dimension   = ', I14, /, &
-                ' system defined axis        = ', I14)
+1003    FORMAT(/, " system defined dimension   = ", I14, /, &
+                " system defined axis        = ", I14)
         !
-1004    FORMAT(/, ' system center              = ', 3F14.7, /, &
-                ' system width               = ', F14.7)
+1004    FORMAT(/, " system center              = ", 3F14.7, /, &
+                " system width               = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_system

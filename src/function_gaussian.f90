@@ -97,7 +97,7 @@ CONTAINS
         IF (ABS(this%volume) < func_tol) RETURN
         !
         IF (ABS(this%spread) < func_tol) &
-            CALL io%error(sub_name, 'Wrong spread for Gaussian function', 1)
+            CALL io%error(sub_name, "Wrong spread for Gaussian function", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -132,7 +132,7 @@ CONTAINS
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected system dimensions', 1)
+                CALL io%error(sub_name, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -187,10 +187,10 @@ CONTAINS
         IF (ABS(this%volume) < func_tol) RETURN
         !
         IF (ABS(this%spread) < func_tol) &
-            CALL io%error(sub_name, 'Wrong spread for Gaussian function', 1)
+            CALL io%error(sub_name, "Wrong spread for Gaussian function", 1)
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, 'Wrong value of axis', 1)
+            CALL io%error(sub_name, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -225,7 +225,7 @@ CONTAINS
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected system dimensions', 1)
+                CALL io%error(sub_name, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !

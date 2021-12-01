@@ -104,7 +104,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, 'Wrong value of axis', 1)
+            CALL io%error(sub_name, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -198,7 +198,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, 'Wrong value of axis', 1)
+            CALL io%error(sub_name, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -277,7 +277,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, 'Wrong value of axis', 1)
+            CALL io%error(sub_name, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -341,7 +341,7 @@ CONTAINS
                     lapllocal(i) = EXP(-arg**2) * arg / spread * 2.D0
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected system dimensions', 1)
+                    CALL io%error(sub_name, "Unexpected system dimensions", 1)
                     !
                 END SELECT
                 !
@@ -378,7 +378,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, 'Wrong value of axis', 1)
+            CALL io%error(sub_name, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -516,7 +516,7 @@ CONTAINS
                 erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis)
                 !
             CASE DEFAULT
-                CALL io%error(fun_name, 'Unexpected system dimensions', 1)
+                CALL io%error(fun_name, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -562,7 +562,7 @@ CONTAINS
                 get_charge = -this%erfcvolume(cell) * charge
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected function type', 1)
+                CALL io%error(sub_name, "Unexpected function type", 1)
                 !
             END SELECT
             !

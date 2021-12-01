@@ -267,10 +267,10 @@ CONTAINS
         dens%of_r = 0.D0
         !
         IF (.NOT. ASSOCIATED(this%cell, gradB%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domain of input gradients', 1)
+            CALL io%error(sub_name, "Mismatch in domain of input gradients", 1)
         !
         IF (.NOT. ASSOCIATED(this%cell, dens%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domain of input and output', 1)
+            CALL io%error(sub_name, "Mismatch in domain of input and output", 1)
         !
         DO i = 1, dens%cell%ir_end
             dens%of_r(i) = SUM(this%of_r(:, i) * gradB%of_r(:, i))
@@ -304,7 +304,7 @@ CONTAINS
         res = 0.D0
         !
         IF (.NOT. ASSOCIATED(this%cell, density%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domain of input vectors', 1)
+            CALL io%error(sub_name, "Mismatch in domain of input vectors", 1)
         !
         ir_end => density%cell%ir_end
         !
@@ -436,10 +436,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' GRADIENT ', 66('%'))
-1001    FORMAT(/, ' GRADIENT', /, '========')
+1000    FORMAT(/, 4('%'), " GRADIENT ", 66('%'))
+1001    FORMAT(/, " GRADIENT", /, "========")
         !
-1002    FORMAT(/, ' gradient label             = ', A50)
+1002    FORMAT(/, " gradient label             = ", A50)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_gradient

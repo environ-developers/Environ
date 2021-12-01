@@ -160,7 +160,7 @@ CONTAINS
         END DO
         !
         IF (neutral > 1.D-8) &
-            CALL io%error(sub_name, 'Bulk electrolyte is not neutral', 1)
+            CALL io%error(sub_name, "Bulk electrolyte is not neutral", 1)
         !
         kT = K_BOLTZMANN_RY * temperature
         !
@@ -180,7 +180,7 @@ CONTAINS
         sumcbulk = SUM(this%ioncctype%cbulk)
         !
         IF (this%cionmax > 0.D0 .AND. this%cionmax <= sumcbulk) &
-            CALL io%error(sub_name, 'cionmax should be larger than the sum of cbulks', 1)
+            CALL io%error(sub_name, "cionmax should be larger than the sum of cbulks", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrolyte_base

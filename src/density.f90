@@ -427,7 +427,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell, density2%cell)) &
-            CALL io%error(fun_name, 'Operation on fields with inconsistent domains', 1)
+            CALL io%error(fun_name, "Operation on fields with inconsistent domains", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -539,12 +539,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' DENSITY ', 67('%'))
-1001    FORMAT(/, ' DENSITY', /, ' =======')
+1000    FORMAT(/, 4('%'), " DENSITY ", 67('%'))
+1001    FORMAT(/, " DENSITY", /, " =======")
         !
-1002    FORMAT(/, ' density label              = ', A50)
+1002    FORMAT(/, " density label              = ", A50)
         !
-1003    FORMAT(/, ' integral of density        = ', G18.10)
+1003    FORMAT(/, " integral of density        = ", G18.10)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_density

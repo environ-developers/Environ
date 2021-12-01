@@ -322,7 +322,7 @@ CONTAINS
         !
         IF (const == 1.D0 .AND. this%need_electrons .AND. stype == 2) &
             CALL io%error(sub_name, &
-                          'stype=2 boundary requires dielectric constant > 1', 1)
+                          "stype=2 boundary requires dielectric constant > 1", 1)
         !
         this%const = const
         this%alpha = alpha
@@ -412,10 +412,9 @@ CONTAINS
         !
         IF (this%field_aware) THEN
             !
-            CALL io%error(sub_name, 'field-aware not yet implimented', 1)
+            CALL io%error(sub_name, "field-aware not yet implimented", 1)
             !
-            IF (this%mode == 'fa-electronic' .OR. &
-                this%mode == 'fa-full') THEN
+            IF (this%mode == 'fa-electronic' .OR. this%mode == 'fa-full') THEN
                 !
                 CALL this%normal_field%init(cell, 'normal_field_'//label)
                 !
@@ -426,7 +425,7 @@ CONTAINS
                 END DO
                 !
             ELSE
-                CALL io%error(sub_name, 'Boundary must be field-aware', 1)
+                CALL io%error(sub_name, "Boundary must be field-aware", 1)
             END IF
             !
         END IF
@@ -621,7 +620,7 @@ CONTAINS
                 !
                 IF (this%update_status == 0) &
                     CALL io%error(sub_name, &
-                                  'Wrong update status, possibly missing ionic update', 1)
+                                  "Wrong update status, possibly missing ionic update", 1)
                 !
                 this%density%of_r = this%electrons%density%of_r + this%ions%core%of_r
                 !
@@ -698,7 +697,7 @@ CONTAINS
             END IF
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unrecognized boundary mode', 1)
+            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
             !
         END SELECT
         !
@@ -769,7 +768,7 @@ CONTAINS
                 !
                 IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
                     !
-                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
+                    CALL io%error(sub_name, "field-aware not yet implimented", 1)
                     !
                     DEALLOCATE (this%ion_field)
                     DEALLOCATE (this%partial_of_ion_field)
@@ -787,7 +786,7 @@ CONTAINS
         ELSE
             !
             IF (ASSOCIATED(this%ions)) &
-                CALL io%error(sub_name, 'Found an unexpected associated object', 1)
+                CALL io%error(sub_name, "Found an unexpected associated object", 1)
             !
         END IF
         !
@@ -978,25 +977,25 @@ CONTAINS
         ELSE IF (this%need_system) THEN
             number => this%system%ions%number
         ELSE
-            CALL io%error(sub_name, 'Missing details of ions', 1)
+            CALL io%error(sub_name, "Missing details of ions", 1)
         END IF
         !
         IF (index > number) &
-            CALL io%error(sub_name, 'Index greater than number of ions', 1)
+            CALL io%error(sub_name, "Index greater than number of ions", 1)
         !
         IF (index <= 0) &
-            CALL io%error(sub_name, 'Index of ion is zero or lower', 1)
+            CALL io%error(sub_name, "Index of ion is zero or lower", 1)
         !
         IF (this%mode == 'ionic' .AND. this%soft_spheres%number == 0) &
-            CALL io%error(sub_name, 'Missing details of ionic boundary', 1)
+            CALL io%error(sub_name, "Missing details of ionic boundary", 1)
         !
         IF (this%mode == 'full') THEN
             !
             IF (this%ions%core_electrons%number == 0) &
-                CALL io%error(sub_name, 'Missing details of core electrons', 1)
+                CALL io%error(sub_name, "Missing details of core electrons", 1)
             !
             IF (.NOT. ASSOCIATED(this%dscaled%cell, partial%cell)) &
-                CALL io%error(sub_name, 'Mismatch or unassociated boundary derivative', 1)
+                CALL io%error(sub_name, "Mismatch or unassociated boundary derivative", 1)
             !
         END IF
         !
@@ -1046,8 +1045,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(' WARNING: Unphysical forces due to core electrons are non-negligible ', /, &
-               ' atom type ', I3, ' is subject to a spurious force of ', F12.6)
+1000    FORMAT(" WARNING: Unphysical forces due to core electrons are non-negligible ", /, &
+               " atom type ", I3, " is subject to a spurious force of ", F12.6)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
@@ -1136,7 +1135,7 @@ CONTAINS
         END IF
         !
         IF (.NOT. ASSOCIATED(denloc%cell, this%scaled%cell)) &
-            CALL io%error(sub_name, 'Inconsistent domains', 1)
+            CALL io%error(sub_name, "Inconsistent domains", 1)
         !
         stype => this%b_type
         !
@@ -2039,7 +2038,7 @@ CONTAINS
                         WRITE (local_unit, 1106) this%rhomax, this%rhomin
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, 'Unexpected boundary type', 1)
+                        CALL io%error(sub_name, "Unexpected boundary type", 1)
                         !
                     END SELECT
                     !
@@ -2137,49 +2136,49 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1100    FORMAT(/, 4('%'), ' BOUNDARY ', 66('%'))
+1100    FORMAT(/, 4('%'), " BOUNDARY ", 66('%'))
         !
-1101    FORMAT(/, ' boundary label             = ', A20, /, &
-                ' boundary mode              = ', A20)
+1101    FORMAT(/, " boundary label             = ", A20, /, &
+                " boundary mode              = ", A20)
         !
-1102    FORMAT(/, ' boundary is built as a type-', I1, ' function of a smooth density')
+1102    FORMAT(/, " boundary is built as a type-", I1, " function of a smooth density")
         !
-1103    FORMAT(/, ' using the Fattebert-Gygi function:', /, &
-                ' rhozero                    = ', F14.7, /, &
-                ' 2*beta                     = ', F14.7)
+1103    FORMAT(/, " using the Fattebert-Gygi function:", /, &
+                " rhozero                    = ", F14.7, /, &
+                " 2*beta                     = ", F14.7)
         !
-1104    FORMAT(/, ' using the optimal SCCS function:', /, &
-                ' rhomax                     = ', F14.7, /, &
-                ' rhomin                     = ', F14.7)
+1104    FORMAT(/, " using the optimal SCCS function:", /, &
+                " rhomax                     = ", F14.7, /, &
+                " rhomin                     = ", F14.7)
         !
-1105    FORMAT(' log(rhomax/rhomin)         = ', F14.7)
+1105    FORMAT(" log(rhomax/rhomin)         = ", F14.7)
         !
-1106    FORMAT(/, ' using the modified SCCS function:', /, &
-                ' rhomax                     = ', F14.7, /, &
-                ' rhomin                     = ', F14.7)
+1106    FORMAT(/, " using the modified SCCS function:", /, &
+                " rhomax                     = ", F14.7, /, &
+                " rhomin                     = ", F14.7)
         !
-1107    FORMAT(/, ' adding fictitious core-electrons')
+1107    FORMAT(/, " adding fictitious core-electrons")
         !
-1108    FORMAT(/, ' boundary is built from soft-spheres centered on ionic positions:', /, &
-                ' solvent-dependent scaling  = ', F14.7, /, &
-                ' softness parameter         = ', F14.7)
+1108    FORMAT(/, " boundary is built from soft-spheres centered on ionic positions:", /, &
+                " solvent-dependent scaling  = ", F14.7, /, &
+                " softness parameter         = ", F14.7)
         !
-1109    FORMAT(/, ' boundary is built as an analytic function centered on system position:', /, &
-                ' center of the boundary     = ', 3F14.7, /, &
-                ' distance from the center   = ', F14.7, /, &
-                ' spread of the interface    = ', F14.7, /, &
-                ' dimensionality             = ', I14, /, &
-                ' axis                       = ', I14)
+1109    FORMAT(/, " boundary is built as an analytic function centered on system position:", /, &
+                " center of the boundary     = ", 3F14.7, /, &
+                " distance from the center   = ", F14.7, /, &
+                " spread of the interface    = ", F14.7, /, &
+                " dimensionality             = ", I14, /, &
+                " axis                       = ", I14)
         !
-1110    FORMAT(/, ' volume of the QM region    = ', F14.7)
+1110    FORMAT(/, " volume of the QM region    = ", F14.7)
         !
-1111    FORMAT(/, ' surface of the QM region   = ', F14.7)
+1111    FORMAT(/, " surface of the QM region   = ", F14.7)
         !
-1112    FORMAT(/, ' using solvent-aware boundary:', /, &
-                ' filling threshold          = ', F14.7, /, &
-                ' filling spread             = ', F14.7, /, &
-                ' solvent radius x rad scale = ', F14.7, /, &
-                ' spread of solvent probe    = ', F14.7)
+1112    FORMAT(/, " using solvent-aware boundary:", /, &
+                " filling threshold          = ", F14.7, /, &
+                " filling spread             = ", F14.7, /, &
+                " solvent radius x rad scale = ", F14.7, /, &
+                " spread of solvent probe    = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_boundary
