@@ -202,7 +202,7 @@ MODULE class_boundary
     END TYPE environ_boundary
     !------------------------------------------------------------------------------------
     !
-    INTEGER :: bound_tol = 1.D-60
+    INTEGER, PARAMETER :: bound_tol = 1.D-60
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -579,13 +579,9 @@ CONTAINS
         !
         LOGICAL :: update_anything
         !
-        TYPE(environ_cell), POINTER :: cell
-        !
         CHARACTER(LEN=80) :: sub_name = 'update_environ_boundary'
         !
         !--------------------------------------------------------------------------------
-        !
-        cell => this%scaled%cell
         !
         update_anything = .FALSE.
         !
@@ -635,13 +631,11 @@ CONTAINS
                 CALL this%boundary_of_density()
                 !
                 this%update_status = 2 ! boundary has changed and is ready
-                !
             END IF
             !
         CASE ('electronic')
             !
             IF (this%electrons%lupdate) THEN
-                !
                 this%density%of_r = this%electrons%density%of_r
                 !
                 CALL this%boundary_of_density()
@@ -671,7 +665,6 @@ CONTAINS
                 CALL this%boundary_of_functions()
                 !
                 this%update_status = 2 ! boundary has changed and is ready
-                !
             ELSE
                 !
                 IF (this%update_status == 2) this%update_status = 0
@@ -880,7 +873,7 @@ CONTAINS
         !
         REAL(DP), INTENT(IN) :: pressure
         !
-        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_boundary), INTENT(INOUT) :: this
         REAL(DP), INTENT(OUT) :: evolume
         !
         !--------------------------------------------------------------------------------
@@ -922,7 +915,7 @@ CONTAINS
         !
         REAL(DP), INTENT(IN) :: surface_tension
         !
-        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_boundary), INTENT(INOUT) :: this
         REAL(DP), INTENT(OUT) :: esurface
         !
         !--------------------------------------------------------------------------------
@@ -943,9 +936,9 @@ CONTAINS
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: surface_tension
-        CLASS(environ_boundary), TARGET, INTENT(IN) :: this
+        CLASS(environ_boundary), INTENT(IN) :: this
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: de_dboundary
+        TYPE(environ_density), INTENT(INOUT) :: de_dboundary
         !
         !--------------------------------------------------------------------------------
         !
@@ -954,550 +947,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_desurface_dboundary
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                                  GENERAL METHODS
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !! Calculates the dielectric constant as a function of the charge
-    !! density, and the derivatives of the the dielectric constant
-    !! with respect to the charge density. Additionally calculates the
-    !! volume and surface components.
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE boundary_of_density(this, density)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_density), TARGET, INTENT(IN), OPTIONAL :: density
-        !
-        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
-        !
-        INTEGER, POINTER :: ir_end, stype, deriv
-        REAL(DP), POINTER :: const, rhomax, rhomin, tbeta
-        REAL(DP), DIMENSION(:), POINTER :: rho, eps, deps, d2eps, lapleps, dsurface
-        REAL(DP), POINTER :: gradeps(:, :)
-        !
-        TYPE(environ_hessian), POINTER :: hessian
-        TYPE(environ_density), POINTER :: local_density
-        !
-        INTEGER :: ir, ipol, jpol
-        !
-        CHARACTER(LEN=80) :: sub_name = 'boundary_of_density'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (PRESENT(density)) THEN
-            local_density => density
-        ELSE
-            local_density => this%density
-        END IF
-        !
-        IF (.NOT. ASSOCIATED(local_density%cell, this%scaled%cell)) &
-            CALL io%error(sub_name, 'Inconsistent domains', 1)
-        !
-        ir_end => local_density%cell%ir_end
-        rho => local_density%of_r
-        !
-        stype => this%b_type
-        eps => this%scaled%of_r
-        deps => this%dscaled%of_r
-        d2eps => this%d2scaled%of_r
-        !
-        IF (stype == 1 .OR. stype == 2) THEN
-            rhomax => this%rhomax
-            rhomin => this%rhomin
-            tbeta => this%fact
-            const => this%const
-        ELSE IF (stype == 0) THEN
-            rhomax => this%rhozero
-            rhomin => this%deltarho
-            tbeta => this%tbeta
-            const => this%const
-        END IF
-        !
-        DO ir = 1, ir_end
-            eps(ir) = boundfunct(rho(ir), rhomax, rhomin, tbeta, const, stype)
-            deps(ir) = dboundfunct(rho(ir), rhomax, rhomin, tbeta, const, stype)
-            d2eps(ir) = d2boundfunct(rho(ir), rhomax, rhomin, tbeta, const, stype)
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-        ! Compute boundary derivatives, if needed
-        !
-        deriv => this%deriv
-        !
-        IF (deriv >= 1) gradeps => this%gradient%of_r
-        !
-        IF (deriv >= 2) lapleps => this%laplacian%of_r
-        !
-        IF (deriv >= 3) THEN
-            dsurface => this%dsurface%of_r
-            !
-            IF (this%solvent_aware) THEN
-                hessian => this%hessian
-            ELSE
-                ALLOCATE (hessian)
-                !
-                CALL hessian%init(local_density%cell)
-                !
-            END IF
-            !
-        END IF
-        !
-        ASSOCIATE (derivatives => this%cores%derivatives)
-            !
-            SELECT CASE (this%derivatives_method)
-                !
-            CASE ('fft')
-                !
-                IF (deriv == 1 .OR. deriv == 2) &
-                    CALL derivatives%gradient(this%scaled, this%gradient)
-                !
-                IF (deriv == 2) CALL derivatives%laplacian(this%scaled, this%laplacian)
-                !
-                IF (deriv == 3) &
-                    CALL this%calc_dsurface(this%scaled, this%gradient, &
-                                            this%laplacian, hessian, this%dsurface)
-                !
-            CASE ('chain')
-                !
-                IF (deriv == 1 .OR. deriv == 2) &
-                    CALL derivatives%gradient(local_density, this%gradient)
-                !
-                IF (deriv == 2) &
-                    CALL derivatives%laplacian(local_density, this%laplacian)
-                !
-                IF (deriv == 3) THEN
-                    !
-                    CALL this%calc_dsurface(local_density, this%gradient, &
-                                            this%laplacian, hessian, this%dsurface)
-                    !
-                    IF (this%solvent_aware) THEN
-                        !
-                        DO ipol = 1, 3
-                            !
-                            DO jpol = 1, 3
-                                !
-                                hessian%of_r(ipol, jpol, :) = &
-                                    hessian%of_r(ipol, jpol, :) * deps(:) + &
-                                    gradeps(ipol, :) * gradeps(jpol, :) * d2eps(:)
-                                !
-                            END DO
-                            !
-                        END DO
-                        !
-                    END IF
-                    !
-                END IF
-                !
-                IF (deriv > 1) &
-                    lapleps(:) = lapleps(:) * deps(:) + &
-                                 (gradeps(1, :)**2 + gradeps(2, :)**2 + &
-                                  gradeps(3, :)**2) * d2eps(:)
-                !
-                IF (deriv >= 1) THEN
-                    !
-                    DO ipol = 1, 3
-                        gradeps(ipol, :) = gradeps(ipol, :) * deps(:)
-                    END DO
-                    !
-                END IF
-                !
-            CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected derivatives method", 1)
-                !
-            END SELECT
-            !
-        END ASSOCIATE
-        !
-        !--------------------------------------------------------------------------------
-        ! Final updates
-        !
-        this%volume = this%scaled%integrate()
-        !
-        IF (deriv >= 1) THEN
-            !
-            CALL this%gradient%update_modulus()
-            !
-            this%surface = this%gradient%modulus%integrate()
-        END IF
-        !
-        IF (deriv >= 3 .AND. .NOT. this%solvent_aware) CALL hessian%destroy()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE boundary_of_density
-    !------------------------------------------------------------------------------------
-    !>
-    !! @brief Updates boundary object using function objects
-    !!
-    !! Calculates the dielectric constant as a function of the charge
-    !! density, and derivatives of the dielectric constant with respect
-    !! to the charge density. Also updates the volume and surface
-    !! components. This function is implemented for the soft-spheres
-    !! interface model. It expects a series of environ_functions of
-    !! dimension equal to nsoft_spheres.
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE boundary_of_functions(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
-        !
-        INTEGER, POINTER :: ir_end, deriv
-        TYPE(environ_cell), POINTER :: cell
-        !
-        INTEGER :: i
-        !
-        INTEGER, POINTER :: nsoft_spheres
-        !
-        TYPE(environ_density), ALLOCATABLE :: local(:)
-        TYPE(environ_gradient), ALLOCATABLE :: gradlocal(:)
-        TYPE(environ_density), ALLOCATABLE :: lapllocal(:)
-        TYPE(environ_hessian), ALLOCATABLE :: hesslocal(:)
-        TYPE(environ_hessian), POINTER :: hessian
-        !
-        CHARACTER(LEN=80) :: sub_name = 'boundary_of_functions'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        cell => this%scaled%cell
-        ir_end => cell%ir_end
-        nsoft_spheres => this%ions%number
-        !
-        ALLOCATE (local(nsoft_spheres))
-        !
-        !--------------------------------------------------------------------------------
-        ! Compute soft spheres and generate boundary
-        !
-        this%scaled%of_r = 1.D0
-        !
-        DO i = 1, nsoft_spheres
-            !
-            CALL local(i)%init(cell)
-            !
-            CALL this%soft_spheres%array(i)%density(local(i), .FALSE.)
-            !
-            this%scaled%of_r = this%scaled%of_r * local(i)%of_r
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-        ! Generate boundary derivatives, if needed
-        !
-        deriv => this%deriv
-        !
-        IF (deriv == 3) THEN
-            !
-            IF (this%solvent_aware) THEN
-                hessian => this%hessian
-                hessian%of_r = 0.D0
-            ELSE
-                ALLOCATE (hessian)
-                !
-                CALL hessian%init(cell)
-                !
-            END IF
-            !
-        END IF
-        !
-        SELECT CASE (this%derivatives_method)
-            !
-        CASE ('fft')
-            !
-            IF (deriv == 1 .OR. deriv == 2) &
-                CALL this%cores%derivatives%gradient(this%scaled, this%gradient)
-            !
-            IF (deriv == 2) &
-                CALL this%cores%derivatives%laplacian(this%scaled, this%laplacian)
-            !
-            IF (deriv == 3) &
-                CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
-                                        hessian, this%dsurface)
-            !
-        CASE ('highmem')
-            !
-            IF (deriv >= 1) ALLOCATE (gradlocal(nsoft_spheres))
-            !
-            IF (deriv == 2) ALLOCATE (lapllocal(nsoft_spheres))
-            !
-            IF (deriv == 3) ALLOCATE (hesslocal(nsoft_spheres))
-            !
-            !----------------------------------------------------------------------------
-            ! Compute and temporarily store soft spheres derivatives
-            !
-            DO i = 1, nsoft_spheres
-                !
-                IF (deriv >= 1) CALL gradlocal(i)%init(cell)
-                !
-                IF (deriv == 2) CALL lapllocal(i)%init(cell)
-                !
-                IF (deriv == 3) CALL hesslocal(i)%init(cell)
-                !
-                IF (deriv >= 1) &
-                    CALL this%soft_spheres%array(i)%gradient(gradlocal(i), .FALSE.)
-                !
-                IF (deriv == 2) &
-                    CALL this%soft_spheres%array(i)%laplacian(lapllocal(i), .FALSE.)
-                !
-                IF (deriv == 3) &
-                    CALL this%soft_spheres%array(i)%hessian(hesslocal(i), .FALSE.)
-                !
-            END DO
-            !
-            IF (deriv == 1 .OR. deriv == 2) &
-                CALL calc_gradient_of_boundary_highmem(nsoft_spheres, local, &
-                                                       gradlocal, this%gradient)
-            !
-            IF (deriv == 2) &
-                CALL calc_laplacian_of_boundary_highmem(nsoft_spheres, local, &
-                                                        gradlocal, lapllocal, &
-                                                        this%laplacian)
-            !
-            IF (deriv == 3) &
-                CALL calc_dsurface_of_boundary_highmem(nsoft_spheres, local, &
-                                                       gradlocal, hesslocal, &
-                                                       this%gradient, &
-                                                       this%laplacian, hessian, &
-                                                       this%dsurface)
-            !
-            DO i = 1, nsoft_spheres
-                !
-                IF (deriv >= 1) CALL gradlocal(i)%destroy()
-                !
-                IF (deriv == 2) CALL lapllocal(i)%destroy()
-                !
-                IF (deriv == 3) CALL hesslocal(i)%destroy()
-                !
-            END DO
-            !
-            IF (deriv >= 1) DEALLOCATE (gradlocal)
-            !
-            IF (deriv == 2) DEALLOCATE (lapllocal)
-            !
-            IF (deriv == 3) DEALLOCATE (hesslocal)
-            !
-        CASE ('lowmem')
-            !
-            IF (deriv >= 1) ALLOCATE (gradlocal(nsoft_spheres))
-            !
-            IF (deriv == 2) ALLOCATE (lapllocal(nsoft_spheres))
-            !
-            IF (deriv == 3) ALLOCATE (hesslocal(nsoft_spheres))
-            !
-            !----------------------------------------------------------------------------
-            ! Compute and temporarily store soft spheres derivatives
-            !
-            DO i = 1, nsoft_spheres
-                !
-                IF (deriv >= 1) CALL gradlocal(i)%init(cell)
-                !
-                IF (deriv == 2) CALL lapllocal(i)%init(cell)
-                !
-                IF (deriv == 3) CALL hesslocal(i)%init(cell)
-                !
-                IF (deriv >= 1) &
-                    CALL this%soft_spheres%array(i)%gradient(gradlocal(i), .FALSE.)
-                !
-                IF (deriv == 2) &
-                    CALL this%soft_spheres%array(i)%laplacian(lapllocal(i), .FALSE.)
-                !
-                IF (deriv == 3) &
-                    CALL this%soft_spheres%array(i)%hessian(hesslocal(i), .FALSE.)
-                !
-            END DO
-            !
-            IF (deriv >= 1) &
-                CALL calc_gradient_of_boundary_lowmem(nsoft_spheres, local, &
-                                                      gradlocal, this%scaled, &
-                                                      this%gradient)
-            !
-            IF (deriv == 2) &
-                CALL calc_laplacian_of_boundary_lowmem(nsoft_spheres, local, &
-                                                       gradlocal, lapllocal, &
-                                                       this%scaled, &
-                                                       this%gradient, &
-                                                       this%laplacian)
-            !
-            IF (deriv == 3) &
-                CALL calc_dsurface_of_boundary_lowmem(nsoft_spheres, local, &
-                                                      gradlocal, hesslocal, &
-                                                      this%gradient, &
-                                                      this%laplacian, hessian, &
-                                                      this%scaled, &
-                                                      this%dsurface)
-            !
-            DO i = 1, nsoft_spheres
-                !
-                IF (deriv >= 1) CALL gradlocal(i)%destroy()
-                !
-                IF (deriv == 2) CALL lapllocal(i)%destroy()
-                !
-                IF (deriv == 3) CALL hesslocal(i)%destroy()
-                !
-            END DO
-            !
-            IF (deriv >= 1) DEALLOCATE (gradlocal)
-            !
-            IF (deriv == 2) DEALLOCATE (lapllocal)
-            !
-            IF (deriv == 3) DEALLOCATE (hesslocal)
-            !
-        CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected derivatives method", 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Final updates
-        !
-        this%scaled%of_r = 1.D0 - this%scaled%of_r
-        this%volume = this%scaled%integrate()
-        !
-        IF (deriv >= 1) THEN
-            this%gradient%of_r = -this%gradient%of_r
-            !
-            CALL this%gradient%update_modulus()
-            !
-            this%surface = this%gradient%modulus%integrate()
-            !
-            IF (deriv >= 2) this%laplacian%of_r = -this%laplacian%of_r
-            !
-            IF (deriv == 3) THEN
-                this%dsurface%of_r = -this%dsurface%of_r
-                !
-                IF (this%solvent_aware) THEN
-                    this%hessian%of_r = -this%hessian%of_r
-                ELSE
-                    !
-                    CALL hessian%destroy()
-                    !
-                    DEALLOCATE (hessian)
-                END IF
-                !
-            END IF
-            !
-        END IF
-        !
-        DO i = 1, nsoft_spheres
-            CALL local(i)%destroy()
-        END DO
-        !
-        DEALLOCATE (local)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE boundary_of_functions
-    !------------------------------------------------------------------------------------
-    !>
-    !! Updates the boundary using a function
-    !!
-    !! Calculates the dielectric constant as a function of the charge
-    !! density, and the derivatives of the dielectric constant with
-    !! respect to the charge density. Also updates the volume and surface
-    !! components. Expects an explicity defined system density function.
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE boundary_of_system(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
-        !
-        INTEGER, POINTER :: ir_end, deriv
-        TYPE(environ_cell), POINTER :: cell
-        !
-        TYPE(environ_hessian), POINTER :: hesslocal
-        !
-        CHARACTER(LEN=80) :: sub_name = 'boundary_of_system'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        cell => this%scaled%cell
-        ir_end => cell%ir_end
-        !
-        CALL this%simple%density(this%scaled, .TRUE.)
-        ! compute soft spheres and generate boundary
-        !
-        !--------------------------------------------------------------------------------
-        ! Generate boundary derivatives, if needed
-        !
-        deriv => this%deriv
-        !
-        IF (deriv >= 3) THEN
-            !
-            IF (this%solvent_aware) THEN
-                hesslocal => this%hessian
-            ELSE
-                ALLOCATE (hesslocal)
-                !
-                CALL hesslocal%init(cell)
-                !
-            END IF
-            !
-        END IF
-        !
-        SELECT CASE (this%derivatives_method)
-            !
-        CASE ('fft')
-            !
-            IF (deriv == 1 .OR. deriv == 2) &
-                CALL this%cores%derivatives%gradient(this%scaled, this%gradient)
-            !
-            IF (deriv == 2) &
-                CALL this%cores%derivatives%laplacian(this%scaled, this%laplacian)
-            !
-            IF (deriv == 3) &
-                CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
-                                        hesslocal, this%dsurface)
-            !
-        CASE ('chain')
-            !
-            IF (deriv >= 1) CALL this%simple%gradient(this%gradient, .TRUE.)
-            !
-            IF (deriv >= 2) CALL this%simple%laplacian(this%laplacian, .TRUE.)
-            !
-            IF (deriv >= 3) THEN
-                !
-                CALL this%simple%hessian(hesslocal, .TRUE.)
-                !
-                CALL calc_dsurface_no_pre(cell%nnr, ir_end, this%gradient%of_r, &
-                                          hesslocal%of_r, this%dsurface%of_r)
-                !
-            END IF
-            !
-        CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected derivatives method", 1)
-            !
-        END SELECT
-        !
-        IF (deriv >= 3) THEN
-            !
-            IF (.NOT. this%solvent_aware) THEN
-                !
-                CALL hesslocal%destroy()
-                !
-                DEALLOCATE (hesslocal)
-            END IF
-            !
-        END IF
-        !
-        this%volume = this%scaled%integrate()
-        !
-        IF (deriv >= 1) THEN
-            !
-            CALL this%gradient%update_modulus()
-            !
-            this%surface = this%gradient%modulus%integrate()
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE boundary_of_system
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -1515,11 +964,10 @@ CONTAINS
         REAL(DP), PARAMETER :: tolspuriousforce = 1.D-5
         !
         INTEGER, POINTER :: number
-        TYPE(environ_cell), POINTER :: cell
         !
         INTEGER :: i, ipol
         REAL(DP) :: spurious_force
-        TYPE(environ_density) :: local
+        TYPE(environ_density) :: denlocal
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_dboundary_dions'
         !
@@ -1527,8 +975,6 @@ CONTAINS
         !
         IF (this%mode == 'electronic') RETURN
         ! exit if boundary is only defined on electronic density
-        !
-        cell => partial%cell
         !
         IF (this%need_ions) THEN
             number => this%ions%number
@@ -1552,7 +998,7 @@ CONTAINS
             IF (this%ions%core_electrons%number == 0) &
                 CALL io%error(sub_name, 'Missing details of core electrons', 1)
             !
-            IF (.NOT. ASSOCIATED(this%dscaled%cell, cell)) &
+            IF (.NOT. ASSOCIATED(this%dscaled%cell, partial%cell)) &
                 CALL io%error(sub_name, 'Mismatch or unassociated boundary derivative', 1)
             !
         END IF
@@ -1561,21 +1007,21 @@ CONTAINS
             !
             CALL this%soft_spheres%array(index)%gradient(partial, .TRUE.)
             !
-            CALL local%init(cell)
+            CALL denlocal%init(partial%cell)
             !
             DO i = 1, number
                 !
                 IF (i == index) CYCLE
                 !
-                CALL this%soft_spheres%array(i)%density(local, .TRUE.)
+                CALL this%soft_spheres%array(i)%density(denlocal, .TRUE.)
                 !
                 DO ipol = 1, 3
-                    partial%of_r(ipol, :) = partial%of_r(ipol, :) * local%of_r(:)
+                    partial%of_r(ipol, :) = partial%of_r(ipol, :) * denlocal%of_r(:)
                 END DO
                 !
             END DO
             !
-            CALL local%destroy()
+            CALL denlocal%destroy()
             !
         ELSE IF (this%mode == 'full') THEN
             !
@@ -1608,6 +1054,618 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
+    !------------------------------------------------------------------------------------
+    !>
+    !! @brief Compute the functional derivative of the energy w.r.t the boundary
+    !!
+    !! @param[out]  de_dboundary  the computed derivative
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_solvent_aware_de_dboundary(this, de_dboundary)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(IN) :: this
+        !
+        TYPE(environ_density), INTENT(INOUT) :: de_dboundary
+        !
+        TYPE(environ_density) :: local
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_solvent_aware_de_dboundary'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL local%init(this%scaled%cell)
+        !
+        !--------------------------------------------------------------------------------
+        ! Step 1: compute (1-s)*de_dboudary*dfilling
+        !
+        local%of_r = (1.D0 - this%local%of_r) * de_dboundary%of_r * this%dfilling%of_r
+        !
+        !--------------------------------------------------------------------------------
+        ! Step 2: compute convolution with the probe function
+        !
+        CALL this%cores%derivatives%convolution(this%probe, local, local)
+        !
+        !--------------------------------------------------------------------------------
+        ! Step 3: update the functional derivative of the energy wrt boundary
+        !
+        de_dboundary%of_r = de_dboundary%of_r * (1.D0 - this%filling%of_r) + local%of_r
+        !
+        CALL local%destroy()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_solvent_aware_de_dboundary
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_dsurface(this, dens, grad, lapl, hess, dsurface)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_density), INTENT(IN) :: dens
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: grad
+        TYPE(environ_density), INTENT(INOUT) :: lapl
+        TYPE(environ_hessian), INTENT(INOUT) :: hess
+        TYPE(environ_density), INTENT(INOUT) :: dsurface
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_dsurface'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%cores%derivatives%hessian(dens, grad, hess)
+        !
+        lapl%of_r(:) = hess%of_r(1, 1, :) + hess%of_r(2, 2, :) + hess%of_r(3, 3, :)
+        !
+        CALL calc_dsurface_no_pre(dens%cell%nnr, dens%cell%ir_end, grad%of_r, &
+                                  hess%of_r, dsurface%of_r)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_dsurface
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  GENERAL METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !! Calculates the dielectric constant as a function of the charge
+    !! density, and the derivatives of the the dielectric constant
+    !! with respect to the charge density. Additionally calculates the
+    !! volume and surface components.
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE boundary_of_density(this, density)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_density), TARGET, INTENT(IN), OPTIONAL :: density
+        !
+        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
+        !
+        INTEGER, POINTER :: stype
+        REAL(DP), POINTER :: rhomax, rhomin, tbeta, const
+        !
+        TYPE(environ_density), POINTER :: local_density
+        TYPE(environ_hessian), POINTER :: hessian
+        !
+        INTEGER :: ir, ipol, jpol
+        !
+        CHARACTER(LEN=80) :: sub_name = 'boundary_of_density'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(density)) THEN
+            local_density => density
+        ELSE
+            local_density => this%density
+        END IF
+        !
+        IF (.NOT. ASSOCIATED(local_density%cell, this%scaled%cell)) &
+            CALL io%error(sub_name, 'Inconsistent domains', 1)
+        !
+        stype => this%b_type
+        !
+        IF (stype == 1 .OR. stype == 2) THEN
+            rhomax => this%rhomax
+            rhomin => this%rhomin
+            tbeta => this%fact
+            const => this%const
+        ELSE IF (stype == 0) THEN
+            rhomax => this%rhozero
+            rhomin => this%deltarho
+            tbeta => this%tbeta
+            const => this%const
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (cell => local_density%cell, &
+                   deriv => this%deriv, &
+                   derivatives => this%cores%derivatives, &
+                   scaled => this%scaled, &
+                   dscaled => this%dscaled, &
+                   d2scaled => this%d2scaled, &
+                   rho => local_density%of_r, &
+                   gradient => this%gradient, &
+                   laplacian => this%laplacian, &
+                   dsurface => this%dsurface)
+            !
+            !----------------------------------------------------------------------------
+            !
+            DO ir = 1, cell%ir_end
+                !
+                scaled%of_r(ir) = &
+                    boundfunct(rho(ir), rhomax, rhomin, tbeta, const, stype)
+                !
+                dscaled%of_r(ir) = &
+                    dboundfunct(rho(ir), rhomax, rhomin, tbeta, const, stype)
+                !
+                d2scaled%of_r(ir) = &
+                    d2boundfunct(rho(ir), rhomax, rhomin, tbeta, const, stype)
+                !
+            END DO
+            !
+            !----------------------------------------------------------------------------
+            ! Compute boundary derivatives, if needed
+            !
+            IF (deriv >= 3) THEN
+                !
+                IF (this%solvent_aware) THEN
+                    hessian => this%hessian
+                ELSE
+                    ALLOCATE (hessian)
+                    !
+                    CALL hessian%init(cell)
+                    !
+                END IF
+                !
+            END IF
+            !
+            SELECT CASE (this%derivatives_method)
+                !
+            CASE ('fft')
+                !
+                IF (deriv == 1 .OR. deriv == 2) &
+                    CALL derivatives%gradient(scaled, gradient)
+                !
+                IF (deriv == 2) CALL derivatives%laplacian(scaled, laplacian)
+                !
+                IF (deriv == 3) &
+                    CALL this%calc_dsurface(scaled, gradient, laplacian, hessian, &
+                                            dsurface)
+                !
+            CASE ('chain')
+                !
+                IF (deriv == 1 .OR. deriv == 2) &
+                    CALL derivatives%gradient(local_density, gradient)
+                !
+                IF (deriv == 2) CALL derivatives%laplacian(local_density, laplacian)
+                !
+                IF (deriv == 3) THEN
+                    !
+                    CALL this%calc_dsurface(local_density, gradient, laplacian, &
+                                            hessian, dsurface)
+                    !
+                    IF (this%solvent_aware) THEN
+                        !
+                        DO ipol = 1, 3
+                            !
+                            DO jpol = 1, 3
+                                !
+                                hessian%of_r(ipol, jpol, :) = &
+                                    hessian%of_r(ipol, jpol, :) * dscaled%of_r(:) + &
+                                    gradient%of_r(ipol, :) * gradient%of_r(jpol, :) * &
+                                    d2scaled%of_r(:)
+                                !
+                            END DO
+                            !
+                        END DO
+                        !
+                    END IF
+                    !
+                END IF
+                !
+                IF (deriv > 1) &
+                    laplacian%of_r(:) = laplacian%of_r(:) * dscaled%of_r(:) + &
+                                        (gradient%of_r(1, :)**2 + &
+                                         gradient%of_r(2, :)**2 + &
+                                         gradient%of_r(3, :)**2) * d2scaled%of_r(:)
+                !
+                IF (deriv >= 1) THEN
+                    !
+                    DO ipol = 1, 3
+                        gradient%of_r(ipol, :) = gradient%of_r(ipol, :) * dscaled%of_r(:)
+                    END DO
+                    !
+                END IF
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected derivatives method", 1)
+                !
+            END SELECT
+            !
+            !
+            !----------------------------------------------------------------------------
+            ! Final updates
+            !
+            this%volume = scaled%integrate()
+            !
+            IF (deriv >= 1) THEN
+                !
+                CALL gradient%update_modulus()
+                !
+                this%surface = this%gradient%modulus%integrate()
+            END IF
+            !
+            IF (deriv >= 3 .AND. .NOT. this%solvent_aware) CALL hessian%destroy()
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE boundary_of_density
+    !------------------------------------------------------------------------------------
+    !>
+    !! @brief Updates boundary object using function objects
+    !!
+    !! Calculates the dielectric constant as a function of the charge
+    !! density, and derivatives of the dielectric constant with respect
+    !! to the charge density. Also updates the volume and surface
+    !! components. This function is implemented for the soft-spheres
+    !! interface model. It expects a series of environ_functions of
+    !! dimension equal to nsoft_spheres.
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE boundary_of_functions(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
+        !
+        INTEGER :: i
+        !
+        TYPE(environ_density), ALLOCATABLE :: denlocal(:)
+        TYPE(environ_gradient), ALLOCATABLE :: gradlocal(:)
+        TYPE(environ_density), ALLOCATABLE :: lapllocal(:)
+        TYPE(environ_hessian), ALLOCATABLE :: hesslocal(:)
+        TYPE(environ_hessian), POINTER :: hessian
+        !
+        CHARACTER(LEN=80) :: sub_name = 'boundary_of_functions'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (cell => this%scaled%cell, &
+                   nss => this%soft_spheres%number, &
+                   soft_spheres => this%soft_spheres%array, &
+                   deriv => this%deriv, &
+                   derivatives => this%cores%derivatives, &
+                   scaled => this%scaled, &
+                   gradient => this%gradient, &
+                   laplacian => this%laplacian, &
+                   dsurface => this%dsurface)
+            !
+            !----------------------------------------------------------------------------
+            ! Compute soft spheres and generate boundary
+            !
+            ALLOCATE (denlocal(nss))
+            !
+            scaled%of_r = 1.D0
+            !
+            DO i = 1, nss
+                !
+                CALL denlocal(i)%init(cell)
+                !
+                CALL soft_spheres(i)%density(denlocal(i), .FALSE.)
+                !
+                scaled%of_r = scaled%of_r * denlocal(i)%of_r
+            END DO
+            !
+            !----------------------------------------------------------------------------
+            ! Generate boundary derivatives, if needed
+            !
+            IF (deriv == 3) THEN
+                !
+                IF (this%solvent_aware) THEN
+                    hessian => this%hessian
+                    hessian%of_r = 0.D0
+                ELSE
+                    ALLOCATE (hessian)
+                    !
+                    CALL hessian%init(cell)
+                    !
+                END IF
+                !
+            END IF
+            !
+            SELECT CASE (this%derivatives_method)
+                !
+            CASE ('fft')
+                !
+                IF (deriv == 1 .OR. deriv == 2) &
+                    CALL derivatives%gradient(scaled, gradient)
+                !
+                IF (deriv == 2) CALL derivatives%laplacian(scaled, laplacian)
+                !
+                IF (deriv == 3) &
+                    CALL this%calc_dsurface(scaled, gradient, laplacian, &
+                                            hessian, dsurface)
+                !
+            CASE ('highmem')
+                !
+                IF (deriv >= 1) ALLOCATE (gradlocal(nss))
+                !
+                IF (deriv == 2) ALLOCATE (lapllocal(nss))
+                !
+                IF (deriv == 3) ALLOCATE (hesslocal(nss))
+                !
+                !------------------------------------------------------------------------
+                ! Compute and temporarily store soft spheres derivatives
+                !
+                DO i = 1, nss
+                    !
+                    IF (deriv >= 1) CALL gradlocal(i)%init(cell)
+                    !
+                    IF (deriv == 2) CALL lapllocal(i)%init(cell)
+                    !
+                    IF (deriv == 3) CALL hesslocal(i)%init(cell)
+                    !
+                    IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal(i), .FALSE.)
+                    !
+                    IF (deriv == 2) CALL soft_spheres(i)%laplacian(lapllocal(i), .FALSE.)
+                    !
+                    IF (deriv == 3) CALL soft_spheres(i)%hessian(hesslocal(i), .FALSE.)
+                    !
+                END DO
+                !
+                IF (deriv == 1 .OR. deriv == 2) &
+                    CALL calc_gradient_of_boundary_highmem(nss, denlocal, gradlocal, &
+                                                           gradient)
+                !
+                IF (deriv == 2) &
+                    CALL calc_laplacian_of_boundary_highmem(nss, denlocal, gradlocal, &
+                                                            lapllocal, laplacian)
+                !
+                IF (deriv == 3) &
+                    CALL calc_dsurface_of_boundary_highmem(nss, denlocal, gradlocal, &
+                                                           hesslocal, gradient, &
+                                                           laplacian, hessian, dsurface)
+                !
+                DO i = 1, nss
+                    !
+                    IF (deriv >= 1) CALL gradlocal(i)%destroy()
+                    !
+                    IF (deriv == 2) CALL lapllocal(i)%destroy()
+                    !
+                    IF (deriv == 3) CALL hesslocal(i)%destroy()
+                    !
+                END DO
+                !
+                IF (deriv >= 1) DEALLOCATE (gradlocal)
+                !
+                IF (deriv == 2) DEALLOCATE (lapllocal)
+                !
+                IF (deriv == 3) DEALLOCATE (hesslocal)
+                !
+            CASE ('lowmem')
+                !
+                IF (deriv >= 1) ALLOCATE (gradlocal(nss))
+                !
+                IF (deriv == 2) ALLOCATE (lapllocal(nss))
+                !
+                IF (deriv == 3) ALLOCATE (hesslocal(nss))
+                !
+                !------------------------------------------------------------------------
+                ! Compute and temporarily store soft spheres derivatives
+                !
+                DO i = 1, nss
+                    !
+                    IF (deriv >= 1) CALL gradlocal(i)%init(cell)
+                    !
+                    IF (deriv == 2) CALL lapllocal(i)%init(cell)
+                    !
+                    IF (deriv == 3) CALL hesslocal(i)%init(cell)
+                    !
+                    IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal(i), .FALSE.)
+                    !
+                    IF (deriv == 2) CALL soft_spheres(i)%laplacian(lapllocal(i), .FALSE.)
+                    !
+                    IF (deriv == 3) CALL soft_spheres(i)%hessian(hesslocal(i), .FALSE.)
+                    !
+                END DO
+                !
+                IF (deriv >= 1) &
+                    CALL calc_gradient_of_boundary_lowmem(nss, denlocal, gradlocal, &
+                                                          scaled, gradient)
+                !
+                IF (deriv == 2) &
+                    CALL calc_laplacian_of_boundary_lowmem(nss, denlocal, gradlocal, &
+                                                           lapllocal, scaled, gradient, &
+                                                           laplacian)
+                !
+                IF (deriv == 3) &
+                    CALL calc_dsurface_of_boundary_lowmem(nss, denlocal, gradlocal, &
+                                                          hesslocal, gradient, &
+                                                          laplacian, hessian, scaled, &
+                                                          dsurface)
+                !
+                DO i = 1, nss
+                    !
+                    IF (deriv >= 1) CALL gradlocal(i)%destroy()
+                    !
+                    IF (deriv == 2) CALL lapllocal(i)%destroy()
+                    !
+                    IF (deriv == 3) CALL hesslocal(i)%destroy()
+                    !
+                END DO
+                !
+                IF (deriv >= 1) DEALLOCATE (gradlocal)
+                !
+                IF (deriv == 2) DEALLOCATE (lapllocal)
+                !
+                IF (deriv == 3) DEALLOCATE (hesslocal)
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected derivatives method", 1)
+                !
+            END SELECT
+            !
+            !----------------------------------------------------------------------------
+            ! Final updates
+            !
+            this%scaled%of_r = 1.D0 - this%scaled%of_r
+            this%volume = this%scaled%integrate()
+            !
+            IF (deriv >= 1) THEN
+                gradient%of_r = -gradient%of_r
+                !
+                CALL gradient%update_modulus()
+                !
+                this%surface = gradient%modulus%integrate()
+                !
+                IF (deriv >= 2) laplacian%of_r = -laplacian%of_r
+                !
+                IF (deriv == 3) THEN
+                    dsurface%of_r = -dsurface%of_r
+                    !
+                    IF (this%solvent_aware) THEN
+                        this%hessian%of_r = -this%hessian%of_r
+                    ELSE
+                        !
+                        CALL hessian%destroy()
+                        !
+                        DEALLOCATE (hessian)
+                    END IF
+                    !
+                END IF
+                !
+            END IF
+            !
+            DO i = 1, nss
+                CALL denlocal(i)%destroy()
+            END DO
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE boundary_of_functions
+    !------------------------------------------------------------------------------------
+    !>
+    !! Updates the boundary using a function
+    !!
+    !! Calculates the dielectric constant as a function of the charge
+    !! density, and the derivatives of the dielectric constant with
+    !! respect to the charge density. Also updates the volume and surface
+    !! components. Expects an explicity defined system density function.
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE boundary_of_system(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
+        !
+        TYPE(environ_hessian), POINTER :: hesslocal
+        !
+        CHARACTER(LEN=80) :: sub_name = 'boundary_of_system'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (cell => this%scaled%cell, &
+                   deriv => this%deriv, &
+                   derivatives => this%cores%derivatives, &
+                   simple => this%simple, &
+                   scaled => this%scaled, &
+                   gradient => this%gradient, &
+                   laplacian => this%laplacian, &
+                   dsurface => this%dsurface)
+            !
+            !----------------------------------------------------------------------------
+            !
+            CALL simple%density(scaled, .TRUE.)
+            ! compute soft spheres and generate boundary
+            !
+            !----------------------------------------------------------------------------
+            ! Generate boundary derivatives, if needed
+            !
+            IF (deriv >= 3) THEN
+                !
+                IF (this%solvent_aware) THEN
+                    hesslocal => this%hessian
+                ELSE
+                    ALLOCATE (hesslocal)
+                    !
+                    CALL hesslocal%init(cell)
+                    !
+                END IF
+                !
+            END IF
+            !
+            SELECT CASE (this%derivatives_method)
+                !
+            CASE ('fft')
+                !
+                IF (deriv == 1 .OR. deriv == 2) &
+                    CALL derivatives%gradient(scaled, gradient)
+                !
+                IF (deriv == 2) CALL derivatives%laplacian(scaled, laplacian)
+                !
+                IF (deriv == 3) &
+                    CALL this%calc_dsurface(scaled, gradient, laplacian, hesslocal, &
+                                            dsurface)
+                !
+            CASE ('chain')
+                !
+                IF (deriv >= 1) CALL simple%gradient(gradient, .TRUE.)
+                !
+                IF (deriv >= 2) CALL simple%laplacian(laplacian, .TRUE.)
+                !
+                IF (deriv >= 3) THEN
+                    !
+                    CALL simple%hessian(hesslocal, .TRUE.)
+                    !
+                    CALL calc_dsurface_no_pre(cell%nnr, cell%ir_end, gradient%of_r, &
+                                              hesslocal%of_r, dsurface%of_r)
+                    !
+                END IF
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected derivatives method", 1)
+                !
+            END SELECT
+            !
+            IF (deriv >= 3) THEN
+                !
+                IF (.NOT. this%solvent_aware) THEN
+                    !
+                    CALL hesslocal%destroy()
+                    !
+                    DEALLOCATE (hesslocal)
+                END IF
+                !
+            END IF
+            !
+            this%volume = scaled%integrate()
+            !
+            IF (deriv >= 1) THEN
+                !
+                CALL gradient%update_modulus()
+                !
+                this%surface = gradient%modulus%integrate()
+            END IF
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE boundary_of_system
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -1649,13 +1707,13 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_boundary), INTENT(INOUT), TARGET :: this
+        CLASS(environ_boundary), INTENT(INOUT) :: this
         !
         INTEGER :: ir, ipol, jpol
-        TYPE(environ_density) :: filled_fraction
-        TYPE(environ_density) :: d2filling
+        TYPE(environ_density) :: fillfrac
+        TYPE(environ_density) :: d2fill
         !
-        TYPE(environ_density) :: local
+        TYPE(environ_density) :: denlocal
         TYPE(environ_gradient) :: gradlocal
         TYPE(environ_density) :: lapllocal
         TYPE(environ_hessian) :: hesslocal
@@ -1665,61 +1723,65 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => this%scaled%cell, &
+                   deriv => this%deriv, &
                    derivatives => this%cores%derivatives, &
                    derivatives_method => this%derivatives_method, &
-                   ir_end => this%scaled%cell%ir_end, &
-                   deriv => this%deriv, &
                    thr => this%filling_threshold, &
-                   spr => this%filling_spread)
+                   spr => this%filling_spread, &
+                   fill => this%filling, &
+                   dfill => this%dfilling, &
+                   probe => this%probe, &
+                   local => this%local, &
+                   scaled => this%scaled, &
+                   gradient => this%gradient, &
+                   laplacian => this%laplacian, &
+                   hessian => this%hessian, &
+                   dsurface => this%dsurface)
             !
             !----------------------------------------------------------------------------
             !
-            CALL filled_fraction%init(cell)
+            CALL fillfrac%init(cell)
             !
-            IF (deriv >= 2 .AND. derivatives_method /= 'fft') CALL d2filling%init(cell)
+            IF (deriv >= 2 .AND. derivatives_method /= 'fft') CALL d2fill%init(cell)
             !
             !----------------------------------------------------------------------------
             ! Step 0: save local interface function for later use
             !
-            this%local%of_r = this%scaled%of_r
+            local%of_r = scaled%of_r
             !
             !----------------------------------------------------------------------------
             ! Step 1: compute the convolution function,
             !         this may be made moved out of here
             !
-            CALL this%solvent_probe%density(this%probe, .TRUE.)
+            CALL this%solvent_probe%density(probe, .TRUE.)
             !
-            this%probe%of_r = this%probe%of_r / this%probe%integrate()
+            probe%of_r = probe%of_r / probe%integrate()
             !
             !----------------------------------------------------------------------------
             ! Step 2: compute filled fraction,
             !         i.e. convolution of local boundary with probe
             !
-            CALL derivatives%convolution(this%local, this%probe, filled_fraction)
+            CALL derivatives%convolution(local, probe, fillfrac)
             !
             !----------------------------------------------------------------------------
             ! Step 3: compute the filling function and its derivative
             !
-            this%filling%of_r = 0.D0
-            this%dfilling%of_r = 0.D0
+            fill%of_r = 0.D0
+            dfill%of_r = 0.D0
             !
-            DO ir = 1, ir_end
-                !
-                this%filling%of_r(ir) = 1.D0 - &
-                                        sfunct2(filled_fraction%of_r(ir), thr, spr)
-                !
-                this%dfilling%of_r(ir) = -dsfunct2(filled_fraction%of_r(ir), thr, spr)
+            DO ir = 1, cell%ir_end
+                fill%of_r(ir) = 1.D0 - sfunct2(fillfrac%of_r(ir), thr, spr)
+                dfill%of_r(ir) = -dsfunct2(fillfrac%of_r(ir), thr, spr)
                 !
                 IF (deriv >= 2 .AND. derivatives_method /= 'fft') &
-                    d2filling%of_r(ir) = -d2sfunct2(filled_fraction%of_r(ir), thr, spr)
+                    d2fill%of_r(ir) = -d2sfunct2(fillfrac%of_r(ir), thr, spr)
                 !
             END DO
             !
             !----------------------------------------------------------------------------
             ! Step 4: compute solvent-aware interface
             !
-            this%scaled%of_r = this%local%of_r + &
-                               (1.D0 - this%local%of_r) * this%filling%of_r
+            scaled%of_r = local%of_r + (1.D0 - local%of_r) * fill%of_r
             !
             !----------------------------------------------------------------------------
             ! Step 5: compute boundary derivatives, if needed
@@ -1729,13 +1791,13 @@ CONTAINS
             CASE ('fft')
                 !
                 IF (deriv == 1 .OR. deriv == 2) &
-                    CALL derivatives%gradient(this%scaled, this%gradient)
+                    CALL derivatives%gradient(scaled, gradient)
                 !
-                IF (deriv == 2) CALL derivatives%laplacian(this%scaled, this%laplacian)
+                IF (deriv == 2) CALL derivatives%laplacian(scaled, laplacian)
 
                 IF (deriv == 3) &
-                    CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
-                                            this%hessian, this%dsurface)
+                    CALL this%calc_dsurface(scaled, gradient, laplacian, hessian, &
+                                            dsurface)
                 !
             CASE ('chain', 'highmem', 'lowmem')
                 !
@@ -1763,17 +1825,17 @@ CONTAINS
                         !
                         DO jpol = 1, 3
                             !
-                            this%hessian%of_r(ipol, jpol, :) = &
-                                this%hessian%of_r(ipol, jpol, :) * &
-                                (1.D0 - this%filling%of_r) - this%dfilling%of_r * &
-                                (this%gradient%of_r(ipol, :) * &
+                            hessian%of_r(ipol, jpol, :) = &
+                                hessian%of_r(ipol, jpol, :) * &
+                                (1.D0 - fill%of_r) - dfill%of_r * &
+                                (gradient%of_r(ipol, :) * &
                                  gradlocal%of_r(jpol, :) + &
-                                 this%gradient%of_r(jpol, :) * &
+                                 gradient%of_r(jpol, :) * &
                                  gradlocal%of_r(ipol, :)) + &
-                                (1.D0 - this%local%of_r) * &
-                                (d2filling%of_r * gradlocal%of_r(ipol, :) * &
+                                (1.D0 - local%of_r) * &
+                                (d2fill%of_r * gradlocal%of_r(ipol, :) * &
                                  gradlocal%of_r(jpol, :) + &
-                                 this%dfilling%of_r * hesslocal%of_r(ipol, jpol, :))
+                                 dfill%of_r * hesslocal%of_r(ipol, jpol, :))
                             !
                         END DO
                         !
@@ -1785,22 +1847,22 @@ CONTAINS
                 !
                 IF (deriv >= 2) THEN
                     !
-                    CALL local%init(cell)
+                    CALL denlocal%init(cell)
                     !
-                    CALL this%gradient%scalar_product(gradlocal, local)
+                    CALL gradient%scalar_product(gradlocal, denlocal)
                     !
-                    this%laplacian%of_r = &
-                        this%laplacian%of_r * (1.D0 - this%filling%of_r) - &
-                        2.D0 * local%of_r * this%dfilling%of_r + &
-                        (1.D0 - this%local%of_r) * &
-                        (d2filling%of_r * gradlocal%modulus%of_r**2 + &
-                         this%dfilling%of_r * lapllocal%of_r)
+                    laplacian%of_r = &
+                        laplacian%of_r * (1.D0 - fill%of_r) - &
+                        2.D0 * denlocal%of_r * dfill%of_r + &
+                        (1.D0 - local%of_r) * &
+                        (d2fill%of_r * gradlocal%modulus%of_r**2 + &
+                         dfill%of_r * lapllocal%of_r)
                     !
-                    CALL local%destroy()
+                    CALL denlocal%destroy()
                     !
                     CALL lapllocal%destroy()
                     !
-                    CALL d2filling%destroy()
+                    CALL d2fill%destroy()
                     !
                 END IF
                 !
@@ -1808,12 +1870,12 @@ CONTAINS
                     !
                     DO ipol = 1, 3
                         !
-                        this%gradient%of_r(ipol, :) = &
-                            this%gradient%of_r(ipol, :) * &
-                            (1.D0 - this%filling%of_r(:)) + &
+                        gradient%of_r(ipol, :) = &
+                            gradient%of_r(ipol, :) * &
+                            (1.D0 - fill%of_r(:)) + &
                             gradlocal%of_r(ipol, :) * &
-                            (1.D0 - this%local%of_r(:)) * &
-                            this%dfilling%of_r(:)
+                            (1.D0 - local%of_r(:)) * &
+                            dfill%of_r(:)
                         !
                     END DO
                     !
@@ -1826,9 +1888,9 @@ CONTAINS
                 !
                 IF (deriv >= 3) THEN
                     !
-                    CALL calc_dsurface_no_pre(this%scaled%cell%nnr, ir_end, &
-                                              this%gradient%of_r, this%hessian%of_r, &
-                                              this%dsurface%of_r)
+                    CALL calc_dsurface_no_pre(scaled%cell%nnr, cell%ir_end, &
+                                              gradient%of_r, hessian%of_r, &
+                                              dsurface%of_r)
                     !
                 END IF
                 !
@@ -1840,135 +1902,21 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Final updates
             !
-            this%volume = this%scaled%integrate()
+            this%volume = scaled%integrate()
             !
             IF (deriv >= 1) THEN
                 !
-                CALL this%gradient%update_modulus()
+                CALL gradient%update_modulus()
                 !
-                this%surface = this%gradient%modulus%integrate()
+                this%surface = gradient%modulus%integrate()
             END IF
             !
-            CALL filled_fraction%destroy()
+            CALL fillfrac%destroy()
             !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE solvent_aware_boundary
-    !------------------------------------------------------------------------------------
-    !>
-    !! @brief Compute the functional derivative of the energy w.r.t the boundary
-    !!
-    !! @param[out]  de_dboundary  the computed derivative
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_solvent_aware_de_dboundary(this, de_dboundary)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_boundary), INTENT(IN), TARGET :: this
-        !
-        TYPE(environ_density), INTENT(INOUT) :: de_dboundary
-        !
-        TYPE(environ_density) :: local
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_solvent_aware_de_dboundary'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL local%init(this%scaled%cell)
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 1: compute (1-s)*de_dboudary*dfilling
-        !
-        local%of_r = (1.D0 - this%local%of_r) * de_dboundary%of_r * this%dfilling%of_r
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 2: compute convolution with the probe function
-        !
-        CALL this%cores%derivatives%convolution(this%probe, local, local)
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 3: update the functional derivative of the energy wrt boundary
-        !
-        de_dboundary%of_r = de_dboundary%of_r * (1.D0 - this%filling%of_r) + local%of_r
-        !
-        CALL local%destroy()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_solvent_aware_de_dboundary
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE compute_convolution_deriv(this, deriv, grad, lapl, hess)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: deriv
-        CLASS(environ_boundary), INTENT(IN) :: this
-        !
-        TYPE(environ_gradient), INTENT(INOUT) :: grad
-        TYPE(environ_density), INTENT(INOUT) :: lapl
-        TYPE(environ_hessian), INTENT(INOUT) :: hess
-        !
-        CHARACTER(LEN=80) :: sub_name = 'compute_convolution_deriv'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (deriv <= 0) RETURN
-        !
-        ASSOCIATE (derivatives => this%cores%derivatives)
-            !
-            IF (deriv >= 1) THEN
-                !
-                CALL derivatives%convolution(this%probe, this%gradient, grad)
-                !
-                CALL grad%update_modulus()
-                !
-            END IF
-            !
-            IF (deriv >= 2) &
-                CALL derivatives%convolution(this%probe, this%laplacian, lapl)
-            !
-            IF (deriv >= 3) CALL derivatives%convolution(this%probe, this%hessian, hess)
-            !
-        END ASSOCIATE
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE compute_convolution_deriv
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dsurface(this, dens, grad, lapl, hess, dsurface)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_density), INTENT(IN) :: dens
-        !
-        CLASS(environ_boundary), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: grad
-        TYPE(environ_density), INTENT(INOUT) :: lapl
-        TYPE(environ_hessian), INTENT(INOUT) :: hess
-        TYPE(environ_density), INTENT(INOUT) :: dsurface
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_dsurface'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%cores%derivatives%hessian(dens, grad, hess)
-        !
-        lapl%of_r(:) = hess%of_r(1, 1, :) + hess%of_r(2, 2, :) + hess%of_r(3, 3, :)
-        !
-        CALL calc_dsurface_no_pre(dens%cell%nnr, dens%cell%ir_end, grad%of_r, &
-                                  hess%of_r, dsurface%of_r)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_dsurface
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -2009,6 +1957,47 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_soft_spheres
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE compute_convolution_deriv(this, deriv, grad, lapl, hess)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: deriv
+        CLASS(environ_boundary), INTENT(IN) :: this
+        !
+        TYPE(environ_gradient), INTENT(INOUT) :: grad
+        TYPE(environ_density), INTENT(INOUT) :: lapl
+        TYPE(environ_hessian), INTENT(INOUT) :: hess
+        !
+        CHARACTER(LEN=80) :: sub_name = 'compute_convolution_deriv'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (deriv <= 0) RETURN
+        !
+        ASSOCIATE (derivatives => this%cores%derivatives, &
+                   probe => this%probe)
+            !
+            IF (deriv >= 1) THEN
+                !
+                CALL derivatives%convolution(probe, this%gradient, grad)
+                !
+                CALL grad%update_modulus()
+                !
+            END IF
+            !
+            IF (deriv >= 2) CALL derivatives%convolution(probe, this%laplacian, lapl)
+            !
+            IF (deriv >= 3) CALL derivatives%convolution(probe, this%hessian, hess)
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE compute_convolution_deriv
     !------------------------------------------------------------------------------------
     !>
     !! Switching function 0: goes from 1 to 0 when passing through the
