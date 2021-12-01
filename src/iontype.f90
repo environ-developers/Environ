@@ -236,8 +236,7 @@ CONTAINS
         !
         IF (this%atmnum == 0) &
             CALL io%error(sub_name, &
-                          'Cannot assign the atom type associated &
-                          &with input label', 1)
+                          'Cannot assign the atom type associated with input label', 1)
         !
         ! this%weight = weights(this%atmnum) ! #TODO future work
         !

@@ -180,8 +180,7 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                         CALL io%error(sub_name, &
-                                      'Missing electrolyte for electrochemical &
-                                      &boundary correction', 1)
+                                      'Missing electrolyte for electrochemical boundary correction', 1)
                     !
                     CALL correction%potential(electrolyte%base, density, v)
                     !
@@ -189,8 +188,7 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%semiconductor)) &
                         CALL io%error(sub_name, &
-                                      'Missing semiconductor for electrochemical &
-                                      &boundary correction', 1)
+                                      'Missing semiconductor for electrochemical boundary correction', 1)
                     !
                     CALL correction%potential(semiconductor%base, density, v)
                     !
@@ -254,8 +252,7 @@ CONTAINS
                     !
                     IF (.NOT. PRESENT(electrolyte)) &
                         CALL io%error(sub_name, &
-                                      'Missing electrolyte for electrochemical &
-                                      &boundary correction', 1)
+                                      'Missing electrolyte for electrochemical boundary correction', 1)
                     !
                     CALL correction%potential(electrolyte%base, charges, local)
                     !
@@ -263,8 +260,7 @@ CONTAINS
                     !
                     IF (.NOT. PRESENT(semiconductor)) &
                         CALL io%error(sub_name, &
-                                      'Missing semiconductor for electrochemical &
-                                      &boundary correction', 1)
+                                      'Missing semiconductor for electrochemical boundary correction', 1)
                     !
                     CALL correction%potential(semiconductor%base, charges, local)
                     !
@@ -327,8 +323,7 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                         CALL io%error(sub_name, &
-                                      'Missing electrolyte for electrochemical &
-                                      &boundary correction', 1)
+                                      'Missing electrolyte for electrochemical boundary correction', 1)
                     !
                     CALL correction%grad_potential(electrolyte%base, density, grad_v)
                     !
@@ -336,8 +331,7 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%semiconductor)) &
                         CALL io%error(sub_name, &
-                                      'Missing semiconductor for electrochemical &
-                                      &boundary correction', 1)
+                                      'Missing semiconductor for electrochemical boundary correction', 1)
                     !
                     CALL correction%grad_potential(semiconductor%base, density, grad_v)
                     !
@@ -395,8 +389,7 @@ CONTAINS
                     !
                     IF (.NOT. PRESENT(electrolyte)) &
                         CALL io%error(sub_name, &
-                                      'Missing electrolyte for &
-                                      &electrochemical boundary correction', 1)
+                                      'Missing electrolyte for electrochemical boundary correction', 1)
                     !
                     CALL correction%grad_potential(electrolyte%base, charges, grad_v)
                     !
@@ -404,8 +397,7 @@ CONTAINS
                     !
                     IF (.NOT. PRESENT(semiconductor)) &
                         CALL io%error(sub_name, &
-                                      'Missing semiconductor for &
-                                      &electrochemical boundary correction', 1)
+                                      'Missing semiconductor for electrochemical boundary correction', 1)
                     !
                     CALL correction%grad_potential(semiconductor%base, charges, grad_v)
                     !

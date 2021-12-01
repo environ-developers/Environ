@@ -649,13 +649,11 @@ CONTAINS
         !
         IF (electrolyte%ntyp /= 2) &
             CALL io%error(sub_name, &
-                          'Unexpected number of counterionic species, &
-                          &different from two', 1)
+                          'Unexpected number of counterionic species, different from two', 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
-                          'Option not yet implemented: 1D Poisson-Boltzmann solver &
-                          &only for 2D systems', 1)
+                          'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems', 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -889,13 +887,11 @@ CONTAINS
         !
         IF (electrolyte%ntyp /= 2) &
             CALL io%error(sub_name, &
-                          'Unexpected number of counterionic species, &
-                          &different from two', 1)
+                          'Unexpected number of counterionic species, different from two', 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
-                          'Option not yet implemented: 1D Poisson-Boltzmann solver &
-                          &only for 2D systems', 1)
+                          'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems', 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1087,8 +1083,7 @@ CONTAINS
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
-                          'Option not yet implemented: 1D Poisson-Boltzmann solver &
-                          &only for 2D systems', 1)
+                          'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems', 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1252,8 +1247,7 @@ CONTAINS
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
-                          'Option not yet implemented: 1D Poisson-Boltzmann solver &
-                          &only for 2D systems', 1)
+                          'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems', 1)
         !
         !--------------------------------------------------------------------------------
         !

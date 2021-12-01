@@ -292,7 +292,6 @@ sum_ = 1 + var1 + &
   - core classes (containers, then cores; no !-separator)
   - solver classes (setup, then solvers; no !-separator)
   - physical-quantity classes
-  - generators
   - I/O
   - debugging
 - each block is sorted alphabetically
@@ -317,6 +316,9 @@ sum_ = 1 + var1 + &
   - lowercased message
 
 # GENERAL SYNTAX
+
+- DO NOT exceed col 90
+  - exceptions for long strings, but not past col 130
 
 - use `array = ...` when operating on the entire array (no need for `array(:)`)
 

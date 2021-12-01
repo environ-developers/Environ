@@ -621,8 +621,7 @@ CONTAINS
                 !
                 IF (this%update_status == 0) &
                     CALL io%error(sub_name, &
-                                  'Wrong update status, possibly &
-                                  &missing ionic update', 1)
+                                  'Wrong update status, possibly missing ionic update', 1)
                 !
                 this%density%of_r = this%electrons%density%of_r + this%ions%core%of_r
                 !

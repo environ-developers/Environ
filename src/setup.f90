@@ -220,10 +220,14 @@ MODULE class_setup
     CHARACTER(LEN=256) :: bibliography(4)
     !
     DATA bibliography/ &
-        '"O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)"', &
-        '"I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)"', &
-        '"O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, J. Chem. Theory Comput. 15, 1996 (2019)"', &
-        '"F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, J. Chem. Phys. 150, 041722 (2019)"'/
+        '"O. Andreussi, I. Dabo and N. Marzari, &
+        J. Chem. Phys. 136, 064102 (2012)"', &
+        '"I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, &
+        J. Chem. Phys. 142, 034111 (2015)"', &
+        '"O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
+        J. Chem. Theory Comput. 15, 1996 (2019)"', &
+        '"F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, &
+        J. Chem. Phys. 150, 041722 (2019)"'/
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -1004,8 +1008,7 @@ CONTAINS
                 ELSE
                     !
                     CALL io%error(sub_name, &
-                                  'Unexpected value for auxiliary charge &
-                                  &in nested solver', 1)
+                                  'Unexpected value for auxiliary charge in nested solver', 1)
                     !
                 END IF
                 !
