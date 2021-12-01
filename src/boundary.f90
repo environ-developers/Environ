@@ -195,7 +195,6 @@ MODULE class_boundary
         PROCEDURE :: invert => invert_boundary
         !
         PROCEDURE, PRIVATE :: set_soft_spheres
-        PROCEDURE, PRIVATE :: update_soft_spheres
         !
         PROCEDURE :: printout => print_environ_boundary
         !
@@ -708,7 +707,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Only ions are needed, fully update the boundary
                 !
-                CALL this%update_soft_spheres()
+                CALL this%soft_spheres%update(this%ions%number, this%ions%tau)
                 !
                 CALL this%boundary_of_functions()
                 !
@@ -2061,27 +2060,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_soft_spheres
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE update_soft_spheres(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_boundary), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, this%ions%number
-            this%soft_spheres%array(i)%pos = this%ions%tau(:, i)
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE update_soft_spheres
     !------------------------------------------------------------------------------------
     !>
     !! Switching function 0: goes from 1 to 0 when passing through the
