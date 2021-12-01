@@ -33,16 +33,14 @@ MODULE class_core_container_corrections
     !
     USE environ_param, ONLY: DP
     !
-    USE class_cell
     USE class_density
     USE class_gradient
+    USE class_function
     !
     USE class_core_container
     USE class_core_1da_electrostatics
     !
-    USE class_charges
     USE class_electrolyte
-    USE class_ions
     USE class_semiconductor
     !
     !------------------------------------------------------------------------------------
@@ -146,13 +144,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_fperiodic(this, natoms, charges, auxiliary, f)
+    SUBROUTINE calc_fperiodic(this, natoms, ions, auxiliary, f)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: natoms
-        TYPE(environ_charges), INTENT(IN) :: charges
+        CLASS(environ_function), INTENT(IN) :: ions(:)
         TYPE(environ_density), INTENT(IN) :: auxiliary
         !
         CLASS(container_corrections), INTENT(INOUT) :: this
@@ -165,7 +163,7 @@ CONTAINS
         SELECT TYPE (core => this%core)
             !
         TYPE IS (core_1da_electrostatics)
-            CALL core%calc_1da_fperiodic(natoms, charges, auxiliary, f)
+            CALL core%calc_1da_fperiodic(natoms, ions, auxiliary, f)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)

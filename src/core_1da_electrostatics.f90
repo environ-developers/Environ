@@ -42,12 +42,12 @@ MODULE class_core_1da_electrostatics
     USE class_cell
     USE class_density
     USE class_gradient
+    USE class_function
+    USE class_function_gaussian
     !
     USE class_core_1da
     !
-    USE class_charges
     USE class_electrolyte
-    USE class_ions
     USE class_semiconductor
     !
     !------------------------------------------------------------------------------------
@@ -294,13 +294,13 @@ CONTAINS
     !! Computes the contribution to the atomic forces
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_1da_fperiodic(this, natoms, charges, auxiliary, f)
+    SUBROUTINE calc_1da_fperiodic(this, natoms, ions, auxiliary, f)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: natoms
-        TYPE(environ_charges), TARGET, INTENT(IN) :: charges
+        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
         TYPE(environ_density), INTENT(IN) :: auxiliary
         !
         CLASS(core_1da_electrostatics), TARGET, INTENT(INOUT) :: this
@@ -310,8 +310,10 @@ CONTAINS
         REAL(DP), POINTER :: tau(:, :)
         !
         INTEGER, POINTER :: env_periodicity, slab_axis
-        REAL(DP), POINTER :: omega
+        REAL(DP), POINTER :: omega, Z
         REAL(DP), POINTER :: origin(:)
+        !
+        TYPE(environ_cell), POINTER :: cell
         !
         INTEGER :: i
         !
@@ -321,28 +323,39 @@ CONTAINS
         !
         TYPE(environ_density) :: local
         !
+        TYPE(environ_function_gaussian), POINTER :: local_ions(:)
+        !
         CHARACTER(LEN=80) :: sub_name = 'calc_1da_fperiodic'
         !
         !--------------------------------------------------------------------------------
         !
         CALL env_start_clock(sub_name)
         !
-        IF (.NOT. ASSOCIATED(charges%density%cell, this%cell)) &
+        IF (.NOT. ASSOCIATED(auxiliary%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and solver', 1)
         !
-        IF (natoms /= charges%ions%number) &
+        SELECT TYPE (ions)
+            !
+        TYPE IS (environ_function_gaussian)
+            local_ions => ions
+            !
+        CLASS DEFAULT
+            CALL io%error(sub_name, "Unexpected function type", 1)
+            !
+        END SELECT
+        !
+        IF (natoms /= SIZE(local_ions)) &
             CALL io%error(sub_name, &
                           'Mismatch in numbers of atoms passed in input and stored', 1)
         !
-        omega => charges%density%cell%omega
-        tau => charges%ions%tau
-        ityp => charges%ions%ityp
+        cell => auxiliary%cell
+        omega => cell%omega
         !
         env_periodicity => this%dim
         slab_axis => this%axis
         origin => this%origin
         !
-        CALL local%init(charges%density%cell)
+        CALL local%init(cell)
         !
         local%of_r = auxiliary%of_r
         !
@@ -357,7 +370,8 @@ CONTAINS
         ftmp = 0.D0
         !
         DO i = 1, natoms
-            pos = tau(:, i) - origin
+            pos = local_ions(i)%pos - origin
+            Z => local_ions(i)%volume
             !
             SELECT CASE (env_periodicity)
                 !
@@ -378,8 +392,7 @@ CONTAINS
                 !
             END SELECT
             !
-            ftmp(:, i) = ftmp(:, i) * fact * charges%ions%iontype(ityp(i))%zv
-            !
+            ftmp(:, i) = ftmp(:, i) * fact * Z
         END DO
         !
         f = f + ftmp

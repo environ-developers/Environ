@@ -597,7 +597,8 @@ CONTAINS
             !
             IF (.NOT. ldoublecell) aux%of_r = aux%of_r + charges%density%of_r
             !
-            CALL this%solver%cores%correction%calc_f(natoms, charges, aux, force)
+            CALL this%solver%cores%correction%calc_f(natoms, charges%ions%smeared_ions, &
+                                                     aux, force)
             !
         END IF
         !
