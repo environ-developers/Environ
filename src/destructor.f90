@@ -196,15 +196,14 @@ CONTAINS
         !
         IF (setup%lsolvent) CALL env%solvent%destroy()
         !
-        IF (setup%ldoublecell) THEN
-            !
-            CALL setup%mapping%destroy()
-            !
-            CALL setup%environment_cell%destroy()
-            !
-        END IF
+        !--------------------------------------------------------------------------------
+        ! Destroy cells
         !
         CALL setup%system_cell%destroy()
+        !
+        CALL setup%environment_cell%destroy()
+        !
+        CALL setup%mapping%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean_second

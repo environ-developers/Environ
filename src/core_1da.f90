@@ -268,9 +268,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALLOCATED(this%x)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) RETURN
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%x)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
