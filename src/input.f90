@@ -180,9 +180,9 @@ CONTAINS
         !
         CALL boundary_checkin() ! check &BOUNDARY variables
         !
-        CALL set_environ_type() ! set up environment according to the boundary
+        CALL boundary_setup() ! correct missing/erroneous boundary settings
         !
-        lelectrostatic = needs_electrostatics() ! TRUE/FALSE depending on &ENVIRON
+        CALL environ_type_setup() ! set up environment according to the boundary
         !
         !--------------------------------------------------------------------------------
         ! &ELECTROSTATIC namelist (only if needed)
@@ -208,9 +208,9 @@ CONTAINS
         !
         CALL electrostatic_bcast() ! broadcast &ELECTROSTATIC variables
         !
-        CALL set_electrostatic_problem() ! set up electrostatic problem
-        !
         CALL electrostatic_checkin() ! check &ELECTROSTATIC variables
+        !
+        CALL electrostatics_setup() ! set up electrostatic problem
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_read_namelist
@@ -1009,88 +1009,6 @@ CONTAINS
                                 electrolyte_deriv_method)
         !
         !--------------------------------------------------------------------------------
-        !
-        CALL io%header('Checking boundary derivatives')
-        !
-        SELECT CASE (TRIM(solvent_mode))
-            !
-        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
-            !
-            SELECT CASE (TRIM(deriv_method))
-                !
-            CASE ('default')
-                deriv_method = 'chain'
-                !
-                CALL io%default('deriv_method', deriv_method, 'SCCS default')
-                !
-            CASE ('highmem', 'lowmem')
-                !
-                CALL io%error(sub_name, &
-                              "Only 'fft' or 'chain' are allowed &
-                              &with electronic interfaces", 1)
-                !
-            END SELECT
-            !
-        CASE ('ionic', 'fa-ionic')
-            !
-            SELECT CASE (TRIM(deriv_method))
-                !
-            CASE ('default')
-                deriv_method = 'lowmem'
-                !
-                CALL io%default('deriv_method', deriv_method, 'SSCS default')
-                !
-            CASE ('chain')
-                !
-                CALL io%error(sub_name, &
-                              "Only 'highmem', 'lowmem', and 'fft' are allowed &
-                              &with ionic interfaces", 1)
-                !
-            END SELECT
-            !
-        END SELECT
-        !
-        SELECT CASE (TRIM(electrolyte_mode))
-            !
-        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
-            !
-            SELECT CASE (TRIM(electrolyte_deriv_method))
-                !
-            CASE ('default')
-                electrolyte_deriv_method = 'chain'
-                !
-                CALL io%default('electrolyte_deriv_method', electrolyte_deriv_method, &
-                                'SCCS default')
-                !
-            CASE ('highmem', 'lowmem')
-                !
-                CALL io%error(sub_name, &
-                              "Only 'fft' or 'chain' are allowed &
-                              &with electronic interfaces", 1)
-                !
-            END SELECT
-            !
-        CASE ('ionic', 'fa-ionic')
-            !
-            SELECT CASE (TRIM(electrolyte_deriv_method))
-                !
-            CASE ('default')
-                electrolyte_deriv_method = 'lowmem'
-                !
-                CALL io%default('electrolyte_deriv_method', electrolyte_deriv_method, &
-                                'SSCS default')
-                !
-            CASE ('chain')
-                !
-                CALL io%error(sub_name, &
-                              "Only 'highmem', 'lowmem', and 'fft' are allowed &
-                              &with ionic interfaces", 1)
-                !
-            END SELECT
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_checkin
     !------------------------------------------------------------------------------------
     !>
@@ -1300,15 +1218,110 @@ CONTAINS
     END SUBROUTINE electrostatic_checkin
     !------------------------------------------------------------------------------------
     !>
-    !! Set values according to the environ_type keyword and boundary mode
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_type()
+    SUBROUTINE boundary_setup()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_environ_type'
+        CHARACTER(LEN=80) :: sub_name = 'boundary setup'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%header('Checking boundary derivatives')
+        !
+        SELECT CASE (TRIM(solvent_mode))
+            !
+        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+            !
+            SELECT CASE (TRIM(deriv_method))
+                !
+            CASE ('default')
+                deriv_method = 'chain'
+                !
+                CALL io%default('deriv_method', deriv_method, 'SCCS default')
+                !
+            CASE ('highmem', 'lowmem')
+                !
+                CALL io%error(sub_name, &
+                              "Only 'fft' or 'chain' are allowed &
+                              &with electronic interfaces", 1)
+                !
+            END SELECT
+            !
+        CASE ('ionic', 'fa-ionic')
+            !
+            SELECT CASE (TRIM(deriv_method))
+                !
+            CASE ('default')
+                deriv_method = 'lowmem'
+                !
+                CALL io%default('deriv_method', deriv_method, 'SSCS default')
+                !
+            CASE ('chain')
+                !
+                CALL io%error(sub_name, &
+                              "Only 'highmem', 'lowmem', and 'fft' are allowed &
+                              &with ionic interfaces", 1)
+                !
+            END SELECT
+            !
+        END SELECT
+        !
+        SELECT CASE (TRIM(electrolyte_mode))
+            !
+        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+            !
+            SELECT CASE (TRIM(electrolyte_deriv_method))
+                !
+            CASE ('default')
+                electrolyte_deriv_method = 'chain'
+                !
+                CALL io%default('electrolyte_deriv_method', electrolyte_deriv_method, &
+                                'SCCS default')
+                !
+            CASE ('highmem', 'lowmem')
+                !
+                CALL io%error(sub_name, &
+                              "Only 'fft' or 'chain' are allowed &
+                              &with electronic interfaces", 1)
+                !
+            END SELECT
+            !
+        CASE ('ionic', 'fa-ionic')
+            !
+            SELECT CASE (TRIM(electrolyte_deriv_method))
+                !
+            CASE ('default')
+                electrolyte_deriv_method = 'lowmem'
+                !
+                CALL io%default('electrolyte_deriv_method', electrolyte_deriv_method, &
+                                'SSCS default')
+                !
+            CASE ('chain')
+                !
+                CALL io%error(sub_name, &
+                              "Only 'highmem', 'lowmem', and 'fft' are allowed &
+                              &with ionic interfaces", 1)
+                !
+            END SELECT
+            !
+        END SELECT
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE boundary_setup
+    !------------------------------------------------------------------------------------
+    !>
+    !! Set values according to the environ_type keyword and boundary mode
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE environ_type_setup()
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_type_setup'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1448,18 +1461,18 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environ_type
+    END SUBROUTINE environ_type_setup
     !------------------------------------------------------------------------------------
     !>
     !! Set problem according to the ENVIRON and ELECTROSTATIC namelists
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_electrostatic_problem()
+    SUBROUTINE electrostatics_setup()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_electrostatic_problem'
+        CHARACTER(LEN=80) :: sub_name = 'electrostatics_setup'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1670,7 +1683,7 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_electrostatic_problem
+    END SUBROUTINE electrostatics_setup
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

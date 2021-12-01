@@ -485,9 +485,10 @@ MODULE env_base_input
     !=---------------------------------------------------------------------------------=!
     !
     CHARACTER(LEN=80) :: problem = 'none'
-    CHARACTER(LEN=80) :: problem_allowed(6)
+    CHARACTER(LEN=80) :: problem_allowed(7)
     !
-    DATA problem_allowed/'poisson', 'generalized', 'pb', 'modpb', 'linpb', 'linmodpb'/
+    DATA problem_allowed/ &
+        'none', 'poisson', 'generalized', 'pb', 'modpb', 'linpb', 'linmodpb'/
     !
     ! type of electrostatic problem
     !
@@ -515,9 +516,10 @@ MODULE env_base_input
     ! Driver's parameters
     !
     CHARACTER(LEN=80) :: solver = 'none'
-    CHARACTER(LEN=80) :: solver_allowed(7)
+    CHARACTER(LEN=80) :: solver_allowed(8)
     !
-    DATA solver_allowed/'cg', 'sd', 'fixed-point', 'lbfgs', 'newton', 'nested', 'direct'/
+    DATA solver_allowed/ &
+        'none', 'cg', 'sd', 'fixed-point', 'lbfgs', 'newton', 'nested', 'direct'/
     !
     ! type of numerical solver
     !
