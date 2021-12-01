@@ -50,6 +50,12 @@ MODULE environ_input
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   MAIN ROUTINES
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
     !>
     !! Routine for reading Environ input files. Uses built-in Namelist functionality
     !! and derived routines for cards (external charges and dielectric regions)
@@ -210,6 +216,88 @@ CONTAINS
     END SUBROUTINE environ_read_namelist
     !------------------------------------------------------------------------------------
     !>
+    !! Environ cards parsing routine
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE environ_read_cards(unit)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN), OPTIONAL :: unit
+        !
+        CHARACTER(LEN=256) :: input_line
+        CHARACTER(LEN=80) :: card
+        LOGICAL :: tend
+        INTEGER :: i, local_unit
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_read_cards'
+        !
+        !--------------------------------------------------------------------------------
+        ! Set default READ unit if none provided
+        !
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = 5
+        END IF
+        !
+        !=-----------------------------------------------------------------------------=!
+        !  START OF LOOP
+        !=-----------------------------------------------------------------------------=!
+        !
+100     CALL env_read_line(local_unit, input_line, end_of_file=tend)
+        !
+        !--------------------------------------------------------------------------------
+        ! Skip blank/comment lines (REDUNDANT)
+        !
+        IF (tend) GOTO 120
+        !
+        READ (input_line, *) card
+        !
+        !--------------------------------------------------------------------------------
+        ! Force uppercase
+        !
+        input_line = env_uppercase(input_line)
+        !
+        !--------------------------------------------------------------------------------
+        ! Read cards
+        !
+        IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
+            CALL card_external_charges(local_unit, input_line)
+        ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
+            CALL card_dielectric_regions(local_unit, input_line)
+        ELSE IF (io%lnode) THEN
+            CALL io%warning('card '//TRIM(input_line)//' ignored')
+        END IF
+        !
+        !=-----------------------------------------------------------------------------=!
+        ! END OF LOOP
+        !=-----------------------------------------------------------------------------=!
+        !
+        GOTO 100
+        !
+120     CONTINUE
+        !
+        !--------------------------------------------------------------------------------
+        ! Final check
+        !
+        IF (env_external_charges > 0 .AND. .NOT. taextchg) &
+            CALL io%error(sub_name, 'Missing card external_charges', 1)
+        !
+        IF (env_dielectric_regions > 0 .AND. .NOT. taepsreg) &
+            CALL io%error(sub_name, 'Missing card dielectric_regions', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_read_cards
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  DEFAULT SETTINGS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
     !! Variables initialization for Namelist ENVIRON
     !!
     !------------------------------------------------------------------------------------
@@ -363,6 +451,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_defaults
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                    BROADCASTING
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !! Broadcast variables values for Namelist ENVIRON
@@ -573,6 +667,76 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_bcast
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                       FLAGS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !! Check if BOUNDARY namelist needs to be read according to the ENVIRON namelist
+    !!
+    !------------------------------------------------------------------------------------
+    LOGICAL FUNCTION needs_boundary() RESULT(lboundary)
+        !--------------------------------------------------------------------------------
+        !
+        lboundary = .FALSE.
+        !
+        IF (environ_type /= 'input' .AND. environ_type /= 'vacuum') lboundary = .TRUE.
+        !
+        IF (env_static_permittivity > 1.D0) lboundary = .TRUE.
+        !
+        IF (env_optical_permittivity > 1.D0) lboundary = .TRUE.
+        !
+        IF (env_surface_tension > 0.D0) lboundary = .TRUE.
+        !
+        IF (env_pressure /= 0.D0) lboundary = .TRUE.
+        !
+        IF (env_confine /= 0.D0) lboundary = .TRUE.
+        !
+        IF (env_electrolyte_ntyp > 0) lboundary = .TRUE.
+        !
+        IF (env_dielectric_regions > 0) lboundary = .TRUE.
+        !
+        IF (sc_permittivity > 1.D0) lboundary = .TRUE.
+        !
+        IF (sc_carrier_density > 0) lboundary = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION needs_boundary
+    !------------------------------------------------------------------------------------
+    !>
+    !! Check if ELECTROSTATIC namelist needs to be read according to the ENVIRON namelist
+    !!
+    !------------------------------------------------------------------------------------
+    LOGICAL FUNCTION needs_electrostatics() RESULT(lelectrostatic)
+        !--------------------------------------------------------------------------------
+        !
+        lelectrostatic = env_electrostatic
+        !
+        IF (env_static_permittivity > 1.D0) lelectrostatic = .TRUE.
+        !
+        IF (env_optical_permittivity > 1.D0) lelectrostatic = .TRUE.
+        !
+        IF (env_external_charges > 0) lelectrostatic = .TRUE.
+        !
+        IF (env_dielectric_regions > 0) lelectrostatic = .TRUE.
+        !
+        IF (env_electrolyte_ntyp > 0) lelectrostatic = .TRUE.
+        !
+        IF (sc_permittivity > 1.D0) lelectrostatic = .TRUE.
+        !
+        IF (sc_carrier_density > 0) lelectrostatic = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION needs_electrostatics
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  INPUT VALIDATION
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !! Check input values for Namelist ENVIRON
@@ -1136,39 +1300,6 @@ CONTAINS
     END SUBROUTINE electrostatic_checkin
     !------------------------------------------------------------------------------------
     !>
-    !! Check if BOUNDARY needs to be read and reset defaults
-    !! according to the ENVIRON namelist
-    !!
-    !------------------------------------------------------------------------------------
-    LOGICAL FUNCTION needs_boundary() RESULT(lboundary)
-        !--------------------------------------------------------------------------------
-        !
-        lboundary = .FALSE.
-        !
-        IF (environ_type /= 'input' .AND. environ_type /= 'vacuum') lboundary = .TRUE.
-        !
-        IF (env_static_permittivity > 1.D0) lboundary = .TRUE.
-        !
-        IF (env_optical_permittivity > 1.D0) lboundary = .TRUE.
-        !
-        IF (env_surface_tension > 0.D0) lboundary = .TRUE.
-        !
-        IF (env_pressure /= 0.D0) lboundary = .TRUE.
-        !
-        IF (env_confine /= 0.D0) lboundary = .TRUE.
-        !
-        IF (env_electrolyte_ntyp > 0) lboundary = .TRUE.
-        !
-        IF (env_dielectric_regions > 0) lboundary = .TRUE.
-        !
-        IF (sc_permittivity > 1.D0) lboundary = .TRUE.
-        !
-        IF (sc_carrier_density > 0) lboundary = .TRUE.
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION needs_boundary
-    !------------------------------------------------------------------------------------
-    !>
     !! Set values according to the environ_type keyword and boundary mode
     !!
     !------------------------------------------------------------------------------------
@@ -1318,32 +1449,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environ_type
-    !------------------------------------------------------------------------------------
-    !>
-    !! Set values according to the &ENVIRON namelist
-    !!
-    !------------------------------------------------------------------------------------
-    LOGICAL FUNCTION needs_electrostatics() RESULT(lelectrostatic)
-        !--------------------------------------------------------------------------------
-        !
-        lelectrostatic = env_electrostatic
-        !
-        IF (env_static_permittivity > 1.D0) lelectrostatic = .TRUE.
-        !
-        IF (env_optical_permittivity > 1.D0) lelectrostatic = .TRUE.
-        !
-        IF (env_external_charges > 0) lelectrostatic = .TRUE.
-        !
-        IF (env_dielectric_regions > 0) lelectrostatic = .TRUE.
-        !
-        IF (env_electrolyte_ntyp > 0) lelectrostatic = .TRUE.
-        !
-        IF (sc_permittivity > 1.D0) lelectrostatic = .TRUE.
-        !
-        IF (sc_carrier_density > 0) lelectrostatic = .TRUE.
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION needs_electrostatics
     !------------------------------------------------------------------------------------
     !>
     !! Set problem according to the ENVIRON and ELECTROSTATIC namelists
@@ -1567,81 +1672,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_electrostatic_problem
     !------------------------------------------------------------------------------------
-    !>
-    !! Environ cards parsing routine
-    !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_read_cards(unit)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN), OPTIONAL :: unit
-        !
-        CHARACTER(LEN=256) :: input_line
-        CHARACTER(LEN=80) :: card
-        LOGICAL :: tend
-        INTEGER :: i, local_unit
-        !
-        CHARACTER(LEN=80) :: sub_name = 'environ_read_cards'
-        !
-        !--------------------------------------------------------------------------------
-        ! Set default READ unit if none provided
-        !
-        IF (PRESENT(unit)) THEN
-            local_unit = unit
-        ELSE
-            local_unit = 5
-        END IF
-        !
-        !=-----------------------------------------------------------------------------=!
-        !  START OF LOOP
-        !=-----------------------------------------------------------------------------=!
-        !
-100     CALL env_read_line(local_unit, input_line, end_of_file=tend)
-        !
-        !--------------------------------------------------------------------------------
-        ! Skip blank/comment lines (REDUNDANT)
-        !
-        IF (tend) GOTO 120
-        !
-        READ (input_line, *) card
-        !
-        !--------------------------------------------------------------------------------
-        ! Force uppercase
-        !
-        input_line = env_uppercase(input_line)
-        !
-        !--------------------------------------------------------------------------------
-        ! Read cards
-        !
-        IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
-            CALL card_external_charges(local_unit, input_line)
-        ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
-            CALL card_dielectric_regions(local_unit, input_line)
-        ELSE IF (io%lnode) THEN
-            CALL io%warning('card '//TRIM(input_line)//' ignored')
-        END IF
-        !
-        !=-----------------------------------------------------------------------------=!
-        ! END OF LOOP
-        !=-----------------------------------------------------------------------------=!
-        !
-        GOTO 100
-        !
-120     CONTINUE
-        !
-        !--------------------------------------------------------------------------------
-        ! Final check
-        !
-        IF (env_external_charges > 0 .AND. .NOT. taextchg) &
-            CALL io%error(sub_name, 'Missing card external_charges', 1)
-        !
-        IF (env_dielectric_regions > 0 .AND. .NOT. taepsreg) &
-            CALL io%error(sub_name, 'Missing card dielectric_regions', 1)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_read_cards
+    !
+    !                                       CARDS
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !! Description of the allowed input CARDS
@@ -2103,6 +2138,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_input_epsregion
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                     UTILITIES
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !! Convert input length to atomic units
