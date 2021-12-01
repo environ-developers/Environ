@@ -483,7 +483,18 @@ core electrons, if this parameter affects the final results, a WARNING will be i
          <status> OPTIONAL
          </status>
       </dimension>
-      <var name="derivatives" type="CHARACTER" >
+      <var name="deriv_core" type="CHARACTER" >
+         <default> &apos;fft&apos;
+         </default>
+         <info>
+The choice of the core numerical methods to be exploited for computing derivatives.
+
+&apos;fft&apos; : fast Fourier transforms
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="deriv_method" type="CHARACTER" >
          <default> see below
          </default>
          <info>
@@ -511,6 +522,27 @@ solvent_mode .EQ. ionic             : &apos;lowmem&apos;
 Main parameter of ions-dependent interface function, corresponding to the homogeneous
 scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
 Used for the electrolyte interface.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="electrolyte_deriv_method" type="CHARACTER" >
+         <default> see below
+         </default>
+         <info>
+Specify the numerical approach used to compute derivatives of the electrolyte interface with respect
+to real-space coordinates or QM degrees of freedom.
+
+&apos;fft&apos;     : fast Fourier transform
+&apos;chain&apos;   : chain rule derivatives for as much as possible (and FFTs for the rest)
+&apos;highmem&apos; : analytic derivatives for soft-sphere computed by storing all spherical functions
+            and derivatives
+&apos;lowmem&apos;  : more efficient analytic derivatives
+
+DEFAULT:
+
+solvent_mode .EQ. electronic | full : &apos;chain&apos;
+solvent_mode .EQ. ionic             : &apos;lowmem&apos;
          </info>
          <status> OPTIONAL
          </status>
@@ -903,6 +935,17 @@ The choice of the core numerical methods to be exploited for the different opera
          <status> OPTIONAL
          </status>
       </var>
+      <var name="inner_core" type="CHARACTER" >
+         <default> &apos;fft&apos;
+         </default>
+         <info>
+The choice of the core numerical methods to be exploited for nested electrostatics.
+
+&apos;fft&apos; : fast Fourier transforms
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <var name="inner_maxstep" type="INTEGER" >
          <default> 200
          </default>
@@ -1010,6 +1053,17 @@ boundary conditions (1 = x, 2 = y, 3 = z)
 
 pbc_dim .EQ. 1 : specified axis is along the 1D direction.
 pbc_dim .EQ. 2 : specified axis is orthogonal to 2D plane.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="pbc_core" type="CHARACTER" >
+         <default> &apos;1da&apos;
+         </default>
+         <info>
+The choice of the core numerical methods to be exploited for pbc corrections.
+
+&apos;1da&apos; : 1d-analytic
          </info>
          <status> OPTIONAL
          </status>
