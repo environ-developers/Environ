@@ -207,58 +207,36 @@ CONTAINS
         !
         INTEGER, INTENT(IN), OPTIONAL :: unit
         !
+        INTEGER :: local_unit = 5
+        LOGICAL :: tend = .FALSE.
+        !
         CHARACTER(LEN=256) :: input_line
         CHARACTER(LEN=80) :: card
-        LOGICAL :: tend
-        INTEGER :: i, local_unit
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_read_cards'
         !
         !--------------------------------------------------------------------------------
         ! Set default READ unit if none provided
         !
-        IF (PRESENT(unit)) THEN
-            local_unit = unit
-        ELSE
-            local_unit = 5
+        IF (PRESENT(unit)) local_unit = unit
+        !
+        CALL env_read_line(local_unit, input_line, end_of_file=tend)
+        !
+        IF (.NOT. tend) THEN
+            !
+            READ (input_line, *) card ! store card title only in 'card'
+            !
+            input_line = env_uppercase(input_line) ! force uppercase
+            !
+            IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
+                CALL card_external_charges(local_unit, input_line)
+            ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
+                CALL card_dielectric_regions(local_unit, input_line)
+            ELSE IF (io%lnode) THEN
+                CALL io%warning("card "//TRIM(input_line)//" ignored", 1001)
+            END IF
+            !
         END IF
-        !
-        !=-----------------------------------------------------------------------------=!
-        !  START OF LOOP
-        !=-----------------------------------------------------------------------------=!
-        !
-100     CALL env_read_line(local_unit, input_line, end_of_file=tend)
-        !
-        !--------------------------------------------------------------------------------
-        ! Skip blank/comment lines (REDUNDANT)
-        !
-        IF (tend) GOTO 120
-        !
-        READ (input_line, *) card
-        !
-        !--------------------------------------------------------------------------------
-        ! Force uppercase
-        !
-        input_line = env_uppercase(input_line)
-        !
-        !--------------------------------------------------------------------------------
-        ! Read cards
-        !
-        IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
-            CALL card_external_charges(local_unit, input_line)
-        ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
-            CALL card_dielectric_regions(local_unit, input_line)
-        ELSE IF (io%lnode) THEN
-            CALL io%warning("card "//TRIM(input_line)//" ignored", 1001)
-        END IF
-        !
-        !=-----------------------------------------------------------------------------=!
-        ! END OF LOOP
-        !=-----------------------------------------------------------------------------=!
-        !
-        GOTO 100
-        !
-120     CONTINUE
         !
         !--------------------------------------------------------------------------------
         ! Final check
@@ -2051,7 +2029,10 @@ CONTAINS
         CHARACTER(LEN=*), INTENT(OUT) :: line
         LOGICAL, OPTIONAL, INTENT(OUT) :: end_of_file, error
         !
-        LOGICAL :: tend, terr
+        INTEGER :: ios
+        !
+        LOGICAL :: tend = .FALSE.
+        LOGICAL :: terr = .FALSE.
         !
         CHARACTER(LEN=80) :: sub_name = 'env_read_line'
         !
@@ -2060,32 +2041,54 @@ CONTAINS
         IF (LEN(line) < 256) &
             CALL io%error(sub_name, "Input line too short", MAX(LEN(line), 1))
         !
-        tend = .FALSE.
-        terr = .FALSE.
+        !--------------------------------------------------------------------------------
         !
         IF (io%lnode) THEN
-30          READ (unit, fmt='(A256)', ERR=15, END=10) line
-            line = TRIM(ADJUSTL(line))
+            ios = 0
             !
-            IF (line == ' ' .OR. (line(1:1) == '#' .OR. &
-                                  line(1:1) == '!' .OR. &
-                                  line(1:1) == '/')) &
-                GOTO 30
+            DO WHILE (ios == 0)
+                !
+                READ (unit, fmt='(A256)', iostat=ios) line
+                !
+                IF (ios /= 0) EXIT
+                !
+                line = TRIM(ADJUSTL(line))
+                !
+                !------------------------------------------------------------------------
+                ! Skip comment lines
+                !
+                IF (line == ' ' .OR. (line(1:1) == '#' .OR. &
+                                      line(1:1) == '!' .OR. &
+                                      line(1:1) == '/')) &
+                    CYCLE
+                !
+                !------------------------------------------------------------------------
+                ! Consume unnecessary namelists
+                !
+                IF (line(1:1) == '&') THEN
+                    !
+                    DO WHILE (line(1:1) /= '/')
+                        !
+                        READ (unit, fmt='(A256)', iostat=ios) line
+                        !
+                        IF (ios /= 0) EXIT
+                        !
+                        line = TRIM(ADJUSTL(line))
+                    END DO
+                    !
+                    CYCLE
+                END IF
+                !
+                IF (ios == 0) EXIT
+                !
+            END DO
             !
-            IF (line(1:1) == '&') THEN ! consume unnecessary namelists
-                !
-                DO WHILE (line(1:1) /= '/')
-                    READ (unit, fmt='(A256)', ERR=15, END=10) line
-                END DO
-                !
-                GOTO 30
+            IF (ios < 0) THEN
+                tend = .TRUE.
+            ELSE IF (ios > 0) THEN
+                terr = .TRUE.
             END IF
             !
-            GOTO 20
-10          tend = .TRUE.
-            GOTO 20
-15          terr = .TRUE.
-20          CONTINUE
         END IF
         !
         CALL env_mp_bcast(tend, io%node, io%comm)

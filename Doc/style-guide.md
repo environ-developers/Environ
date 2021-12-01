@@ -317,6 +317,8 @@ sum_ = 1 + var1 + &
 
 # GENERAL SYNTAX
 
+- avoid GOTO statements
+
 - DO NOT exceed col 90
   - exceptions for long strings, but not past col 130
 

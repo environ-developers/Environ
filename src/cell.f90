@@ -456,20 +456,22 @@ CONTAINS
         k = 3
         sign = 1.D0
         !
-100     DO m = 1, 3
-            denominator = denominator + sign * a1(i) * a2(j) * a3(k)
-            l = i
-            i = j
-            j = k
-            k = l
+        DO WHILE (sign >= 0.D0)
+            !
+            DO m = 1, 3
+                denominator = denominator + sign * a1(i) * a2(j) * a3(k)
+                l = i
+                i = j
+                j = k
+                k = l
+            END DO
+            !
+            i = 2
+            j = 1
+            k = 3
+            sign = -sign
+            !
         END DO
-        !
-        i = 2
-        j = 1
-        k = 3
-        sign = -sign
-        !
-        IF (sign < 0.D0) GOTO 100
         !
         !--------------------------------------------------------------------------------
         ! Compute the reciprocal vectors
