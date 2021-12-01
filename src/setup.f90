@@ -220,14 +220,10 @@ MODULE class_setup
     CHARACTER(LEN=256) :: bibliography(4)
     !
     DATA bibliography/ &
-        "O. Andreussi, I. Dabo and N. Marzari, &
-        &J. Chem. Phys. 136, 064102 (2012)", &
-        "I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, &
-        &J. Chem. Phys. 142, 034111 (2015)", &
-        "O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
-        &J. Chem. Theory Comput. 15, 1996 (2019)", &
-        "F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, &
-        &J. Chem. Phys. 150, 041722 (2019)"/
+        '"O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)"', &
+        '"I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)"', &
+        '"O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, J. Chem. Theory Comput. 15, 1996 (2019)"', &
+        '"F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, J. Chem. Phys. 150, 041722 (2019)"'/
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -716,7 +712,7 @@ CONTAINS
         this%lconfine = this%confine /= 0.D0
         !
         this%lexternals = env_external_charges > 0
-        this%lelectrolyte = env_electrolyte_ntyp > 0
+        this%lelectrolyte = this%lelectrolyte .OR. env_electrolyte_ntyp > 0
         !
         !--------------------------------------------------------------------------------
         ! Dielectric flags
@@ -1151,109 +1147,158 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Banner
         !
-        WRITE (io%unit, *)
+        CALL io%divider(.TRUE.)
+        !
         WRITE (io%unit, 1000)
-        WRITE (io%unit, 1001) bibliography(1)
+        !
+        CALL io%divider(.TRUE.)
         !
         !--------------------------------------------------------------------------------
-        ! Environ Summary
+        ! Citations
         !
-        WRITE (io%unit, 1002) environ_thr
+        WRITE (io%unit, 1001) TRIM(bibliography(1))
         !
-        IF (this%lsolvent) THEN
-            !
-            IF (stype == 0) THEN
-                WRITE (io%unit, 1003) 'Fatteber-Gygi'
-                WRITE (io%unit, 1004) (rhomax + rhomin) * 0.5_DP, tbeta
-            ELSE IF (stype == 1) THEN
-                WRITE (io%unit, 1003) 'SCCS'
-                WRITE (io%unit, 1005) rhomax, rhomin
-            END IF
-            !
-            IF (solvent_radius > 0.D0) WRITE (io%unit, 1006)
-            !
-            IF (field_awareness > 0.D0) THEN
-                WRITE (io%unit, 1007)
-                WRITE (io%unit, 1008) field_awareness, charge_asymmetry
-                WRITE (io%unit, 1009) field_min, field_max
-            END IF
-            !
-        END IF
+        !--------------------------------------------------------------------------------
+        ! General parameters
+        !
+        WRITE (io%unit, 1002)
+        !
+        WRITE (io%unit, 1003) environ_thr
         !
         IF (env_static_permittivity > 1.D0) THEN
-            WRITE (io%unit, 1010) env_static_permittivity
+            WRITE (io%unit, 1004) env_static_permittivity
             !
-            IF (this%ltddfpt) WRITE (io%unit, 1011) env_optical_permittivity
+            IF (this%ltddfpt) WRITE (io%unit, 1005) env_optical_permittivity
             !
-            WRITE (io%unit, 1012) TRIM(solvent_mode)
         END IF
         !
         IF (this%surface_tension > 0.D0) &
-            WRITE (io%unit, 1013) env_surface_tension, this%surface_tension
+            WRITE (io%unit, 1006) env_surface_tension, this%surface_tension
         !
         IF (this%pressure /= 0.D0) &
-            WRITE (io%unit, 1014) env_pressure, this%pressure
+            WRITE (io%unit, 1007) env_pressure, this%pressure
+        !
+        !--------------------------------------------------------------------------------
+        ! Boundary parameters
+        !
+        IF (this%lsolvent) THEN
+            WRITE (io%unit, 1008)
+            WRITE (io%unit, 1009) TRIM(solvent_mode)
+            WRITE (io%unit, 1010) TRIM(deriv_method)
+            !
+            IF (this%lelectrolyte) WRITE (io%unit, 1011) TRIM(electrolyte_deriv_method)
+            !
+            WRITE (io%unit, 1012) TRIM(deriv_core)
+            !
+            IF (stype == 0) THEN
+                WRITE (io%unit, 1013) 'Fatteber-Gygi'
+                WRITE (io%unit, 1014) (rhomax + rhomin) * 0.5_DP, tbeta
+            ELSE
+                WRITE (io%unit, 1013) 'SCCS'
+                WRITE (io%unit, 1015) rhomax, rhomin
+            END IF
+            !
+            IF (solvent_mode == 'ionic') THEN
+                WRITE (io%unit, 1016) TRIM(radius_mode), softness, alpha
+            END IF
+            !
+            IF (solvent_radius > 0.D0) WRITE (io%unit, 1017)
+            !
+            IF (field_awareness > 0.D0) THEN
+                WRITE (io%unit, 1018)
+                !
+                WRITE (io%unit, 1019) &
+                    field_awareness, charge_asymmetry, field_min, field_max
+                !
+            END IF
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Electrostatic Summary
         !
         IF (this%lelectrostatic) THEN
-            WRITE (io%unit, 1015)
-            WRITE (io%unit, 1016) problem, solver
-            WRITE (io%unit, 1017) auxiliary
-            WRITE (io%unit, 1018) core
+            WRITE (io%unit, 1020)
             !
-            IF (this%lperiodic) WRITE (io%unit, 1019) ADJUSTL('1d-analytic')
+            WRITE (io%unit, 1021) &
+                TRIM(problem), TRIM(solver), TRIM(auxiliary), TRIM(core)
+            !
+            IF (this%need_inner) THEN
+                WRITE (io%unit, 1022)
+                WRITE (io%unit, 1023) TRIM(inner_solver), TRIM(inner_core)
+            END IF
+            !
+            IF (this%lperiodic) &
+                WRITE (io%unit, 1024) TRIM(pbc_correction), TRIM(pbc_core)
             !
         END IF
         !
-        WRITE (io%unit, 1020)
+        CALL io%divider(.TRUE.)
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 5X, 'Environ Module', /, 5X, '==============')
+1000    FORMAT(34X, 'Environ Setup Summary')
 !
-1001    FORMAT(/, 5X, 'Please cite', /, 9X, A80, /, &
-                5X, 'in publications or presentations arising from this work.',/)
+1001    FORMAT(5X, 'Please cite', /, 5X, A77, /, &
+               5X, 'in publications or presentations arising from this work.')
         !
-1002    FORMAT('     compensation onset threshold      = ', E24.4)
-1003    FORMAT('     switching function adopted        = ', A24)
+1002    FORMAT(/, 5X, 'Parameters', /, 5X, 10('='),/)
         !
-1004    FORMAT('     solvation density threshold       = ', E24.4, /, &
-               '     smoothness exponent (2 x beta)    = ', F24.2)
+1003    FORMAT(5X, 'compensation onset threshold      = ', E24.4)
         !
-1005    FORMAT('     density limit for vacuum region   = ', E24.4, /, &
-               '     density limit for bulk solvent    = ', E24.4)
+1004    FORMAT(5X, 'static permittivity               = ', F24.2)
         !
-1006    FORMAT('     interface is solvent aware            ')
-1007    FORMAT('     interface is field aware            ')
+1005    FORMAT(5X, 'optical permittivity              = ', F24.4)
         !
-1008    FORMAT('     field aware factor                = ', F24.2, /, &
-               '     asymmetry of field-awareness      = ', F24.2)
+1006    FORMAT(5X, 'surface tension in input (dyn/cm) = ', F24.2, /, &
+               5X, 'surface tension in internal units = ', E24.4)
         !
-1009    FORMAT('     field limit for no correction     = ', F24.2, /, &
-               '     field limit for full correction   = ', F24.2)
+1007    FORMAT(5X, 'external pressure in input (GPa)  = ', F24.2, /, &
+               5X, 'external pressure in inter. units = ', E24.4)
         !
-1010    FORMAT('     static permittivity               = ', F24.2)
-1011    FORMAT('     optical permittivity              = ', F24.4)
-1012    FORMAT('     epsilon calculation mode          = ', A24)
+1008    FORMAT(/, 5X, 'Solvent Boundary', /, 5X, 16('='),/)
         !
-1013    FORMAT('     surface tension in input (dyn/cm) = ', F24.2, /, &
-               '     surface tension in internal units = ', E24.4)
+1009    FORMAT(5X, 'solvent mode                      = ', A24)
         !
-1014    FORMAT('     external pressure in input (GPa)  = ', F24.2, /, &
-               '     external pressure in inter. units = ', E24.4)
+1010    FORMAT(5X, 'derivatives method                = ', A24)
+1011    FORMAT(5X, 'electrolyte derivatives method    = ', A24)
+1012    FORMAT(5X, 'numerical core for derivatives    = ', A24)
         !
-1015    FORMAT(/, 5X, 'Electrostatic Setup', /, 5X, '-------------------')
+1013    FORMAT(5X, 'switching function adopted        = ', A24)
         !
-1016    FORMAT('     electrostatic problem to solve    = ', A24, /, &
-               '     numerical solver adopted          = ', A24)
+1014    FORMAT(5X, 'solvation density threshold       = ', E24.4, /, &
+               5X, 'smoothness exponent (2 x beta)    = ', F24.2)
         !
-1017    FORMAT('     type of auxiliary density adopted = ', A24)
-1018    FORMAT('     type of core tool for poisson     = ', A24)
-1019    FORMAT('     type of core tool for correction  = ', A24)
+1015    FORMAT(5X, 'density limit for vacuum region   = ', E24.4, /, &
+               5X, 'density limit for bulk solvent    = ', E24.4)
         !
-1020    FORMAT(/)
+1016    FORMAT(5X, 'soft-sphere radius mode           = ', A24, /, &
+               5X, 'soft-sphere softness              = ', F24.2, /, &
+               5X, 'alpha                             = ', F24.2)
+        !
+1017    FORMAT(5X, 'interface is solvent aware')
+        !
+1018    FORMAT(5X, 'interface is field aware')
+        !
+1019    FORMAT(5X, 'field aware factor                = ', F24.2, /, &
+               5X, 'asymmetry of field-awareness      = ', F24.2, /, &
+               5X, 'field limit for no correction     = ', F24.2, /, &
+               5X, 'field limit for full correction   = ', F24.2)
+        !
+1020    FORMAT(/, 5X, 'Electrostatic Setup', /, 5X, 19('='),/)
+        !
+1021    FORMAT(5X, 'electrostatic problem to solve    = ', A24, /, &
+               5X, 'numerical solver adopted          = ', A24, /, &
+               5X, 'type of auxiliary density adopted = ', A24, /, &
+               5X, 'numerical core for poisson        = ', A24)
+        !
+1022    FORMAT(5X, 'adopting a nested solver scheme')
+        !
+1023    FORMAT(5X, 'inner solver                      = ', A24, /, &
+               5X, 'inner core                        = ', A24)
+        !
+1024    FORMAT(5X, 'type of pbc corrections           = ', A24, /, &
+               5X, 'numerical core for corrections    = ', A24)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_setup_summary

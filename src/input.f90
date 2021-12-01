@@ -86,22 +86,20 @@ CONTAINS
         environ_unit_input = io%find_free_unit()
         INQUIRE (file=TRIM(local_filename), exist=ext)
         !
-        IF (.NOT. ext) CALL io%error(sub_name, 'Missing input file', 1)
+        IF (.NOT. ext) CALL io%error(sub_name, "Missing input file", 1)
         !
         OPEN (unit=environ_unit_input, file=TRIM(local_filename), status="old")
         !
         !--------------------------------------------------------------------------------
         ! Read values into local variables
         !
-        CALL io%header('Reading input from '//TRIM(local_filename))
-        !
-        CALL io%divider(.FALSE.)
+        CALL io%header("Reading input from "//TRIM(local_filename)//":")
         !
         CALL environ_read_namelist(environ_unit_input)
         !
         CALL environ_read_cards(environ_unit_input)
         !
-        CALL io%divider(.TRUE.)
+        WRITE (io%unit, *) ! blank line after default settings
         !
         CLOSE (environ_unit_input)
         !
@@ -120,7 +118,6 @@ CONTAINS
         INTEGER, INTENT(IN) :: environ_unit_input
         !
         INTEGER :: ios
-        LOGICAL :: lboundary, lelectrostatic
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_read_namelist'
         !
@@ -140,77 +137,61 @@ CONTAINS
         !
         ios = 0
         !
-        CALL io%header('Reading ENVIRON namelist')
-        !
         IF (io%lnode) READ (environ_unit_input, environ, iostat=ios)
         !
         CALL env_mp_bcast(ios, io%node, io%comm)
         !
-        IF (ios /= 0) CALL io%error(sub_name, 'Missing ENVIRON namelist', ABS(ios))
+        IF (ios /= 0) &
+            CALL io%error(sub_name, "Missing or erroneous ENVIRON namelist", ABS(ios))
         !
         CALL environ_bcast() ! broadcast &ENVIRON variables
         !
         CALL environ_checkin() ! check &ENVIRON variables
-        !
-        lboundary = needs_boundary() ! TRUE/FALSE depending on &ENVIRON
         !
         !--------------------------------------------------------------------------------
         ! &BOUNDARY namelist (only if needed)
         !
         ios = 0
         !
-        IF (io%lnode) THEN
-            !
-            IF (lboundary) THEN
-                !
-                CALL io%header('Reading BOUNDARY namelist')
-                !
-                READ (environ_unit_input, boundary, iostat=ios)
-            ELSE
-                CALL io%header('Skipping BOUNDARY namelist')
-            END IF
-            !
-        END IF
+        IF (io%lnode .AND. need_boundary()) &
+            READ (environ_unit_input, boundary, iostat=ios)
         !
         CALL env_mp_bcast(ios, io%node, io%comm)
         !
-        IF (ios /= 0) CALL io%error(sub_name, 'Missing BOUNDARY namelist', ABS(ios))
+        IF (ios /= 0) &
+            CALL io%error(sub_name, &
+                          "Missing or erroneous BOUNDARY namelist", ABS(ios))
         !
         CALL boundary_bcast() ! broadcast &BOUNDARY variables
         !
         CALL boundary_checkin() ! check &BOUNDARY variables
-        !
-        CALL boundary_setup() ! correct missing/erroneous boundary settings
-        !
-        CALL environ_type_setup() ! set up environment according to the boundary
         !
         !--------------------------------------------------------------------------------
         ! &ELECTROSTATIC namelist (only if needed)
         !
         ios = 0
         !
-        IF (io%lnode) THEN
-            !
-            IF (lelectrostatic) THEN
-                !
-                CALL io%header('Reading ELECTROSTATIC namelist')
-                !
-                READ (environ_unit_input, electrostatic, iostat=ios)
-            ELSE
-                CALL io%header('Skipping ELECTROSTATIC namelist')
-            END IF
-            !
-        END IF
+        IF (io%lnode .AND. need_electrostatics()) &
+            READ (environ_unit_input, electrostatic, iostat=ios)
         !
         CALL env_mp_bcast(ios, io%node, io%comm)
         !
-        IF (ios /= 0) CALL io%error(sub_name, 'Missing ELECTROSTATIC namelist', ABS(ios))
+        IF (ios /= 0) &
+            CALL io%error(sub_name, &
+                          "Missing or erroneous ELECTROSTATIC namelist", ABS(ios))
         !
         CALL electrostatic_bcast() ! broadcast &ELECTROSTATIC variables
         !
         CALL electrostatic_checkin() ! check &ELECTROSTATIC variables
         !
-        CALL electrostatics_setup() ! set up electrostatic problem
+        !--------------------------------------------------------------------------------
+        ! Final setup
+        !
+        CALL environ_type_setup() ! set up environment according to the boundary
+        !
+        CALL boundary_setup() ! correct missing/erroneous boundary settings
+        !
+        CALL electrostatics_setup() ! correct missing/erroneous electrostatics settings
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_read_namelist
@@ -283,10 +264,10 @@ CONTAINS
         ! Final check
         !
         IF (env_external_charges > 0 .AND. .NOT. taextchg) &
-            CALL io%error(sub_name, 'Missing card external_charges', 1)
+            CALL io%error(sub_name, "Missing card external_charges", 1)
         !
         IF (env_dielectric_regions > 0 .AND. .NOT. taepsreg) &
-            CALL io%error(sub_name, 'Missing card dielectric_regions', 1)
+            CALL io%error(sub_name, "Missing card dielectric_regions", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_read_cards
@@ -678,59 +659,59 @@ CONTAINS
     !! Check if BOUNDARY namelist needs to be read according to the ENVIRON namelist
     !!
     !------------------------------------------------------------------------------------
-    LOGICAL FUNCTION needs_boundary() RESULT(lboundary)
+    LOGICAL FUNCTION need_boundary()
         !--------------------------------------------------------------------------------
         !
-        lboundary = .FALSE.
+        need_boundary = .FALSE.
         !
-        IF (environ_type /= 'input' .AND. environ_type /= 'vacuum') lboundary = .TRUE.
+        IF (environ_type /= 'input' .AND. environ_type /= 'vacuum') need_boundary = .TRUE.
         !
-        IF (env_static_permittivity > 1.D0) lboundary = .TRUE.
+        IF (env_static_permittivity > 1.D0) need_boundary = .TRUE.
         !
-        IF (env_optical_permittivity > 1.D0) lboundary = .TRUE.
+        IF (env_optical_permittivity > 1.D0) need_boundary = .TRUE.
         !
-        IF (env_surface_tension > 0.D0) lboundary = .TRUE.
+        IF (env_surface_tension > 0.D0) need_boundary = .TRUE.
         !
-        IF (env_pressure /= 0.D0) lboundary = .TRUE.
+        IF (env_pressure /= 0.D0) need_boundary = .TRUE.
         !
-        IF (env_confine /= 0.D0) lboundary = .TRUE.
+        IF (env_confine /= 0.D0) need_boundary = .TRUE.
         !
-        IF (env_electrolyte_ntyp > 0) lboundary = .TRUE.
+        IF (env_electrolyte_ntyp > 0) need_boundary = .TRUE.
         !
-        IF (env_dielectric_regions > 0) lboundary = .TRUE.
+        IF (env_dielectric_regions > 0) need_boundary = .TRUE.
         !
-        IF (sc_permittivity > 1.D0) lboundary = .TRUE.
+        IF (sc_permittivity > 1.D0) need_boundary = .TRUE.
         !
-        IF (sc_carrier_density > 0) lboundary = .TRUE.
+        IF (sc_carrier_density > 0) need_boundary = .TRUE.
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION needs_boundary
+    END FUNCTION need_boundary
     !------------------------------------------------------------------------------------
     !>
     !! Check if ELECTROSTATIC namelist needs to be read according to the ENVIRON namelist
     !!
     !------------------------------------------------------------------------------------
-    LOGICAL FUNCTION needs_electrostatics() RESULT(lelectrostatic)
+    LOGICAL FUNCTION need_electrostatics()
         !--------------------------------------------------------------------------------
         !
-        lelectrostatic = env_electrostatic
+        need_electrostatics = env_electrostatic
         !
-        IF (env_static_permittivity > 1.D0) lelectrostatic = .TRUE.
+        IF (env_static_permittivity > 1.D0) need_electrostatics = .TRUE.
         !
-        IF (env_optical_permittivity > 1.D0) lelectrostatic = .TRUE.
+        IF (env_optical_permittivity > 1.D0) need_electrostatics = .TRUE.
         !
-        IF (env_external_charges > 0) lelectrostatic = .TRUE.
+        IF (env_external_charges > 0) need_electrostatics = .TRUE.
         !
-        IF (env_dielectric_regions > 0) lelectrostatic = .TRUE.
+        IF (env_dielectric_regions > 0) need_electrostatics = .TRUE.
         !
-        IF (env_electrolyte_ntyp > 0) lelectrostatic = .TRUE.
+        IF (env_electrolyte_ntyp > 0) need_electrostatics = .TRUE.
         !
-        IF (sc_permittivity > 1.D0) lelectrostatic = .TRUE.
+        IF (sc_permittivity > 1.D0) need_electrostatics = .TRUE.
         !
-        IF (sc_carrier_density > 0) lelectrostatic = .TRUE.
+        IF (sc_carrier_density > 0) need_electrostatics = .TRUE.
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION needs_electrostatics
+    END FUNCTION need_electrostatics
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -755,16 +736,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! General
         !
-        IF (environ_restart) CALL io%writer('Environ restarting')
+        IF (environ_restart) CALL io%writer("* Environ restarting")
         !
-        IF (verbose < 0) CALL io%error(sub_name, 'verbose out of range', 1)
+        IF (verbose < 0) CALL io%error(sub_name, "verbose out of range", 1)
         !
-        IF (environ_thr < 0.0_DP) CALL io%error(sub_name, 'environ_thr out of range', 1)
+        IF (environ_thr < 0.0_DP) CALL io%error(sub_name, "environ_thr out of range", 1)
         !
-        IF (environ_nskip < 0) CALL io%error(sub_name, 'environ_nskip out of range', 1)
+        IF (environ_nskip < 0) CALL io%error(sub_name, "environ_nskip out of range", 1)
         !
         IF (env_nrep(1) < 0 .OR. env_nrep(2) < 0 .OR. env_nrep(3) < 0) &
-            CALL io%error(sub_name, 'env_nrep cannot be smaller than 0', 1)
+            CALL io%error(sub_name, "env_nrep cannot be smaller than 0", 1)
         !
         !--------------------------------------------------------------------------------
         ! Type
@@ -780,27 +761,27 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! System
         !
-        IF (system_ntyp < 0) CALL io%error(sub_name, 'system_ntype out of range', 1)
+        IF (system_ntyp < 0) CALL io%error(sub_name, "system_ntype out of range", 1)
         !
         IF (system_dim < 0 .OR. system_dim > 3) &
-            CALL io%error(sub_name, 'system_dim out of range', 1)
+            CALL io%error(sub_name, "system_dim out of range", 1)
         !
         IF (system_axis < 1 .OR. system_axis > 3) &
-            CALL io%error(sub_name, 'system_axis out of range', 1)
+            CALL io%error(sub_name, "system_axis out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Physical quantities
         !
         IF (env_static_permittivity < 1.0_DP) &
-            CALL io%error(sub_name, 'env_static_permittivity out of range', 1)
+            CALL io%error(sub_name, "env_static_permittivity out of range", 1)
         !
         IF (env_optical_permittivity < 1.0_DP) &
-            CALL io%error(sub_name, 'env_optical_permittivity out of range', 1)
+            CALL io%error(sub_name, "env_optical_permittivity out of range", 1)
         !
         IF (env_surface_tension < 0.0_DP) &
-            CALL io%error(sub_name, 'env_surface_tension out of range', 1)
+            CALL io%error(sub_name, "env_surface_tension out of range", 1)
         !
-        IF (temperature < 0.0_DP) CALL io%error(sub_name, 'temperature out of range', 1)
+        IF (temperature < 0.0_DP) CALL io%error(sub_name, "temperature out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Electrolyte
@@ -818,17 +799,17 @@ CONTAINS
             CALL io%invalid_opt(sub_name, 'electrolyte_entropy', electrolyte_entropy)
         !
         IF (env_electrolyte_ntyp < 0 .OR. env_electrolyte_ntyp == 1) &
-            CALL io%error(sub_name, 'env_electrolyte_ntyp out of range', 1)
+            CALL io%error(sub_name, "env_electrolyte_ntyp out of range", 1)
         !
         DO i = 1, env_electrolyte_ntyp
-            IF (cion(i) < 0.D0) CALL io%error(sub_name, 'cion cannot be negative', 1)
+            IF (cion(i) < 0.D0) CALL io%error(sub_name, "cion cannot be negative", 1)
         END DO
         !
         IF (cionmax < 0.D0 .OR. rion < 0.D0) &
-            CALL io%error(sub_name, 'cionmax and rion cannot be negative', 1)
+            CALL io%error(sub_name, "cionmax and rion cannot be negative", 1)
         !
         IF (cionmax > 0.D0 .AND. rion > 0.D0) &
-            CALL io%error(sub_name, 'Either cionmax or rion can be set, not both', 1)
+            CALL io%error(sub_name, "Either cionmax or rion can be set, not both", 1)
         !
         !--------------------------------------------------------------------------------
         ! Semiconductor
@@ -836,19 +817,19 @@ CONTAINS
         allowed = .FALSE.
         !
         IF (sc_permittivity < 1.D0) &
-            CALL io%error(sub_name, 'sc_permittivity out of range', 1)
+            CALL io%error(sub_name, "sc_permittivity out of range", 1)
         !
         IF (sc_carrier_density < 0.D0) &
-            CALL io%error(sub_name, 'sc_carrier_density cannot be negative', 1)
+            CALL io%error(sub_name, "sc_carrier_density cannot be negative", 1)
         !
         !--------------------------------------------------------------------------------
         ! Externals/Regions
         !
         IF (env_external_charges < 0) &
-            CALL io%error(sub_name, 'env_external_charges out of range', 1)
+            CALL io%error(sub_name, "env_external_charges out of range", 1)
         !
         IF (env_dielectric_regions < 0) &
-            CALL io%error(sub_name, 'env_dielectric_regions out of range', 1)
+            CALL io%error(sub_name, "env_dielectric_regions out of range", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_checkin
@@ -878,15 +859,15 @@ CONTAINS
         !
         IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'solvent_mode', solvent_mode)
         !
-        IF (stype > 2) CALL io%error(sub_name, 'stype out of range', 1)
+        IF (stype > 2) CALL io%error(sub_name, "stype out of range", 1)
         !
-        IF (rhomax < 0.0_DP) CALL io%error(sub_name, 'rhomax out of range', 1)
+        IF (rhomax < 0.0_DP) CALL io%error(sub_name, "rhomax out of range", 1)
         !
-        IF (rhomin < 0.0_DP) CALL io%error(sub_name, 'rhomin out of range', 1)
+        IF (rhomin < 0.0_DP) CALL io%error(sub_name, "rhomin out of range", 1)
         !
-        IF (rhomax < rhomin) CALL io%error(sub_name, 'Inconsistent rhomax and rhomin', 1)
+        IF (rhomax < rhomin) CALL io%error(sub_name, "Inconsistent rhomax and rhomin", 1)
         !
-        IF (tbeta < 0.0_DP) CALL io%error(sub_name, 'tbeta out of range', 1)
+        IF (tbeta < 0.0_DP) CALL io%error(sub_name, "tbeta out of range", 1)
         !
         allowed = .FALSE.
         !
@@ -896,37 +877,37 @@ CONTAINS
         !
         IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'radius_mode', radius_mode)
         !
-        IF (alpha <= 0.0_DP) CALL io%error(sub_name, 'alpha out of range', 1)
+        IF (alpha <= 0.0_DP) CALL io%error(sub_name, "alpha out of range", 1)
         !
-        IF (softness <= 0.0_DP) CALL io%error(sub_name, 'softness out of range', 1)
+        IF (softness <= 0.0_DP) CALL io%error(sub_name, "softness out of range", 1)
         !
         IF (solvent_spread <= 0.0_DP) &
-            CALL io%error(sub_name, 'solvent_spread out of range', 1)
+            CALL io%error(sub_name, "solvent_spread out of range", 1)
         !
         IF (solvent_radius < 0.0_DP) &
-            CALL io%error(sub_name, 'solvent_radius out of range', 1)
+            CALL io%error(sub_name, "solvent_radius out of range", 1)
         !
         IF (radial_scale < 1.0_DP) &
-            CALL io%error(sub_name, 'radial_scale out of range', 1)
+            CALL io%error(sub_name, "radial_scale out of range", 1)
         !
         IF (radial_spread <= 0.0_DP) &
-            CALL io%error(sub_name, 'radial_spread out of range', 1)
+            CALL io%error(sub_name, "radial_spread out of range", 1)
         !
         IF (filling_threshold <= 0.0_DP) &
-            CALL io%error(sub_name, 'filling_threshold out of range', 1)
+            CALL io%error(sub_name, "filling_threshold out of range", 1)
         !
         IF (filling_spread <= 0.0_DP) &
-            CALL io%error(sub_name, 'filling_spread out of range', 1)
+            CALL io%error(sub_name, "filling_spread out of range", 1)
         !
         IF (field_awareness < 0.0_DP) &
-            CALL io%error(sub_name, 'field_awareness out of range', 1)
+            CALL io%error(sub_name, "field_awareness out of range", 1)
         !
         IF (ABS(charge_asymmetry) > 1.0_DP) &
-            CALL io%error(sub_name, 'charge_asymmetry out of range', 1)
+            CALL io%error(sub_name, "charge_asymmetry out of range", 1)
         !
-        IF (field_min < 0.0_DP) CALL io%error(sub_name, 'field_min out of range', 1)
+        IF (field_min < 0.0_DP) CALL io%error(sub_name, "field_min out of range", 1)
         !
-        IF (field_max <= field_min) CALL io%error(sub_name, 'field_max out of range', 1)
+        IF (field_max <= field_min) CALL io%error(sub_name, "field_max out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Electrolyte
@@ -941,38 +922,36 @@ CONTAINS
             CALL io%invalid_opt(sub_name, 'electrolyte_mode', electrolyte_mode)
         !
         IF (electrolyte_distance < 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_distance out of range', 1)
+            CALL io%error(sub_name, "electrolyte_distance out of range", 1)
         !
         IF (electrolyte_spread <= 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_spread out of range', 1)
+            CALL io%error(sub_name, "electrolyte_spread out of range", 1)
         !
         IF (electrolyte_rhomax < 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_rhomax out of range', 1)
+            CALL io%error(sub_name, "electrolyte_rhomax out of range", 1)
         !
         IF (electrolyte_rhomin < 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_rhomin out of range', 1)
+            CALL io%error(sub_name, "electrolyte_rhomin out of range", 1)
         !
         IF (electrolyte_rhomax < electrolyte_rhomin) &
             CALL io%error(sub_name, &
-                          'Inconsistent electrolyte_rhomax and electrolyte_rhomin', 1)
+                          "Inconsistent electrolyte_rhomax and electrolyte_rhomin", 1)
         !
         IF (electrolyte_tbeta < 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_tbeta out of range', 1)
+            CALL io%error(sub_name, "electrolyte_tbeta out of range", 1)
         !
         IF (electrolyte_alpha <= 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_alpha out of range', 1)
+            CALL io%error(sub_name, "electrolyte_alpha out of range", 1)
         !
         IF (electrolyte_softness <= 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_softness out of range', 1)
+            CALL io%error(sub_name, "electrolyte_softness out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Semiconductor
         !
-        IF (sc_distance < 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_distance out of range', 1)
+        IF (sc_distance < 0.0_DP) CALL io%error(sub_name, "sc_distance out of range", 1)
         !
-        IF (sc_spread <= 0.0_DP) &
-            CALL io%error(sub_name, 'electrolyte_spread out of range', 1)
+        IF (sc_spread <= 0.0_DP) CALL io%error(sub_name, "sc_spread out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Derivatives
@@ -1036,7 +1015,7 @@ CONTAINS
         !
         IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'problem', problem)
         !
-        IF (tol <= 0.0_DP) CALL io%error(sub_name, 'tolerance out of range', 1)
+        IF (tol <= 0.0_DP) CALL io%error(sub_name, "tolerance out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Solver
@@ -1071,9 +1050,9 @@ CONTAINS
         !
         IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'step_type', step_type)
         !
-        IF (step <= 0.0_DP) CALL io%error(sub_name, 'step out of range', 1)
+        IF (step <= 0.0_DP) CALL io%error(sub_name, "step out of range", 1)
         !
-        IF (maxstep <= 1) CALL io%error(sub_name, 'maxstep out of range', 1)
+        IF (maxstep <= 1) CALL io%error(sub_name, "maxstep out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Mixing
@@ -1086,9 +1065,9 @@ CONTAINS
         !
         IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'mix_type', mix_type)
         !
-        IF (ndiis <= 0) CALL io%error(sub_name, 'ndiis out of range', 1)
+        IF (ndiis <= 0) CALL io%error(sub_name, "ndiis out of range", 1)
         !
-        IF (mix <= 0.0_DP) CALL io%error(sub_name, 'mix out of range', 1)
+        IF (mix <= 0.0_DP) CALL io%error(sub_name, "mix out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Preconditioner
@@ -1114,7 +1093,7 @@ CONTAINS
         IF (.NOT. allowed) &
             CALL io%invalid_opt(sub_name, 'screening_type', screening_type)
         !
-        IF (screening < 0.0_DP) CALL io%error(sub_name, 'screening out of range', 1)
+        IF (screening < 0.0_DP) CALL io%error(sub_name, "screening out of range", 1)
         !
         allowed = .FALSE.
         !
@@ -1130,8 +1109,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! PBC correction
         !
-        CALL io%header('Checking PBC correction')
-        !
         allowed = .FALSE.
         !
         DO i = 1, SIZE(pbc_correction_allowed)
@@ -1141,39 +1118,17 @@ CONTAINS
         IF (.NOT. allowed) &
             CALL io%invalid_opt(sub_name, 'pbc_correction', pbc_correction)
         !
-        SELECT CASE (TRIM(pbc_correction))
-            !
-        CASE ('none')
-            CALL io%default('pbc_correction', pbc_correction, 'default')
-            !
-        CASE ('gcs')
-            !
-            IF (electrolyte_distance == 0.0_DP) &
-                CALL io%error(sub_name, &
-                              'electrolyte_distance must be set &
-                              &(greater than zero) for gcs correction', 1)
-            !
-            IF (TRIM(electrolyte_mode) /= 'system') THEN
-                electrolyte_mode = 'system'
-                !
-                CALL io%default('electrolyte_mode', electrolyte_mode, &
-                                "gcs correction requires 'system' boundary")
-                !
-            END IF
-            !
-        END SELECT
-        !
         IF (pbc_dim < -3 .OR. pbc_dim > 3) &
-            CALL io%error(sub_name, 'pbc_dim out of range', 1)
+            CALL io%error(sub_name, "pbc_dim out of range", 1)
         !
         IF (TRIM(pbc_correction) /= 'none' .AND. pbc_dim < 0) &
             CALL io%error(sub_name, &
-                          'pbc_correction requires manually setting pbc_dim', 1)
+                          "pbc_correction requires manually setting pbc_dim", 1)
         !
-        IF (pbc_dim == 1) CALL io%error(sub_name, '1d pbc correction not implemented', 1)
+        IF (pbc_dim == 1) CALL io%error(sub_name, "1d pbc correction not implemented", 1)
         !
         IF (pbc_axis < 1 .OR. pbc_axis > 3) &
-            CALL io%error(sub_name, 'cell_axis out of range', 1)
+            CALL io%error(sub_name, "cell_axis out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! PBC core
@@ -1197,11 +1152,11 @@ CONTAINS
         !
         IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'inner_solver', inner_solver)
         !
-        IF (inner_mix <= 0.0_DP) CALL io%error(sub_name, 'inner_mix out of range', 1)
+        IF (inner_mix <= 0.0_DP) CALL io%error(sub_name, "inner_mix out of range", 1)
         !
-        IF (inner_tol <= 0.0_DP) CALL io%error(sub_name, 'inner_tol out of range', 1)
+        IF (inner_tol <= 0.0_DP) CALL io%error(sub_name, "inner_tol out of range", 1)
         !
-        IF (inner_maxstep <= 1) CALL io%error(sub_name, 'inner_maxstep out of range', 1)
+        IF (inner_maxstep <= 1) CALL io%error(sub_name, "inner_maxstep out of range", 1)
         !
         !--------------------------------------------------------------------------------
         ! Inner core
@@ -1229,7 +1184,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%header('Checking boundary derivatives')
+        CALL io%writer("* using "//TRIM(solvent_mode)//" solvent mode")
         !
         SELECT CASE (TRIM(solvent_mode))
             !
@@ -1240,13 +1195,12 @@ CONTAINS
             CASE ('default')
                 deriv_method = 'chain'
                 !
-                CALL io%default('deriv_method', deriv_method, 'SCCS default')
+                CALL io%writer("* setting boundary derivatives method to SCCS default")
                 !
             CASE ('highmem', 'lowmem')
                 !
                 CALL io%error(sub_name, &
-                              "Only 'fft' or 'chain' are allowed &
-                              &with electronic interfaces", 1)
+                              "Only 'fft' or 'chain' are allowed with electronic interfaces", 1)
                 !
             END SELECT
             !
@@ -1257,53 +1211,12 @@ CONTAINS
             CASE ('default')
                 deriv_method = 'lowmem'
                 !
-                CALL io%default('deriv_method', deriv_method, 'SSCS default')
+                CALL io%writer("* setting boundary derivatives method to SSCS default")
                 !
             CASE ('chain')
                 !
                 CALL io%error(sub_name, &
-                              "Only 'highmem', 'lowmem', and 'fft' are allowed &
-                              &with ionic interfaces", 1)
-                !
-            END SELECT
-            !
-        END SELECT
-        !
-        SELECT CASE (TRIM(electrolyte_mode))
-            !
-        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
-            !
-            SELECT CASE (TRIM(electrolyte_deriv_method))
-                !
-            CASE ('default')
-                electrolyte_deriv_method = 'chain'
-                !
-                CALL io%default('electrolyte_deriv_method', electrolyte_deriv_method, &
-                                'SCCS default')
-                !
-            CASE ('highmem', 'lowmem')
-                !
-                CALL io%error(sub_name, &
-                              "Only 'fft' or 'chain' are allowed &
-                              &with electronic interfaces", 1)
-                !
-            END SELECT
-            !
-        CASE ('ionic', 'fa-ionic')
-            !
-            SELECT CASE (TRIM(electrolyte_deriv_method))
-                !
-            CASE ('default')
-                electrolyte_deriv_method = 'lowmem'
-                !
-                CALL io%default('electrolyte_deriv_method', electrolyte_deriv_method, &
-                                'SSCS default')
-                !
-            CASE ('chain')
-                !
-                CALL io%error(sub_name, &
-                              "Only 'highmem', 'lowmem', and 'fft' are allowed &
-                              &with ionic interfaces", 1)
+                              "Only 'highmem', 'lowmem', and 'fft' are allowed with ionic interfaces", 1)
                 !
             END SELECT
             !
@@ -1331,8 +1244,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set physically meaningful global parameters
         !
-        CALL io%header('Setting up '//TRIM(environ_type)//' environment ('// &
-                       &'solvent mode = '//TRIM(solvent_mode)//')')
+        CALL io%writer("* setting up "//TRIM(environ_type)//" environment")
         !
         SELECT CASE (TRIM(ADJUSTL(environ_type)))
             !
@@ -1342,26 +1254,14 @@ CONTAINS
             env_surface_tension = 0.D0
             env_pressure = 0.D0
             !
-            CALL io%default('env_static_permittivity', '1.0', '')
-            !
-            CALL io%default('env_optical_permittivity', '1.0', '')
-            !
-            CALL io%default('env_surface_tension', '0.0', '')
-            !
-            CALL io%default('env_pressure', '0.0', '')
-            !
             RETURN
             !
         CASE ('water', 'water-cation', 'water-anion') ! water experimental permittivities
             env_static_permittivity = 78.3D0
             env_optical_permittivity = 1.776D0
             !
-            CALL io%default('env_static_permittivity', '78.3', '')
-            !
-            CALL io%default('env_optical_permittivity', '1.776', '')
-            !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unrecognized value for environ_type', 1)
+            CALL io%error(sub_name, "Unrecognized value for environ_type", 1)
             !
         END SELECT
         !
@@ -1382,41 +1282,17 @@ CONTAINS
                 rhomax = 0.005
                 rhomin = 0.0001
                 !
-                CALL io%default('env_surface_tension', '50.0', '')
-                !
-                CALL io%default('env_pressure', '-0.35', '')
-                !
-                CALL io%default('rhomax', '0.005', '')
-                !
-                CALL io%default('rhomin', '0.0001', '')
-                !
             CASE ('water-cation') ! SCCS for cations
                 env_surface_tension = 5.D0
                 env_pressure = 0.125D0
                 rhomax = 0.0035
                 rhomin = 0.0002
                 !
-                CALL io%default('env_surface_tension', '5.0', '')
-                !
-                CALL io%default('env_pressure', '0.125', '')
-                !
-                CALL io%default('rhomax', '0.0035', '')
-                !
-                CALL io%default('rhomin', '0.0002', '')
-                !
             CASE ('water-anion') ! SCCS for cations
                 env_surface_tension = 0.D0
                 env_pressure = 0.45D0
                 rhomax = 0.0155
                 rhomin = 0.0024
-                !
-                CALL io%default('env_surface_tension', '0.0', '')
-                !
-                CALL io%default('env_pressure', '0.45', '')
-                !
-                CALL io%default('rhomax', '0.0155', '')
-                !
-                CALL io%default('rhomin', '0.0024', '')
                 !
             END SELECT
             !
@@ -1431,30 +1307,16 @@ CONTAINS
             env_surface_tension = 50.D0 ! NOTE THAT WE ARE USING THE
             env_pressure = -0.35D0 ! SET FOR CLUSTERS, AS IN SCCS
             !
-            CALL io%default('radius_mode', radius_mode, '')
-            !
-            CALL io%default('softness', '0.5', '')
-            !
-            CALL io%default('env_surface_tension', '50.', '')
-            !
-            CALL io%default('env_pressure', '-0.35', '')
-            !
             SELECT CASE (TRIM(ADJUSTL(environ_type)))
                 !
             CASE ('water') ! SS for neutrals
                 alpha = 1.12D0
                 !
-                CALL io%default('alpha', '1.12', '')
-                !
             CASE ('water-cation') ! SS for cations
                 alpha = 1.1D0
                 !
-                CALL io%default('alpha', '1.1', '')
-                !
             CASE ('water-anion') ! SS for anions
                 alpha = 0.98D0
-                !
-                CALL io%default('alpha', '0.98', '')
                 !
             END SELECT
             !
@@ -1475,11 +1337,23 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'electrostatics_setup'
         !
         !--------------------------------------------------------------------------------
-        !
-        CALL io%header('Setting up electrostatic problem')
-        !
-        !--------------------------------------------------------------------------------
         ! Electrolyte checks
+        !
+        IF (TRIM(pbc_correction) == 'gcs') THEN
+            !
+            IF (electrolyte_distance == 0.0_DP) &
+                CALL io%error(sub_name, &
+                              "electrolyte_distance must be set (greater than zero) for gcs correction", 1)
+            !
+            IF (TRIM(electrolyte_mode) /= 'system') THEN
+                electrolyte_mode = 'system'
+                !
+                CALL io%writer("* setting electrolyte mode to "// &
+                               TRIM(electrolyte_mode)//" (required for gcs correction)")
+                !
+            END IF
+            !
+        END IF
         !
         IF (env_electrolyte_ntyp > 0) THEN
             !
@@ -1489,54 +1363,69 @@ CONTAINS
                     !
                     IF (cionmax > 0.D0 .OR. rion > 0.D0) THEN
                         problem = 'linmodpb'
-                        !
-                        CALL io%default('problem', problem, '')
-                        !
                     ELSE IF (problem == 'none') THEN
                         problem = 'linpb'
-                        !
-                        CALL io%default('problem', problem, '')
-                        !
                     END IF
                     !
-                    IF (solver == 'none') THEN
-                        solver = 'cg'
-                        !
-                        CALL io%default('solver', solver, '')
-                        !
-                    END IF
+                    IF (solver == 'none') solver = 'cg'
                     !
                 ELSE
                     !
                     IF (cionmax > 0.D0 .OR. rion > 0.D0) THEN
                         problem = 'modpb'
-                        !
-                        CALL io%default('problem', problem, '')
-                        !
                     ELSE IF (problem == 'none') THEN
                         problem = 'pb'
-                        !
-                        CALL io%default('problem', problem, '')
-                        !
                     END IF
                     !
-                    IF (solver == 'none') THEN
-                        solver = 'newton'
-                        !
-                        CALL io%default('solver', solver, '')
-                        !
-                    END IF
+                    IF (solver == 'none') solver = 'newton'
                     !
-                    IF (inner_solver == 'none') THEN
-                        inner_solver = 'cg'
-                        !
-                        CALL io%default('inner_solver', inner_solver, '')
-                        !
-                    END IF
+                    IF (inner_solver == 'none') inner_solver = 'cg'
                     !
                 END IF
                 !
             END IF
+            !
+        END IF
+        !
+        IF (TRIM(pbc_correction) == 'gcs' .OR. env_electrolyte_ntyp > 0) THEN
+            !
+            SELECT CASE (TRIM(electrolyte_mode))
+                !
+            CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+                !
+                SELECT CASE (TRIM(electrolyte_deriv_method))
+                    !
+                CASE ('default')
+                    electrolyte_deriv_method = 'chain'
+                    !
+                    CALL io%writer( &
+                        "* setting electrolyte-boundary derivatives method to SCCS default")
+                    !
+                CASE ('highmem', 'lowmem')
+                    !
+                    CALL io%error(sub_name, &
+                                  "Only 'fft' or 'chain' are allowed with electronic interfaces", 1)
+                    !
+                END SELECT
+                !
+            CASE ('ionic', 'fa-ionic')
+                !
+                SELECT CASE (TRIM(electrolyte_deriv_method))
+                    !
+                CASE ('default')
+                    electrolyte_deriv_method = 'lowmem'
+                    !
+                    CALL io%writer( &
+                        "* setting electrolyte-boundary derivatives method to SSCS default")
+                    !
+                CASE ('chain')
+                    !
+                    CALL io%error(sub_name, &
+                                  "Only 'highmem', 'lowmem', and 'fft' are allowed with ionic interfaces", 1)
+                    !
+                END SELECT
+                !
+            END SELECT
             !
         END IF
         !
@@ -1545,29 +1434,17 @@ CONTAINS
         !
         IF (env_static_permittivity > 1.D0 .OR. env_dielectric_regions > 0) THEN
             !
-            IF (problem == 'none') THEN
-                problem = 'generalized'
-                !
-                CALL io%default('problem', problem, '')
-                !
-            END IF
+            IF (problem == 'none') problem = 'generalized'
             !
             IF (TRIM(pbc_correction) /= 'gcs') THEN
-                !
-                IF (solver == 'none') THEN
-                    solver = 'cg'
-                    !
-                    CALL io%default('solver', solver, '')
-                    !
-                END IF
-                !
+                IF (solver == 'none') solver = 'cg'
             ELSE
                 !
                 IF (solver /= 'fixed-point') THEN
                     solver = 'fixed-point'
                     !
-                    CALL io%default('solver', solver, &
-                                    'gcs correction requires fixed-point solver')
+                    CALL io%writer( &
+                        "* setting solver to fixed-point (required for gcs correction)")
                     !
                 END IF
                 !
@@ -1575,35 +1452,16 @@ CONTAINS
             !
         ELSE
             !
-            IF (problem == 'none') THEN
-                problem = 'poisson'
-                !
-                CALL io%default('problem', problem, '')
-                !
-            END IF
+            IF (problem == 'none') problem = 'poisson'
             !
-            IF (solver == 'none') THEN
-                solver = 'direct'
-                !
-                CALL io%default('solver', solver, '')
-                !
-            END IF
+            IF (solver == 'none') solver = 'direct'
             !
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Ensure correct auxiliary is used for fixed-point
         !
-        IF (solver == 'fixed-point') THEN
-            !
-            IF (auxiliary == 'none') THEN
-                auxiliary = 'full'
-                !
-                CALL io%default('auxiliary', auxiliary, '')
-                !
-            END IF
-            !
-        END IF
+        IF (solver == 'fixed-point' .AND. auxiliary == 'none') auxiliary = 'full'
         !
         !--------------------------------------------------------------------------------
         ! Validate use of inner solver
@@ -1612,7 +1470,7 @@ CONTAINS
                    problem == 'modpb' .OR. &
                    problem == 'generalized') &
             .AND. (inner_solver /= 'none')) &
-            CALL io%error(sub_name, 'Only pb or modpb problems allow inner solver', 1)
+            CALL io%error(sub_name, "Only pb or modpb problems allow inner solver", 1)
         !
         !--------------------------------------------------------------------------------
         ! Validate problem/solver combination and check for PBC correction if needed
@@ -1623,8 +1481,7 @@ CONTAINS
             !
             IF (solver == 'direct' .OR. inner_solver == 'direct') &
                 CALL io%error(sub_name, &
-                              'Cannot use a direct solver for &
-                              &the Generalized Poisson eq.', 1)
+                              "Cannot use a direct solver for the Generalized Poisson eq.", 1)
             !
         CASE ('linpb', 'linmodpb') ! linearized Poisson-Boltzmann
             !
@@ -1634,8 +1491,7 @@ CONTAINS
                 !
             CASE DEFAULT
                 CALL io%error(sub_name, &
-                              'Only gradient-based solver for &
-                              &the linearized Poisson-Boltzmann eq.', 1)
+                              "Only gradient-based solver for the linearized Poisson-Boltzmann eq.", 1)
                 !
             END SELECT
             !
@@ -1645,15 +1501,13 @@ CONTAINS
                 !
             CASE DEFAULT
                 CALL io%error(sub_name, &
-                              'Only gradient-based solver for &
-                              &the linearized Poisson-Boltzmann eq.', 1)
+                              "Only gradient-based solver for the linearized Poisson-Boltzmann eq.", 1)
                 !
             END SELECT
             !
             IF (pbc_correction /= 'parabolic') &
                 CALL io%error(sub_name, &
-                              'Linearized-PB problem requires &
-                              &parabolic pbc correction', 1)
+                              "Linearized-PB problem requires parabolic pbc correction", 1)
             !
         CASE ('pb', 'modpb') ! Poisson-Boltzmann
             !
@@ -1661,8 +1515,7 @@ CONTAINS
                 !
             CASE ('direct', 'cg', 'sd')
                 CALL io%error(sub_name, &
-                              'No direct or gradient-based solver for &
-                              &the full Poisson-Boltzmann eq.', 1)
+                              "No direct or gradient-based solver for the full Poisson-Boltzmann eq.", 1)
                 !
             END SELECT
             !
@@ -1670,15 +1523,13 @@ CONTAINS
                 !
             CASE ('direct', 'cg', 'sd')
                 CALL io%error(sub_name, &
-                              'No direct or gradient-based solver for &
-                              &the full Poisson-Boltzmann eq.', 1)
+                              "No direct or gradient-based solver for the full Poisson-Boltzmann eq.", 1)
                 !
             END SELECT
             !
             IF (pbc_correction /= 'parabolic') &
                 CALL io%error(sub_name, &
-                              'Linearized-PB problem requires &
-                              &parabolic pbc correction', 1)
+                              "Linearized-PB problem requires parabolic pbc correction", 1)
             !
         END SELECT
         !
@@ -1740,16 +1591,12 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'card_external_charges'
         !
         !--------------------------------------------------------------------------------
-        !
-        CALL io%header('Reading EXTERNAL_CHARGES card')
-        !
-        !--------------------------------------------------------------------------------
         ! Validate input
         !
-        IF (taextchg) CALL io%error(sub_name, 'Two occurrences', 2)
+        IF (taextchg) CALL io%error(sub_name, "Two occurrences", 2)
         !
         IF (env_external_charges > local_nsx) &
-            CALL io%error(sub_name, 'nsx out of range', env_external_charges)
+            CALL io%error(sub_name, "nsx out of range", env_external_charges)
         !
         CALL allocate_input_extcharge(env_external_charges)
         !
@@ -1761,11 +1608,11 @@ CONTAINS
             !
             IF (TRIM(ADJUSTL(input_line)) /= 'EXTERNAL_CHARGES') &
                 CALL io%error(sub_name, &
-                              'Invalid units for EXTERNAL_CHARGES: '//input_line, 1)
+                              "Invalid units for EXTERNAL_CHARGES: "//input_line, 1)
             !
             extcharge_units = 'bohr'
             !
-            CALL io%default('charge units', extcharge_units, 'default')
+            CALL io%writer("* setting external charge units to "//TRIM(extcharge_units))
             !
         END IF
         !
@@ -1776,7 +1623,7 @@ CONTAINS
             !
             CALL env_read_line(unit, input_line, end_of_file=tend)
             !
-            IF (tend) CALL io%error(sub_name, 'End of file reading external charges', ie)
+            IF (tend) CALL io%error(sub_name, "End of file reading external charges", ie)
             !
             CALL env_field_count(nfield, input_line)
             !
@@ -1812,10 +1659,10 @@ CONTAINS
                 READ (field_str, *) extcharge_spread(ie)
                 !
                 IF (extcharge_spread(ie) < 0.D0) &
-                    CALL io%error(sub_name, 'Spread must be positive', ie)
+                    CALL io%error(sub_name, "Spread must be positive", ie)
                 !
             ELSE
-                CALL io%default('charge spread', '0.5 (a.u.)', 'default')
+                CALL io%writer("* setting external charge spread to 0.5 (a.u.)")
             END IF
             !
             !----------------------------------------------------------------------------
@@ -1828,12 +1675,12 @@ CONTAINS
                 READ (field_str, *) extcharge_dim(ie)
                 !
                 IF (extcharge_dim(ie) < 0 .OR. extcharge_dim(ie) > 2) &
-                    CALL io%error(sub_name, 'Wrong excharge dimension', ie)
+                    CALL io%error(sub_name, "Wrong excharge dimension", ie)
                 !
                 IF (extcharge_dim(ie) > 0) THEN
                     !
                     IF (nfield == 6) THEN
-                        CALL io%default('axis', '3 (z-axis)', 'default')
+                        CALL io%writer("* setting external charge axis to 3 (z-axis)")
                     ELSE
                         !
                         CALL env_get_field(7, field_str, input_line)
@@ -1841,14 +1688,14 @@ CONTAINS
                         READ (field_str, *) extcharge_axis(ie)
                         !
                         IF (extcharge_axis(ie) < 0 .OR. extcharge_axis(ie) > 3) &
-                            CALL io%error(sub_name, 'Wrong excharge axis', ie)
+                            CALL io%error(sub_name, "Wrong excharge axis", ie)
                         !
                     END IF
                     !
                 END IF
                 !
             ELSE
-                CALL io%default('charge dimensions', '0', 'default')
+                CALL io%writer("* setting external charge dimensions to 0D")
             END IF
             !
         END DO
@@ -1959,14 +1806,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%header('Reading DIELECTRIC_REGIONS card')
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (taepsreg) CALL io%error(sub_name, 'Two occurrences', 2)
+        IF (taepsreg) CALL io%error(sub_name, "Two occurrences", 2)
         !
         IF (env_dielectric_regions > local_nsx) &
-            CALL io%error(sub_name, 'nsx out of range', env_dielectric_regions)
+            CALL io%error(sub_name, "nsx out of range", env_dielectric_regions)
         !
         CALL allocate_input_epsregion(env_dielectric_regions)
         !
@@ -1978,11 +1821,12 @@ CONTAINS
             !
             IF (TRIM(ADJUSTL(input_line)) /= 'DIELECTRIC_REGIONS') &
                 CALL io%error(sub_name, &
-                              'Invalid units for DIELECTRIC_REGIONS: '//input_line, 1)
+                              "Invalid units for DIELECTRIC_REGIONS: "//input_line, 1)
             !
             epsregion_units = 'bohr'
             !
-            CALL io%default('region units', epsregion_units, 'default')
+            CALL io%writer("* setting dielectric region units to "// &
+                           TRIM(epsregion_units))
             !
         END IF
         !
@@ -1994,7 +1838,7 @@ CONTAINS
             CALL env_read_line(unit, input_line, end_of_file=tend)
             !
             IF (tend) &
-                CALL io%error(sub_name, 'End of file reading dielectric regions', ie)
+                CALL io%error(sub_name, "End of file reading dielectric regions", ie)
             !
             CALL env_field_count(nfield, input_line)
             !
@@ -2006,14 +1850,14 @@ CONTAINS
             READ (field_str, *) epsregion_eps(1, ie)
             !
             IF (epsregion_eps(1, ie) < 1.D0) &
-                CALL io%error(sub_name, 'Static permittivity must be > 1', ie)
+                CALL io%error(sub_name, "Static permittivity must be > 1", ie)
             !
             CALL env_get_field(2, field_str, input_line)
             !
             READ (field_str, *) epsregion_eps(2, ie)
             !
             IF (epsregion_eps(2, ie) < 1.D0) &
-                CALL io%error(sub_name, 'Optical permittivity must be > 1', ie)
+                CALL io%error(sub_name, "Optical permittivity must be > 1", ie)
             !
             !----------------------------------------------------------------------------
             ! Read fields 3-5 (x-y-z position of dielectric region)
@@ -2038,7 +1882,7 @@ CONTAINS
             READ (field_str, *) epsregion_width(ie)
             !
             IF (epsregion_width(ie) < 0.D0) &
-                CALL io%error(sub_name, 'Width must be positive', ie)
+                CALL io%error(sub_name, "Width must be positive", ie)
             !
             !----------------------------------------------------------------------------
             ! Optionally read field 7 (spread of interface of the dielectric region)
@@ -2050,10 +1894,10 @@ CONTAINS
                 READ (field_str, *) epsregion_spread(ie)
                 !
                 IF (epsregion_spread(ie) < 0.D0) &
-                    CALL io%error(sub_name, 'Spread must be positive', ie)
+                    CALL io%error(sub_name, "Spread must be positive", ie)
                 !
             ELSE
-                CALL io%default('region spread', '0.5 (a.u.)', 'default')
+                CALL io%writer("* setting dielectric region spread to 0.5 (a.u.)")
             END IF
             !
             !----------------------------------------------------------------------------
@@ -2066,12 +1910,12 @@ CONTAINS
                 READ (field_str, *) epsregion_dim(ie)
                 !
                 IF (epsregion_dim(ie) < 0 .OR. epsregion_dim(ie) > 2) &
-                    CALL io%error(sub_name, 'Wrong epsregion dimension', ie)
+                    CALL io%error(sub_name, "Wrong epsregion dimension", ie)
                 !
                 IF (epsregion_dim(ie) > 0) THEN
                     !
                     IF (nfield == 8) THEN
-                        CALL io%default('axis', '3 (z-axis)', 'default')
+                        CALL io%writer("* setting dielectric region axis to 3 (z-axis)")
                     ELSE
                         !
                         CALL env_get_field(9, field_str, input_line)
@@ -2079,14 +1923,14 @@ CONTAINS
                         READ (field_str, *) epsregion_axis(ie)
                         !
                         IF (epsregion_axis(ie) < 1 .OR. epsregion_axis(ie) > 3) &
-                            CALL io%error(sub_name, 'Wrong epsregion axis', ie)
+                            CALL io%error(sub_name, "Wrong epsregion axis", ie)
                         !
                     END IF
                     !
                 END IF
                 !
             ELSE
-                CALL io%default('region dimensions', '0', 'default')
+                CALL io%writer("* setting dielectric region dimensions to 0D")
             END IF
             !
         END DO
@@ -2184,7 +2028,7 @@ CONTAINS
             length = length / BOHR_RADIUS_ANGS ! length in A: convert to a.u.
             !
         CASE DEFAULT
-            CALL io%error(sub_name, TRIM(length_format)//' units not implemented', 1)
+            CALL io%error(sub_name, TRIM(length_format)//" units not implemented", 1)
             !
         END SELECT
         !
@@ -2214,7 +2058,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (LEN(line) < 256) &
-            CALL io%error(sub_name, 'Input line too short', MAX(LEN(line), 1))
+            CALL io%error(sub_name, "Input line too short", MAX(LEN(line), 1))
         !
         tend = .FALSE.
         terr = .FALSE.
@@ -2352,7 +2196,7 @@ CONTAINS
         !
         CALL env_field_count(nc, str)
         !
-        IF (nc < nf) CALL io%error(sub_name, 'Wrong number of fields: '//TRIM(var), 1)
+        IF (nc < nf) CALL io%error(sub_name, "Wrong number of fields: "//TRIM(var), 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_field_compare

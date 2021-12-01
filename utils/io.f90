@@ -161,7 +161,7 @@ CONTAINS
             !
         END DO unit_loop
         !
-        CALL env_warning('free unit not found?!?')
+        CALL env_warning("free unit not found?!?")
         !
         !--------------------------------------------------------------------------------
     END FUNCTION env_find_free_unit
@@ -313,7 +313,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        CALL io%error(routine, 'Trying to create an existing object', 1)
+        CALL io%error(routine, "Trying to create an existing object", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_create_error
@@ -332,7 +332,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        CALL io%error(routine, 'Trying to destroy an empty object', 1)
+        CALL io%error(routine, "Trying to destroy an empty object", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_destroy_error
@@ -396,15 +396,19 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: lblank
+        LOGICAL, INTENT(IN), OPTIONAL :: lblank
+        !
+        LOGICAL :: local_blank = .FALSE.
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
         !
+        IF (PRESENT(lblank)) local_blank = lblank
+        !
         WRITE (io%unit, FMT=1)
         !
-        IF (lblank) WRITE (io%unit, *) ! blank line
+         IF (local_blank) WRITE (io%unit, *) ! blank line
         !
 1       FORMAT(/, 5X, 80('='))
         !
@@ -426,7 +430,9 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        WRITE (io%unit, '(/,5X,A)') TRIM(message)
+        WRITE (io%unit, *)
+        !
+        CALL io%writer(message)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_header
