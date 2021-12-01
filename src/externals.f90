@@ -68,13 +68,12 @@ MODULE class_externals
         !
         TYPE(environ_density) :: density
         !
-        CLASS(environ_function), ALLOCATABLE :: functions(:)
+        TYPE(environ_functions) :: functions
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create => create_environ_externals
         PROCEDURE :: init => init_environ_externals
         PROCEDURE :: update => update_environ_externals
         PROCEDURE :: destroy => destroy_environ_externals
@@ -97,57 +96,29 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_externals(this)
+    SUBROUTINE init_environ_externals(this, n, dims, axes, pos, spreads, charges, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_externals), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_externals'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ALLOCATED(this%functions)) CALL io%create_error(sub_name)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_environ_externals
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_externals(this, nexternals, dims, axes, pos, spreads, &
-                                      charges, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: nexternals
-        INTEGER, DIMENSION(nexternals), INTENT(IN) :: dims, axes
-        REAL(DP), DIMENSION(nexternals), INTENT(IN) :: spreads, charges
-        REAL(DP), INTENT(IN) :: pos(3, nexternals)
+        INTEGER, INTENT(IN) :: n
+        INTEGER, DIMENSION(n), INTENT(IN) :: dims, axes
+        REAL(DP), DIMENSION(n), INTENT(IN) :: spreads, charges
+        REAL(DP), INTENT(IN) :: pos(3, n)
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
-        !
-        TYPE(environ_function_gaussian) :: fsrc
         !
         CHARACTER(LEN=80) :: local_label = 'externals'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%create()
-        !
         CALL this%density%init(cell, local_label)
         !
-        this%number = nexternals
+        this%number = n
         !
-        IF (this%number > 0) THEN
-            !
-            CALL init_environ_functions(this%functions, fsrc, nexternals, 1, axes, &
-                                        dims, spreads, spreads, -charges, pos)
-            !
-        END IF
+        IF (n > 0) &
+            CALL this%functions%init(n, 1, axes, dims, spreads, spreads, -charges, pos)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_externals
@@ -164,7 +135,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL density_of_functions(this%functions, this%number, this%density, .TRUE.)
+        CALL this%functions%density(this%density, .TRUE.)
         !
         this%charge = this%density%integrate()
         !
@@ -190,7 +161,7 @@ CONTAINS
         !
         CALL this%density%destroy()
         !
-        CALL destroy_environ_functions(this%functions, this%number)
+        CALL this%functions%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_externals
@@ -267,8 +238,7 @@ CONTAINS
             !
             IF (local_verbose >= 3) THEN
                 !
-                CALL print_environ_functions(this%functions, this%number, &
-                                             passed_verbose, debug_verbose, local_unit)
+                CALL this%functions%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
                 !

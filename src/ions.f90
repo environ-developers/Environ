@@ -47,7 +47,6 @@ MODULE class_ions
     USE class_cell
     USE class_density
     USE class_function
-    USE class_function_gaussian
     USE class_functions
     !
     USE class_iontype
@@ -83,14 +82,14 @@ MODULE class_ions
         ! needed by electrostatic calculations
         !
         LOGICAL :: use_smeared_ions = .FALSE.
-        CLASS(environ_function), ALLOCATABLE :: smeared_ions(:)
+        TYPE(environ_functions) :: smeared_ions
         TYPE(environ_density) :: density
         !
         !--------------------------------------------------------------------------------
         ! Parameters of the density of core electrons
         !
         LOGICAL :: use_core_electrons = .FALSE.
-        CLASS(environ_function), ALLOCATABLE :: core_electrons(:)
+        TYPE(environ_functions) :: core_electrons
         TYPE(environ_density) :: core
         !
         REAL(DP) :: charge = 0.D0
@@ -157,10 +156,6 @@ CONTAINS
         !
         IF (ALLOCATED(this%iontype)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%smeared_ions)) CALL io%create_error(sub_name)
-        !
-        IF (ALLOCATED(this%core_electrons)) CALL io%create_error(sub_name)
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_ions
     !------------------------------------------------------------------------------------
@@ -193,8 +188,6 @@ CONTAINS
         CHARACTER(LEN=3), ALLOCATABLE :: labels(:)
         REAL(DP), ALLOCATABLE :: atomic_spreads(:), core_spreads(:)
         REAL(DP), ALLOCATABLE :: solvation_radii(:), ionic_charges(:)
-        !
-        TYPE(environ_function_gaussian) :: fsrc
         !
         CHARACTER(LEN=20) :: local_item
         CHARACTER(LEN=80) :: local_label
@@ -265,9 +258,8 @@ CONTAINS
             !
             CALL this%get_iontype_array(atomic_spreads, local_item)
             !
-            CALL init_environ_functions(this%smeared_ions, fsrc, this%number, 1, &
-                                        axes, dims, widths, atomic_spreads, &
-                                        ionic_charges, this%tau)
+            CALL this%smeared_ions%init(this%number, 1, axes, dims, widths, &
+                                        atomic_spreads, ionic_charges, this%tau)
             !
             DEALLOCATE (atomic_spreads)
         END IF
@@ -289,9 +281,9 @@ CONTAINS
             !
             CALL this%get_iontype_array(core_spreads, local_item)
             !
-            CALL init_environ_functions(this%core_electrons, fsrc, this%number, 1, &
-                                        axes, dims, widths, core_spreads, &
-                                        ionic_charges, this%tau)
+            CALL this%core_electrons%init(this%number, 1, axes, dims, widths, &
+                                          core_spreads, -ionic_charges, this%tau)
+
             !
             DEALLOCATE (core_spreads)
         END IF
@@ -353,9 +345,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! If needed, generate a fictitious ion density using gaussians
         !
-        IF (this%use_smeared_ions) &
-            CALL density_of_functions(this%smeared_ions, this%number, &
-                                      this%density, .TRUE.)
+        IF (this%use_smeared_ions) CALL this%smeared_ions%density(this%density, .TRUE.)
         !
         !--------------------------------------------------------------------------------
         ! Compute quadrupole moment of point-like (and gaussian) nuclei
@@ -422,7 +412,7 @@ CONTAINS
             !
             CALL this%density%destroy()
             !
-            CALL destroy_environ_functions(this%smeared_ions, this%number)
+            CALL this%smeared_ions%destroy()
             !
         END IF
         !
@@ -430,7 +420,7 @@ CONTAINS
             !
             CALL this%core%destroy()
             !
-            CALL destroy_environ_functions(this%core_electrons, this%number)
+            CALL this%core_electrons%destroy()
             !
         END IF
         !
@@ -681,9 +671,8 @@ CONTAINS
                     CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
                     !
                     IF (local_verbose >= 4) &
-                        CALL print_environ_functions(this%smeared_ions, this%number, &
-                                                     passed_verbose, debug_verbose, &
-                                                     local_unit)
+                        CALL this%smeared_ions%printout(passed_verbose, debug_verbose, &
+                                                        local_unit)
                     !
                 END IF
                 !
@@ -694,9 +683,8 @@ CONTAINS
                                                 local_unit)
                     !
                     IF (local_verbose >= 5) &
-                        CALL print_environ_functions(this%core_electrons, this%number, &
-                                                     passed_verbose, debug_verbose, &
-                                                     local_unit)
+                        CALL this%core_electrons%printout(passed_verbose, debug_verbose, &
+                                                          local_unit)
                     !
                 END IF
                 !

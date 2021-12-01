@@ -60,10 +60,10 @@ MODULE class_function_erfc
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: density => density_of_function_erfc
-        PROCEDURE :: gradient => gradient_of_function_erfc
-        PROCEDURE :: laplacian => laplacian_of_function_erfc
-        PROCEDURE :: hessian => hessian_of_function_erfc
+        PROCEDURE :: density => density_of_function
+        PROCEDURE :: gradient => gradient_of_function
+        PROCEDURE :: laplacian => laplacian_of_function
+        PROCEDURE :: hessian => hessian_of_function
         !
         PROCEDURE, PRIVATE :: get_charge
         PROCEDURE, PRIVATE :: erfcvolume
@@ -84,7 +84,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function_erfc(this, density, zero)
+    SUBROUTINE density_of_function(this, density, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -99,15 +99,23 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'density_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, 'Wrong value of axis', 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (this%f_type == 4) THEN
             density%of_r = this%volume
         ELSE IF (PRESENT(zero)) THEN
             IF (zero) density%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => density%cell, &
                    pos => this%pos, &
@@ -116,7 +124,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -124,6 +133,8 @@ CONTAINS
             scale = local_charge / chargeanalytic * 0.5D0
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
+            !
+            !----------------------------------------------------------------------------
             !
             ALLOCATE (local(cell%nnr))
             local = 0.D0
@@ -162,12 +173,12 @@ CONTAINS
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE density_of_function_erfc
+    END SUBROUTINE density_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function_erfc(this, gradient, zero)
+    SUBROUTINE gradient_of_function(this, gradient, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -182,13 +193,21 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, 'Wrong value of axis', 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) gradient%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => gradient%cell, &
                    pos => this%pos, &
@@ -197,7 +216,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -205,6 +225,8 @@ CONTAINS
             scale = local_charge / chargeanalytic / sqrtpi / spread
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
+            !
+            !----------------------------------------------------------------------------
             !
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
@@ -230,12 +252,12 @@ CONTAINS
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE gradient_of_function_erfc
+    END SUBROUTINE gradient_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function_erfc(this, laplacian, zero)
+    SUBROUTINE laplacian_of_function(this, laplacian, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -250,13 +272,21 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: lapllocal(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, 'Wrong value of axis', 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) laplacian%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => laplacian%cell, &
                    pos => this%pos, &
@@ -265,7 +295,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -273,6 +304,8 @@ CONTAINS
             scale = local_charge / chargeanalytic / sqrtpi / spread
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
+            !
+            !----------------------------------------------------------------------------
             !
             ALLOCATE (lapllocal(cell%nnr))
             lapllocal = 0.D0
@@ -320,12 +353,12 @@ CONTAINS
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE laplacian_of_function_erfc
+    END SUBROUTINE laplacian_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function_erfc(this, hessian, zero)
+    SUBROUTINE hessian_of_function(this, hessian, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -340,13 +373,21 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, tmp, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: hesslocal(:, :, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, 'Wrong value of axis', 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) hessian%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => hessian%cell, &
                    pos => this%pos, &
@@ -355,7 +396,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -363,6 +405,8 @@ CONTAINS
             scale = local_charge / chargeanalytic / sqrtpi / spread
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
+            !
+            !----------------------------------------------------------------------------
             !
             ALLOCATE (hesslocal(3, 3, cell%nnr))
             hesslocal = 0.D0
@@ -404,7 +448,7 @@ CONTAINS
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE hessian_of_function_erfc
+    END SUBROUTINE hessian_of_function
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

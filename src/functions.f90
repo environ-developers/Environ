@@ -41,7 +41,6 @@ MODULE class_functions
     !
     USE environ_param, ONLY: DP
     !
-    USE class_cell
     USE class_density
     USE class_function
     USE class_function_erfc
@@ -55,9 +54,37 @@ MODULE class_functions
     !
     PRIVATE
     !
-    PUBLIC :: init_environ_functions, copy_environ_functions, &
-              destroy_environ_functions, density_of_functions, gradient_of_functions, &
-              laplacian_of_functions, hessian_of_functions, print_environ_functions
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    TYPE, PUBLIC :: environ_functions
+        !--------------------------------------------------------------------------------
+        !
+        INTEGER :: number = 0
+        INTEGER :: f_type
+        !
+        CLASS(environ_function), ALLOCATABLE :: array(:)
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE, PRIVATE :: create => create_environ_functions
+        PROCEDURE :: init => init_environ_functions
+        PROCEDURE :: copy => copy_environ_functions
+        PROCEDURE :: destroy => destroy_environ_functions
+        !
+        PROCEDURE :: density => density_of_functions
+        PROCEDURE :: gradient => gradient_of_functions
+        PROCEDURE :: laplacian => laplacian_of_functions
+        PROCEDURE :: hessian => hessian_of_functions
+        !
+        PROCEDURE :: printout => print_environ_functions
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE environ_functions
+    !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -71,20 +98,38 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_functions(f, fsrc, n, type_in, axis_in, dim_in, width_in, &
-                                      spread_in, volume_in, pos_in)
+    SUBROUTINE create_environ_functions(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function), INTENT(IN) :: fsrc
-        INTEGER, INTENT(IN) :: n
-        INTEGER, INTENT(IN) :: type_in
-        INTEGER, DIMENSION(n), INTENT(IN) :: dim_in, axis_in
-        REAL(DP), DIMENSION(n), INTENT(IN) :: width_in, spread_in, volume_in
-        REAL(DP), TARGET, INTENT(IN) :: pos_in(3, n)
+        CLASS(environ_functions), INTENT(INOUT) :: this
         !
-        CLASS(environ_function), ALLOCATABLE, INTENT(INOUT) :: f(:)
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_functions'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ALLOCATED(this%array)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_functions
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_environ_functions(this, n, f_type, f_axis, f_dim, f_width, &
+                                      f_spread, f_volume, f_pos)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: n
+        INTEGER, INTENT(IN) :: f_type
+        INTEGER, DIMENSION(n), INTENT(IN) :: f_dim, f_axis
+        REAL(DP), DIMENSION(n), INTENT(IN) :: f_width, f_spread, f_volume
+        REAL(DP), TARGET, INTENT(IN) :: f_pos(3, n)
+        !
+        CLASS(environ_functions), INTENT(INOUT) :: this
         !
         INTEGER :: i
         !
@@ -92,27 +137,33 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(f)) CALL io%create_error(sub_name)
+        CALL this%create()
         !
         !--------------------------------------------------------------------------------
+        ! Cast function as concrete type
         !
-        SELECT TYPE (fsrc)
+        SELECT CASE (f_type)
             !
-        TYPE IS (environ_function_gaussian)
-            ALLOCATE (environ_function_gaussian :: f(n))
+        CASE (1)
+            ALLOCATE (environ_function_gaussian :: this%array(n))
             !
-        TYPE IS (environ_function_erfc)
-            ALLOCATE (environ_function_erfc :: f(n))
+        CASE (2, 3, 4)
+            ALLOCATE (environ_function_erfc :: this%array(n))
             !
-        CLASS DEFAULT
+        CASE DEFAULT
             CALL io%error(sub_name, "Unexpected function type", 1)
             !
         END SELECT
         !
-        DO i = 1, n
+        !--------------------------------------------------------------------------------
+        !
+        this%number = n
+        this%f_type = f_type
+        !
+        DO i = 1, this%number
             !
-            CALL f(i)%init(type_in, axis_in(i), dim_in(i), width_in(i), spread_in(i), &
-                           volume_in(i), pos_in(:, i))
+            CALL this%array(i)%init(f_type, f_axis(i), f_dim(i), f_width(i), &
+                                    f_spread(i), f_volume(i), f_pos(:, i))
             !
         END DO
         !
@@ -122,15 +173,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_functions(f, n, copy)
+    SUBROUTINE copy_environ_functions(this, copy)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
-        CLASS(environ_function), ALLOCATABLE, INTENT(IN) :: f(:)
+        CLASS(environ_functions), INTENT(IN) :: this
         !
-        CLASS(environ_function), ALLOCATABLE, INTENT(OUT) :: copy(:)
+        CLASS(environ_functions), INTENT(OUT) :: copy
         !
         INTEGER :: i
         !
@@ -138,21 +188,29 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (f)
+        IF (.NOT. ALLOCATED(this%array)) &
+            CALL io%error(sub_name, "Trying to copy an empty object", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! Cast function as concrete type
+        !
+        SELECT CASE (this%f_type)
             !
-        TYPE IS (environ_function_gaussian)
-            ALLOCATE (environ_function_gaussian :: copy(n))
+        CASE (1)
+            ALLOCATE (environ_function_gaussian :: copy%array(this%number))
             !
-        TYPE IS (environ_function_erfc)
-            ALLOCATE (environ_function_erfc :: copy(n))
+        CASE (2, 3, 4)
+            ALLOCATE (environ_function_erfc :: copy%array(this%number))
             !
-        CLASS DEFAULT
+        CASE DEFAULT
             CALL io%error(sub_name, "Unexpected function type", 1)
             !
         END SELECT
         !
-        DO i = 1, n
-            CALL f(i)%copy(copy(i))
+        !--------------------------------------------------------------------------------
+        !
+        DO i = 1, this%number
+            CALL this%array(i)%copy(copy%array(i))
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -161,14 +219,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_functions(f, n)
+    SUBROUTINE destroy_environ_functions(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
-        !
-        CLASS(environ_function), ALLOCATABLE, INTENT(INOUT) :: f(:)
+        CLASS(environ_functions), INTENT(INOUT) :: this
         !
         INTEGER :: i
         !
@@ -176,18 +232,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALLOCATED(f)) CALL io%destroy_error(sub_name)
-        !
-        IF (SIZE(f) /= n) &
-            CALL io%error(sub_name, 'Inconsistent size of allocated object', 1)
+        IF (.NOT. ALLOCATED(this%array)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
-        DO i = 1, n
-            CALL f(i)%destroy()
+        DO i = 1, this%number
+            CALL this%array(i)%destroy()
         END DO
         !
-        DEALLOCATE (f)
+        DEALLOCATE (this%array)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_functions
@@ -201,14 +254,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_functions(f, n, density, zero)
+    SUBROUTINE density_of_functions(this, density, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
+        CLASS(environ_functions), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
-        CLASS(environ_function), INTENT(IN) :: f(:)
         !
         TYPE(environ_density), INTENT(INOUT) :: density
         !
@@ -220,8 +272,8 @@ CONTAINS
             IF (zero) density%of_r = 0.D0
         END IF
         !
-        DO i = 1, n
-            CALL f(i)%density(density)
+        DO i = 1, this%number
+            CALL this%array(i)%density(density)
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -230,14 +282,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_functions(f, n, gradient, zero)
+    SUBROUTINE gradient_of_functions(this, gradient, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
+        CLASS(environ_functions), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
-        CLASS(environ_function), INTENT(IN) :: f(:)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
@@ -249,8 +300,8 @@ CONTAINS
             IF (zero) gradient%of_r = 0.D0
         END IF
         !
-        DO i = 1, n
-            CALL f(i)%gradient(gradient)
+        DO i = 1, this%number
+            CALL this%array(i)%gradient(gradient)
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -259,20 +310,17 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_functions(f, n, laplacian, zero)
+    SUBROUTINE laplacian_of_functions(this, laplacian, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
+        CLASS(environ_functions), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
-        CLASS(environ_function), INTENT(IN) :: f(:)
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
         INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_functions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -280,8 +328,8 @@ CONTAINS
             IF (zero) laplacian%of_r = 0.D0
         END IF
         !
-        DO i = 1, n
-            CALL f(i)%laplacian(laplacian)
+        DO i = 1, this%number
+            CALL this%array(i)%laplacian(laplacian)
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -290,20 +338,17 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_functions(f, n, hessian, zero)
+    SUBROUTINE hessian_of_functions(this, hessian, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
+        CLASS(environ_functions), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
-        CLASS(environ_function), INTENT(IN) :: f(:)
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
         INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'hessian_of_functions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -311,10 +356,9 @@ CONTAINS
             IF (zero) hessian%of_r = 0.D0
         END IF
         !
-        DO i = 1, n
-            CALL f(i)%hessian(hessian)
+        DO i = 1, this%number
+            CALL this%array(i)%hessian(hessian)
         END DO
-        !
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_functions
@@ -335,13 +379,12 @@ CONTAINS
     !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_functions(f, n, verbose, debug_verbose, unit)
+    SUBROUTINE print_environ_functions(this, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
-        CLASS(environ_function), INTENT(IN) :: f(:)
+        CLASS(environ_functions), INTENT(IN) :: this
         INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit, i
@@ -394,11 +437,15 @@ CONTAINS
             WRITE (local_unit, 1002) ! legend
             WRITE (local_unit, 1003) ! table headers
             !
-            DO i = 1, n
+            DO i = 1, this%number
                 !
-                WRITE (local_unit, 1004) &
-                    i, f(i)%f_type, f(i)%dim, f(i)%axis, f(i)%width, f(i)%spread, &
-                    f(i)%volume, f(i)%pos
+                ASSOCIATE (array => this%array)
+                    !
+                    WRITE (local_unit, 1004) &
+                        i, array(i)%f_type, array(i)%dim, array(i)%axis, &
+                        array(i)%width, array(i)%spread, array(i)%volume, array(i)%pos
+                    !
+                END ASSOCIATE
                 !
             END DO
             !

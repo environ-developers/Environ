@@ -46,6 +46,7 @@ core.o : constants.o
 core.o : density.o
 core.o : electrolyte_base.o
 core.o : function.o
+core.o : functions.o
 core.o : gradient.o
 core.o : hessian.o
 core.o : semiconductor_base.o
@@ -56,8 +57,7 @@ core_1da.o : constants.o
 core_1da.o : core.o
 core_1da.o : density.o
 core_1da.o : electrolyte_base.o
-core_1da.o : function.o
-core_1da.o : function_gaussian.o
+core_1da.o : functions.o
 core_1da.o : gradient.o
 core_1da.o : semiconductor_base.o
 core_container.o : ../utils/io.o
@@ -70,8 +70,7 @@ core_fft.o : cell.o
 core_fft.o : constants.o
 core_fft.o : core.o
 core_fft.o : density.o
-core_fft.o : function.o
-core_fft.o : function_gaussian.o
+core_fft.o : functions.o
 core_fft.o : gradient.o
 core_fft.o : hessian.o
 cube.o : ../utils/io.o
@@ -168,7 +167,6 @@ function_gaussian.o : function.o
 function_gaussian.o : gradient.o
 function_gaussian.o : hessian.o
 functions.o : ../utils/io.o
-functions.o : cell.o
 functions.o : constants.o
 functions.o : density.o
 functions.o : function.o
@@ -202,7 +200,6 @@ ions.o : cell.o
 ions.o : constants.o
 ions.o : density.o
 ions.o : function.o
-ions.o : function_gaussian.o
 ions.o : functions.o
 ions.o : iontype.o
 iontype.o : ../utils/char_ops.o

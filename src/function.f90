@@ -75,42 +75,13 @@ MODULE class_function
         PROCEDURE :: copy => copy_environ_function
         PROCEDURE :: destroy => destroy_environ_function
         !
-        PROCEDURE(get_density), DEFERRED :: density
-        PROCEDURE(get_gradient), DEFERRED :: gradient
-        PROCEDURE(get_laplacian), DEFERRED :: laplacian
-        PROCEDURE(get_hessian), DEFERRED :: hessian
+        PROCEDURE :: density => density_of_function
+        PROCEDURE :: gradient => gradient_of_function
+        PROCEDURE :: laplacian => laplacian_of_function
+        PROCEDURE :: hessian => hessian_of_function
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function
-    !------------------------------------------------------------------------------------
-    !
-    ABSTRACT INTERFACE
-        SUBROUTINE get_density(this, density, zero)
-            IMPORT environ_function, environ_density
-            CLASS(environ_function), TARGET, INTENT(IN) :: this
-            LOGICAL, INTENT(IN), OPTIONAL :: zero
-            TYPE(environ_density), TARGET, INTENT(INOUT) :: density
-        END SUBROUTINE
-        SUBROUTINE get_gradient(this, gradient, zero)
-            IMPORT environ_function, environ_gradient
-            CLASS(environ_function), TARGET, INTENT(IN) :: this
-            LOGICAL, INTENT(IN), OPTIONAL :: zero
-            TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
-        END SUBROUTINE
-        SUBROUTINE get_laplacian(this, laplacian, zero)
-            IMPORT environ_function, environ_density
-            CLASS(environ_function), TARGET, INTENT(IN) :: this
-            LOGICAL, INTENT(IN), OPTIONAL :: zero
-            TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
-        END SUBROUTINE
-        SUBROUTINE get_hessian(this, hessian, zero)
-            IMPORT environ_function, environ_hessian
-            CLASS(environ_function), TARGET, INTENT(IN) :: this
-            LOGICAL, INTENT(IN), OPTIONAL :: zero
-            TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
-        END SUBROUTINE
-    END INTERFACE
-    !
     !------------------------------------------------------------------------------------
     !
     REAL(DP), PUBLIC, PARAMETER :: func_tol = 1.D-10
@@ -147,15 +118,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_function(this, type_in, axis, dim_in, width, spread_in, &
-                                     volume_in, pos)
+    SUBROUTINE init_environ_function(this, f_type, f_axis, f_dim, f_width, f_spread, &
+                                     f_volume, f_pos)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: type_in, dim_in, axis
-        REAL(DP), INTENT(IN) :: width, spread_in, volume_in
-        REAL(DP), TARGET, INTENT(IN), OPTIONAL :: pos(:)
+        INTEGER, INTENT(IN) :: f_type, f_dim, f_axis
+        REAL(DP), INTENT(IN) :: f_width, f_spread, f_volume
+        REAL(DP), TARGET, INTENT(IN), OPTIONAL :: f_pos(:)
         !
         CLASS(environ_function), INTENT(INOUT) :: this
         !
@@ -163,15 +134,15 @@ CONTAINS
         !
         CALL this%create()
         !
-        this%f_type = type_in
-        this%dim = dim_in
-        this%axis = axis
-        this%spread = spread_in
-        this%width = width
-        this%volume = volume_in
+        this%f_type = f_type
+        this%dim = f_dim
+        this%axis = f_axis
+        this%spread = f_spread
+        this%width = f_width
+        this%volume = f_volume
         !
-        IF (PRESENT(pos)) THEN
-            this%pos => pos
+        IF (PRESENT(f_pos)) THEN
+            this%pos => f_pos
         ELSE
             ALLOCATE (this%pos(3))
             this%pos = 0.D0
@@ -224,6 +195,100 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_function
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  FUNCTION METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE density_of_function(this, density, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        !
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: density
+        !
+        CHARACTER(LEN=80) :: sub_name = 'density_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, 'Not implemented', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE density_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE gradient_of_function(this, gradient, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        !
+        TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
+        !
+        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, 'Not implemented', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE gradient_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE laplacian_of_function(this, laplacian, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        !
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
+        !
+        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, 'Not implemented', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE laplacian_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE hessian_of_function(this, hessian, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        !
+        TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
+        !
+        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, 'Not implemented', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE hessian_of_function
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

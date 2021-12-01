@@ -37,6 +37,7 @@ MODULE class_core
     USE class_density
     USE class_gradient
     USE class_function
+    USE class_functions
     USE class_hessian
     !
     USE class_electrolyte_base
@@ -360,7 +361,7 @@ CONTAINS
         CLASS(environ_core), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN) :: nat
         TYPE(environ_density), INTENT(IN) :: rho
-        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
+        TYPE(environ_functions), TARGET, INTENT(IN) :: ions
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
@@ -483,7 +484,7 @@ CONTAINS
         !
         CLASS(environ_core), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN) :: nat
-        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
+        TYPE(environ_functions), TARGET, INTENT(IN) :: ions
         TYPE(environ_density), INTENT(IN) :: auxiliary
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)

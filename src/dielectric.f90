@@ -75,7 +75,7 @@ MODULE class_dielectric
         ! Basic properties of the dielectric space from input
         !
         INTEGER :: nregions = 0
-        CLASS(environ_function), ALLOCATABLE :: regions(:)
+        TYPE(environ_functions) :: regions
         !
         REAL(DP) :: constant = 1.0_DP
         TYPE(environ_density) :: background
@@ -165,8 +165,6 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'create_environ_dielectric'
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (ALLOCATED(this%regions)) CALL io%create_error(sub_name)
         !
         IF (ASSOCIATED(this%boundary)) CALL io%create_error(sub_name)
         !
@@ -275,29 +273,22 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_dielectric_regions(this, nregions, dims, axes, pos, widths, &
+    SUBROUTINE set_dielectric_regions(this, n, dims, axes, pos, widths, &
                                       spreads, eps)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nregions
-        INTEGER, DIMENSION(nregions), INTENT(IN) :: dims, axes
-        REAL(DP), DIMENSION(nregions), INTENT(IN) :: widths, spreads, eps
-        REAL(DP), INTENT(IN) :: pos(3, nregions)
+        INTEGER, INTENT(IN) :: n
+        INTEGER, DIMENSION(n), INTENT(IN) :: dims, axes
+        REAL(DP), DIMENSION(n), INTENT(IN) :: widths, spreads, eps
+        REAL(DP), INTENT(IN) :: pos(3, n)
         !
         CLASS(environ_dielectric), INTENT(INOUT) :: this
         !
-        TYPE(environ_function_erfc) :: fsrc
-        !
         !--------------------------------------------------------------------------------
         !
-        IF (nregions > 0) THEN
-            !
-            CALL init_environ_functions(this%regions, fsrc, nregions, 3, axes, dims, &
-                                        widths, spreads, eps, pos)
-            !
-        END IF
+        IF (n > 0) CALL this%regions%init(n, 3, axes, dims, widths, spreads, eps, pos)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_dielectric_regions
@@ -376,10 +367,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (this%nregions > 0) THEN
-            CALL destroy_environ_functions(this%regions, this%nregions)
+            CALL this%regions%destroy()
         ELSE
             !
-            IF (ALLOCATED(this%regions)) &
+            IF (this%regions%number /= 0) &
                 CALL io%error(sub_name, 'Found unexpected allocated object', 1)
             !
         END IF
@@ -780,13 +771,16 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_dielectric), INTENT(INOUT) :: this
+        CLASS(environ_dielectric), TARGET, INTENT(INOUT) :: this
         !
         INTEGER :: i, ipol
         TYPE(environ_density) :: local
         TYPE(environ_gradient) :: gradlocal
         TYPE(environ_density) :: lapllocal
         TYPE(environ_cell), POINTER :: cell
+        !
+        CLASS(environ_function), POINTER :: region
+        REAL(DP), POINTER :: vol
         !
         !--------------------------------------------------------------------------------
         !
@@ -807,10 +801,12 @@ CONTAINS
         IF (this%need_factsqrt) CALL lapllocal%init(cell)
         !
         DO i = 1, this%nregions
+            region => this%regions%array(i)
+            vol => region%volume
             !
-            CALL this%regions(i)%density(local, .TRUE.)
+            CALL region%density(local, .TRUE.)
             !
-            CALL this%regions(i)%gradient(gradlocal, .TRUE.)
+            CALL region%gradient(gradlocal, .TRUE.)
             !
             !----------------------------------------------------------------------------
             ! Update background and derivatives in reverse order
@@ -820,33 +816,28 @@ CONTAINS
                 CALL this%gradbackground%scalar_product(gradlocal, lapllocal)
                 !
                 this%laplbackground%of_r = &
-                    this%laplbackground%of_r(:) * &
-                    (1.D0 - local%of_r(:) / this%regions(i)%volume) - &
-                    2.D0 * lapllocal%of_r / this%regions(i)%volume
+                    this%laplbackground%of_r(:) * (1.D0 - local%of_r(:) / vol) - &
+                    2.D0 * lapllocal%of_r / vol
                 !
-                CALL this%regions(i)%laplacian(lapllocal, .TRUE.)
+                CALL region%laplacian(lapllocal, .TRUE.)
                 !
                 this%laplbackground%of_r(:) = &
                     this%laplbackground%of_r(:) + &
-                    lapllocal%of_r(:) * (1.D0 - this%background%of_r(:) / &
-                                         this%regions(i)%volume)
+                    lapllocal%of_r(:) * (1.D0 - this%background%of_r(:) / vol)
                 !
             END IF
             !
             DO ipol = 1, 3
                 !
                 this%gradbackground%of_r(ipol, :) = &
-                    this%gradbackground%of_r(ipol, :) * &
-                    (1.D0 - local%of_r(:) / this%regions(i)%volume) + &
-                    gradlocal%of_r(ipol, :) * (1.D0 - this%background%of_r(:) / &
-                                               this%regions(i)%volume)
+                    this%gradbackground%of_r(ipol, :) * (1.D0 - local%of_r(:) / vol) + &
+                    gradlocal%of_r(ipol, :) * (1.D0 - this%background%of_r(:) / vol)
                 !
             END DO
             !
             this%background%of_r(:) = &
                 this%background%of_r(:) + &
-                local%of_r(:) * (1.D0 - this%background%of_r(:) / &
-                                 this%regions(i)%volume)
+                local%of_r(:) * (1.D0 - this%background%of_r(:) / vol)
             !
         END DO
         !
@@ -936,8 +927,7 @@ CONTAINS
                 !
                 IF (io%lnode) WRITE (local_unit, 1002) this%constant, this%nregions
                 !
-                CALL print_environ_functions(this%regions, this%nregions, &
-                                             passed_verbose, debug_verbose, local_unit)
+                CALL this%regions%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 IF (local_verbose >= 4) &
                     CALL this%background%printout(passed_verbose, debug_verbose, &

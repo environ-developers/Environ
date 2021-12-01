@@ -135,7 +135,7 @@ MODULE class_boundary
         !
         REAL(DP) :: alpha ! solvent-dependent scaling factor
         REAL(DP) :: softness ! sharpness of the interface
-        CLASS(environ_function), ALLOCATABLE :: soft_spheres(:)
+        TYPE(environ_functions) :: soft_spheres
         !
         !--------------------------------------------------------------------------------
         !
@@ -161,7 +161,7 @@ MODULE class_boundary
 
         TYPE(environ_density) :: normal_field
         REAL(DP), ALLOCATABLE :: ion_field(:)
-        CLASS(environ_function), ALLOCATABLE :: local_spheres(:)
+        TYPE(environ_functions) :: local_spheres
         TYPE(environ_density), ALLOCATABLE :: dion_field_drho(:)
         REAL(DP), ALLOCATABLE :: partial_of_ion_field(:, :, :)
         !
@@ -236,11 +236,7 @@ CONTAINS
         !
         IF (ASSOCIATED(this%cores)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%soft_spheres)) CALL io%create_error(sub_name)
-        !
         IF (ALLOCATED(this%ion_field)) CALL io%create_error(sub_name)
-        !
-        IF (ALLOCATED(this%local_spheres)) CALL io%create_error(sub_name)
         !
         IF (ALLOCATED(this%dion_field_drho)) CALL io%create_error(sub_name)
         !
@@ -374,7 +370,7 @@ CONTAINS
             ALLOCATE (this%ion_field(this%ions%number))
             ALLOCATE (this%dion_field_drho(this%ions%number))
             ALLOCATE (this%partial_of_ion_field(3, this%ions%number, this%ions%number))
-            ALLOCATE (environ_function_erfc :: this%local_spheres(this%ions%number))
+            ALLOCATE (environ_function_erfc :: this%local_spheres%array(this%ions%number))
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -560,20 +556,14 @@ CONTAINS
         IF (ASSOCIATED(this%normal_field%cell)) &
             CALL this%normal_field%copy(copy%normal_field)
         !
-        IF (ALLOCATED(this%soft_spheres)) THEN
-            n = SIZE(this%soft_spheres)
+        IF (this%soft_spheres%number /= 0) THEN
             !
-            IF (ALLOCATED(copy%soft_spheres)) THEN
-                m = SIZE(copy%soft_spheres)
-                !
-                CALL destroy_environ_functions(copy%soft_spheres, m)
-                !
-            END IF
+            IF (copy%soft_spheres%number /= 0) CALL copy%soft_spheres%destroy()
             !
-            CALL copy_environ_functions(this%soft_spheres, n, copy%soft_spheres)
+            CALL this%soft_spheres%copy(copy%soft_spheres)
             !
         ELSE
-            IF (ALLOCATED(copy%soft_spheres)) DEALLOCATE (copy%soft_spheres)
+            IF (copy%soft_spheres%number /= 0) DEALLOCATE (copy%soft_spheres%array)
         END IF
         !
         IF (ALLOCATED(this%ion_field)) THEN
@@ -667,8 +657,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Compute the ionic part
                 !
-                CALL density_of_functions(this%ions%core_electrons, this%ions%number, &
-                                          this%ions%core, .TRUE.)
+                CALL this%ions%core_electrons%density(this%ions%core, .TRUE.)
                 !
                 this%update_status = 1 ! waiting to finish update
             END IF
@@ -830,7 +819,7 @@ CONTAINS
         IF (this%need_ions) THEN
             IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
                 !
-                CALL destroy_environ_functions(this%soft_spheres, this%ions%number)
+                CALL this%soft_spheres%destroy()
                 !
                 IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
                     !
@@ -839,7 +828,7 @@ CONTAINS
                     DEALLOCATE (this%ion_field)
                     DEALLOCATE (this%partial_of_ion_field)
                     !
-                    CALL destroy_environ_functions(this%local_spheres, this%ions%number)
+                    CALL this%local_spheres%destroy()
                     !
                     DEALLOCATE (this%dion_field_drho)
                 END IF
@@ -1239,7 +1228,7 @@ CONTAINS
             !
             CALL local(i)%init(cell)
             !
-            CALL this%soft_spheres(i)%density(local(i), .FALSE.)
+            CALL this%soft_spheres%array(i)%density(local(i), .FALSE.)
             !
             this%scaled%of_r = this%scaled%of_r * local(i)%of_r
         END DO
@@ -1296,11 +1285,14 @@ CONTAINS
                 !
                 IF (deriv == 3) CALL hesslocal(i)%init(cell)
                 !
-                IF (deriv >= 1) CALL this%soft_spheres(i)%gradient(gradlocal(i), .FALSE.)
+                IF (deriv >= 1) &
+                    CALL this%soft_spheres%array(i)%gradient(gradlocal(i), .FALSE.)
                 !
-                IF (deriv == 2) CALL this%soft_spheres(i)%laplacian(lapllocal(i), .FALSE.)
+                IF (deriv == 2) &
+                    CALL this%soft_spheres%array(i)%laplacian(lapllocal(i), .FALSE.)
                 !
-                IF (deriv == 3) CALL this%soft_spheres(i)%hessian(hesslocal(i), .FALSE.)
+                IF (deriv == 3) &
+                    CALL this%soft_spheres%array(i)%hessian(hesslocal(i), .FALSE.)
                 !
             END DO
             !
@@ -1355,11 +1347,14 @@ CONTAINS
                 !
                 IF (deriv == 3) CALL hesslocal(i)%init(cell)
                 !
-                IF (deriv >= 1) CALL this%soft_spheres(i)%gradient(gradlocal(i), .FALSE.)
+                IF (deriv >= 1) &
+                    CALL this%soft_spheres%array(i)%gradient(gradlocal(i), .FALSE.)
                 !
-                IF (deriv == 2) CALL this%soft_spheres(i)%laplacian(lapllocal(i), .FALSE.)
+                IF (deriv == 2) &
+                    CALL this%soft_spheres%array(i)%laplacian(lapllocal(i), .FALSE.)
                 !
-                IF (deriv == 3) CALL this%soft_spheres(i)%hessian(hesslocal(i), .FALSE.)
+                IF (deriv == 3) &
+                    CALL this%soft_spheres%array(i)%hessian(hesslocal(i), .FALSE.)
                 !
             END DO
             !
@@ -1597,13 +1592,12 @@ CONTAINS
         IF (index <= 0) &
             CALL io%error(sub_name, 'Index of ion is zero or lower', 1)
         !
-        IF (this%mode == 'ionic' .AND. &
-            .NOT. ALLOCATED(this%soft_spheres)) &
+        IF (this%mode == 'ionic' .AND. this%soft_spheres%number == 0) &
             CALL io%error(sub_name, 'Missing details of ionic boundary', 1)
         !
         IF (this%mode == 'full') THEN
             !
-            IF (.NOT. ALLOCATED(this%ions%core_electrons)) &
+            IF (this%ions%core_electrons%number == 0) &
                 CALL io%error(sub_name, 'Missing details of core electrons', 1)
             !
             IF (.NOT. ASSOCIATED(this%dscaled%cell, cell)) &
@@ -1613,7 +1607,7 @@ CONTAINS
         !
         IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
             !
-            CALL this%soft_spheres(index)%gradient(partial, .TRUE.)
+            CALL this%soft_spheres%array(index)%gradient(partial, .TRUE.)
             !
             CALL local%init(cell)
             !
@@ -1621,7 +1615,7 @@ CONTAINS
                 !
                 IF (i == index) CYCLE
                 !
-                CALL this%soft_spheres(i)%density(local, .TRUE.)
+                CALL this%soft_spheres%array(i)%density(local, .TRUE.)
                 !
                 DO ipol = 1, 3
                     partial%of_r(ipol, :) = partial%of_r(ipol, :) * local%of_r(:)
@@ -1633,7 +1627,7 @@ CONTAINS
             !
         ELSE IF (this%mode == 'full') THEN
             !
-            CALL this%ions%core_electrons(index)%gradient(partial, .TRUE.)
+            CALL this%ions%core_electrons%array(index)%gradient(partial, .TRUE.)
             !
             DO ipol = 1, 3
                 partial%of_r(ipol, :) = -partial%of_r(ipol, :) * this%dscaled%of_r(:)
@@ -2049,8 +2043,6 @@ CONTAINS
         !
         REAL(DP), ALLOCATABLE :: radii(:)
         !
-        TYPE(environ_function_erfc) :: fsrc
-        !
         CHARACTER(LEN=20) :: local_item = 'solvationrad'
         !
         !--------------------------------------------------------------------------------
@@ -2064,8 +2056,8 @@ CONTAINS
         !
         radii = radii * this%alpha
         !
-        CALL init_environ_functions(this%soft_spheres, fsrc, this%ions%number, 4, &
-                                    axes, dims, radii, spreads, volumes, this%ions%tau)
+        CALL this%soft_spheres%init(this%ions%number, 4, axes, dims, radii, spreads, &
+                                    volumes, this%ions%tau)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_soft_spheres
@@ -2085,7 +2077,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         DO i = 1, this%ions%number
-            this%soft_spheres(i)%pos = this%ions%tau(:, i)
+            this%soft_spheres%array(i)%pos = this%ions%tau(:, i)
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -3028,9 +3020,8 @@ CONTAINS
                 IF (io%lnode) WRITE (local_unit, 1108) this%alpha, this%softness
                 !
                 IF (local_verbose >= 3) &
-                    CALL print_environ_functions(this%soft_spheres, this%ions%number, &
-                                                 passed_verbose, debug_verbose, &
-                                                 local_unit)
+                    CALL this%soft_spheres%printout(passed_verbose, debug_verbose, &
+                                                    local_unit)
                 !
             ELSE IF (io%lnode .AND. this%need_system) THEN
                 !

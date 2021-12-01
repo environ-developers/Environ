@@ -43,8 +43,7 @@ MODULE class_core_fft
     USE class_density
     USE class_gradient
     USE class_hessian
-    USE class_function
-    USE class_function_gaussian
+    USE class_functions
     !
     USE class_core
     !
@@ -936,7 +935,7 @@ CONTAINS
         CLASS(core_fft), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN) :: nat
         TYPE(environ_density), INTENT(IN) :: rho
-        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
+        TYPE(environ_functions), TARGET, INTENT(IN) :: ions
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
@@ -957,23 +956,11 @@ CONTAINS
         REAL(DP), POINTER :: Z ! ionic charge
         REAL(DP), POINTER :: D ! gaussian spread of smeared ion function
         !
-        TYPE(environ_function_gaussian), POINTER :: local_ions(:)
-        !
         CHARACTER(LEN=80) :: sub_name = 'force_fft'
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (ions)
-            !
-        TYPE IS (environ_function_gaussian)
-            local_ions => ions
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, "Unexpected function type", 1)
-            !
-        END SELECT
-        !
-        IF (nat /= SIZE(local_ions)) &
+        IF (nat /= ions%number) &
             CALL io%error(sub_name, &
                           'Mismatch in numbers of atoms passed in input and stored', 1)
         !
@@ -1012,9 +999,9 @@ CONTAINS
             force = 0.D0
             !
             DO iat = 1, nat
-                Z => local_ions(iat)%volume
-                D => local_ions(iat)%spread
-                R = local_ions(iat)%pos - this%cell%origin ! account for any origin shift
+                Z => ions%array(iat)%volume
+                D => ions%array(iat)%spread
+                R = ions%array(iat)%pos - this%cell%origin ! account for any origin shift
                 !
                 DO ig = this%cell%gstart, ngm
                     fpibg2 = fpi / (G2(ig) * tpi2)

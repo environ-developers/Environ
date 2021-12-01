@@ -42,8 +42,7 @@ MODULE class_core_1da
     USE class_cell
     USE class_density
     USE class_gradient
-    USE class_function
-    USE class_function_gaussian
+    USE class_functions
     !
     USE class_core
     !
@@ -510,7 +509,7 @@ CONTAINS
         !
         CLASS(core_1da), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN) :: nat
-        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
+        TYPE(environ_functions), TARGET, INTENT(IN) :: ions
         TYPE(environ_density), INTENT(IN) :: auxiliary
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
@@ -525,8 +524,6 @@ CONTAINS
         !
         TYPE(environ_density) :: local
         !
-        TYPE(environ_function_gaussian), POINTER :: local_ions(:)
-        !
         CHARACTER(LEN=80) :: sub_name = 'calc_1da_fperiodic'
         !
         !--------------------------------------------------------------------------------
@@ -535,17 +532,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (ions)
-            !
-        TYPE IS (environ_function_gaussian)
-            local_ions => ions
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, "Unexpected function type", 1)
-            !
-        END SELECT
-        !
-        IF (nat /= SIZE(local_ions)) &
+        IF (nat /= ions%number) &
             CALL io%error(sub_name, &
                           'Mismatch between input and stored number of ions', 1)
         !
@@ -577,8 +564,8 @@ CONTAINS
             ftmp = 0.D0
             !
             DO i = 1, nat
-                pos = local_ions(i)%pos - origin
-                Z => local_ions(i)%volume
+                pos = ions%array(i)%pos - origin
+                Z => ions%array(i)%volume
                 !
                 SELECT CASE (this%dim)
                     !
