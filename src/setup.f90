@@ -45,6 +45,7 @@ MODULE class_setup
     USE class_core_container_corrections
     USE class_core_container_derivatives
     USE class_core_container_electrostatics
+    USE class_core_numerical
     USE class_core_fd_derivatives
     USE class_core_fft_derivatives
     USE class_core_fft_electrostatics
@@ -104,7 +105,6 @@ MODULE class_setup
         LOGICAL :: lsemiconductor = .FALSE.
         LOGICAL :: lperiodic = .FALSE.
         LOGICAL :: ldoublecell = .FALSE.
-        LOGICAL :: louterloop = .FALSE.
         LOGICAL :: ltddfpt = .FALSE.
         LOGICAL :: laddcharges = .FALSE.
         !
@@ -141,14 +141,6 @@ MODULE class_setup
         LOGICAL :: need_auxiliary = .FALSE.
         !
         !--------------------------------------------------------------------------------
-        ! Corrections flags
-        !
-        LOGICAL :: need_pbc_correction = .FALSE.
-        LOGICAL :: need_electrolyte = .FALSE.
-        LOGICAL :: need_semiconductor = .FALSE.
-        LOGICAL :: need_outer_loop = .FALSE.
-        !
-        !--------------------------------------------------------------------------------
         ! Simulation space
         !
         TYPE(environ_cell) :: system_cell
@@ -165,7 +157,7 @@ MODULE class_setup
         !
         TYPE(electrostatic_setup) :: reference, outer, inner
         TYPE(container_electrostatics) :: reference_cores, outer_cores, inner_cores
-        TYPE(container_corrections) :: pbc_core
+        TYPE(container_corrections) :: pbc_cores
         !
         !--------------------------------------------------------------------------------
         ! Numerical solvers
@@ -257,7 +249,13 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
         !
         !--------------------------------------------------------------------------------
-        ! Open Environ ouput file 
+        !
+        CALL this%set_flags()
+        !
+        CALL this%set_numerical_base()
+        !
+        !--------------------------------------------------------------------------------
+        ! Open Environ output file
         !
         io%verbosity = verbose ! set internal verbosity from input
         !
@@ -267,12 +265,6 @@ CONTAINS
             OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
             !
         END IF
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%set_flags()
-        !
-        CALL this%set_numerical_base()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_setup
@@ -617,43 +609,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (pbc_dim >= 0) THEN
-            !
-            SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
-                !
-            CASE ('none')
-                !
-            CASE ('parabolic')
-                this%need_pbc_correction = .TRUE.
-                !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
-                this%need_pbc_correction = .TRUE.
-                this%need_electrolyte = .TRUE.
-                !
-            CASE ('ms', 'mott-schottky')
-                this%need_pbc_correction = .TRUE.
-                this%need_semiconductor = .TRUE.
-                !
-            CASE ('ms-gcs', 'mott-schottky-gouy-chapman-stern')
-                this%need_pbc_correction = .TRUE.
-                this%need_semiconductor = .TRUE.
-                this%need_outer_loop = .TRUE.
-                this%need_electrolyte = .TRUE.
-                !
-            CASE DEFAULT
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
-                !
-            END SELECT
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        !
         CALL this%set_execution_flags()
         !
         CALL this%set_environment_flags()
-        !
-        CALL this%set_dielectric_flags()
         !
         CALL this%set_derived_flags()
         !
@@ -697,8 +655,6 @@ CONTAINS
         this%threshold = environ_thr
         this%nskip = environ_nskip
         this%ldoublecell = SUM(env_nrep) > 0
-        this%lperiodic = this%need_pbc_correction
-        this%louterloop = this%need_outer_loop
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_execution_flags
@@ -713,22 +669,44 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
+        REAL(DP) :: factor
+        !
         !--------------------------------------------------------------------------------
         !
-        this%surface_tension = &
-            env_surface_tension * 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
-        !
+        factor = 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
+        this%surface_tension = env_surface_tension * factor
         this%lsurface = this%surface_tension > 0.D0
         !
-        this%pressure = env_pressure * 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
+        factor = 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
+        this%pressure = env_pressure * factor
         this%lvolume = this%pressure /= 0.D0
         !
         this%confine = env_confine
         this%lconfine = this%confine /= 0.D0
         !
         this%lexternals = env_external_charges > 0
-        this%lelectrolyte = env_electrolyte_ntyp > 0 .OR. this%need_electrolyte
-        this%lsemiconductor = this%need_semiconductor
+        this%lelectrolyte = env_electrolyte_ntyp > 0
+        !
+        CALL this%set_dielectric_flags()
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
+            !
+        CASE ('none')
+            !
+        CASE ('parabolic')
+            this%lperiodic = .TRUE.
+            !
+        CASE ('gcs') ! gouy-chapman-stern
+            this%lperiodic = .TRUE.
+            this%lelectrolyte = .TRUE.
+            !
+        CASE ('ms') ! mott-schottky
+            this%lperiodic = .TRUE.
+            this%lsemiconductor = .TRUE.
+            !
+        END SELECT
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environment_flags
@@ -820,7 +798,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
+        !
+        CLASS(numerical_core), POINTER :: outer_core, inner_core
         !
         CHARACTER(LEN=80) :: local_type
         !
@@ -842,67 +822,47 @@ CONTAINS
         CASE ('fft')
             this%lfft_environment = .TRUE.
             local_type = 'fft'
+            outer_core => this%core_fft_elect
             !
-            CALL this%outer_cores%init(this%core_fft_elect, local_type)
-            !
-            IF (inner_solver /= 'none') &
-                CALL this%inner_cores%init(this%core_fft_elect, local_type)
-            !
-        CASE ('1d-analytic', '1da')
-            this%l1da = .TRUE.
-            local_type = '1d-analytic'
-            !
-            CALL this%outer_cores%init(this%core_1da_elect, local_type)
-            !
-            IF (inner_solver /= 'none') &
-                CALL this%inner_cores%init(this%core_1da_elect, local_type)
-            !
-        CASE DEFAULT
-            !
-            CALL io%error(sub_name, &
-                          'Unexpected value for core container type keyword', 1)
+            IF (inner_solver /= 'none') inner_core => this%core_fft_elect
             !
         END SELECT
+        !
+        CALL this%outer_cores%init(outer_core, local_type)
+        !
+        IF (inner_solver /= 'none') CALL this%inner_cores%init(inner_core, local_type)
         !
         !--------------------------------------------------------------------------------
         ! Correction cores
         !
-        IF (pbc_dim >= 0) THEN
+        SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
             !
-            SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
-                !
-            CASE ('none')
-                !
-            CASE ('parabolic')
-                this%l1da = .TRUE.
-                local_type = '1da'
-                !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
-                this%l1da = .TRUE.
-                local_type = 'gcs'
-                !
-            CASE ('ms', 'mott-schottky')
-                this%l1da = .TRUE.
-                local_type = 'ms'
-                !
-            CASE ('ms-gcs', 'mott-schottky-gouy-chapman-stern')
-                this%l1da = .TRUE.
-                local_type = 'ms-gcs'
-                !
-            CASE DEFAULT
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
-                !
-            END SELECT
+        CASE ('none')
+            !
+        CASE ('parabolic')
+            this%l1da = .TRUE.
+            local_type = 'parabolic'
+            !
+        CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
+            this%l1da = .TRUE.
+            local_type = 'gcs'
+            !
+        CASE ('ms', 'mott-schottky')
+            this%l1da = .TRUE.
+            local_type = 'ms'
+            !
+        END SELECT
+        !
+        IF (this%lperiodic) THEN
+            !
+            IF (this%l1da) CALL this%pbc_core%init(this%core_1da_elect, local_type)
+            !
+            CALL this%outer_cores%add_correction(this%pbc_core)
+            !
+            IF (inner_solver /= 'none') &
+                CALL this%inner_cores%add_correction(this%pbc_core)
             !
         END IF
-        !
-        IF (this%need_pbc_correction .AND. this%l1da) &
-            CALL this%pbc_core%init(this%core_1da_elect, local_type)
-        !
-        IF (this%need_pbc_correction) CALL this%outer_cores%add_correction(this%pbc_core)
-        !
-        IF (inner_solver /= 'none' .AND. this%need_pbc_correction) &
-            CALL this%inner_cores%add_correction(this%pbc_core)
         !
         !--------------------------------------------------------------------------------
         ! Derivative cores
@@ -1161,7 +1121,7 @@ CONTAINS
             !
             local_label = '1d-analytic'
             !
-            IF (this%need_pbc_correction) WRITE (io%unit, 1019) ADJUSTL(local_label)
+            IF (this%lperiodic) WRITE (io%unit, 1019) ADJUSTL(local_label)
             !
             IF (derivatives == 'fd') THEN
                 !
@@ -1245,7 +1205,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        IF (this%need_pbc_correction) WRITE (io%unit, 1100)
+        IF (this%lperiodic) WRITE (io%unit, 1100)
         !
 1100    FORMAT(/, &
                 5(' '), 'WARNING: you are using the parabolic pbc correction;', /, &
