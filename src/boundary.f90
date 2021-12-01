@@ -2043,19 +2043,29 @@ CONTAINS
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
         INTEGER :: i
-        REAL(DP) :: radius
+        !
+        INTEGER, DIMENSION(this%ions%number) :: axes, dims
+        REAL(DP), DIMENSION(this%ions%number) :: spreads, volumes
+        !
+        REAL(DP), ALLOCATABLE :: radii(:)
+        !
+        TYPE(environ_function_erfc) :: fsrc
+        !
+        CHARACTER(LEN=20) :: local_item = 'solvationrad'
         !
         !--------------------------------------------------------------------------------
         !
-        ALLOCATE (environ_function_erfc :: this%soft_spheres(this%ions%number))
+        axes = 1
+        dims = 0
+        spreads = this%softness
+        volumes = 1.D0
         !
-        DO i = 1, this%ions%number
-            radius = this%ions%iontype(this%ions%ityp(i))%solvationrad * this%alpha
-            !
-            CALL this%soft_spheres(i)%init(4, 1, 0, radius, this%softness, 1.D0, &
-                                           this%ions%tau(:, i))
-            !
-        END DO
+        CALL this%ions%get_iontype_array(radii, local_item)
+        !
+        radii = radii * this%alpha
+        !
+        CALL init_environ_functions(this%soft_spheres, fsrc, this%ions%number, 4, &
+                                    axes, dims, radii, spreads, volumes, this%ions%tau)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_soft_spheres
