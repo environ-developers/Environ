@@ -170,10 +170,10 @@ CONTAINS
             !
             SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
-            CASE ('1da', 'oned_analytic')
+            CASE ('parabolic')
                 CALL this%cores%correction%calc_v(charges%density, potential)
                 !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
+            CASE ('gcs') ! gouy-chapman-stern
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                     CALL io%error(sub_name, &
@@ -183,7 +183,7 @@ CONTAINS
                 CALL this%cores%correction%calc_v(charges%electrolyte%base, &
                                                   charges%density, potential)
                 !
-            CASE ('ms', 'mott-schottky')
+            CASE ('ms') ! mott-schottky
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
                     CALL io%error(sub_name, &
@@ -260,10 +260,10 @@ CONTAINS
             !
             SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
-            CASE ('1da', 'oned_analytic')
+            CASE ('parabolic')
                 CALL this%cores%correction%calc_v(charges, local)
                 !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
+            CASE ('gcs') ! gouy-chapman-stern
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
                     CALL io%error(sub_name, &
@@ -272,7 +272,7 @@ CONTAINS
                 !
                 CALL this%cores%correction%calc_v(electrolyte%base, charges, local)
                 !
-            CASE ('ms', 'mott-schottky')
+            CASE ('ms') ! mott-schottky
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
                     CALL io%error(sub_name, &
@@ -338,10 +338,10 @@ CONTAINS
             !
             SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
-            CASE ('1da', 'oned_analytic')
+            CASE ('parabolic')
                 CALL this%cores%correction%calc_gradv(charges%density, gradient)
                 !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
+            CASE ('gcs') ! gouy-chapman-stern
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                     CALL io%error(sub_name, &
@@ -351,7 +351,7 @@ CONTAINS
                 CALL this%cores%correction%calc_gradv(charges%electrolyte%base, &
                                                       charges%density, gradient)
                 !
-            CASE ('ms', 'mott-schottky')
+            CASE ('ms') ! mott-schottky
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
                     CALL io%error(sub_name, &
@@ -418,10 +418,10 @@ CONTAINS
             !
             SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
-            CASE ('1da', 'oned_analytic')
+            CASE ('parabolic')
                 CALL this%cores%correction%calc_gradv(charges, gradient)
                 !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
+            CASE ('gcs') ! gouy-chapman-stern
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
                     CALL io%error(sub_name, &
@@ -431,7 +431,7 @@ CONTAINS
                 CALL this%cores%correction%calc_gradv(electrolyte%base, charges, &
                                                       gradient)
                 !
-            CASE ('ms', 'mott-schottky')
+            CASE ('ms') ! mott-schottky
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
                     CALL io%error(sub_name, &

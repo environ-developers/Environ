@@ -148,7 +148,7 @@ CONTAINS
             !
         CASE ('poisson')
             !
-        CASE ('generalized', 'gpe')
+        CASE ('generalized') ! generalized Poisson-Boltzmann
             !
             SELECT TYPE (solver)
                 !
@@ -159,7 +159,7 @@ CONTAINS
                               &the Generalized Poisson eq.', 1)
             END SELECT
             !
-        CASE ('linpb', 'linmodpb', 'linearized-pb')
+        CASE ('linpb', 'linmodpb') ! linearized Poisson-Boltzmann
             !
             SELECT TYPE (solver)
                 !
@@ -178,15 +178,15 @@ CONTAINS
             END SELECT
             !
             IF (ASSOCIATED(solver%cores%correction) .AND. &
-                solver%cores%correction%type_ /= '1da') THEN
+                solver%cores%correction%type_ /= 'parabolic') THEN
                 !
                 CALL io%error(sub_name, &
                               'Linearized-PB problem requires &
-                              &parabolic pbc correction.', 1)
+                              &parabolic pbc correction', 1)
                 !
             END IF
             !
-        CASE ('pb', 'modpb', 'poisson-boltzmann')
+        CASE ('pb', 'modpb') ! Poisson-Boltzmann
             !
             SELECT TYPE (solver)
                 !
@@ -205,10 +205,10 @@ CONTAINS
             END SELECT
             !
             IF (ASSOCIATED(solver%cores%correction) .AND. &
-                solver%cores%correction%type_ /= '1da') THEN
+                solver%cores%correction%type_ /= 'parabolic') THEN
                 !
                 CALL io%error(sub_name, &
-                              'Full-PB problem requires parabolic pbc correction.', 1)
+                              'Full-PB problem requires parabolic pbc correction', 1)
                 !
             END IF
             !
