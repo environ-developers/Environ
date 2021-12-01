@@ -202,6 +202,26 @@ MODULE class_boundary
     END TYPE environ_boundary
     !------------------------------------------------------------------------------------
     !
+    INTERFACE gradient_of_boundary
+        MODULE PROCEDURE &
+            calc_gradient_of_boundary_highmem, &
+            calc_gradient_of_boundary_lowmem
+    END INTERFACE gradient_of_boundary
+    !
+    INTERFACE laplacian_of_boundary
+        MODULE PROCEDURE &
+            calc_laplacian_of_boundary_highmem, &
+            calc_laplacian_of_boundary_lowmem
+    END INTERFACE laplacian_of_boundary
+    !
+    INTERFACE dsurface_of_boundary
+        MODULE PROCEDURE &
+            calc_dsurface_of_boundary_highmem, &
+            calc_dsurface_of_boundary_lowmem
+    END INTERFACE dsurface_of_boundary
+    !
+    !------------------------------------------------------------------------------------
+    !
     INTEGER, PARAMETER :: bound_tol = 1.D-60
     !
     !------------------------------------------------------------------------------------
@@ -1426,17 +1446,15 @@ CONTAINS
                 END DO
                 !
                 IF (deriv == 1 .OR. deriv == 2) &
-                    CALL calc_gradient_of_boundary_highmem(nss, denlocal, gradlocal, &
-                                                           gradient)
+                    CALL gradient_of_boundary(nss, denlocal, gradlocal, gradient)
                 !
                 IF (deriv == 2) &
-                    CALL calc_laplacian_of_boundary_highmem(nss, denlocal, gradlocal, &
-                                                            lapllocal, laplacian)
+                    CALL laplacian_of_boundary(nss, denlocal, gradlocal, lapllocal, &
+                                               laplacian)
                 !
                 IF (deriv == 3) &
-                    CALL calc_dsurface_of_boundary_highmem(nss, denlocal, gradlocal, &
-                                                           hesslocal, gradient, &
-                                                           laplacian, hessian, dsurface)
+                    CALL dsurface_of_boundary(nss, denlocal, gradlocal, hesslocal, &
+                                              gradient, laplacian, hessian, dsurface)
                 !
                 DO i = 1, nss
                     !
@@ -1482,19 +1500,16 @@ CONTAINS
                 END DO
                 !
                 IF (deriv >= 1) &
-                    CALL calc_gradient_of_boundary_lowmem(nss, denlocal, gradlocal, &
-                                                          scaled, gradient)
+                    CALL gradient_of_boundary(nss, denlocal, gradlocal, scaled, gradient)
                 !
                 IF (deriv == 2) &
-                    CALL calc_laplacian_of_boundary_lowmem(nss, denlocal, gradlocal, &
-                                                           lapllocal, scaled, gradient, &
-                                                           laplacian)
+                    CALL laplacian_of_boundary(nss, denlocal, gradlocal, lapllocal, &
+                                               scaled, gradient, laplacian)
                 !
                 IF (deriv == 3) &
-                    CALL calc_dsurface_of_boundary_lowmem(nss, denlocal, gradlocal, &
-                                                          hesslocal, gradient, &
-                                                          laplacian, hessian, scaled, &
-                                                          dsurface)
+                    CALL dsurface_of_boundary(nss, denlocal, gradlocal, hesslocal, &
+                                              gradient, laplacian, hessian, scaled, &
+                                              dsurface)
                 !
                 DO i = 1, nss
                     !
