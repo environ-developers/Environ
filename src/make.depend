@@ -23,9 +23,11 @@ calculator.o : environment.o
 calculator.o : gradient.o
 calculator.o : setup.o
 cell.o : ../FFTs/base_stick.o
+cell.o : ../FFTs/fft_ggen.o
 cell.o : ../FFTs/types_fft.o
 cell.o : ../utils/io.o
 cell.o : ../utils/mp.o
+cell.o : ../utils/sorting.o
 cell.o : constants.o
 charges.o : ../utils/io.o
 charges.o : cell.o
@@ -60,12 +62,9 @@ core_1da.o : gradient.o
 core_1da.o : semiconductor_base.o
 core_container.o : ../utils/io.o
 core_container.o : core.o
-core_fft.o : ../FFTs/fft_ggen.o
 core_fft.o : ../FFTs/fft_main.o
-core_fft.o : ../FFTs/types_fft.o
 core_fft.o : ../utils/io.o
 core_fft.o : ../utils/mp.o
-core_fft.o : ../utils/sorting.o
 core_fft.o : ../utils/tools_math.o
 core_fft.o : cell.o
 core_fft.o : constants.o

@@ -352,10 +352,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (this%lfft_system) &
-            CALL this%ref_fft%init(gcutm, this%system_cell, this%use_inter_corr)
+            CALL this%ref_fft%init(this%system_cell, this%use_inter_corr)
         !
         IF (this%lfft_environment) &
-            CALL this%env_fft%init(gcutm, this%environment_cell, this%use_inter_corr)
+            CALL this%env_fft%init(this%environment_cell, this%use_inter_corr)
         !
         IF (this%l1da) CALL this%env_1da%init(pbc_dim, pbc_axis, this%environment_cell)
         !
