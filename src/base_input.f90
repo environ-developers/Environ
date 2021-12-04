@@ -50,27 +50,27 @@ MODULE env_base_input
     !
     LOGICAL :: taextchg = .FALSE.
     !
+    CHARACTER(LEN=80) :: extcharge_units = 'bohr' ! atomic positions (bohr|angstrom)
+    !
+    REAL(DP), ALLOCATABLE :: extcharge_charge(:) ! total charge of density
+    REAL(DP), ALLOCATABLE :: extcharge_pos(:, :) ! cartesian position of density
+    REAL(DP), ALLOCATABLE :: extcharge_spread(:) ! gaussian density spread (bohr)
     INTEGER, ALLOCATABLE :: extcharge_dim(:) ! point/line/plane of charge
     INTEGER, ALLOCATABLE :: extcharge_axis(:) ! x/y/z direction of line/plane
-    REAL(DP), ALLOCATABLE :: extcharge_charge(:) ! total charge of density
-    REAL(DP), ALLOCATABLE :: extcharge_spread(:) ! gaussian density spread (bohr)
-    REAL(DP), ALLOCATABLE :: extcharge_pos(:, :) ! cartesian position of density
-    !
-    CHARACTER(LEN=80) :: extcharge_units = 'bohr' ! atomic positions (bohr|angstrom)
     !
     !------------------------------------------------------------------------------------
     ! Local parameters of dielectric regions
     !
     LOGICAL :: taepsreg = .FALSE.
     !
-    INTEGER, ALLOCATABLE :: epsregion_dim(:) ! point/line/plane region
-    INTEGER, ALLOCATABLE :: epsregion_axis(:) ! x/y/z direction of line/plane
+    CHARACTER(LEN=80) :: epsregion_units = 'bohr' ! atomic positions (bohr|angstrom)
+    !
     REAL(DP), ALLOCATABLE :: epsregion_eps(:, :) ! permittivity inside region
+    REAL(DP), ALLOCATABLE :: epsregion_pos(:, :) ! cartesian center of region
     REAL(DP), ALLOCATABLE :: epsregion_width(:) ! region size (bohr)
     REAL(DP), ALLOCATABLE :: epsregion_spread(:) ! interface spread (bohr)
-    REAL(DP), ALLOCATABLE :: epsregion_pos(:, :) ! cartesian center of region
-    !
-    CHARACTER(LEN=80) :: epsregion_units = 'bohr' ! atomic positions (bohr|angstrom)
+    INTEGER, ALLOCATABLE :: epsregion_dim(:) ! point/line/plane region
+    INTEGER, ALLOCATABLE :: epsregion_axis(:) ! x/y/z direction of line/plane
     !
     !=---------------------------------------------------------------------------------=!
 !     ENVIRON Namelist Input Parameters

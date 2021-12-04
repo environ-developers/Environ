@@ -1706,27 +1706,27 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (ALLOCATED(extcharge_charge)) DEALLOCATE (extcharge_charge)
+        !
+        IF (ALLOCATED(extcharge_pos)) DEALLOCATE (extcharge_pos)
+        !
+        IF (ALLOCATED(extcharge_spread)) DEALLOCATE (extcharge_spread)
+        !
         IF (ALLOCATED(extcharge_dim)) DEALLOCATE (extcharge_dim)
         !
         IF (ALLOCATED(extcharge_axis)) DEALLOCATE (extcharge_axis)
         !
-        IF (ALLOCATED(extcharge_charge)) DEALLOCATE (extcharge_charge)
-        !
-        IF (ALLOCATED(extcharge_spread)) DEALLOCATE (extcharge_spread)
-        !
-        IF (ALLOCATED(extcharge_pos)) DEALLOCATE (extcharge_pos)
-        !
+        ALLOCATE (extcharge_charge(external_charges))
+        ALLOCATE (extcharge_pos(3, external_charges))
+        ALLOCATE (extcharge_spread(external_charges))
         ALLOCATE (extcharge_dim(external_charges))
         ALLOCATE (extcharge_axis(external_charges))
-        ALLOCATE (extcharge_charge(external_charges))
-        ALLOCATE (extcharge_spread(external_charges))
-        ALLOCATE (extcharge_pos(3, external_charges))
         !
+        extcharge_charge = 0.0_DP
+        extcharge_pos = 0.0_DP
+        extcharge_spread = 0.5_DP
         extcharge_dim = 0
         extcharge_axis = 3
-        extcharge_charge = 0.0_DP
-        extcharge_spread = 0.5_DP
-        extcharge_pos = 0.0_DP
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_input_extcharge
@@ -1943,31 +1943,31 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(epsregion_dim)) DEALLOCATE (epsregion_dim)
-        !
-        IF (ALLOCATED(epsregion_axis)) DEALLOCATE (epsregion_axis)
-        !
         IF (ALLOCATED(epsregion_eps)) DEALLOCATE (epsregion_eps)
+        !
+        IF (ALLOCATED(epsregion_pos)) DEALLOCATE (epsregion_pos)
         !
         IF (ALLOCATED(epsregion_width)) DEALLOCATE (epsregion_width)
         !
         IF (ALLOCATED(epsregion_spread)) DEALLOCATE (epsregion_spread)
         !
-        IF (ALLOCATED(epsregion_pos)) DEALLOCATE (epsregion_pos)
+        IF (ALLOCATED(epsregion_dim)) DEALLOCATE (epsregion_dim)
         !
+        IF (ALLOCATED(epsregion_axis)) DEALLOCATE (epsregion_axis)
+        !
+        ALLOCATE (epsregion_eps(2, dielectric_regions))
+        ALLOCATE (epsregion_pos(3, dielectric_regions))
+        ALLOCATE (epsregion_spread(dielectric_regions))
+        ALLOCATE (epsregion_width(dielectric_regions))
         ALLOCATE (epsregion_dim(dielectric_regions))
         ALLOCATE (epsregion_axis(dielectric_regions))
-        ALLOCATE (epsregion_eps(2, dielectric_regions))
-        ALLOCATE (epsregion_width(dielectric_regions))
-        ALLOCATE (epsregion_spread(dielectric_regions))
-        ALLOCATE (epsregion_pos(3, dielectric_regions))
         !
+        epsregion_eps = 1.0_DP
+        epsregion_pos = 0.0_DP
+        epsregion_spread = 0.5_DP
+        epsregion_width = 0.0_DP
         epsregion_dim = 0
         epsregion_axis = 3
-        epsregion_eps = 1.0_DP
-        epsregion_width = 0.0_DP
-        epsregion_spread = 0.5_DP
-        epsregion_pos = 0.0_DP
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_input_epsregion
