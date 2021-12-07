@@ -110,7 +110,9 @@ MODULE class_core
         PROCEDURE :: calc_grad_vms
         !
         GENERIC :: potential => calc_vperiodic, calc_vgcs, calc_vms
+        GENERIC :: potential => calc_vms_gcs
         GENERIC :: grad_potential => calc_grad_vperiodic, calc_grad_vgcs, calc_grad_vms
+        GENERIC :: grad_potential => calc_grad_vms_gcs
         GENERIC :: force_periodic => calc_fperiodic
         !
         !--------------------------------------------------------------------------------
@@ -589,6 +591,50 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_grad_vms
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_vms_gcs(this, semiconductor, charges, v)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_core), INTENT(IN) :: this
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
+        TYPE(environ_density), INTENT(IN) :: charges
+        !
+        TYPE(environ_density), INTENT(INOUT) :: v
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_vms_gcs'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_vms_gcs
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_grad_vms_gcs(this, semiconductor, charges, grad_v)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_core), INTENT(IN) :: this
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
+        TYPE(environ_density), INTENT(IN) :: charges
+        !
+        TYPE(environ_gradient), INTENT(INOUT) :: grad_v
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_grad_vms_gcs'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_grad_vms_gcs
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

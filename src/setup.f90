@@ -681,6 +681,10 @@ CONTAINS
             this%lperiodic = .TRUE.
             this%lsemiconductor = .TRUE.
             !
+        CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
+            this%lperiodic = .TRUE.
+            this%lsemiconductor = .TRUE.
+            !
         CASE DEFAULT
             CALL io%error(sub_name, "Unexpected correction type", 1)
             !
