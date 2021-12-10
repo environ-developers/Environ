@@ -243,7 +243,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       DEALLOCATE (at_scaled)\
       !\
-      CALL setup%init_cores(gcutm_scaled, .FALSE.)\
+      CALL setup%init_cores(gcutm_scaled)\
       !\
       CALL env%init(setup, 1, nat, ntyp, atom_label, ityp, zv)\
       !\
