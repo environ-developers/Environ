@@ -789,12 +789,12 @@ CONTAINS
         !
         this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
                                                  solvent_mode == 'full' .OR. &
-                                                 solvent_mode(1:2) == 'fa')
+                                                 field_aware)
         !
         this%lsoftelectrolyte = this%lelectrolyte .AND. &
                                 (electrolyte_mode == 'electronic' .OR. &
                                  electrolyte_mode == 'full' .OR. &
-                                 electrolyte_mode(1:2) == 'fa') ! field-aware
+                                 field_aware) ! field-aware
         !
         this%lsoftcavity = this%lsoftsolvent .OR. this%lsoftelectrolyte
         this%lrigidsolvent = this%lsolvent .AND. solvent_mode /= 'electronic'

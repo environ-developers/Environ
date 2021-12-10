@@ -196,7 +196,7 @@ MODULE class_boundary
         PROCEDURE :: invert => invert_boundary
         !
         PROCEDURE, PRIVATE :: set_soft_spheres, update_soft_spheres, calc_ion_field, &
-            scaling_of_field, dscaling_of_field
+            calc_dion_field_drho, scaling_of_field, dscaling_of_field
         !
         PROCEDURE :: printout => print_environ_boundary
         !
@@ -307,11 +307,11 @@ CONTAINS
         !
         this%mode = mode
         !
-        this%need_electrons = mode == 'electronic' .OR. mode == 'full' .OR. this%field_aware
+        this%need_electrons = mode == 'electronic' .OR. mode == 'full' .OR. field_aware
         !
         IF (this%need_electrons) this%electrons => electrons
         !
-        this%need_ions = mode == 'ionic' .OR. mode == 'full' .OR. this%field_aware
+        this%need_ions = mode == 'ionic' .OR. mode == 'full' .OR. field_aware
         !
         IF (this%need_ions) this%ions => ions
         !
@@ -697,14 +697,23 @@ CONTAINS
                 !
                 CALL this%calc_ion_field()
                 !
-            END IF
-            !
-            IF (this%ions%lupdate) THEN
+                CALL this%update_soft_spheres(this%field_aware)
+                !
+                CALL this%boundary_of_functions()
+                !
+                this%update_status = 2
+                !
+            ELSE IF (this%field_aware .AND. this%ions%lupdate) THEN
+                !
+                CALL this%calc_dion_field_drho()
+                !
+                this%update_status = 1
+                !
+            ELSE IF (this%ions%lupdate) THEN
                 !
                 !------------------------------------------------------------------------
                 ! Only ions are needed, fully update the boundary
                 !
-                PRINT *, 'about to update..'
                 CALL this%update_soft_spheres()
                 !
                 CALL this%boundary_of_functions()
@@ -2016,6 +2025,9 @@ CONTAINS
             CALL this%soft_spheres(i)%init(5, 1, 0, radius, this%softness, 1.D0, &
                                            this%ions%tau(:, i))
             !
+            IF (this%field_aware) THEN
+                CALL this%soft_spheres(i)%copy(this%unscaled_spheres(i))
+            END IF
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -2037,13 +2049,16 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        PRINT *, 'update_soft_spheres'
+        PRINT *, 'update soft spheres'
         DO i = 1, this%ions%number
             !
-            PRINT *, 'in loop', i
             ! field-aware scaling of soft-sphere radii
-            IF (field_scaling .AND. this%field_aware) THEN
-                field_scale = this%scaling_of_field(i)
+            IF (PRESENT(field_scaling)) THEN
+                IF (field_scaling) THEN
+                    field_scale = this%scaling_of_field(i)
+                ELSE
+                    field_scale = 1.D0
+                END IF
             ELSE
                 field_scale = 1.D0
             END IF
@@ -2051,12 +2066,7 @@ CONTAINS
             this%soft_spheres(i)%pos = this%ions%tau(:, i)
             this%soft_spheres(i)%width = this%ions%iontype(this%ions%ityp(i))%solvationrad * &
                 this%alpha * field_scale
-            !
-            ! the first time this subroutine is called, the original soft-spheres should
-            ! be stored so that they can be used to get the next set of scaled spheres
-            IF (.NOT. field_scaling .AND. this%field_aware) THEN
-                CALL this%soft_spheres(i)%copy(this%unscaled_spheres(i))
-            ENDIF
+            PRINT *, 'radius', i, this%soft_spheres(i)%width
             !
         END DO
         !
@@ -2086,7 +2096,7 @@ CONTAINS
             !
             CALL local(i)%init(cell)
             !
-            CALL this%soft_spheres(i)%density(local(i), .TRUE.)
+            CALL this%unscaled_spheres(i)%density(local(i), .FALSE.)
             !
         END DO
         !
@@ -2116,7 +2126,7 @@ CONTAINS
             !
             ! Compute field flux through soft-sphere interface
             !
-            CALL this%soft_spheres(i)%gradient(auxg, .TRUE.)
+            CALL this%unscaled_spheres(i)%gradient(auxg, .TRUE.)
             !
             CALL field%scalar_product(auxg, aux)
             !
@@ -2155,7 +2165,6 @@ CONTAINS
         !
         INTEGER :: i, j, k
         REAL(DP), DIMENSION(this%ions%number) :: ion_field
-        REAL(DP), DIMENSION(3, this%ions%number, this%ions%number) :: partial_of_ion_field
         !
         cell => this%ions%density%cell
         !
@@ -2182,7 +2191,7 @@ CONTAINS
         ! Compute field flux
         !
         ion_field = 0.D0
-        partial_of_ion_field = 0.D0
+        this%partial_of_ion_field = 0.D0
         !
         CALL prod%init(cell)
         CALL auxg%init(cell)
@@ -2211,7 +2220,7 @@ CONTAINS
                 CALL this%electrostatics%hessv_h_of_rho_r(aux%of_r, localh%of_r)
                 CALL localh%scalar_product(localg(i), auxg)
                 !
-                partial_of_ion_field(:, i, j) = partial_of_ion_field(:, i, j) - &
+                this%partial_of_ion_field(:, i, j) = this%partial_of_ion_field(:, i, j) - &
                     auxg%scalar_product_density(prod)
                 !
                 IF (i == j) THEN
@@ -2221,7 +2230,7 @@ CONTAINS
                     CALL this%soft_spheres(i)%hessian(auxh, .TRUE.)
                     CALL auxh%scalar_product(field, auxg)
                     !
-                    partial_of_ion_field(:, i, j) = partial_of_ion_field(:, i, j) + &
+                    this%partial_of_ion_field(:, i, j) = this%partial_of_ion_field(:, i, j) + &
                         auxg%scalar_product_density(prod)
                     !
                 ELSE
@@ -2238,7 +2247,7 @@ CONTAINS
                         !
                     END DO
                     !
-                    partial_of_ion_field(:, i, j) = partial_of_ion_field(:, i, j) + &
+                    this%partial_of_ion_field(:, i, j) = this%partial_of_ion_field(:, i, j) + &
                         localg(j)%scalar_product_density(aux)
                     !
                 END IF
@@ -2289,7 +2298,7 @@ CONTAINS
         DO i = 1, this%ions%number
             !
             CALL local(i)%init(cell)
-            CALL this%soft_spheres(i)%density(local(i), .FALSE.)
+            CALL this%unscaled_spheres(i)%density(local(i), .FALSE.)
             !
         END DO
         !
@@ -2313,7 +2322,7 @@ CONTAINS
             !
             ! Compute functional derivative of field wrt electric density
             !
-            CALL this%soft_spheres(i)%gradient(auxg, .TRUE.)
+            CALL this%unscaled_spheres(i)%gradient(auxg, .TRUE.)
             !
             DO ipol = 1, 3
                 ! 
@@ -2358,6 +2367,7 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_de_drho'
         !
+        PRINT *, 'calc_field_aware_de_drho'
         cell => this%ions%density%cell
         !
         IF (this%mode == "ionic") THEN
@@ -2504,8 +2514,8 @@ CONTAINS
         !
         REAL(DP) :: scaling, multiplier, arg
         !
-        multiplier = (this%field_asymmetry - this%field_factor * &
-            SIGN(1.D0, this%ion_field(i)) ** 2)
+        multiplier = (this%field_asymmetry - SIGN(1.D0, this%ion_field(i))) ** 2 * &
+            this%field_factor
         !
         IF (ABS(this%ion_field(i)) < this%field_min) THEN
             scaling = 0.D0
@@ -2539,8 +2549,8 @@ CONTAINS
         !
         REAL(DP) :: dscaling, multiplier, arg
         !
-        multiplier = (this%field_asymmetry - this%field_factor * &
-            SIGN(1.D0, this%ion_field(i)) ** 2)
+        multiplier = (this%field_asymmetry - SIGN(1.D0, this%ion_field(i))) ** 2 * &
+            this%field_factor
         !
         IF (ABS(this%ion_field(i)) < this%field_min) THEN
             dscaling = 0.D0

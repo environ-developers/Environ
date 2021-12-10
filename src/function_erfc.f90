@@ -425,9 +425,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%f_type == 5) THEN
-            derivative%of_r = this%volume
-        ELSE IF (PRESENT(zero)) THEN
+        IF (PRESENT(zero)) THEN
             IF (zero) derivative%of_r = 0.D0
         END IF
         !
@@ -470,6 +468,7 @@ CONTAINS
             !
             CALL env_mp_sum(integral, cell%dfft%comm)
             !
+            integral = integral * cell%omega / DBLE(cell%ntot) * 0.5D0
             IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
                 CALL io%warning('wrong integral of erfc function')
             !
