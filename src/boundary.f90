@@ -2049,7 +2049,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        PRINT *, 'update soft spheres'
         DO i = 1, this%ions%number
             !
             ! field-aware scaling of soft-sphere radii
@@ -2066,7 +2065,6 @@ CONTAINS
             this%soft_spheres(i)%pos = this%ions%tau(:, i)
             this%soft_spheres(i)%width = this%ions%iontype(this%ions%ityp(i))%solvationrad * &
                 this%alpha * field_scale
-            PRINT *, 'radius', i, this%soft_spheres(i)%width
             !
         END DO
         !
@@ -2367,7 +2365,6 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_de_drho'
         !
-        PRINT *, 'calc_field_aware_de_drho'
         cell => this%ions%density%cell
         !
         IF (this%mode == "ionic") THEN

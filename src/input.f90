@@ -468,6 +468,8 @@ CONTAINS
         !
         CALL env_mp_bcast(filling_spread, io%node, io%comm)
         !
+        CALL env_mp_bcast(field_aware, io%node, io%comm)
+        !
         CALL env_mp_bcast(field_factor, io%node, io%comm)
         !
         CALL env_mp_bcast(field_asymmetry, io%node, io%comm)
