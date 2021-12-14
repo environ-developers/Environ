@@ -37,8 +37,9 @@ MODULE class_environ
     !
     USE environ_param, ONLY: DP, RYTOEV
     !
-    USE env_base_input
     USE class_setup
+    !
+    USE env_base_input
     !
     USE class_cell
     USE class_density

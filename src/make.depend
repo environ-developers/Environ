@@ -100,7 +100,8 @@ density.o : ../utils/mp.o
 density.o : cell.o
 density.o : constants.o
 destructor.o : ../utils/io.o
-destructor.o : global_objects.o
+destructor.o : environment.o
+destructor.o : setup.o
 dielectric.o : ../utils/io.o
 dielectric.o : boundary.o
 dielectric.o : cell.o
@@ -181,8 +182,6 @@ functions.o : function_erfc.o
 functions.o : function_gaussian.o
 functions.o : gradient.o
 functions.o : hessian.o
-global_objects.o : environment.o
-global_objects.o : setup.o
 gradient.o : ../utils/io.o
 gradient.o : ../utils/mp.o
 gradient.o : cell.o
@@ -198,6 +197,14 @@ input.o : ../utils/io.o
 input.o : ../utils/mp.o
 input.o : base_input.o
 input.o : constants.o
+interface.o : ../FFTs/base_scatter.o
+interface.o : ../utils/io.o
+interface.o : calculator.o
+interface.o : constants.o
+interface.o : destructor.o
+interface.o : environment.o
+interface.o : input.o
+interface.o : setup.o
 ioncctype.o : cell.o
 ioncctype.o : constants.o
 ioncctype.o : density.o

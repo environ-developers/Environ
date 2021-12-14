@@ -194,6 +194,8 @@ MODULE class_setup
         PROCEDURE :: set_restart
         PROCEDURE :: get_threshold
         PROCEDURE :: get_nskip
+        PROCEDURE :: get_nnt
+        PROCEDURE :: get_nrx
         PROCEDURE :: is_tddfpt
         PROCEDURE :: is_restart
         !
@@ -298,6 +300,10 @@ CONTAINS
         REAL(DP) :: environment_at(3, 3)
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1003)
         !
         !--------------------------------------------------------------------------------
         !
@@ -545,6 +551,56 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nskip
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    INTEGER FUNCTION get_nnt(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        !
+        CHARACTER(LEN=80) :: fun_name = 'get_nnt'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        get_nnt = this%system_cell%dfft%nnt
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_nnt
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    INTEGER FUNCTION get_nrx(this, i)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: i
+        !
+        CHARACTER(LEN=80) :: fun_name = 'get_nrx'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT CASE (i)
+            !
+        CASE (0)
+            get_nrx = this%system_cell%dfft%nr1x
+            !
+        CASE (1)
+            get_nrx = this%system_cell%dfft%nr2x
+            !
+        CASE (2)
+            get_nrx = this%system_cell%dfft%nr3x
+            !
+        END SELECT
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_nrx
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -1136,16 +1192,19 @@ CONTAINS
     !! Called by summary.f90
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_setup_summary(this)
+    SUBROUTINE environ_setup_summary(this, stdout)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: stdout
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
+        !
+        IF (PRESENT(stdout)) CALL io%update_unit(stdout)
         !
         !--------------------------------------------------------------------------------
         ! Banner

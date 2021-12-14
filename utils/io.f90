@@ -51,7 +51,8 @@ MODULE class_io
         !
         INTEGER :: unit
         INTEGER :: debug_unit
-        INTEGER :: verbosity
+        !
+        INTEGER :: verbosity = 0
         !
         !--------------------------------------------------------------------------------
     CONTAINS

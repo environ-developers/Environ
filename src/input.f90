@@ -61,7 +61,7 @@ CONTAINS
     !! and derived routines for cards (external charges and dielectric regions)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_environ_input(nsx, filename)
+    SUBROUTINE read_environ_input(filename, nsx)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE

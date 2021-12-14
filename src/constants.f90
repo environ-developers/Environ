@@ -37,8 +37,6 @@ MODULE environ_param
     !
     IMPLICIT NONE
     !
-    SAVE
-    !
     !------------------------------------------------------------------------------------
     ! Mathematical constants
     !

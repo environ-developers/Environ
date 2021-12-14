@@ -32,7 +32,8 @@ MODULE class_destructor
     !
     USE class_io, ONLY: io
     !
-    USE env_global_objects, ONLY: setup, env
+    USE class_environ
+    USE class_setup
     !
     !------------------------------------------------------------------------------------
     !
@@ -47,35 +48,42 @@ MODULE class_destructor
     TYPE, PUBLIC :: environ_destructor
         !--------------------------------------------------------------------------------
         !
+        TYPE(environ_obj), POINTER :: main => NULL()
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, NOPASS :: all => environ_clean
-        PROCEDURE, NOPASS :: first => environ_clean_first
-        PROCEDURE, NOPASS :: second => environ_clean_second
+        PROCEDURE :: everything => environ_clean
+        PROCEDURE :: first => environ_clean_first
+        PROCEDURE :: second => environ_clean_second
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_destructor
     !------------------------------------------------------------------------------------
     !
-    TYPE(environ_destructor), PUBLIC, SAVE :: clean
-    !
     !------------------------------------------------------------------------------------
 CONTAINS
-    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !! Clean up all the Environ related allocated variables, and call
     !! clean up subroutines of specific Environ modules.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean()
+    SUBROUTINE environ_clean(this)
         !--------------------------------------------------------------------------------
         !
-        CALL environ_clean_first()
+        IMPLICIT NONE
         !
-        CALL environ_clean_second()
+        CLASS(environ_destructor), INTENT(IN) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_clean'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%first()
+        !
+        CALL this%second()
         !
         CALL env_deallocate_mp_buffers()
         !
@@ -89,60 +97,74 @@ CONTAINS
     !! The structure of this subroutine mirrors the one of init_environ subroutines
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean_first()
+    SUBROUTINE environ_clean_first(this)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_destructor), TARGET, INTENT(IN) :: this
+        !
+        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_setup), POINTER :: setup
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_clean_first'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        main => this%main
+        setup => main%setup
         !
         !--------------------------------------------------------------------------------
         ! Deallocate environment variables
         !
-        IF (ASSOCIATED(env%vzero%cell)) CALL env%vzero%destroy()
+        IF (ASSOCIATED(main%vzero%cell)) CALL main%vzero%destroy()
         !
-        IF (ASSOCIATED(env%dvtot%cell)) CALL env%dvtot%destroy()
+        IF (ASSOCIATED(main%dvtot%cell)) CALL main%dvtot%destroy()
         !
         !--------------------------------------------------------------------------------
         ! base_environ variables
         !
-        IF (setup%lelectrostatic .AND. ASSOCIATED(env%vreference%cell)) &
-            CALL env%vreference%destroy()
+        IF (setup%lelectrostatic .AND. ASSOCIATED(main%vreference%cell)) &
+            CALL main%vreference%destroy()
         !
-        IF (setup%lsoftcavity .AND. ASSOCIATED(env%vsoftcavity%cell)) &
-            CALL env%vsoftcavity%destroy()
+        IF (setup%lsoftcavity .AND. ASSOCIATED(main%vsoftcavity%cell)) &
+            CALL main%vsoftcavity%destroy()
         !
-        IF (setup%lconfine .AND. ASSOCIATED(env%vconfine%cell)) &
-            CALL env%vconfine%destroy()
+        IF (setup%lconfine .AND. ASSOCIATED(main%vconfine%cell)) &
+            CALL main%vconfine%destroy()
         !
         !--------------------------------------------------------------------------------
         ! Destroy derived types which were allocated in input
         !
         IF (setup%lelectrostatic .OR. setup%lconfine) THEN
             !
-            CALL env%system_charges%destroy()
+            CALL main%system_charges%destroy()
             !
-            CALL env%environment_charges%destroy()
+            CALL main%environment_charges%destroy()
             !
         END IF
         !
-        IF (setup%lexternals) CALL env%externals%destroy()
+        IF (setup%lexternals) CALL main%externals%destroy()
         !
-        IF (setup%lstatic) CALL env%static%destroy()
+        IF (setup%lstatic) CALL main%static%destroy()
         !
-        IF (setup%lelectrolyte) CALL env%electrolyte%destroy()
+        IF (setup%lelectrolyte) CALL main%electrolyte%destroy()
         !
-        IF (setup%lsemiconductor) CALL env%semiconductor%destroy()
+        IF (setup%lsemiconductor) CALL main%semiconductor%destroy()
         !
-        IF (setup%laddcharges) CALL env%additional_charges%destroy()
+        IF (setup%laddcharges) CALL main%additional_charges%destroy()
         !
-        CALL env%system_electrons%destroy()
+        CALL main%system_electrons%destroy()
         !
-        CALL env%system_ions%destroy()
+        CALL main%system_ions%destroy()
         !
-        CALL env%system_system%destroy()
+        CALL main%system_system%destroy()
         !
-        CALL env%environment_electrons%destroy()
+        CALL main%environment_electrons%destroy()
         !
-        CALL env%environment_ions%destroy()
+        CALL main%environment_ions%destroy()
         !
-        CALL env%environment_system%destroy()
+        CALL main%environment_system%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean_first
@@ -153,12 +175,24 @@ CONTAINS
     !! be needed by TDDFPT, thus may need to be cleaned later
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean_second()
+    SUBROUTINE environ_clean_second(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        CLASS(environ_destructor), INTENT(IN) :: this
+        !
         LOGICAL :: opnd
+        !
+        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_setup), POINTER :: setup
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_clean_second'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        main => this%main
+        setup => main%setup
         !
         !--------------------------------------------------------------------------------
         !
@@ -171,9 +205,12 @@ CONTAINS
         !
         IF (setup%lelectrostatic) THEN
             !
-            IF (ASSOCIATED(env%velectrostatic%cell)) CALL env%velectrostatic%destroy()
+            IF (ASSOCIATED(main%velectrostatic%cell)) &
+                CALL main%velectrostatic%destroy()
             !
-            CALL electrostatic_clean()
+            CALL setup%outer%destroy()
+            !
+            CALL setup%reference%destroy()
             !
         END IF
         !
@@ -182,19 +219,19 @@ CONTAINS
         !
         IF (setup%loptical) THEN
             !
-            CALL env%environment_response_charges%destroy()
+            CALL main%environment_response_charges%destroy()
             !
-            CALL env%environment_response_electrons%destroy()
+            CALL main%environment_response_electrons%destroy()
             !
-            CALL env%system_response_charges%destroy()
+            CALL main%system_response_charges%destroy()
             !
-            CALL env%system_response_electrons%destroy()
+            CALL main%system_response_electrons%destroy()
             !
-            CALL env%optical%destroy()
+            CALL main%optical%destroy()
             !
         END IF
         !
-        IF (setup%lsolvent) CALL env%solvent%destroy()
+        IF (setup%lsolvent) CALL main%solvent%destroy()
         !
         !--------------------------------------------------------------------------------
         ! Destroy cells
@@ -207,25 +244,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean_second
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                               PRIVATE HELPER METHODS
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE electrostatic_clean()
-        !--------------------------------------------------------------------------------
-        !
-        CALL setup%outer%destroy()
-        !
-        CALL setup%reference%destroy()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE electrostatic_clean
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
