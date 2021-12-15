@@ -59,7 +59,7 @@ MODULE class_calculator
     TYPE, PUBLIC :: environ_calculator
         !--------------------------------------------------------------------------------
         !
-        TYPE(environ_obj), POINTER :: main => NULL()
+        TYPE(environ_main), POINTER :: main => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -97,7 +97,7 @@ CONTAINS
         TYPE(environ_density) :: aux
         TYPE(environ_density) :: de_dboundary
         !
-        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         !
         !--------------------------------------------------------------------------------
@@ -295,7 +295,7 @@ CONTAINS
         !
         REAL(DP) :: ereference
         !
-        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_eenviron'
@@ -372,7 +372,7 @@ CONTAINS
         !
         REAL(DP), DIMENSION(3, nat) :: freference, felectrostatic
         !
-        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: environment_cell
         !
@@ -513,7 +513,7 @@ CONTAINS
         TYPE(environ_density) :: dvsoftcavity
         TYPE(environ_density) :: dv_dboundary
         !
-        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
@@ -608,7 +608,7 @@ CONTAINS
         CLASS(environ_calculator), TARGET, INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: total_energy
         !
-        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_main), POINTER :: main
         !
         !--------------------------------------------------------------------------------
         !

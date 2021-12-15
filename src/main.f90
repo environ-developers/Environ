@@ -67,7 +67,7 @@ MODULE class_environ
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, PUBLIC :: environ_obj
+    TYPE, PUBLIC :: environ_main
         !--------------------------------------------------------------------------------
         !
         TYPE(environ_setup), POINTER :: setup => NULL()
@@ -144,7 +144,7 @@ MODULE class_environ
         PROCEDURE :: print_potential_shift => print_environ_potential_shift
         !
         !--------------------------------------------------------------------------------
-    END TYPE environ_obj
+    END TYPE environ_main
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -164,7 +164,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_base'
         !
@@ -194,7 +194,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -219,7 +219,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: density(nnr)
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: local_label = 'additional_charges'
         !
@@ -250,7 +250,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: vltot(nnr)
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_update_potential'
         !
@@ -278,7 +278,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_setup), POINTER :: setup
         !
@@ -317,7 +317,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: tau(3, nat)
         REAL(DP), OPTIONAL, INTENT(IN) :: center(3)
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP) :: local_pos(3)
         !
@@ -436,7 +436,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: rho(nnr)
         REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP), ALLOCATABLE :: aux(:)
         !
@@ -528,7 +528,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: drho(nnr)
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP), ALLOCATABLE :: aux(:)
         !
@@ -591,7 +591,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         INTEGER, INTENT(IN) :: nnr
-        CLASS(environ_obj), INTENT(IN) :: this
+        CLASS(environ_main), INTENT(IN) :: this
         !
         REAL(DP) :: vzero(nnr)
         !
@@ -616,7 +616,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         INTEGER, INTENT(IN) :: nnr
-        CLASS(environ_obj), INTENT(IN) :: this
+        CLASS(environ_main), INTENT(IN) :: this
         !
         REAL(DP) :: dvtot(nnr)
         !
@@ -648,7 +648,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
@@ -706,7 +706,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
@@ -926,7 +926,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), TARGET, INTENT(IN) :: this
+        CLASS(environ_main), TARGET, INTENT(IN) :: this
         CHARACTER(LEN=*), INTENT(IN) :: prog
         LOGICAL, OPTIONAL, INTENT(IN) :: de_flag
         !
@@ -1006,7 +1006,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), INTENT(IN) :: this
+        CLASS(environ_main), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !

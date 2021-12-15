@@ -48,7 +48,7 @@ MODULE class_destructor
     TYPE, PUBLIC :: environ_destructor
         !--------------------------------------------------------------------------------
         !
-        TYPE(environ_obj), POINTER :: main => NULL()
+        TYPE(environ_main), POINTER :: main => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -104,7 +104,7 @@ CONTAINS
         !
         CLASS(environ_destructor), TARGET, INTENT(IN) :: this
         !
-        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_clean_first'
@@ -184,7 +184,7 @@ CONTAINS
         !
         LOGICAL :: opnd
         !
-        TYPE(environ_obj), POINTER :: main
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_clean_second'

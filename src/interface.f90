@@ -57,7 +57,7 @@ MODULE environ_api
         !--------------------------------------------------------------------------------
         !
         TYPE(environ_setup) :: setup
-        TYPE(environ_obj) :: main
+        TYPE(environ_main) :: main
         TYPE(environ_calculator) :: calc
         TYPE(environ_destructor) :: clean
         !
