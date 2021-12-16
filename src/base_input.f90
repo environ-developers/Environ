@@ -34,13 +34,11 @@
 MODULE env_base_input
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP, nsx
+    USE environ_param, ONLY: DP
     !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
-    !
-    SAVE
     !
     !=---------------------------------------------------------------------------------=!
 !     ENVIRON Cards Parameters
@@ -50,27 +48,27 @@ MODULE env_base_input
     !
     LOGICAL :: taextchg = .FALSE.
     !
+    CHARACTER(LEN=80) :: extcharge_units = 'bohr' ! atomic positions (bohr|angstrom)
+    !
+    REAL(DP), ALLOCATABLE :: extcharge_charge(:) ! total charge of density
+    REAL(DP), ALLOCATABLE :: extcharge_pos(:, :) ! cartesian position of density
+    REAL(DP), ALLOCATABLE :: extcharge_spread(:) ! gaussian density spread (bohr)
     INTEGER, ALLOCATABLE :: extcharge_dim(:) ! point/line/plane of charge
     INTEGER, ALLOCATABLE :: extcharge_axis(:) ! x/y/z direction of line/plane
-    REAL(DP), ALLOCATABLE :: extcharge_charge(:) ! total charge of density
-    REAL(DP), ALLOCATABLE :: extcharge_spread(:) ! gaussian density spread (bohr)
-    REAL(DP), ALLOCATABLE :: extcharge_pos(:, :) ! cartesian position of density
-    !
-    CHARACTER(LEN=80) :: extcharge_units = 'bohr' ! atomic positions (bohr|angstrom)
     !
     !------------------------------------------------------------------------------------
     ! Local parameters of dielectric regions
     !
     LOGICAL :: taepsreg = .FALSE.
     !
-    INTEGER, ALLOCATABLE :: epsregion_dim(:) ! point/line/plane region
-    INTEGER, ALLOCATABLE :: epsregion_axis(:) ! x/y/z direction of line/plane
+    CHARACTER(LEN=80) :: epsregion_units = 'bohr' ! atomic positions (bohr|angstrom)
+    !
     REAL(DP), ALLOCATABLE :: epsregion_eps(:, :) ! permittivity inside region
+    REAL(DP), ALLOCATABLE :: epsregion_pos(:, :) ! cartesian center of region
     REAL(DP), ALLOCATABLE :: epsregion_width(:) ! region size (bohr)
     REAL(DP), ALLOCATABLE :: epsregion_spread(:) ! interface spread (bohr)
-    REAL(DP), ALLOCATABLE :: epsregion_pos(:, :) ! cartesian center of region
-    !
-    CHARACTER(LEN=80) :: epsregion_units = 'bohr' ! atomic positions (bohr|angstrom)
+    INTEGER, ALLOCATABLE :: epsregion_dim(:) ! point/line/plane region
+    INTEGER, ALLOCATABLE :: epsregion_axis(:) ! x/y/z direction of line/plane
     !
     !=---------------------------------------------------------------------------------=!
 !     ENVIRON Namelist Input Parameters
@@ -144,7 +142,8 @@ MODULE env_base_input
     !
     LOGICAL :: env_electrostatic = .FALSE. ! flag electrostatic namelist reading
     !
-    REAL(DP) :: atomicspread(nsx) = -0.5D0 ! atomic charge density gaussian spread (a.u.)
+    REAL(DP), ALLOCATABLE :: atomicspread(:)
+    ! atomic charge density gaussian spread (a.u.)
     !
     !------------------------------------------------------------------------------------
     ! Dielectric solvent parameters
@@ -196,10 +195,10 @@ MODULE env_base_input
     !
     ! full = all terms ( Dabo et al. arXiv 0901.0096 )
     !
-    REAL(DP) :: cion(nsx) = 1.D0 ! molar concentration of ionic countercharge (M=mol/L)
+    REAL(DP), ALLOCATABLE :: cion(:) ! molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: cionmax = 1.D3 ! maximum molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: rion = 0.D0 ! mean atomic radius of ionic countercharge (a.u.)
-    REAL(DP) :: zion(nsx) = 1.D0 ! valence of ionic countercharge
+    REAL(DP), ALLOCATABLE :: zion(:) ! valence of ionic countercharge
     REAL(DP) :: temperature = 300.D0 ! temperature of the solution
     !
     !------------------------------------------------------------------------------------
@@ -270,14 +269,14 @@ MODULE env_base_input
     !
     ! muff    = uff with local modifications (Nitrogen, see Fisicaro JCTC (2017)
     !
-    REAL(DP) :: solvationrad(nsx) = -3.D0
+    REAL(DP), ALLOCATABLE :: solvationrad(:)
     ! solvationrad radius of the solvation shell for each species when the
     ! ionic dielectric function is adopted, in internal units (a.u.)
     !
     !------------------------------------------------------------------------------------
     ! Full boundary parameters
     !
-    REAL(DP) :: corespread(nsx) = -0.5D0
+    REAL(DP), ALLOCATABLE :: corespread(:)
     ! gaussian spreads of the core electrons, in internal units (a.u.), to
     ! be used when solvent_mode = 'full'
     !
@@ -324,14 +323,14 @@ MODULE env_base_input
     ! minimum flux value for switching function
     !
     !------------------------------------------------------------------------------------
-    ! Numerical core's parameters
+    ! Derivative core's parameters
     !
-    CHARACTER(LEN=80) :: derivatives = 'default'
-    CHARACTER(LEN=80) :: derivatives_allowed(5)
+    CHARACTER(LEN=80) :: deriv_method = 'default'
+    CHARACTER(LEN=80) :: deriv_method_allowed(5)
     !
-    DATA derivatives_allowed/'default', 'fft', 'chain', 'highmem', 'lowmem'/
+    DATA deriv_method_allowed/'default', 'fft', 'chain', 'highmem', 'lowmem'/
     !
-    ! core numerical methods to be exploited for quantities derived from the dielectric
+    ! algorithms for computing derivatives
     !
     ! fft       = fast Fourier transforms
     !
@@ -342,18 +341,16 @@ MODULE env_base_input
     !
     ! lowmem    = more efficient analytic derivatives
     !
-    !------------------------------------------------------------------------------------
-    ! Finite difference parameters
+    CHARACTER(LEN=80) :: deriv_core = 'fft'
+    CHARACTER(LEN=80) :: deriv_core_allowed(1)
     !
-    INTEGER :: ifdtype = 1 ! type of numerical differentiator
-    ! 1 = central difference
-    ! 2 = low-noise lanczos (m=2)
-    ! 3 = low-noise lanczos (m=4)
-    ! 4 = smooth noise-robust (n=2)
-    ! 5 = smooth noise-robust (n=4)
+    DATA deriv_core_allowed/'fft'/
     !
-    INTEGER :: nfdpoint = 2 ! number of points used in the numerical differentiator
-    ! N = 2 * nfdpoint + 1
+    ! choice of the core numerical methods to be exploited for derivatives
+    !
+    ! fft = fast Fourier transforms (default)
+    !
+    ! to be implemented : wavelets (from big-DFT) and multigrid #TODO future work
     !
     !------------------------------------------------------------------------------------
     ! Solvent boundary parameters
@@ -448,6 +445,25 @@ MODULE env_base_input
     ! spread of the interfaces for the electrolyte boundary
     !
     !------------------------------------------------------------------------------------
+    ! Electrolyte boundary derivatives
+    !
+    CHARACTER(LEN=80) :: electrolyte_deriv_method = 'default'
+    CHARACTER(LEN=80) :: electrolyte_deriv_method_allowed(5)
+    !
+    DATA electrolyte_deriv_method_allowed/'default', 'fft', 'chain', 'highmem', 'lowmem'/
+    !
+    ! algorithms for computing derivatives on the electrolyte boundary
+    !
+    ! fft       = fast Fourier transforms
+    !
+    ! chain     = chain-rule derivatives for as much as possible (FFTs for the rest)
+    !
+    ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical
+    !             functions and derivatives
+    !
+    ! lowmem    = more efficient analytic derivatives
+    !
+    !------------------------------------------------------------------------------------
     ! Mott Schottky boundary (system parameters
     !
     REAL(DP) :: sc_distance = 0.D0
@@ -465,16 +481,17 @@ MODULE env_base_input
         field_factor, field_asymmetry, field_max, field_min, electrolyte_mode, &
         electrolyte_distance, electrolyte_spread, electrolyte_rhomax, &
         electrolyte_rhomin, electrolyte_tbeta, electrolyte_alpha, &
-        electrolyte_softness, derivatives, ifdtype, nfdpoint, sc_distance, sc_spread
+        electrolyte_softness, deriv_method, deriv_core, sc_distance, sc_spread
     !
     !=---------------------------------------------------------------------------------=!
 !     ELECTROSTATIC Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
     !
     CHARACTER(LEN=80) :: problem = 'none'
-    CHARACTER(LEN=80) :: problem_allowed(6)
+    CHARACTER(LEN=80) :: problem_allowed(7)
     !
-    DATA problem_allowed/'poisson', 'generalized', 'pb', 'modpb', 'linpb', 'linmodpb'/
+    DATA problem_allowed/ &
+        'none', 'poisson', 'generalized', 'pb', 'modpb', 'linpb', 'linmodpb'/
     !
     ! type of electrostatic problem
     !
@@ -502,9 +519,10 @@ MODULE env_base_input
     ! Driver's parameters
     !
     CHARACTER(LEN=80) :: solver = 'none'
-    CHARACTER(LEN=80) :: solver_allowed(7)
+    CHARACTER(LEN=80) :: solver_allowed(8)
     !
-    DATA solver_allowed/'cg', 'sd', 'fixed-point', 'lbfgs', 'newton', 'nested', 'direct'/
+    DATA solver_allowed/ &
+        'none', 'cg', 'sd', 'fixed-point', 'lbfgs', 'newton', 'nested', 'direct'/
     !
     ! type of numerical solver
     !
@@ -624,7 +642,21 @@ MODULE env_base_input
     !
     DATA core_allowed/'fft'/
     !
-    ! choice of the core numerical methods to be exploited for the different operations
+    ! choice of the core numerical methods to be exploited for electrostatics
+    !
+    ! fft = fast Fourier transforms (default)
+    !
+    ! to be implemented : wavelets (from big-DFT) and multigrid #TODO future work
+    !
+    !------------------------------------------------------------------------------------
+    ! Inner numerical core's parameters
+    !
+    CHARACTER(LEN=80) :: inner_core = 'fft'
+    CHARACTER(LEN=80) :: inner_core_allowed(1)
+    !
+    DATA inner_core_allowed/'fft'/
+    !
+    ! choice of the core numerical methods to be exploited for nested electrostatics
     !
     ! fft = fast Fourier transforms (default)
     !
@@ -633,33 +665,43 @@ MODULE env_base_input
     !------------------------------------------------------------------------------------
     ! Periodic correction keywords
     !
-    INTEGER :: pbc_dim = -3 ! dimensionality of the simulation cell
-    ! periodic boundary conditions on 3/2/1/0 sides of the cell
-    !
     CHARACTER(LEN=80) :: pbc_correction = 'none'
-    CHARACTER(LEN=80) :: pbc_correction_allowed(9)
+    CHARACTER(LEN=80) :: pbc_correction_allowed(4)
     !
-    DATA pbc_correction_allowed/'none', 'parabolic', 'gcs', 'gouy-chapman', &
-        'gouy-chapman-stern', 'ms', 'mott-schottky', 'ms-gcs', &
-        'mott-schottky-guoy-chapman-stern'/
+    DATA pbc_correction_allowed/'none', 'parabolic', 'gcs', 'ms'/
     !
     ! type of periodic boundary condition correction to be used
     !
     ! parabolic = point-counter-charge type of correction
     !
-    ! ms        = mott-schottky calculation for semiconductor
+    ! gcs       = Gouy-Chapman-Stern correction for electrolyte
+    !
+    ! ms        = mott-schottky correction for semiconductor
+    !
+    INTEGER :: pbc_dim = -3 ! dimensionality of the simulation cell
+    ! periodic boundary conditions on 3/2/1/0 sides of the cell
     !
     INTEGER :: pbc_axis = 3 ! choice of the sides with periodic boundary conditions
     ! 1 = x, 2 = y, 3 = z, where
     ! if pbc_dim = 2, cell_axis is orthogonal to 2D plane
     ! if pbc_dim = 1, cell_axis is along the 1D direction
     !
+    CHARACTER(LEN=80) :: pbc_core = '1da'
+    CHARACTER(LEN=80) :: pbc_core_allowed(1)
+    !
+    DATA pbc_core_allowed/'1da'/
+    !
+    ! choice of the core numerical methods to be exploited for pbc corrections
+    !
+    ! 1da = 1d-analytic
+    !
     !------------------------------------------------------------------------------------
     !
     NAMELIST /electrostatic/ &
         problem, tol, solver, auxiliary, step_type, step, maxstep, mix_type, mix, &
         ndiis, preconditioner, screening_type, screening, core, pbc_dim, &
-        pbc_correction, pbc_axis, inner_tol, inner_solver, inner_maxstep, inner_mix
+        pbc_correction, pbc_axis, pbc_core, inner_tol, inner_solver, inner_maxstep, &
+        inner_mix, inner_core
     !
     !------------------------------------------------------------------------------------
     !

@@ -11,6 +11,6 @@
  &BOUNDARY
    !
    solvent_mode = 'ionic'
-   derivatives = 'fft'
+   deriv_method = 'fft'
    !
  /

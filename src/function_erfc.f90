@@ -60,13 +60,14 @@ MODULE class_function_erfc
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: density => density_of_function_erfc
-        PROCEDURE :: gradient => gradient_of_function_erfc
-        PROCEDURE :: laplacian => laplacian_of_function_erfc
-        PROCEDURE :: hessian => hessian_of_function_erfc
-        PROCEDURE :: derivative => derivative_of_function_erfc
+        PROCEDURE :: density => density_of_function
+        PROCEDURE :: gradient => gradient_of_function
+        PROCEDURE :: laplacian => laplacian_of_function
+        PROCEDURE :: hessian => hessian_of_function
+        PROCEDURE :: derivative => derivative_of_function
         !
-        PROCEDURE, PRIVATE :: get_charge, erfcvolume
+        PROCEDURE, PRIVATE :: get_charge
+        PROCEDURE, PRIVATE :: erfcvolume
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_erfc
@@ -84,30 +85,38 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function_erfc(this, density, zero)
+    SUBROUTINE density_of_function(this, density, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        CLASS(environ_function_erfc), INTENT(IN) :: this
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: density
+        TYPE(environ_density), INTENT(INOUT) :: density
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'density_of_function'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%f_type == 5) THEN
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, "Wrong value of axis", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
+        !
+        IF (this%f_type == 4) THEN
             density%of_r = this%volume
         ELSE IF (PRESENT(zero)) THEN
             IF (zero) density%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => density%cell, &
                    pos => this%pos, &
@@ -116,7 +125,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -125,12 +135,14 @@ CONTAINS
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
             !
+            !----------------------------------------------------------------------------
+            !
             ALLOCATE (local(cell%nnr))
             local = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -138,8 +150,7 @@ CONTAINS
                 dist = SQRT(r2)
                 arg = (dist - width) / spread
                 !
-                local(ir) = environ_erfc(arg) ! compute error function
-                !
+                local(i) = environ_erfc(arg) ! compute error function
             END DO
             !
             !----------------------------------------------------------------------------
@@ -150,45 +161,51 @@ CONTAINS
             CALL env_mp_sum(integral, cell%dfft%comm)
             !
             IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
-                CALL io%warning('wrong integral of erfc function')
+                CALL io%warning("wrong integral of erfc function", 1005)
             !
             !----------------------------------------------------------------------------
             !
             density%of_r = density%of_r + scale * local
             ! rescale generated function to obtain the requested integral
             !
-            DEALLOCATE (local)
-            !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE density_of_function_erfc
+    END SUBROUTINE density_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function_erfc(this, gradient, zero)
+    SUBROUTINE gradient_of_function(this, gradient, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        CLASS(environ_function_erfc), INTENT(IN) :: this
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
-        TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, "Wrong value of axis", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) gradient%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => gradient%cell, &
                    pos => this%pos, &
@@ -197,7 +214,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -206,12 +224,14 @@ CONTAINS
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
             !
+            !----------------------------------------------------------------------------
+            !
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -219,44 +239,51 @@ CONTAINS
                 dist = SQRT(r2)
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) gradlocal(:, ir) = -EXP(-arg**2) * r / dist
+                IF (dist > func_tol) gradlocal(:, i) = -EXP(-arg**2) * r / dist
                 ! compute gradient of error function
                 !
             END DO
             !
             gradient%of_r = gradient%of_r + gradlocal * scale
-            DEALLOCATE (gradlocal)
             !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE gradient_of_function_erfc
+    END SUBROUTINE gradient_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function_erfc(this, laplacian, zero)
+    SUBROUTINE laplacian_of_function(this, laplacian, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        CLASS(environ_function_erfc), INTENT(IN) :: this
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
+        TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: lapllocal(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, "Wrong value of axis", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) laplacian%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => laplacian%cell, &
                    pos => this%pos, &
@@ -265,7 +292,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -274,12 +302,14 @@ CONTAINS
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
             !
+            !----------------------------------------------------------------------------
+            !
             ALLOCATE (lapllocal(cell%nnr))
             lapllocal = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -295,55 +325,65 @@ CONTAINS
                 CASE (0)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(ir) = -EXP(-arg**2) * &
-                                        (1.D0 / dist - arg / spread) * 2.D0
+                        lapllocal(i) = -EXP(-arg**2) * &
+                                       (1.D0 / dist - arg / spread) * 2.D0
                     !
                 CASE (1)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(ir) = -EXP(-arg**2) * &
-                                        (1.D0 / dist - 2.D0 * arg / spread)
+                        lapllocal(i) = -EXP(-arg**2) * &
+                                       (1.D0 / dist - 2.D0 * arg / spread)
                     !
                 CASE (2)
-                    lapllocal(ir) = EXP(-arg**2) * arg / spread * 2.D0
+                    lapllocal(i) = EXP(-arg**2) * arg / spread * 2.D0
+                    !
+                CASE DEFAULT
+                    CALL io%error(sub_name, "Unexpected system dimensions", 1)
                     !
                 END SELECT
                 !
             END DO
             !
             laplacian%of_r = laplacian%of_r + lapllocal * scale
-            DEALLOCATE (lapllocal)
             !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE laplacian_of_function_erfc
+    END SUBROUTINE laplacian_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function_erfc(this, hessian, zero)
+    SUBROUTINE hessian_of_function(this, hessian, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        CLASS(environ_function_erfc), INTENT(IN) :: this
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
-        TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
+        TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
+        INTEGER :: i, j, k
         LOGICAL :: physical
-        INTEGER :: ir, ip, jp
         REAL(DP) :: r(3), r2, scale, dist, arg, tmp, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: hesslocal(:, :, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, "Wrong value of axis", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) hessian%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => hessian%cell, &
                    pos => this%pos, &
@@ -352,7 +392,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -361,12 +402,14 @@ CONTAINS
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
             !
+            !----------------------------------------------------------------------------
+            !
             ALLOCATE (hesslocal(3, 3, cell%nnr))
             hesslocal = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -379,14 +422,14 @@ CONTAINS
                 !
                 IF (dist > func_tol) THEN
                     !
-                    DO ip = 1, 3
+                    DO j = 1, 3
                         !
-                        DO jp = 1, 3
-                            tmp = -r(ip) * r(jp) * (1.D0 / dist + 2.D0 * arg / spread)
+                        DO k = 1, 3
+                            tmp = -r(j) * r(k) * (1.D0 / dist + 2.D0 * arg / spread)
                             !
-                            IF (ip == jp) tmp = tmp + dist
+                            IF (j == k) tmp = tmp + dist
                             !
-                            hesslocal(ip, jp, ir) = -EXP(-arg**2) * tmp / dist**2
+                            hesslocal(j, k, i) = -EXP(-arg**2) * tmp / dist**2
                         END DO
                         !
                     END DO
@@ -396,38 +439,45 @@ CONTAINS
             END DO
             !
             hessian%of_r = hessian%of_r + hesslocal * scale
-            DEALLOCATE (hesslocal)
             !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE hessian_of_function_erfc
+    END SUBROUTINE hessian_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE derivative_of_function_erfc(this, derivative, zero)
+    SUBROUTINE derivative_of_function(this, derivative, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
+        CLASS(environ_function_erfc), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: derivative
+        TYPE(environ_density), INTENT(INOUT) :: derivative
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: derivlocal(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function_erfc'
+        CHARACTER(LEN=80) :: sub_name = 'derivative_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, "Wrong value of axis", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) derivative%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => derivative%cell, &
                    pos => this%pos, &
@@ -436,7 +486,7 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -445,22 +495,24 @@ CONTAINS
             ! scaling factor, take into account rescaling of generated density
             ! to obtain the correct integrated total charge
             !
-            ALLOCATE(derivlocal(cell%nnr))
+            !----------------------------------------------------------------------------
+            !
+            ALLOCATE (derivlocal(cell%nnr))
             derivlocal = 0.D0
             integral = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 !
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) derivlocal(ir) = -EXP(-arg**2)
-                integral = integral + environ_erfc(arg)
+                IF (dist > func_tol) derivlocal(i) = -EXP(-arg**2)
                 !
+                integral = integral + environ_erfc(arg)
             END DO
             !
             !----------------------------------------------------------------------------
@@ -469,20 +521,19 @@ CONTAINS
             CALL env_mp_sum(integral, cell%dfft%comm)
             !
             integral = integral * cell%omega / DBLE(cell%ntot) * 0.5D0
+            !
             IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
-                CALL io%warning('wrong integral of erfc function')
+                CALL io%warning('wrong integral of erfc function', 1005)
             !
             !----------------------------------------------------------------------------
             !
             derivative%of_r = derivative%of_r + scale * derivlocal
             ! rescale generated function to obtain the requested integral
             !
-            DEALLOCATE (derivlocal)
-            !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE derivative_of_function_erfc
+    END SUBROUTINE derivative_of_function
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -549,6 +600,9 @@ CONTAINS
                 !
                 erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis)
                 !
+            CASE DEFAULT
+                CALL io%error(fun_name, "Unexpected system dimensions", 1)
+                !
             END SELECT
             !
         END ASSOCIATE
@@ -559,10 +613,10 @@ CONTAINS
     !>
     !! type 2 - CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
     !!
-    !! type 4 - HARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
+    !! type 3 - HARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
     !!          goes from charge to 0
     !!
-    !! type 5 - CHARGE * (1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF)
+    !! type 4 - CHARGE * (1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF)
     !!          goes from 0 to charge
     !!
     !------------------------------------------------------------------------------------
@@ -574,6 +628,8 @@ CONTAINS
         CLASS(environ_function_erfc), INTENT(IN) :: this
         TYPE(environ_cell), INTENT(IN) :: cell
         !
+        CHARACTER(LEN=80) :: sub_name = 'get_charge'
+        !
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (f_type => this%f_type, &
@@ -584,11 +640,14 @@ CONTAINS
             CASE (2)
                 get_charge = charge
                 !
-            CASE (4)
+            CASE (3)
                 get_charge = this%erfcvolume(cell) * charge
                 !
-            CASE (5)
+            CASE (4)
                 get_charge = -this%erfcvolume(cell) * charge
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected function type", 1)
                 !
             END SELECT
             !

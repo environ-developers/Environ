@@ -37,10 +37,6 @@ MODULE environ_param
     !
     IMPLICIT NONE
     !
-    SAVE
-    !
-    INTEGER, PARAMETER :: nsx = 10
-    !
     !------------------------------------------------------------------------------------
     ! Mathematical constants
     !

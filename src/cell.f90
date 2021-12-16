@@ -32,14 +32,17 @@ MODULE class_cell
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
+    USE env_sorting, ONLY: env_hpsort_eps
     USE env_mp, ONLY: env_mp_sum
     !
-    USE environ_param, ONLY: DP, tpi
+    USE environ_param, ONLY: DP, tpi, eps8
     !
     USE env_base_stick, ONLY: env_sticks_map, env_sticks_map_deallocate
     !
     USE env_types_fft, ONLY: env_fft_type_descriptor, env_fft_type_init, &
-                             env_fft_type_deallocate
+                             env_fft_stick_index, env_fft_type_deallocate
+    !
+    USE env_fft_ggen, ONLY: env_fft_set_nl
     !
     !------------------------------------------------------------------------------------
     !
@@ -86,17 +89,42 @@ MODULE class_cell
         INTEGER :: j0, k0 ! starting indexes of processor-specific boxes of grid points
         REAL(DP) :: in1, in2, in3 ! inverse number of grid points
         !
+        REAL(DP) :: gcutm = 0.0_DP ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
+        !
+        INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
+        ! needed in parallel execution:
+        ! gstart=2 for the proc that holds G=0
+        ! gstart=1 for all others
+        !
+        REAL(DP), ALLOCATABLE :: gg(:)
+        ! G^2 in increasing order (in units of (2pi/a)^2)
+        !
+        REAL(DP), ALLOCATABLE :: g(:, :)
+        ! G-vectors cartesian components (in units 2pi/a)
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_cell
         PROCEDURE :: init => init_environ_cell
         PROCEDURE :: update => update_environ_cell
         PROCEDURE :: destroy => destroy_environ_cell
-        PROCEDURE, PRIVATE :: init_dfft, destroy_dfft
         !
-        PROCEDURE :: volume, get_min_distance, ir2ijk, planar_average
-        PROCEDURE, PRIVATE :: ir2r, minimum_image, is_cubic
+        PROCEDURE, PRIVATE :: init_dfft
+        PROCEDURE, PRIVATE :: destroy_dfft
+        !
+        PROCEDURE :: volume
+        PROCEDURE :: get_min_distance
+        PROCEDURE :: ir2ijk
+        PROCEDURE :: planar_average
+        !
+        PROCEDURE, PRIVATE :: ir2r
+        PROCEDURE, PRIVATE :: minimum_image
+        PROCEDURE, PRIVATE :: is_cubic
+        !
+        PROCEDURE, PRIVATE :: init_gvect => env_gvect_init
+        PROCEDURE, PRIVATE :: deallocate_gvect => env_deallocate_gvect
         !
         PROCEDURE :: printout => print_environ_cell
         PROCEDURE :: write_cube => write_cube_cell
@@ -117,6 +145,27 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_cell(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_cell'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ALLOCATED(this%g)) CALL io%create_error(sub_name)
+        !
+        IF (ALLOCATED(this%gg)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_cell
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_cell(this, gcutm, comm, at, nr, label)
         !--------------------------------------------------------------------------------
         !
@@ -124,14 +173,19 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: comm
         REAL(DP), INTENT(IN) :: gcutm, at(3, 3)
-        INTEGER, INTENT(IN), OPTIONAL :: nr(3)
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
+        INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
+        !
+        INTEGER :: ngm_g ! global number of G vectors (summed on all procs)
+        ! in serial execution, ngm_g = ngm
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_cell'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         IF (PRESENT(label)) this%label = label
         !
@@ -175,6 +229,13 @@ CONTAINS
         CALL this%update(at)
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%init_gvect(ngm_g, this%dfft%comm)
+        !
+        CALL env_ggen(this%dfft, this%dfft%comm, this%at, this%bg, this%gcutm, &
+                      ngm_g, this%dfft%ngm, this%g, this%gg, this%gstart, .TRUE.)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_cell
     !------------------------------------------------------------------------------------
     !>
@@ -189,7 +250,7 @@ CONTAINS
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !
-        INTEGER :: ic, ix, iy, iz
+        INTEGER :: i, j, k, l
         REAL(DP) :: dx, dy, dz
         !
         CHARACTER(LEN=80) :: sub_name = 'update_environ_cell'
@@ -213,20 +274,20 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calculate corners for minimum image convention
         !
-        ic = 0
+        l = 0
         !
-        DO ix = 0, 1
-            dx = DBLE(-ix)
+        DO i = 0, 1
+            dx = DBLE(-i)
             !
-            DO iy = 0, 1
-                dy = DBLE(-iy)
+            DO j = 0, 1
+                dy = DBLE(-j)
                 !
-                DO iz = 0, 1
-                    dz = DBLE(-iz)
-                    ic = ic + 1
-                    this%corners(1, ic) = dx * at(1, 1) + dy * at(1, 2) + dz * at(1, 3)
-                    this%corners(2, ic) = dx * at(2, 1) + dy * at(2, 2) + dz * at(2, 3)
-                    this%corners(3, ic) = dx * at(3, 1) + dy * at(3, 2) + dz * at(3, 3)
+                DO k = 0, 1
+                    dz = DBLE(-k)
+                    l = l + 1
+                    this%corners(1, l) = dx * at(1, 1) + dy * at(1, 2) + dz * at(1, 3)
+                    this%corners(2, l) = dx * at(2, 1) + dy * at(2, 2) + dz * at(2, 3)
+                    this%corners(3, l) = dx * at(3, 1) + dy * at(3, 2) + dz * at(3, 3)
                 END DO
                 !
             END DO
@@ -254,6 +315,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%destroy_dfft()
+        !
+        CALL this%deallocate_gvect()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_cell
@@ -283,6 +346,8 @@ CONTAINS
         REAL(DP) :: bg(3, 3)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%gcutm = gcutm
         !
         CALL recips(at(1, 1), at(1, 2), at(1, 3), bg(1, 1), bg(1, 2), bg(1, 3))
         ! calculate the reciprocal lattice vectors
@@ -337,7 +402,7 @@ CONTAINS
         !
         REAL(DP), DIMENSION(3), INTENT(IN) :: a1, a2, a3
         !
-        CLASS(environ_cell), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_cell), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -348,7 +413,7 @@ CONTAINS
         IF (this%omega < 0.0_DP) THEN
             this%omega = ABS(this%omega)
             !
-            CALL io%warning('axis vectors are left-handed')
+            CALL io%warning("axis vectors are left-handed", 1004)
             !
         END IF
         !
@@ -369,37 +434,39 @@ CONTAINS
         !
         REAL(DP), DIMENSION(3), INTENT(OUT) :: b1, b2, b3
         !
-        REAL(DP) :: den ! the denominator
-        REAL(DP) :: s ! the sign of the permutations
-        !
-        INTEGER :: iperm ! counter on the permutations
         INTEGER :: i, j, k, l
         !
-        INTEGER :: ipol ! counter on the polarizations
+        INTEGER :: m ! counter on the permutations
+        INTEGER :: n ! counter on the polarizations
+        !
+        REAL(DP) :: denominator
+        REAL(DP) :: sign
         !
         !--------------------------------------------------------------------------------
         ! Compute the denominator
         !
-        den = 0
+        denominator = 0
         i = 1
         j = 2
         k = 3
-        s = 1.D0
+        sign = 1.D0
         !
-100     DO iperm = 1, 3
-            den = den + s * a1(i) * a2(j) * a3(k)
-            l = i
-            i = j
-            j = k
-            k = l
+        DO WHILE (sign >= 0.D0)
+            !
+            DO m = 1, 3
+                denominator = denominator + sign * a1(i) * a2(j) * a3(k)
+                l = i
+                i = j
+                j = k
+                k = l
+            END DO
+            !
+            i = 2
+            j = 1
+            k = 3
+            sign = -sign
+            !
         END DO
-        !
-        i = 2
-        j = 1
-        k = 3
-        s = -s
-        !
-        IF (s < 0.D0) GOTO 100
         !
         !--------------------------------------------------------------------------------
         ! Compute the reciprocal vectors
@@ -408,10 +475,10 @@ CONTAINS
         j = 2
         k = 3
         !
-        DO ipol = 1, 3
-            b1(ipol) = (a2(j) * a3(k) - a2(k) * a3(j)) / den
-            b2(ipol) = (a3(j) * a1(k) - a3(k) * a1(j)) / den
-            b3(ipol) = (a1(j) * a2(k) - a1(k) * a2(j)) / den
+        DO n = 1, 3
+            b1(n) = (a2(j) * a3(k) - a2(k) * a3(j)) / denominator
+            b2(n) = (a3(j) * a1(k) - a3(k) * a1(j)) / denominator
+            b3(n) = (a1(j) * a2(k) - a1(k) * a2(j)) / denominator
             l = i
             i = j
             j = k
@@ -433,9 +500,8 @@ CONTAINS
         INTEGER, INTENT(IN) :: ir, dim, axis
         REAL(DP), INTENT(IN) :: origin(3)
         !
-        REAL(DP), INTENT(OUT) :: r(3), r2
-        !
         LOGICAL, INTENT(INOUT) :: physical
+        REAL(DP), INTENT(OUT) :: r(3), r2
         !
         !--------------------------------------------------------------------------------
         !
@@ -508,6 +574,8 @@ CONTAINS
         INTEGER :: idx, narea
         LOGICAL :: physical
         !
+        CHARACTER(LEN=80) :: sub_name = 'planar_average'
+        !
         !--------------------------------------------------------------------------------
         !
         narea = this%ntot / naxis
@@ -535,6 +603,9 @@ CONTAINS
             CASE (3)
                 idx = k
                 !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected axis value", 1)
+                !
             END SELECT
             !
             idx = idx + 1 + shift
@@ -555,7 +626,7 @@ CONTAINS
         !
         IF (.NOT. reverse) THEN
             !
-            CALL env_mp_sum(f1d(:), this%dfft%comm)
+            CALL env_mp_sum(f1d, this%dfft%comm)
             !
             f1d = f1d / DBLE(narea)
         END IF
@@ -583,7 +654,7 @@ CONTAINS
         REAL(DP), INTENT(OUT) :: r(3)
         LOGICAL, INTENT(OUT) :: physical
         !
-        INTEGER :: idx, i, j, k, ip
+        INTEGER :: i, j, k, l
         !
         !--------------------------------------------------------------------------------
         !
@@ -593,11 +664,11 @@ CONTAINS
         !
         IF (.NOT. physical) RETURN
         !
-        DO ip = 1, 3
+        DO l = 1, 3
             !
-            r(ip) = DBLE(i) * this%in1 * this%at(ip, 1) + &
-                    DBLE(j) * this%in2 * this%at(ip, 2) + &
-                    DBLE(k) * this%in3 * this%at(ip, 3)
+            r(l) = DBLE(i) * this%in1 * this%at(l, 1) + &
+                   DBLE(j) * this%in2 * this%at(l, 2) + &
+                   DBLE(k) * this%in3 * this%at(l, 3)
             !
         END DO
         !
@@ -621,11 +692,15 @@ CONTAINS
         !
         INTEGER :: i
         !
+        CHARACTER(LEN=80) :: sub_name = 'displacement'
+        !
         !--------------------------------------------------------------------------------
         !
         dr = r1 - r2
         !
         SELECT CASE (dim)
+            !
+        CASE (0)
             !
         CASE (1)
             dr(axis) = 0.D0
@@ -635,6 +710,9 @@ CONTAINS
             DO i = 1, 3
                 IF (i /= axis) dr(i) = 0.D0
             END DO
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected system dimensions", 1)
             !
         END SELECT
         !
@@ -654,7 +732,7 @@ CONTAINS
         REAL(DP), INTENT(INOUT) :: r(3)
         REAL(DP), INTENT(OUT) :: r2
         !
-        INTEGER :: ic
+        INTEGER :: i
         REAL(DP) :: s(3), rmin(3), r2min
         !
         !--------------------------------------------------------------------------------
@@ -666,8 +744,8 @@ CONTAINS
         rmin = r
         r2min = SUM(r * r)
         !
-        DO ic = 2, 8
-            s = r + this%corners(:, ic)
+        DO i = 2, 8
+            s = r + this%corners(:, i)
             r2 = SUM(s * s)
             !
             IF (r2 < r2min) THEN
@@ -685,14 +763,14 @@ CONTAINS
         ! #TODO we may want to check if it is safer/more efficient
         !
         ! x = MATMUL(ws%b, r)
-        ! x(:) = x(:) - NINT(x(:))
+        ! x = x - NINT(x)
         ! c = SUM(x * MATMUL(ws%aa, x))
         ! m = 0
         ! !
-        ! lb(:) = NINT(x(:) - DSQRT(c) * ws%norm_b(:))
+        ! lb = NINT(x - DSQRT(c) * ws%norm_b)
         ! ! CEILING should be enough for lb but NINT might be safer
         ! !
-        ! ub(:) = NINT(x(:) + DSQRT(c) * ws%norm_b(:))
+        ! ub = NINT(x + DSQRT(c) * ws%norm_b)
         ! ! FLOOR should be enough for ub but NINT might be safer
         ! !
         ! DO i1 = lb(1), ub(1)
@@ -732,7 +810,7 @@ CONTAINS
         !
         REAL(DP), PARAMETER :: tol = 1.D-8
         !
-        INTEGER :: ipol, jpol
+        INTEGER :: i, j
         REAL(DP) :: tmp
         !
         !--------------------------------------------------------------------------------
@@ -741,14 +819,14 @@ CONTAINS
         !
         tmp = 0.D0
         !
-        DO ipol = 1, 3
+        DO i = 1, 3
             !
-            DO jpol = 1, 3
+            DO j = 1, 3
                 !
-                IF (ipol == jpol) THEN
-                    tmp = tmp + ABS(this%at(ipol, ipol) - this%at(1, 1))
+                IF (i == j) THEN
+                    tmp = tmp + ABS(this%at(i, i) - this%at(1, 1))
                 ELSE
-                    tmp = tmp + ABS(this%at(ipol, jpol))
+                    tmp = tmp + ABS(this%at(i, j))
                 END IF
                 !
             END DO
@@ -759,6 +837,330 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION is_cubic
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  G-SPACE METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !! This routine generates all the reciprocal lattice vectors
+    !! contained in the sphere of radius gcutm. Furthermore it
+    !! computes the indices nl which give the correspondence
+    !! between the fft mesh points and the array of g vectors.
+    !
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_ggen(dfftp, comm, at, bg, gcutm, ngm_g, ngm, g, gg, gstart, &
+                        no_global_sort)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: at(3, 3), bg(3, 3), gcutm
+        INTEGER, INTENT(IN) :: ngm_g, comm
+        LOGICAL, OPTIONAL, INTENT(IN) :: no_global_sort
+        ! if no_global_sort is present (and it is true) G vectors are sorted only
+        ! locally and not globally. In this case no global array needs to be
+        ! allocated and sorted: saves memory and a lot of time for large systems
+        !
+        TYPE(env_fft_type_descriptor), INTENT(INOUT) :: dfftp
+        INTEGER, INTENT(INOUT) :: ngm
+        REAL(DP), INTENT(OUT) :: g(:, :), gg(:)
+        INTEGER, INTENT(OUT) :: gstart
+        !
+        REAL(DP) :: tx(3), ty(3), t(3)
+        REAL(DP), ALLOCATABLE :: tt(:)
+        INTEGER :: ngm_save, n1, n2, n3, ngm_offset, ngm_max, ngm_local
+        !
+        REAL(DP), ALLOCATABLE :: g2sort_g(:)
+        ! array containing only g vectors for the current processor
+        !
+        INTEGER, ALLOCATABLE :: mill_unsorted(:, :)
+        ! array containing all g vectors generators, on all processors
+        ! (replicated data). When no_global_sort is present and .true.,
+        ! only g-vectors for the current processor are stored
+        !
+        INTEGER, DIMENSION(:), ALLOCATABLE :: igsrt, g2l
+        !
+        INTEGER :: ni, nj, nk, i, j, k, ng
+        INTEGER :: istart, jstart, kstart
+        INTEGER :: mype, npe
+        LOGICAL :: global_sort, is_local
+        INTEGER, ALLOCATABLE :: ngmpe(:)
+        !
+        INTEGER, EXTERNAL :: env_mp_rank, env_mp_size
+        !
+        CHARACTER(LEN=80) :: sub_name = 'env_ggen'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        global_sort = .TRUE.
+        !
+        IF (PRESENT(no_global_sort)) global_sort = .NOT. no_global_sort
+        !
+        IF (.NOT. global_sort) THEN
+            ngm_max = ngm
+        ELSE
+            ngm_max = ngm_g
+        END IF
+        !
+        ngm_save = ngm ! save current value of ngm
+        !
+        ngm = 0
+        ngm_local = 0
+        !
+        gg = gcutm + 1.D0
+        ! set the total number of fft mesh points and and initial value of gg
+        ! The choice of gcutm is due to the fact that we have to order the
+        ! vectors after computing them.
+        !
+        !--------------------------------------------------------------------------------
+        ! Computes all the g vectors inside a sphere
+        !
+        ALLOCATE (mill_unsorted(3, ngm_save))
+        ALLOCATE (igsrt(ngm_max))
+        ALLOCATE (g2l(ngm_max))
+        ALLOCATE (g2sort_g(ngm_max))
+        !
+        g2sort_g = 1.0D20
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ALLOCATE (tt(dfftp%nr3)) ! allocate temporal array
+        !
+        !--------------------------------------------------------------------------------
+        ! Max miller indices (same convention as in module stick_set)
+        !
+        ni = (dfftp%nr1 - 1) / 2
+        nj = (dfftp%nr2 - 1) / 2
+        nk = (dfftp%nr3 - 1) / 2
+        !
+        !--------------------------------------------------------------------------------
+        ! Gamma-only: exclude space with x < 0
+        !
+        istart = 0
+        !
+        iloop: DO i = istart, ni
+            !
+            !----------------------------------------------------------------------------
+            ! Gamma-only: exclude plane with x = 0, y < 0
+            !
+            IF (i == 0) THEN
+                jstart = 0
+            ELSE
+                jstart = -nj
+            END IF
+            !
+            tx(1:3) = i * bg(1:3, 1)
+            !
+            jloop: DO j = jstart, nj
+                !
+                IF (.NOT. global_sort) THEN
+                    !
+                    IF (env_fft_stick_index(dfftp, i, j) == 0) CYCLE jloop
+                    !
+                    is_local = .TRUE.
+                ELSE
+                    !
+                    IF (dfftp%lpara .AND. env_fft_stick_index(dfftp, i, j) == 0) THEN
+                        is_local = .FALSE.
+                    ELSE
+                        is_local = .TRUE.
+                    END IF
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! Gamma-only: exclude line with x = 0, y = 0, z < 0
+                !
+                IF (i == 0 .AND. j == 0) THEN
+                    kstart = 0
+                ELSE
+                    kstart = -nk
+                END IF
+                !
+                ty(1:3) = tx(1:3) + j * bg(1:3, 2)
+                !
+                !------------------------------------------------------------------------
+                ! Compute all the norm square
+                !
+                DO k = kstart, nk
+                    t(1) = ty(1) + k * bg(1, 3)
+                    t(2) = ty(2) + k * bg(2, 3)
+                    t(3) = ty(3) + k * bg(3, 3)
+                    tt(k - kstart + 1) = t(1)**2 + t(2)**2 + t(3)**2
+                END DO
+                !
+                !------------------------------------------------------------------------
+                ! Save all the norm square within cutoff
+                !
+                DO k = kstart, nk
+                    !
+                    IF (tt(k - kstart + 1) <= gcutm) THEN
+                        ngm = ngm + 1
+                        !
+                        IF (ngm > ngm_max) &
+                            CALL io%error(sub_name, "Too many g-vectors", ngm)
+                        !
+                        IF (tt(k - kstart + 1) > eps8) THEN
+                            g2sort_g(ngm) = tt(k - kstart + 1)
+                        ELSE
+                            g2sort_g(ngm) = 0.D0
+                        END IF
+                        !
+                        IF (is_local) THEN
+                            ngm_local = ngm_local + 1
+                            mill_unsorted(:, ngm_local) = (/i, j, k/)
+                            g2l(ngm) = ngm_local
+                        ELSE
+                            g2l(ngm) = 0
+                        END IF
+                        !
+                    END IF
+                    !
+                END DO
+                !
+            END DO jloop
+            !
+        END DO iloop
+        !
+        IF (ngm /= ngm_max) &
+            CALL io%error(sub_name, "G-vectors missing!", ABS(ngm - ngm_max))
+        !
+        igsrt(1) = 0
+        !
+        IF (.NOT. global_sort) THEN
+            CALL env_hpsort_eps(ngm, g2sort_g, igsrt, eps8)
+        ELSE
+            CALL env_hpsort_eps(ngm_g, g2sort_g, igsrt, eps8)
+        END IF
+        !
+        DEALLOCATE (g2sort_g, tt)
+        !
+        IF (.NOT. global_sort) THEN
+            !
+            !----------------------------------------------------------------------------
+            ! Compute adequate offsets in order to avoid overlap between
+            ! g vectors once they are gathered on a single (global) array
+            !
+            mype = env_mp_rank(comm)
+            npe = env_mp_size(comm)
+            ALLOCATE (ngmpe(npe))
+            ngmpe = 0
+            ngmpe(mype + 1) = ngm
+            !
+            CALL env_mp_sum(ngmpe, comm)
+            !
+            ngm_offset = 0
+            !
+            DO ng = 1, mype
+                ngm_offset = ngm_offset + ngmpe(ng)
+            END DO
+            !
+            DEALLOCATE (ngmpe)
+            !
+        END IF
+        !
+        ngm = 0
+        !
+        ngloop: DO ng = 1, ngm_max
+            !
+            IF (g2l(igsrt(ng)) > 0) THEN
+                !
+                !------------------------------------------------------------------------
+                ! Fetch the indices
+                !
+                i = mill_unsorted(1, g2l(igsrt(ng)))
+                j = mill_unsorted(2, g2l(igsrt(ng)))
+                k = mill_unsorted(3, g2l(igsrt(ng)))
+                !
+                ngm = ngm + 1
+                !
+                !------------------------------------------------------------------------
+                ! Map local and global g index
+                ! N.B: the global G vectors arrangement depends on the number of processors
+                !
+                g(1:3, ngm) = i * bg(:, 1) + j * bg(:, 2) + k * bg(:, 3)
+                gg(ngm) = SUM(g(1:3, ngm)**2)
+            END IF
+            !
+        END DO ngloop
+        !
+        DEALLOCATE (igsrt, g2l)
+        !
+        IF (ngm /= ngm_save) &
+            CALL io%error(sub_name, "G-vectors (ngm) missing!", ABS(ngm - ngm_save))
+        !
+        !--------------------------------------------------------------------------------
+        ! Determine first nonzero g vector
+        !
+        IF (gg(1) <= eps8) THEN
+            gstart = 2
+        ELSE
+            gstart = 1
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL env_fft_set_nl(dfftp, at, g)
+        ! set nl and nls with the correct fft correspondence
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_ggen
+    !------------------------------------------------------------------------------------
+    !>
+    !! Set local and global dimensions, allocate arrays
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_gvect_init(this, ngm_g, comm)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), INTENT(INOUT) :: this
+        INTEGER, INTENT(INOUT) :: ngm_g
+        !
+        INTEGER :: ngm
+        !
+        INTEGER, INTENT(IN) :: comm
+        ! communicator of the group on which g-vecs are distributed
+        !
+        !--------------------------------------------------------------------------------
+        ! Calculate sum over all processors
+        !
+        ngm = this%dfft%ngm ! local
+        ngm_g = ngm ! global
+        !
+        CALL env_mp_sum(ngm_g, comm)
+        !
+        !--------------------------------------------------------------------------------
+        ! Allocate arrays - only those that are always kept until the end
+        !
+        ALLOCATE (this%gg(ngm))
+        ALLOCATE (this%g(3, ngm))
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_gvect_init
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_deallocate_gvect(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ALLOCATED(this%gg)) DEALLOCATE (this%gg)
+        !
+        IF (ALLOCATED(this%g)) DEALLOCATE (this%g)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_deallocate_gvect
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -782,7 +1184,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_cell), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
@@ -849,22 +1251,22 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' CELL ', 70('%'))
-1001    FORMAT(/, ' CELL', /, ' ====')
+1000    FORMAT(/, 4('%'), " CELL ", 70('%'))
+1001    FORMAT(/, " CELL", /, " ====")
         !
-1002    FORMAT(/, ' cell label                 = ', A15)
+1002    FORMAT(/, " cell label                 = ", A15)
         !
-1003    FORMAT(/, ' cell volume                = ', F14.6)
+1003    FORMAT(/, " cell volume                = ", F14.6)
         !
-1004    FORMAT(/, ' simulation cell axes       = ', 3F14.6, /, &
-                '                              ', 3F14.6, /, &
-                '                              ', 3F14.6)
+1004    FORMAT(/, " simulation cell axes       = ", 3F14.6, /, &
+                "                              ", 3F14.6, /, &
+                "                              ", 3F14.6)
         !
-1005    FORMAT(/, ' r-space grid dim           = ', 3I14)
+1005    FORMAT(/, " r-space grid dim           = ", 3I14)
         !
-1006    FORMAT(/, ' total size of grid         = ', I14, /, &
-                ' r-space size per proc.     = ', I14, /, &
-                ' finite element volume      = ', F14.6)
+1006    FORMAT(/, " total size of grid         = ", I14, /, &
+                " r-space size per proc.     = ", I14, /, &
+                " finite element volume      = ", F14.6)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_cell
@@ -880,7 +1282,7 @@ CONTAINS
         CLASS(environ_cell), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN) :: natoms
         !
-        INTEGER :: ipol
+        INTEGER :: i
         INTEGER :: nr1, nr2, nr3
         !
         REAL(DP), POINTER :: at(:, :), origin(:)
@@ -897,12 +1299,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Write cube cell data
         !
-        WRITE (300, *) 'CUBE FILE GENERATED BY PW.X'
-        WRITE (300, *) 'OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z'
-        WRITE (300, '(i5,3f12.6)') natoms, origin
-        WRITE (300, '(i5,3f12.6)') nr1, (at(ipol, 1) / DBLE(nr1), ipol=1, 3)
-        WRITE (300, '(i5,3f12.6)') nr2, (at(ipol, 2) / DBLE(nr2), ipol=1, 3)
-        WRITE (300, '(i5,3f12.6)') nr3, (at(ipol, 3) / DBLE(nr3), ipol=1, 3)
+        WRITE (300, *) "CUBE FILE GENERATED BY PW.X"
+        WRITE (300, *) "OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z"
+        WRITE (300, "(i5,3f12.6)") natoms, origin
+        WRITE (300, "(i5,3f12.6)") nr1, (at(i, 1) / DBLE(nr1), i=1, 3)
+        WRITE (300, "(i5,3f12.6)") nr2, (at(i, 2) / DBLE(nr2), i=1, 3)
+        WRITE (300, "(i5,3f12.6)") nr3, (at(i, 3) / DBLE(nr3), i=1, 3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE write_cube_cell

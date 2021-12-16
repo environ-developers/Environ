@@ -142,12 +142,14 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN), OPTIONAL :: pos(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: pos(3)
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        INTEGER :: i, icor, max_ntyp
+        INTEGER :: i, j
+        INTEGER :: max_ntyp
         REAL(DP) :: charge, dist
+        !
         INTEGER, POINTER :: ityp
         REAL(DP), POINTER :: zv
         !
@@ -181,7 +183,7 @@ CONTAINS
                 this%pos = this%pos + this%ions%tau(:, i) * zv
             END DO
             !
-            IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, 'System charge is zero', 1)
+            IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, "System charge is zero", 1)
             !
             this%pos = this%pos / charge
         END IF
@@ -195,12 +197,12 @@ CONTAINS
             !
             dist = 0.D0
             !
-            DO icor = 1, 3
+            DO j = 1, 3
                 !
-                IF ((this%dim == 1 .AND. icor == this%axis) .OR. &
-                    (this%dim == 2 .AND. icor /= this%axis)) CYCLE
+                IF ((this%dim == 1 .AND. j == this%axis) .OR. &
+                    (this%dim == 2 .AND. j /= this%axis)) CYCLE
                 !
-                dist = dist + (this%ions%tau(icor, i) - this%pos(icor))**2
+                dist = dist + (this%ions%tau(j, i) - this%pos(j))**2
             END DO
             !
             ! need to modify it into a smooth maximum to compute derivatives
@@ -258,7 +260,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_system), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
@@ -314,17 +316,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' SYSTEM ', 68('%'))
+1000    FORMAT(/, 4('%'), " SYSTEM ", 68('%'))
 !
-1001    FORMAT(/, ' system is built from all present ionic types')
+1001    FORMAT(/, " system is built from all present ionic types")
 !
-1002    FORMAT(/, ' system is built from the first ', I3, ' ionic types')
+1002    FORMAT(/, " system is built from the first ", I3, " ionic types")
         !
-1003    FORMAT(/, ' system defined dimension   = ', I14, /, &
-                ' system defined axis        = ', I14)
+1003    FORMAT(/, " system defined dimension   = ", I14, /, &
+                " system defined axis        = ", I14)
         !
-1004    FORMAT(/, ' system center              = ', 3F14.7, /, &
-                ' system width               = ', F14.7)
+1004    FORMAT(/, " system center              = ", 3F14.7, /, &
+                " system width               = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_system

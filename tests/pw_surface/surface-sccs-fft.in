@@ -7,7 +7,7 @@
  /
  &BOUNDARY
    !
-   derivatives = 'fft'   
+   deriv_method = 'fft'
    stype = 1
    !
  /

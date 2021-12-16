@@ -96,11 +96,9 @@ CONTAINS
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label = 'electrons'
-        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%density%init(cell, local_label)
+        CALL this%density%init(cell, 'electrons')
         !
         this%number = nelec
         !
@@ -117,12 +115,11 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
-        !
-        REAL(DP), INTENT(IN), OPTIONAL :: nelec
+        REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
-        REAL(DP), PARAMETER :: tol = 1.D-4
+        REAL(DP), PARAMETER :: tol = 5.D-3
         REAL(DP) :: charge
         !
         CHARACTER(LEN=80) :: sub_name = 'update_environ_electrons'
@@ -131,7 +128,7 @@ CONTAINS
         !
         ! check on dimensions
         IF (nnr /= this%density%cell%nnr) &
-            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+            CALL io%error(sub_name, "Mismatch in grid size", 1)
         !
         this%density%of_r = rho
         !
@@ -145,7 +142,7 @@ CONTAINS
         IF (PRESENT(nelec)) THEN
             !
             IF (ABS(this%charge - nelec) > tol) &
-                CALL io%error(sub_name, 'Mismatch in integrated electronic charge', 1)
+                CALL io%error(sub_name, "Mismatch in integrated electronic charge", 1)
             !
         END IF
         !
@@ -196,7 +193,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_electrons), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
@@ -253,11 +250,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' ELECTRONS ', 65('%'))
+1000    FORMAT(/, 4('%'), " ELECTRONS ", 65('%'))
         !
-1001    FORMAT(/, ' number of electrons        = ', I14)
+1001    FORMAT(/, " number of electrons        = ", I14)
         !
-1002    FORMAT(/, ' total electronic charge    = ', F14.7)
+1002    FORMAT(/, " total electronic charge    = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_electrons

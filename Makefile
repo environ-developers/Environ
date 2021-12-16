@@ -267,7 +267,7 @@ install: check-Environ-makeinc check-QE-makeinc
 	make -j$${cores:=1} compile-QE prog="$$opt" title="$$title"; \
 	if [ $$? -ne 0 ]; then exit; fi; \
 	\
-	printf "\nQE + Environ $(ENVIRON_VERSION) installaion complete! \n\n"
+	printf "\nQE + Environ $(ENVIRON_VERSION) installation complete! \n\n"
 	\
 	( \
 		cd install && \

@@ -458,7 +458,17 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { OPTIONAL }
         }
 
-        var derivatives -type CHARACTER {
+        var deriv_core -type CHARACTER {
+            default { 'fft' }
+            info {
+            The choice of the core numerical methods to be exploited for computing derivatives.
+
+            'fft' : fast Fourier transforms
+            }
+            status { OPTIONAL }
+        }
+
+        var deriv_method -type CHARACTER {
             default { see below }
             info {
             Specify the numerical approach used to compute derivatives of the continuum interface with respect
@@ -485,6 +495,27 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             Main parameter of ions-dependent interface function, corresponding to the homogeneous
             scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
             Used for the electrolyte interface.
+            }
+            status { OPTIONAL }
+        }
+        
+        var electrolyte_deriv_method -type CHARACTER {
+            default { see below }
+            info {
+            Specify the numerical approach used to compute derivatives of the electrolyte interface with respect
+            to real-space coordinates or QM degrees of freedom.
+
+            'fft'     : fast Fourier transform
+            'chain'   : chain rule derivatives for as much as possible (and FFTs for the rest)
+            'highmem' : analytic derivatives for soft-sphere computed by storing all spherical functions 
+                        and derivatives
+            'lowmem'  : more efficient analytic derivatives
+
+            DEFAULT:
+
+            solvent_mode .EQ. electronic | full : 'chain'
+            solvent_mode .EQ. ionic             : 'lowmem'
+
             }
             status { OPTIONAL }
         }
@@ -850,6 +881,16 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { OPTIONAL }
         }
 
+        var inner_core -type CHARACTER {
+            default { 'fft' }
+            info {
+            The choice of the core numerical methods to be exploited for nested electrostatics.
+
+            'fft' : fast Fourier transforms
+            }
+            status { OPTIONAL }
+        }
+
         var inner_maxstep -type INTEGER {
             default { 200 }
             info {
@@ -948,6 +989,16 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             
             pbc_dim .EQ. 1 : specified axis is along the 1D direction.
             pbc_dim .EQ. 2 : specified axis is orthogonal to 2D plane.
+            }
+            status { OPTIONAL }
+        }
+        
+        var pbc_core -type CHARACTER {
+            default { '1da' }
+            info {
+            The choice of the core numerical methods to be exploited for pbc corrections.
+
+            '1da' : 1d-analytic
             }
             status { OPTIONAL }
         }

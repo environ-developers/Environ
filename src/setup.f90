@@ -42,13 +42,12 @@ MODULE class_setup
     USE class_cell
     USE class_mapping
     !
-    USE class_core_container_corrections
-    USE class_core_container_derivatives
-    USE class_core_container_electrostatics
-    USE class_core_fd_derivatives
-    USE class_core_fft_derivatives
-    USE class_core_fft_electrostatics
-    USE class_core_1da_electrostatics
+    USE class_core_container
+    !
+    USE class_core
+    USE class_core_fft
+    USE class_core_fft
+    USE class_core_1da
     !
     USE class_solver_setup
     USE class_solver
@@ -91,7 +90,7 @@ MODULE class_setup
         REAL(DP) :: confine = 0.0_DP
         !
         !--------------------------------------------------------------------------------
-        ! Set basic logical flags = .FALSE.
+        ! Set basic logical flags
         !
         LOGICAL :: lstatic = .FALSE.
         LOGICAL :: loptical = .FALSE.
@@ -104,7 +103,6 @@ MODULE class_setup
         LOGICAL :: lsemiconductor = .FALSE.
         LOGICAL :: lperiodic = .FALSE.
         LOGICAL :: ldoublecell = .FALSE.
-        LOGICAL :: louterloop = .FALSE.
         LOGICAL :: ltddfpt = .FALSE.
         LOGICAL :: laddcharges = .FALSE.
         !
@@ -126,9 +124,13 @@ MODULE class_setup
         LOGICAL :: lgradient = .FALSE.
         !
         !--------------------------------------------------------------------------------
+        ! Correction flags
+        !
+        LOGICAL :: use_inter_corr = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
         ! Core flags
         !
-        LOGICAL :: lfd = .FALSE.
         LOGICAL :: l1da = .FALSE.
         LOGICAL :: lfft_system = .FALSE.
         LOGICAL :: lfft_environment = .FALSE.
@@ -136,17 +138,10 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Solver flags
         !
+        LOGICAL :: need_inner = .FALSE.
         LOGICAL :: need_gradient = .FALSE.
         LOGICAL :: need_factsqrt = .FALSE.
         LOGICAL :: need_auxiliary = .FALSE.
-        !
-        !--------------------------------------------------------------------------------
-        ! Corrections flags
-        !
-        LOGICAL :: need_pbc_correction = .FALSE.
-        LOGICAL :: need_electrolyte = .FALSE.
-        LOGICAL :: need_semiconductor = .FALSE.
-        LOGICAL :: need_outer_loop = .FALSE.
         !
         !--------------------------------------------------------------------------------
         ! Simulation space
@@ -156,16 +151,15 @@ MODULE class_setup
         TYPE(environ_mapping) :: mapping
         !
         !--------------------------------------------------------------------------------
-        ! Derivatives
-        !
-        TYPE(container_derivatives) :: derivatives
-        !
-        !--------------------------------------------------------------------------------
         ! Electrostatic
         !
         TYPE(electrostatic_setup) :: reference, outer, inner
-        TYPE(container_electrostatics) :: reference_cores, outer_cores, inner_cores
-        TYPE(container_corrections) :: pbc_core
+        !
+        !--------------------------------------------------------------------------------
+        ! Containers
+        !
+        TYPE(core_container) :: reference_container
+        TYPE(core_container) :: outer_container, inner_container
         !
         !--------------------------------------------------------------------------------
         ! Numerical solvers
@@ -178,11 +172,8 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Numerical cores
         !
-        TYPE(core_fd_derivatives) :: core_fd
-        TYPE(core_fft_electrostatics) :: core_fft_sys
-        TYPE(core_fft_derivatives) :: core_fft_deriv
-        TYPE(core_fft_electrostatics) :: core_fft_elect
-        TYPE(core_1da_electrostatics) :: core_1da_elect
+        TYPE(core_fft) :: env_fft, ref_fft
+        TYPE(core_1da) :: env_1da
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -199,9 +190,16 @@ MODULE class_setup
         PROCEDURE :: init_cores => init_environ_numerical_cores
         PROCEDURE :: update_cores => update_environ_numerical_cores
         !
-        PROCEDURE :: set_tddfpt, set_restart
-        PROCEDURE :: get_threshold, get_nskip
-        PROCEDURE :: is_tddfpt, is_restart
+        PROCEDURE :: set_tddfpt
+        PROCEDURE :: set_restart
+        PROCEDURE :: get_threshold
+        PROCEDURE :: get_nskip
+        PROCEDURE :: get_nnt
+        PROCEDURE :: get_nrx
+        PROCEDURE :: is_tddfpt
+        PROCEDURE :: is_restart
+        PROCEDURE :: has_solvent
+        PROCEDURE :: has_electrostatics
         !
         PROCEDURE, PRIVATE :: set_flags => set_environ_flags
         PROCEDURE, PRIVATE :: set_numerical_base => set_environ_numerical_base
@@ -209,11 +207,11 @@ MODULE class_setup
         PROCEDURE, PRIVATE :: set_core_containers => set_environ_core_containers
         PROCEDURE, PRIVATE :: set_electrostatics => set_environ_electrostatic
         !
-        PROCEDURE, PRIVATE :: &
-            set_execution_flags, &
-            set_environment_flags, &
-            set_dielectric_flags, &
-            set_derived_flags
+        PROCEDURE, PRIVATE :: set_execution_flags
+        PROCEDURE, PRIVATE :: set_simulation_flags
+        PROCEDURE, PRIVATE :: set_environment_flags
+        PROCEDURE, PRIVATE :: set_derived_flags
+        PROCEDURE, PRIVATE :: set_electrostatic_flags
         !
         PROCEDURE :: print_summary => environ_setup_summary
         PROCEDURE :: print_potential_warning => print_environ_potential_warning
@@ -226,14 +224,14 @@ MODULE class_setup
     CHARACTER(LEN=256) :: bibliography(4)
     !
     DATA bibliography/ &
-        "O. Andreussi, I. Dabo and N. Marzari, &
-        &J. Chem. Phys. 136, 064102 (2012)", &
-        "I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, &
-        &J. Chem. Phys. 142, 034111 (2015)", &
-        "O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
-        &J. Chem. Theory Comput. 15, 1996 (2019)", &
-        "F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, &
-        &J. Chem. Phys. 150, 041722 (2019)"/
+        '"O. Andreussi, I. Dabo and N. Marzari, &
+        &J. Chem. Phys. 136, 064102 (2012)"', &
+        '"I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, &
+        &J. Chem. Phys. 142, 034111 (2015)"', &
+        '"O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
+        &J. Chem. Theory Comput. 15, 1996 (2019)"', &
+        '"F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, &
+        &J. Chem. Phys. 150, 041722 (2019)"'/
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -247,17 +245,30 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_setup(this)
+    SUBROUTINE init_environ_setup(this, use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
         !
         !--------------------------------------------------------------------------------
-        ! Open Environ ouput file 
+        ! Internal pbc correction applied directly to FFT cores
+        !
+        IF (PRESENT(use_internal_pbc_corr)) this%use_inter_corr = use_internal_pbc_corr
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%set_flags()
+        !
+        CALL this%set_numerical_base()
+        !
+        !--------------------------------------------------------------------------------
+        ! Open Environ output file
         !
         io%verbosity = verbose ! set internal verbosity from input
         !
@@ -267,12 +278,6 @@ CONTAINS
             OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
             !
         END IF
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%set_flags()
-        !
-        CALL this%set_numerical_base()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_setup
@@ -288,21 +293,23 @@ CONTAINS
         INTEGER, INTENT(IN) :: comm_in
         REAL(DP), INTENT(IN) :: at(3, 3)
         REAL(DP), INTENT(IN) :: gcutm
-        INTEGER, INTENT(IN), OPTIONAL :: nr(3)
+        INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER :: ipol
+        INTEGER :: i
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
-        !
-        CHARACTER(LEN=80) :: local_label
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%system_cell%init(gcutm, comm_in, at, nr)
+        IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1003)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%system_cell%init(gcutm, comm_in, at, nr, 'system')
         !
         !--------------------------------------------------------------------------------
         ! Double cell and mapping
@@ -313,18 +320,16 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Scale environment lattice (and corresponding ffts) by 2 * nrep(i) + 1
             !
-            DO ipol = 1, 3
-                environment_at(:, ipol) = at(:, ipol) * (2.D0 * env_nrep(ipol) + 1.D0)
+            DO i = 1, 3
+                environment_at(:, i) = at(:, i) * (2.D0 * env_nrep(i) + 1.D0)
             END DO
             !
             environment_nr(1) = this%system_cell%dfft%nr1 * (2 * env_nrep(1) + 1)
             environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
             environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
             !
-            local_label = 'environment'
-            !
             CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
-                                            environment_nr, local_label)
+                                            environment_nr, 'environment')
             !
         ELSE
             this%environment_cell => this%system_cell
@@ -339,35 +344,24 @@ CONTAINS
     !! Set up active numerical cores
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_cores(this, gcutm, use_internal_pbc_corr)
+    SUBROUTINE init_environ_numerical_cores(this, gcutm)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: gcutm
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%lfd) CALL this%core_fd%init(ifdtype, nfdpoint, this%environment_cell)
-        !
         IF (this%lfft_system) &
-            CALL this%core_fft_sys%init(gcutm, this%system_cell, use_internal_pbc_corr)
+            CALL this%ref_fft%init(this%system_cell, this%use_inter_corr)
         !
-        IF (this%lfft_environment) THEN
-            !
-            CALL this%core_fft_deriv%init(gcutm, this%environment_cell)
-            !
-            IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%init(gcutm, this%environment_cell, &
-                                              use_internal_pbc_corr)
-            !
-        END IF
+        IF (this%lfft_environment) &
+            CALL this%env_fft%init(this%environment_cell, this%use_inter_corr)
         !
-        IF (this%l1da) CALL this%core_1da_elect%init(pbc_dim, pbc_axis, &
-                                                     this%environment_cell)
+        IF (this%l1da) CALL this%env_1da%init(pbc_dim, pbc_axis, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_numerical_cores
@@ -393,7 +387,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        INTEGER :: ipol
+        INTEGER :: i
         REAL(DP) :: environment_at(3, 3)
         !
         !--------------------------------------------------------------------------------
@@ -405,10 +399,10 @@ CONTAINS
         IF (this%ldoublecell) THEN
             this%environment_cell%lupdate = .TRUE.
             !
-            DO ipol = 1, 3
+            DO i = 1, 3
                 !
-                environment_at(:, ipol) = at(:, ipol) * &
-                                          (2.D0 * this%mapping%nrep(ipol) + 1.D0)
+                environment_at(:, i) = at(:, i) * &
+                                       (2.D0 * this%mapping%nrep(i) + 1.D0)
                 !
             END DO
             !
@@ -456,18 +450,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%lfft_system) CALL this%core_fft_sys%update_cell(this%system_cell)
+        IF (this%lfft_system) CALL this%ref_fft%update_cell(this%system_cell)
         !
-        IF (this%lfft_environment) THEN
-            !
-            CALL this%core_fft_deriv%update_cell(this%environment_cell)
-            !
-            IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%update_cell(this%environment_cell)
-            !
-        END IF
+        IF (this%lfft_environment) CALL this%env_fft%update_cell(this%environment_cell)
         !
-        IF (this%l1da) CALL this%core_1da_elect%update_cell(this%environment_cell)
+        IF (this%l1da) CALL this%env_1da%update_cell(this%environment_cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_numerical_cores
@@ -543,7 +530,7 @@ CONTAINS
     REAL(DP) FUNCTION get_threshold(this)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -558,7 +545,7 @@ CONTAINS
     INTEGER FUNCTION get_nskip(this)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -570,10 +557,60 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    INTEGER FUNCTION get_nnt(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        !
+        CHARACTER(LEN=80) :: fun_name = 'get_nnt'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        get_nnt = this%system_cell%dfft%nnt
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_nnt
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    INTEGER FUNCTION get_nrx(this, i)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: i
+        !
+        CHARACTER(LEN=80) :: fun_name = 'get_nrx'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT CASE (i)
+            !
+        CASE (0)
+            get_nrx = this%system_cell%dfft%nr1x
+            !
+        CASE (1)
+            get_nrx = this%system_cell%dfft%nr2x
+            !
+        CASE (2)
+            get_nrx = this%system_cell%dfft%nr3x
+            !
+        END SELECT
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_nrx
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     LOGICAL FUNCTION is_tddfpt(this)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -588,7 +625,7 @@ CONTAINS
     LOGICAL FUNCTION is_restart(this)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -596,6 +633,40 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION is_restart
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    LOGICAL FUNCTION has_solvent(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        has_solvent = this%lsolvent
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION has_solvent
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    LOGICAL FUNCTION has_electrostatics(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        has_electrostatics = this%lelectrostatic
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION has_electrostatics
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -617,43 +688,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (pbc_dim >= 0) THEN
-            !
-            SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
-                !
-            CASE ('none')
-                !
-            CASE ('parabolic')
-                this%need_pbc_correction = .TRUE.
-                !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
-                this%need_pbc_correction = .TRUE.
-                this%need_electrolyte = .TRUE.
-                !
-            CASE ('ms', 'mott-schottky')
-                this%need_pbc_correction = .TRUE.
-                this%need_semiconductor = .TRUE.
-                !
-            CASE ('ms-gcs', 'mott-schottky-gouy-chapman-stern')
-                this%need_pbc_correction = .TRUE.
-                this%need_semiconductor = .TRUE.
-                this%need_outer_loop = .TRUE.
-                this%need_electrolyte = .TRUE.
-                !
-            CASE DEFAULT
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
-                !
-            END SELECT
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        !
         CALL this%set_execution_flags()
         !
-        CALL this%set_environment_flags()
+        CALL this%set_simulation_flags()
         !
-        CALL this%set_dielectric_flags()
+        CALL this%set_environment_flags()
         !
         CALL this%set_derived_flags()
         !
@@ -696,12 +735,51 @@ CONTAINS
         this%restart = environ_restart
         this%threshold = environ_thr
         this%nskip = environ_nskip
-        this%ldoublecell = SUM(env_nrep) > 0
-        this%lperiodic = this%need_pbc_correction
-        this%louterloop = this%need_outer_loop
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_execution_flags
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_simulation_flags(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'set_simulation_flags'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%ldoublecell = SUM(env_nrep) > 0
+        !
+        !--------------------------------------------------------------------------------
+        ! Correction flags
+        !
+        SELECT CASE (pbc_correction)
+            !
+        CASE ('none')
+            !
+        CASE ('parabolic')
+            this%lperiodic = .TRUE.
+            !
+        CASE ('gcs') ! gouy-chapman-stern
+            this%lperiodic = .TRUE.
+            this%lelectrolyte = .TRUE.
+            !
+        CASE ('ms') ! mott-schottky
+            this%lperiodic = .TRUE.
+            this%lsemiconductor = .TRUE.
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected correction type", 1)
+            !
+        END SELECT
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_simulation_flags
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -713,39 +791,27 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
+        INTEGER :: i
+        REAL(DP) :: factor
+        !
         !--------------------------------------------------------------------------------
         !
-        this%surface_tension = &
-            env_surface_tension * 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
-        !
+        factor = 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
+        this%surface_tension = env_surface_tension * factor
         this%lsurface = this%surface_tension > 0.D0
         !
-        this%pressure = env_pressure * 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
+        factor = 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
+        this%pressure = env_pressure * factor
         this%lvolume = this%pressure /= 0.D0
         !
         this%confine = env_confine
         this%lconfine = this%confine /= 0.D0
         !
         this%lexternals = env_external_charges > 0
-        this%lelectrolyte = env_electrolyte_ntyp > 0 .OR. this%need_electrolyte
-        this%lsemiconductor = this%need_semiconductor
+        this%lelectrolyte = this%lelectrolyte .OR. env_electrolyte_ntyp > 0
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environment_flags
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE set_dielectric_flags(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_setup), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        !
-        !--------------------------------------------------------------------------------
+        ! Dielectric flags
         !
         this%static_permittivity = env_static_permittivity
         this%optical_permittivity = env_optical_permittivity
@@ -764,7 +830,7 @@ CONTAINS
         this%ldielectric = this%lstatic .OR. this%loptical
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_dielectric_flags
+    END SUBROUTINE set_environment_flags
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -776,8 +842,6 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        INTEGER :: i
-        !
         !--------------------------------------------------------------------------------
         ! Derived flags
         !
@@ -785,7 +849,7 @@ CONTAINS
                         this%lconfine
         !
         this%lelectrostatic = this%ldielectric .OR. this%lelectrolyte .OR. &
-                              this%lexternals .OR. this%lperiodic
+                              this%lexternals .OR. this%lperiodic .OR. field_aware
         !
         this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
                                                  solvent_mode == 'full' .OR. &
@@ -794,7 +858,7 @@ CONTAINS
         this%lsoftelectrolyte = this%lelectrolyte .AND. &
                                 (electrolyte_mode == 'electronic' .OR. &
                                  electrolyte_mode == 'full' .OR. &
-                                 field_aware) ! field-aware
+                                 field_aware)
         !
         this%lsoftcavity = this%lsoftsolvent .OR. this%lsoftelectrolyte
         this%lrigidsolvent = this%lsolvent .AND. solvent_mode /= 'electronic'
@@ -806,7 +870,7 @@ CONTAINS
         !
         this%lsmearedions = this%lelectrostatic
         this%lboundary = this%lsolvent .OR. this%lelectrolyte
-        this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa') ! field-aware
+        this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_derived_flags
@@ -820,9 +884,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_type
+        CLASS(environ_core), POINTER :: &
+            local_outer_core, local_inner_core, local_pbc_core, local_deriv_core
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_core_containers'
         !
@@ -830,89 +895,103 @@ CONTAINS
         ! Calling program reference core
         !
         this%lfft_system = .TRUE.
-        local_type = 'fft'
         !
-        CALL this%reference_cores%init(this%core_fft_sys, local_type)
-        !
-        !--------------------------------------------------------------------------------
-        ! Outer/inner cores
-        !
-        SELECT CASE (core)
-            !
-        CASE ('fft')
-            this%lfft_environment = .TRUE.
-            local_type = 'fft'
-            !
-            CALL this%outer_cores%init(this%core_fft_elect, local_type)
-            !
-            IF (inner_solver /= 'none') &
-                CALL this%inner_cores%init(this%core_fft_elect, local_type)
-            !
-        CASE ('1d-analytic', '1da')
-            this%l1da = .TRUE.
-            local_type = '1d-analytic'
-            !
-            CALL this%outer_cores%init(this%core_1da_elect, local_type)
-            !
-            IF (inner_solver /= 'none') &
-                CALL this%inner_cores%init(this%core_1da_elect, local_type)
-            !
-        CASE DEFAULT
-            !
-            CALL io%error(sub_name, &
-                          'Unexpected value for core container type keyword', 1)
-            !
-        END SELECT
+        CALL this%reference_container%init('system', &
+                                           elect_core=this%ref_fft, &
+                                           inter_corr=this%use_inter_corr)
         !
         !--------------------------------------------------------------------------------
-        ! Correction cores
+        ! Environment core containers
         !
-        IF (pbc_dim >= 0) THEN
+        CALL this%outer_container%init('environment', inter_corr=this%use_inter_corr)
+        !
+        IF (this%need_inner) &
+            CALL this%inner_container%init('inner', inter_corr=this%use_inter_corr)
+        !
+        !--------------------------------------------------------------------------------
+        ! Derivatives core
+        !
+        IF (this%lboundary) THEN
             !
-            SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
+            SELECT CASE (deriv_core)
                 !
-            CASE ('none')
-                !
-            CASE ('parabolic')
-                this%l1da = .TRUE.
-                local_type = '1da'
-                !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
-                this%l1da = .TRUE.
-                local_type = 'gcs'
-                !
-            CASE ('ms', 'mott-schottky')
-                this%l1da = .TRUE.
-                local_type = 'ms'
-                !
-            CASE ('ms-gcs', 'mott-schottky-gouy-chapman-stern')
-                this%l1da = .TRUE.
-                local_type = 'ms-gcs'
+            CASE ('fft')
+                this%lfft_environment = .TRUE.
+                local_deriv_core => this%env_fft
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, "Unexpected derivatives core", 1)
                 !
             END SELECT
             !
+            CALL this%outer_container%set_derivatives(local_deriv_core)
+            !
         END IF
         !
-        IF (this%need_pbc_correction .AND. this%l1da) &
-            CALL this%pbc_core%init(this%core_1da_elect, local_type)
+        !--------------------------------------------------------------------------------
+        ! Electrostatic cores
         !
-        IF (this%need_pbc_correction) CALL this%outer_cores%add_correction(this%pbc_core)
+        this%need_inner = inner_solver /= 'none'
         !
-        IF (inner_solver /= 'none' .AND. this%need_pbc_correction) &
-            CALL this%inner_cores%add_correction(this%pbc_core)
+        IF (this%lelectrostatic) THEN
+            !
+            !----------------------------------------------------------------------------
+            ! Outer core
+            !
+            SELECT CASE (core)
+                !
+            CASE ('fft')
+                this%lfft_environment = .TRUE.
+                local_outer_core => this%env_fft
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected outer core", 1)
+                !
+            END SELECT
+            !
+            CALL this%outer_container%set_electrostatics(local_outer_core)
+            !
+            !----------------------------------------------------------------------------
+            ! Inner core
+            !
+            IF (this%need_inner) THEN
+                !
+                SELECT CASE (inner_core)
+                    !
+                CASE ('fft')
+                    local_inner_core => this%env_fft
+                    !
+                CASE DEFAULT
+                    CALL io%error(sub_name, "Unexpected inner core", 1)
+                    !
+                END SELECT
+                !
+                CALL this%inner_container%set_electrostatics(local_inner_core)
+                !
+            END IF
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
-        ! Derivative cores
+        ! Corrections core
         !
-        IF (this%lboundary) THEN
-            this%lfft_environment = .TRUE.
+        IF (this%lperiodic) THEN
             !
-            IF (derivatives == 'fd') this%lfd = .TRUE.
+            SELECT CASE (pbc_core)
+                !
+            CASE ('1da')
+                this%l1da = .TRUE.
+                local_pbc_core => this%env_1da
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected corrections core", 1)
+                !
+            END SELECT
             !
-            CALL this%derivatives%init(this%core_fft_deriv, derivatives)
+            CALL this%outer_container%set_corrections(local_pbc_core)
+            !
+            IF (this%need_inner) &
+                CALL this%inner_container%set_corrections(local_pbc_core)
             !
         END IF
         !
@@ -941,51 +1020,50 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference solver
         !
-        CALL this%reference_direct%init_direct(this%reference_cores)
+        CALL this%reference_direct%init(this%reference_container)
         !
         !--------------------------------------------------------------------------------
         ! Outer solver
         !
+        CALL this%direct%init(this%outer_container, pbc_correction)
+        !
         SELECT CASE (solver)
             !
         CASE ('direct')
-            CALL this%direct%init_direct(this%outer_cores)
-            !
             local_outer_solver => this%direct
             !
         CASE ('cg', 'sd')
             !
-            IF (TRIM(ADJUSTL(solver)) == 'cg') lconjugate = .TRUE.
+            IF (solver == 'cg') lconjugate = .TRUE.
             !
             CALL this%gradient%init(lconjugate, step_type, step, preconditioner, &
-                                    screening_type, screening, this%outer_cores, &
-                                    maxstep, tol, auxiliary)
+                                    screening_type, screening, this%outer_container, &
+                                    this%direct, maxstep, tol, auxiliary)
             !
             local_outer_solver => this%gradient
             !
         CASE ('fixed-point')
             !
-            CALL this%fixedpoint%init(mix_type, mix, ndiis, this%outer_cores, maxstep, &
-                                      tol, auxiliary)
+            CALL this%fixedpoint%init(mix_type, mix, ndiis, this%outer_container, &
+                                      this%direct, maxstep, tol, auxiliary)
             !
             local_outer_solver => this%fixedpoint
             !
         CASE ('newton')
-            CALL this%newton%init(this%outer_cores, maxstep, tol, auxiliary)
+            CALL this%newton%init(this%outer_container, this%direct, maxstep, tol, &
+                                  auxiliary)
             !
             local_outer_solver => this%newton
             !
         CASE DEFAULT
-            !
-            CALL io%error(sub_name, &
-                          'Unexpected value for electrostatic solver keyword', 1)
+            CALL io%error(sub_name, "Unexpected outer solver", 1)
             !
         END SELECT
         !
         !--------------------------------------------------------------------------------
         ! Inner solver
         !
-        IF (inner_solver /= 'none') THEN
+        IF (this%need_inner) THEN
             lconjugate = .FALSE.
             !
             SELECT CASE (solver)
@@ -999,12 +1077,12 @@ CONTAINS
                         !
                     CASE ('cg', 'sd')
                         !
-                        IF (TRIM(ADJUSTL(inner_solver)) == 'cg') lconjugate = .TRUE.
+                        IF (inner_solver == 'cg') lconjugate = .TRUE.
                         !
                         CALL this%inner_gradient%init( &
                             lconjugate, step_type, step, preconditioner, &
-                            screening_type, screening, this%inner_cores, inner_maxstep, &
-                            inner_tol, auxiliary)
+                            screening_type, screening, this%inner_container, &
+                            this%direct, inner_maxstep, inner_tol, auxiliary)
                         !
                         local_inner_solver => this%inner_gradient
                         !
@@ -1012,8 +1090,8 @@ CONTAINS
                         local_auxiliary = 'full'
                         !
                         CALL this%inner_fixedpoint%init( &
-                            mix_type, inner_mix, ndiis, this%inner_cores, &
-                            inner_maxstep, inner_tol, local_auxiliary)
+                            mix_type, inner_mix, ndiis, this%inner_container, &
+                            this%direct, inner_maxstep, inner_tol, local_auxiliary)
                         !
                         local_inner_solver => this%inner_fixedpoint
                         !
@@ -1022,8 +1100,7 @@ CONTAINS
                 ELSE
                     !
                     CALL io%error(sub_name, &
-                                  'Unexpected value for auxiliary charge &
-                                  &in nested solver', 1)
+                                  'Unexpected value for auxiliary charge in nested solver', 1)
                     !
                 END IF
                 !
@@ -1033,9 +1110,13 @@ CONTAINS
                 !
                 CALL this%inner_gradient%init( &
                     lconjugate, step_type, step, preconditioner, screening_type, &
-                    screening, this%inner_cores, inner_maxstep, inner_tol, auxiliary)
+                    screening, this%inner_container, this%direct, inner_maxstep, &
+                    inner_tol, auxiliary)
                 !
                 local_inner_solver => this%inner_gradient
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected inner solver", 1)
                 !
             END SELECT
             !
@@ -1056,7 +1137,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Inner setup
         !
-        IF (inner_solver /= 'none') THEN
+        IF (this%need_inner) THEN
             !
             CALL this%inner%init(inner_problem, local_inner_solver)
             !
@@ -1066,18 +1147,74 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set electrostatic flags
         !
-        CALL this%reference%set_flags(this%need_auxiliary, this%need_gradient, &
-                                      this%need_factsqrt)
+        CALL this%set_electrostatic_flags(this%reference)
         !
-        CALL this%outer%set_flags(this%need_auxiliary, this%need_gradient, &
-                                  this%need_factsqrt)
+        CALL this%set_electrostatic_flags(this%outer)
         !
-        IF (inner_solver /= 'none') &
-            CALL this%inner%set_flags(this%need_auxiliary, this%need_gradient, &
-                                      this%need_factsqrt)
+        IF (this%need_inner) CALL this%set_electrostatic_flags(this%inner)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environ_electrostatic
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_electrostatic_flags(this, solver_setup)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(electrostatic_setup), INTENT(IN) :: solver_setup
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'set_electrostatic_flags'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT CASE (solver_setup%problem)
+            !
+        CASE ('poisson')
+            !
+        CASE ('generalized', 'linpb', 'linmodpb', 'pb', 'modpb')
+            !
+            SELECT TYPE (solver => solver_setup%solver)
+                !
+            TYPE IS (solver_gradient)
+                !
+                SELECT CASE (preconditioner)
+                    !
+                CASE ('sqrt')
+                    this%need_factsqrt = .TRUE.
+                    !
+                CASE ('left', 'none')
+                    this%need_gradient = .TRUE.
+                    !
+                CASE DEFAULT
+                    CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
+                    !
+                END SELECT
+                !
+            END SELECT
+            !
+            SELECT TYPE (solver => solver_setup%solver)
+                !
+            CLASS IS (solver_iterative)
+                !
+                IF (solver%auxiliary /= 'none') this%need_auxiliary = .TRUE.
+                !
+            CLASS DEFAULT
+                CALL io%error(sub_name, "Unexpected solver", 1)
+                !
+            END SELECT
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected 'problem'", 1)
+            !
+        END SELECT
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_electrostatic_flags
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -1091,142 +1228,172 @@ CONTAINS
     !! Called by summary.f90
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_setup_summary(this)
+    SUBROUTINE environ_setup_summary(this, stdout)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: local_label
+        CLASS(environ_setup), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: stdout
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
         !
+        IF (PRESENT(stdout)) CALL io%update_unit(stdout)
+        !
         !--------------------------------------------------------------------------------
         ! Banner
         !
-        WRITE (io%unit, *)
+        CALL io%divider(.TRUE.)
+        !
         WRITE (io%unit, 1000)
-        WRITE (io%unit, 1001) bibliography(1)
+        !
+        CALL io%divider(.TRUE.)
         !
         !--------------------------------------------------------------------------------
-        ! Environ Summary
+        ! Citations
         !
-        WRITE (io%unit, 1002) environ_thr
+        WRITE (io%unit, 1001) TRIM(bibliography(1))
         !
-        IF (this%lsolvent) THEN
-            !
-            IF (stype == 0) THEN
-                WRITE (io%unit, 1003) 'Fattebert-Gygi'
-                WRITE (io%unit, 1004) (rhomax + rhomin) * 0.5_DP, tbeta
-            ELSE IF (stype == 1) THEN
-                WRITE (io%unit, 1003) 'SCCS'
-                WRITE (io%unit, 1005) rhomax, rhomin
-            END IF
-            !
-            IF (solvent_radius > 0.D0) WRITE (io%unit, 1006)
-            !
-            IF (field_aware) THEN
-                WRITE (io%unit, 1007)
-                WRITE (io%unit, 1008) field_factor, field_asymmetry
-                WRITE (io%unit, 1009) field_min, field_max
-            END IF
-            !
-        END IF
+        !--------------------------------------------------------------------------------
+        ! General parameters
+        !
+        WRITE (io%unit, 1002)
+        !
+        WRITE (io%unit, 1003) environ_thr
         !
         IF (env_static_permittivity > 1.D0) THEN
-            WRITE (io%unit, 1010) env_static_permittivity
+            WRITE (io%unit, 1004) env_static_permittivity
             !
-            IF (this%ltddfpt) WRITE (io%unit, 1011) env_optical_permittivity
+            IF (this%ltddfpt) WRITE (io%unit, 1005) env_optical_permittivity
             !
-            WRITE (io%unit, 1012) TRIM(solvent_mode)
         END IF
         !
         IF (this%surface_tension > 0.D0) &
-            WRITE (io%unit, 1013) env_surface_tension, this%surface_tension
+            WRITE (io%unit, 1006) env_surface_tension, this%surface_tension
         !
         IF (this%pressure /= 0.D0) &
-            WRITE (io%unit, 1014) env_pressure, this%pressure
+            WRITE (io%unit, 1007) env_pressure, this%pressure
+        !
+        !--------------------------------------------------------------------------------
+        ! Boundary parameters
+        !
+        IF (this%lsolvent) THEN
+            WRITE (io%unit, 1008)
+            WRITE (io%unit, 1009) TRIM(solvent_mode)
+            WRITE (io%unit, 1010) TRIM(deriv_method)
+            !
+            IF (this%lelectrolyte) WRITE (io%unit, 1011) TRIM(electrolyte_deriv_method)
+            !
+            WRITE (io%unit, 1012) TRIM(deriv_core)
+            !
+            IF (stype == 0) THEN
+                WRITE (io%unit, 1013) 'Fatteber-Gygi'
+                WRITE (io%unit, 1014) (rhomax + rhomin) * 0.5_DP, tbeta
+            ELSE
+                WRITE (io%unit, 1013) 'SCCS'
+                WRITE (io%unit, 1015) rhomax, rhomin
+            END IF
+            !
+            IF (solvent_mode == 'ionic') THEN
+                WRITE (io%unit, 1016) TRIM(radius_mode), softness, alpha
+            END IF
+            !
+            IF (solvent_radius > 0.D0) WRITE (io%unit, 1017)
+            !
+            IF (field_aware) THEN
+                WRITE (io%unit, 1018)
+                WRITE (io%unit, 1019) field_factor, field_asymmetry, field_min, field_max
+            END IF
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Electrostatic Summary
         !
         IF (this%lelectrostatic) THEN
-            WRITE (io%unit, 1015)
-            WRITE (io%unit, 1016) problem, solver
-            WRITE (io%unit, 1017) auxiliary
-            WRITE (io%unit, 1018) core
+            WRITE (io%unit, 1020)
             !
-            local_label = '1d-analytic'
+            WRITE (io%unit, 1021) &
+                TRIM(problem), TRIM(solver), TRIM(auxiliary), TRIM(core)
             !
-            IF (this%need_pbc_correction) WRITE (io%unit, 1019) ADJUSTL(local_label)
-            !
-            IF (derivatives == 'fd') THEN
-                !
-                IF (ifdtype == 1) THEN
-                    WRITE (io%unit, 1020) 'central diff.', nfdpoint
-                ELSE IF (ifdtype == 2 .OR. ifdtype == 3) THEN
-                    WRITE (io%unit, 1020) 'lanczos diff.', nfdpoint
-                ELSE IF (ifdtype == 4 .OR. ifdtype == 5) THEN
-                    WRITE (io%unit, 1020) 'noise-robust diff.', nfdpoint
-                END IF
-                !
+            IF (this%need_inner) THEN
+                WRITE (io%unit, 1022)
+                WRITE (io%unit, 1023) TRIM(inner_solver), TRIM(inner_core)
             END IF
+            !
+            IF (this%lperiodic) &
+                WRITE (io%unit, 1024) TRIM(pbc_correction), TRIM(pbc_core)
             !
         END IF
         !
-        WRITE (io%unit, 1021)
+        CALL io%divider(.TRUE.)
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 5X, 'Environ Module', /, 5X, '==============')
+1000    FORMAT(34X, "Environ Setup Summary")
 !
-1001    FORMAT(/, 5X, 'Please cite', /, 9X, A80, /, &
-                5X, 'in publications or presentations arising from this work.',/)
+1001    FORMAT(5X, "Please cite", /, 5X, A77, /, &
+               5X, "in publications or presentations arising from this work.")
         !
-1002    FORMAT('     compensation onset threshold      = ', E24.4)
-1003    FORMAT('     switching function adopted        = ', A24)
+1002    FORMAT(/, 5X, "Parameters", /, 5X, 10('='),/)
         !
-1004    FORMAT('     solvation density threshold       = ', E24.4, /, &
-               '     smoothness exponent (2 x beta)    = ', F24.2)
+1003    FORMAT(5X, "compensation onset threshold      = ", E24.4)
         !
-1005    FORMAT('     density limit for vacuum region   = ', E24.4, /, &
-               '     density limit for bulk solvent    = ', E24.4)
+1004    FORMAT(5X, "static permittivity               = ", F24.2)
         !
-1006    FORMAT('     interface is solvent aware            ')
-1007    FORMAT('     interface is field aware            ')
+1005    FORMAT(5X, "optical permittivity              = ", F24.4)
         !
-1008    FORMAT('     field aware factor                = ', F24.2, /, &
-               '     asymmetry of field-awareness      = ', F24.2)
+1006    FORMAT(5X, "surface tension in input (dyn/cm) = ", F24.2, /, &
+               5X, "surface tension in internal units = ", E24.4)
         !
-1009    FORMAT('     field limit for no correction     = ', F24.2, /, &
-               '     field limit for full correction   = ', F24.2)
+1007    FORMAT(5X, "external pressure in input (GPa)  = ", F24.2, /, &
+               5X, "external pressure in inter. units = ", E24.4)
         !
-1010    FORMAT('     static permittivity               = ', F24.2)
-1011    FORMAT('     optical permittivity              = ', F24.4)
-1012    FORMAT('     epsilon calculation mode          = ', A24)
+1008    FORMAT(/, 5X, "Solvent Boundary", /, 5X, 16('='),/)
         !
-1013    FORMAT('     surface tension in input (dyn/cm) = ', F24.2, /, &
-               '     surface tension in internal units = ', E24.4)
+1009    FORMAT(5X, "solvent mode                      = ", A24)
         !
-1014    FORMAT('     external pressure in input (GPa)  = ', F24.2, /, &
-               '     external pressure in inter. units = ', E24.4)
+1010    FORMAT(5X, "derivatives method                = ", A24)
+1011    FORMAT(5X, "electrolyte derivatives method    = ", A24)
+1012    FORMAT(5X, "numerical core for derivatives    = ", A24)
         !
-1015    FORMAT(/, 5X, 'Electrostatic Setup', /, 5X, '-------------------')
+1013    FORMAT(5X, "switching function adopted        = ", A24)
         !
-1016    FORMAT('     electrostatic problem to solve    = ', A24, /, &
-               '     numerical solver adopted          = ', A24)
+1014    FORMAT(5X, "solvation density threshold       = ", E24.4, /, &
+               5X, "smoothness exponent (2 x beta)    = ", F24.2)
         !
-1017    FORMAT('     type of auxiliary density adopted = ', A24)
-1018    FORMAT('     type of core tool for poisson     = ', A24)
-1019    FORMAT('     type of core tool for correction  = ', A24)
+1015    FORMAT(5X, "density limit for vacuum region   = ", E24.4, /, &
+               5X, "density limit for bulk solvent    = ", E24.4)
         !
-1020    FORMAT('     type of numerical differentiator  = ', A24, /, &
-               '     number of points in num. diff.    = ', I24)
+1016    FORMAT(5X, "soft-sphere radius mode           = ", A24, /, &
+               5X, "soft-sphere softness              = ", F24.2, /, &
+               5X, "alpha                             = ", F24.2)
         !
-1021    FORMAT(/)
+1017    FORMAT(5X, "interface is solvent aware")
+        !
+1018    FORMAT(5X, "interface is field aware")
+        !
+1019    FORMAT(5X, "field aware factor                = ", F24.2, /, &
+               5X, "asymmetry of field-awareness      = ", F24.2, /, &
+               5X, "field limit for no correction     = ", F24.2, /, &
+               5X, "field limit for full correction   = ", F24.2)
+        !
+1020    FORMAT(/, 5X, "Electrostatic Setup", /, 5X, 19('='),/)
+        !
+1021    FORMAT(5X, "electrostatic problem to solve    = ", A24, /, &
+               5X, "numerical solver adopted          = ", A24, /, &
+               5X, "type of auxiliary density adopted = ", A24, /, &
+               5X, "numerical core for poisson        = ", A24)
+        !
+1022    FORMAT(5X, "adopting a nested solver scheme")
+        !
+1023    FORMAT(5X, "inner solver                      = ", A24, /, &
+               5X, "inner core                        = ", A24)
+        !
+1024    FORMAT(5X, "type of pbc corrections           = ", A24, /, &
+               5X, "numerical core for corrections    = ", A24)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_setup_summary
@@ -1239,18 +1406,18 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
+        CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
         !
-        IF (this%need_pbc_correction) WRITE (io%unit, 1100)
+        IF (this%lperiodic) WRITE (io%unit, 1100)
         !
 1100    FORMAT(/, &
-                5(' '), 'WARNING: you are using the parabolic pbc correction;', /, &
-                5(' '), '         the potential shift above must be added to ', /, &
-                5(' '), '         band and Fermi energies.')
+                5(' '), "WARNING: you are using the parabolic pbc correction;", /, &
+                5(' '), "         the potential shift above must be added to ", /, &
+                5(' '), "         band and Fermi energies.")
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_potential_warning
@@ -1265,8 +1432,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_setup), INTENT(INOUT) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: passed_unit
+        CLASS(environ_setup), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: passed_unit
         !
         INTEGER :: actual_unit
         !

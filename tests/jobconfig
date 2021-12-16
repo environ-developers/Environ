@@ -6,6 +6,10 @@ inputs_args = ('neutral.in', 'dielectric-default.in'), ('charged.in', 'dielectri
 program = PW
 inputs_args = ('pw.in', 'local-sccs.in'), ('pw.in', 'sa-sccs.in'), ('pw.in', 'local-ss.in'), ('pw.in', 'sa-ss.in')
 
+[pw_field-aware/]
+program = PW
+inputs_args = ('pw.in', 'fa-ss.in')
+
 [pw_regions/]
 program = PW
 inputs_args = ('pw.in', 'insphere-default.in'), ('pw.in', 'outslab-default.in')

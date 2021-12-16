@@ -10,6 +10,6 @@
    !
    solvent_mode = 'ionic'
    field_aware = .TRUE.
-   derivatives = 'lowmem'
+   stype = 1
    !
  /

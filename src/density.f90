@@ -88,7 +88,8 @@ MODULE class_density
         PROCEDURE :: quadratic_mean => quadratic_mean_environ_density
         PROCEDURE :: scalar_product => scalar_product_environ_density
         !
-        PROCEDURE :: dipole_of_origin, quadrupole_of_origin
+        PROCEDURE :: dipole_of_origin
+        PROCEDURE :: quadrupole_of_origin
         !
         PROCEDURE :: printout => print_environ_density
         PROCEDURE :: write_cube => write_cube_density
@@ -138,7 +139,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
@@ -245,8 +246,8 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
         !
@@ -258,14 +259,14 @@ CONTAINS
         dipole = 0.D0
         quadrupole = 0.D0
         !
-        DO ir = 1, cell%ir_end
+        DO i = 1, cell%ir_end
             !
-            CALL cell%get_min_distance(ir, 0, 3, origin, r, r2, physical)
+            CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
             ! compute minimum distance using minimum image convention
             !
             IF (.NOT. physical) CYCLE
             !
-            rhoir = this%of_r(ir)
+            rhoir = this%of_r(i)
             !
             !----------------------------------------------------------------------------
             ! Multipoles
@@ -290,7 +291,6 @@ CONTAINS
     END SUBROUTINE multipoles_environ_density
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION dipole_of_origin(this, origin) RESULT(dipole)
@@ -310,7 +310,6 @@ CONTAINS
     END FUNCTION dipole_of_origin
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION quadrupole_of_origin(this, origin) RESULT(quadrupole)
@@ -371,6 +370,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ir_end => this%cell%ir_end
+        !
         euclidean_norm = DOT_PRODUCT(this%of_r(1:ir_end), this%of_r(1:ir_end))
         !
         CALL env_mp_sum(euclidean_norm, this%cell%dfft%comm)
@@ -395,6 +395,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ir_end => this%cell%ir_end
+        !
         quadratic_mean = DOT_PRODUCT(this%of_r(1:ir_end), this%of_r(1:ir_end))
         !
         CALL env_mp_sum(quadratic_mean, this%cell%dfft%comm)
@@ -424,9 +425,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell, density2%cell)) &
-            CALL io%error(fun_name, 'Operation on fields with inconsistent domains', 1)
+            CALL io%error(fun_name, "Operation on fields with inconsistent domains", 1)
+        !
+        !--------------------------------------------------------------------------------
         !
         ir_end => this%cell%ir_end
+        !
         scalar_product = DOT_PRODUCT(this%of_r(1:ir_end), density2%of_r(1:ir_end))
         !
         CALL env_mp_sum(scalar_product, this%cell%dfft%comm)
@@ -458,8 +462,8 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_density), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
-        LOGICAL, INTENT(IN), OPTIONAL :: lcube
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
+        LOGICAL, OPTIONAL, INTENT(IN) :: lcube
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
@@ -533,12 +537,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' DENSITY ', 67('%'))
-1001    FORMAT(/, ' DENSITY', /, ' =======')
+1000    FORMAT(/, 4('%'), " DENSITY ", 67('%'))
+1001    FORMAT(/, " DENSITY", /, " =======")
         !
-1002    FORMAT(/, ' density label              = ', A50)
+1002    FORMAT(/, " density label              = ", A50)
         !
-1003    FORMAT(/, ' integral of density        = ', G18.10)
+1003    FORMAT(/, " integral of density        = ", G18.10)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_density
@@ -551,9 +555,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_density), TARGET, INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: idx
-        CHARACTER(LEN=100), INTENT(IN), OPTIONAL :: label
+        CLASS(environ_density), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: idx
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CHARACTER(LEN=100) :: filename, filemod, local_label
         !
@@ -600,7 +604,7 @@ CONTAINS
         !
         CLASS(environ_density), TARGET, INTENT(IN) :: this
         !
-        INTEGER :: ir, ir1, ir2, ir3
+        INTEGER :: i, j, k, l
         INTEGER :: count
         INTEGER :: nr1x, nr2x, nr3x
         INTEGER :: nr1, nr2, nr3
@@ -643,14 +647,14 @@ CONTAINS
         !
         count = 0
         !
-        DO ir1 = 1, nr1
+        DO i = 1, nr1
             !
-            DO ir2 = 1, nr2
+            DO j = 1, nr2
                 !
-                DO ir3 = 1, nr3
+                DO k = 1, nr3
                     count = count + 1
-                    ir = ir1 + (ir2 - 1) * nr1 + (ir3 - 1) * nr1 * nr2
-                    tmp = DBLE(flocal(ir))
+                    l = i + (j - 1) * nr1 + (k - 1) * nr1 * nr2
+                    tmp = DBLE(flocal(l))
                     !
                     IF (ABS(tmp) < 1.D-99) tmp = 0.D0
                     !
