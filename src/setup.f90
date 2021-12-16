@@ -225,13 +225,13 @@ MODULE class_setup
     !
     DATA bibliography/ &
         '"O. Andreussi, I. Dabo and N. Marzari, &
-        J. Chem. Phys. 136, 064102 (2012)"', &
+        &J. Chem. Phys. 136, 064102 (2012)"', &
         '"I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, &
-        J. Chem. Phys. 142, 034111 (2015)"', &
+        &J. Chem. Phys. 142, 034111 (2015)"', &
         '"O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
-        J. Chem. Theory Comput. 15, 1996 (2019)"', &
+        &J. Chem. Theory Comput. 15, 1996 (2019)"', &
         '"F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, &
-        J. Chem. Phys. 150, 041722 (2019)"'/
+        &J. Chem. Phys. 150, 041722 (2019)"'/
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -402,7 +402,7 @@ CONTAINS
             DO i = 1, 3
                 !
                 environment_at(:, i) = at(:, i) * &
-                                          (2.D0 * this%mapping%nrep(i) + 1.D0)
+                                       (2.D0 * this%mapping%nrep(i) + 1.D0)
                 !
             END DO
             !
