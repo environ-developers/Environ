@@ -89,9 +89,6 @@ MODULE class_cell
         INTEGER :: j0, k0 ! starting indexes of processor-specific boxes of grid points
         REAL(DP) :: in1, in2, in3 ! inverse number of grid points
         !
-        INTEGER :: ngm = 0 ! local number of G vectors (on this processor)
-        ! with gamma tricks, only vectors in G>
-        !
         REAL(DP) :: gcutm = 0.0_DP ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
         !
         INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
@@ -233,12 +230,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%ngm = this%dfft%ngm ! #TODO why is this necessary?
-        !
         CALL this%init_gvect(ngm_g, this%dfft%comm)
         !
         CALL env_ggen(this%dfft, this%dfft%comm, this%at, this%bg, this%gcutm, &
-                      ngm_g, this%ngm, this%g, this%gg, this%gstart, .TRUE.)
+                      ngm_g, this%dfft%ngm, this%g, this%gg, this%gstart, .TRUE.)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_cell
@@ -1134,8 +1129,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calculate sum over all processors
         !
-        ngm = this%ngm
-        ngm_g = ngm
+        ngm = this%dfft%ngm ! local
+        ngm_g = ngm ! global
         !
         CALL env_mp_sum(ngm_g, comm)
         !

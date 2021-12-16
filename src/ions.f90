@@ -99,8 +99,7 @@ MODULE class_ions
         REAL(DP) :: quadrupole_correction = 0.D0
         REAL(DP) :: selfenergy_correction = 0.D0
         !
-        REAL(DP) :: potential_shift ! due to Gaussian-spread description (if used)
-        ! #TODO set to zero?
+        REAL(DP) :: potential_shift = 0.D0 ! due to Gaussian-spread description (if used)
         !
         !--------------------------------------------------------------------------------
     CONTAINS

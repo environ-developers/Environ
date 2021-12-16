@@ -126,7 +126,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(solver_newton), INTENT(IN) :: this
-        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner ! # TODO should it be optional?
+        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges

@@ -291,7 +291,6 @@ CONTAINS
     END SUBROUTINE multipoles_environ_density
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION dipole_of_origin(this, origin) RESULT(dipole)
@@ -311,7 +310,6 @@ CONTAINS
     END FUNCTION dipole_of_origin
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION quadrupole_of_origin(this, origin) RESULT(quadrupole)

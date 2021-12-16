@@ -156,7 +156,7 @@ CONTAINS
         IF (PRESENT(use_internal_pbc_corr)) &
             this%use_internal_pbc_corr = use_internal_pbc_corr
         !
-        ALLOCATE (this%correction(cell%ngm))
+        ALLOCATE (this%correction(cell%dfft%ngm))
         !
         IF (this%use_internal_pbc_corr) THEN
             CALL this%update_mt_correction()
@@ -308,7 +308,7 @@ CONTAINS
                    nnr => this%cell%dfft%nnr, &
                    nl => this%cell%dfft%nl, &
                    nlm => this%cell%dfft%nlm, &
-                   ngm => this%cell%ngm, &
+                   ngm => this%cell%dfft%ngm, &
                    g => this%cell%g)
             !
             !----------------------------------------------------------------------------
@@ -785,7 +785,7 @@ CONTAINS
         !
         ASSOCIATE (dfft => this%cell%dfft, &
                    nl => this%cell%dfft%nl, &
-                   ngm => this%cell%ngm)
+                   ngm => this%cell%dfft%ngm)
             !
             !----------------------------------------------------------------------------
             ! Bring rho to G space
@@ -851,7 +851,7 @@ CONTAINS
         !
         ASSOCIATE (dfft => this%cell%dfft, &
                    nl => this%cell%dfft%nl, &
-                   ngm => this%cell%ngm)
+                   ngm => this%cell%dfft%ngm)
             !
             !----------------------------------------------------------------------------
             ! Bring rho to G space
@@ -950,7 +950,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (dfft => this%cell%dfft, &
-                   ngm => this%cell%ngm, &
+                   ngm => this%cell%dfft%ngm, &
                    G => this%cell%g, &
                    G2 => this%cell%gg)
             !
@@ -1070,7 +1070,7 @@ CONTAINS
                 DO j = 1, 3
                     auxg = (0.0_DP, 0.0_DP)
                     !
-                    DO k = this%cell%gstart, this%cell%ngm
+                    DO k = this%cell%gstart, this%cell%dfft%ngm
                         !
                         auxg(nl(k)) = &
                             g(i, k) * g(j, k) * &
@@ -1152,7 +1152,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Compute total potential in G space
                 !
-                DO j = this%cell%gstart, this%cell%ngm
+                DO j = this%cell%gstart, this%cell%dfft%ngm
                     !
                     auxr(nl(j)) = &
                         this%cell%g(i, j) * &
@@ -1255,7 +1255,7 @@ CONTAINS
             CALL env_fwfft(aux, dfft)
             !
 !$omp parallel do
-            DO i = 1, cell%ngm
+            DO i = 1, cell%dfft%ngm
                 !
                 mt_corr(i) = cell%omega * REAL(aux(dfft%nl(i))) - &
                              smooth_coulomb_g(alpha, beta, tpi2 * cell%gg(i))
