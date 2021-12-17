@@ -72,9 +72,10 @@ MODULE class_mapping
         PROCEDURE :: update => update_environ_mapping
         PROCEDURE :: destroy => destroy_environ_mapping
         !
-        PROCEDURE, PRIVATE :: &
-            map_small_to_large_real, map_small_to_large_density, &
-            map_large_to_small_real, map_large_to_small_density
+        PROCEDURE, PRIVATE :: map_small_to_large_real
+        PROCEDURE, PRIVATE :: map_small_to_large_density
+        PROCEDURE, PRIVATE :: map_large_to_small_real
+        PROCEDURE, PRIVATE :: map_large_to_small_density
         !
         GENERIC :: to_large => map_small_to_large_real, map_small_to_large_density
         GENERIC :: to_small => map_large_to_small_real, map_large_to_small_density
@@ -156,12 +157,12 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN), OPTIONAL :: pos(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: pos(3)
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
+        INTEGER :: ir
         LOGICAL :: physical
-        INTEGER :: ir, ipol
         INTEGER, DIMENSION(3) :: small_n, large_n, center, origin, shift, ijk
         REAL(DP) :: tmp(3)
         !
@@ -283,7 +284,7 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: flarge(nlarge)
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_real'
@@ -292,10 +293,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= this%small%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
+            CALL io%error(sub_name, "Wrong dimension of small cell", 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of large cell', 1)
+            CALL io%error(sub_name, "Wrong dimension of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -310,8 +311,8 @@ CONTAINS
             ALLOCATE (auxlarge(this%large%ntot))
             auxlarge = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) auxlarge(this%map(ir)) = fsmall(ir)
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) auxlarge(this%map(i)) = fsmall(i)
             END DO
             !
 #if defined(__MPI)
@@ -341,7 +342,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: flarge
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_density'
@@ -350,10 +351,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL io%error(sub_name, 'Mismatch of small cell', 1)
+            CALL io%error(sub_name, "Mismatch of small cell", 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL io%error(sub_name, 'Mismatch of large cell', 1)
+            CALL io%error(sub_name, "Mismatch of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -368,8 +369,8 @@ CONTAINS
             ALLOCATE (auxlarge(this%large%ntot))
             auxlarge = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) auxlarge(this%map(ir)) = fsmall%of_r(ir)
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) auxlarge(this%map(i)) = fsmall%of_r(i)
             END DO
             !
 #if defined(__MPI)
@@ -400,7 +401,7 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: fsmall(nsmall)
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_real'
@@ -409,10 +410,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= this%small%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
+            CALL io%error(sub_name, "Wrong dimension of small cell", 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of large cell', 1)
+            CALL io%error(sub_name, "Wrong dimension of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -436,8 +437,8 @@ CONTAINS
 #endif
             fsmall = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) fsmall(ir) = auxlarge(this%map(ir))
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) fsmall(i) = auxlarge(this%map(i))
             END DO
             !
             DEALLOCATE (auxlarge)
@@ -459,7 +460,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: fsmall
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_density'
@@ -468,10 +469,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL io%error(sub_name, 'Mismatch of small cell', 1)
+            CALL io%error(sub_name, "Mismatch of small cell", 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL io%error(sub_name, 'Mismatch of large cell', 1)
+            CALL io%error(sub_name, "Mismatch of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -496,8 +497,8 @@ CONTAINS
 #endif
             fsmall%of_r = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) fsmall%of_r(ir) = auxlarge(this%map(ir))
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) fsmall%of_r(i) = auxlarge(this%map(i))
             END DO
             !
             DEALLOCATE (auxlarge)
@@ -526,7 +527,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_mapping), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
@@ -576,13 +577,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' MAPPING ', 67('%'))
+1000    FORMAT(/, 4('%'), " MAPPING ", 67('%'))
 !
-1001    FORMAT(/, ' number of replicas (x,y,z) = ', 3I14)
+1001    FORMAT(/, " number of replicas (x,y,z) = ", 3I14)
 !
-1002    FORMAT(/, ' cell origins:', /, &
-                ' system                     = ', 3F14.7, /, &
-                ' environment                = ', 3F14.7)
+1002    FORMAT(/, " cell origins:", /, &
+                " system                     = ", 3F14.7, /, &
+                " environment                = ", 3F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_mapping

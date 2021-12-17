@@ -91,7 +91,7 @@ CONTAINS
         !
         CLASS(environ_ioncctype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: index_s, local_label
+        CHARACTER(LEN=80) :: index_s
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_ioncctype'
         !
@@ -105,13 +105,9 @@ CONTAINS
         !
         WRITE (index_s, '(I2.2)') index
         !
-        local_label = 'c_electrolyte_'//TRIM(index_s)
+        CALL this%c%init(cell, 'c_electrolyte_'//TRIM(index_s))
         !
-        CALL this%c%init(cell, local_label)
-        !
-        local_label = 'cfactor_electrolyte_'//TRIM(index_s)
-        !
-        CALL this%cfactor%init(cell, local_label)
+        CALL this%cfactor%init(cell, 'cfactor_electrolyte_'//TRIM(index_s))
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_ioncctype

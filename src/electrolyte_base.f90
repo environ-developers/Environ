@@ -20,8 +20,8 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
-!          Oliviero Andreussi (Department of Physics, UNT)
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !          Edan Bainglass     (Department of Physics, UNT)
 !
@@ -29,17 +29,16 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_solver_iterative
+MODULE class_electrolyte_base
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
     !
-    USE environ_param, ONLY: DP
+    USE environ_param, ONLY: DP, e2, BOHR_RADIUS_SI, AMU_SI, K_BOLTZMANN_RY, fpi
     !
-    USE class_core_container
+    USE class_cell
     !
-    USE class_solver
-    USE class_solver_direct
+    USE class_ioncctype
     !
     !------------------------------------------------------------------------------------
     !
@@ -51,25 +50,33 @@ MODULE class_solver_iterative
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, ABSTRACT, EXTENDS(electrostatic_solver), PUBLIC :: solver_iterative
+    TYPE, PUBLIC :: environ_electrolyte_base
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: auxiliary
-        REAL(DP) :: tol
-        INTEGER :: maxiter
+        LOGICAL :: linearized = .FALSE.
         !
-        TYPE(solver_direct), POINTER :: direct
+        CHARACTER(LEN=80) :: electrolyte_entropy
+        INTEGER :: ntyp
+        TYPE(environ_ioncctype), ALLOCATABLE :: ioncctype(:)
+        !
+        REAL(DP) :: temperature
+        REAL(DP) :: k2
+        REAL(DP) :: cionmax
+        REAL(DP) :: permittivity
+        !
+        REAL(DP) :: distance
+        REAL(DP) :: spread
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create_iterative => create_solver_iterative
-        PROCEDURE :: init_iterative => init_solver_iterative
-        PROCEDURE :: destroy => destroy_solver_iterative
+        PROCEDURE, PRIVATE :: create => create_environ_electrolyte_base
+        PROCEDURE :: init => init_environ_electrolyte_base
+        PROCEDURE :: destroy => destroy_environ_electrolyte_base
         !
         !--------------------------------------------------------------------------------
-    END TYPE solver_iterative
+    END TYPE environ_electrolyte_base
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -84,82 +91,130 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_solver_iterative(this)
+    SUBROUTINE create_environ_electrolyte_base(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(solver_iterative), INTENT(INOUT) :: this
+        CLASS(environ_electrolyte_base), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_solver_iterative'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ASSOCIATED(this%direct)) CALL io%create_error(sub_name)
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrolyte_base'
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_solver_iterative
+        !
+        IF (ALLOCATED(this%ioncctype)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_electrolyte_base
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_iterative(this, cores, direct, maxiter, tol, auxiliary)
+    SUBROUTINE init_environ_electrolyte_base(this, ntyp, const, distance, spread, &
+                                             temperature, cbulk, cionmax, radius, z, &
+                                             electrolyte_entropy, linearized, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(core_container), INTENT(IN) :: cores
-        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
-        INTEGER, INTENT(IN) :: maxiter
-        REAL(DP), INTENT(IN) :: tol
-        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: auxiliary
+        LOGICAL, INTENT(IN) :: linearized
+        INTEGER, INTENT(IN) :: ntyp
+        CHARACTER(LEN=*), INTENT(IN) :: electrolyte_entropy
+        REAL(DP), INTENT(IN) :: const, distance, spread, temperature, cionmax, radius
+        REAL(DP), DIMENSION(ntyp), INTENT(IN) :: cbulk, z
+        TYPE(environ_cell), INTENT(IN) :: cell
         !
-        CLASS(solver_iterative), INTENT(INOUT) :: this
+        CLASS(environ_electrolyte_base), INTENT(INOUT) :: this
         !
-        !--------------------------------------------------------------------------------
+        INTEGER :: i
+        REAL(DP) :: neutral, sumcbulk, sum_cz2, arg, KT
         !
-        CALL this%create_iterative()
-        !
-        CALL this%set_cores(cores)
-        !
-        this%direct => direct
-        !
-        this%maxiter = maxiter
-        this%tol = tol
-        !
-        IF (PRESENT(auxiliary)) this%auxiliary = auxiliary
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte_base'
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_solver_iterative
+        !
+        CALL this%create()
+        !
+        !--------------------------------------------------------------------------------
+        ! Setup all electrolyte parameters (with checks)
+        !
+        this%linearized = linearized
+        this%ntyp = ntyp
+        this%electrolyte_entropy = TRIM(electrolyte_entropy)
+        this%temperature = temperature
+        this%permittivity = const
+        this%distance = distance
+        this%spread = spread
+        !
+        ALLOCATE (this%ioncctype(ntyp))
+        !
+        neutral = 0.D0
+        sum_cz2 = 0.D0
+        !
+        DO i = 1, ntyp
+            !
+            CALL this%ioncctype(i)%init(i, cbulk(i), z(i), cell)
+            !
+            neutral = neutral + cbulk(i) * z(i)
+            sum_cz2 = sum_cz2 + this%ioncctype(i)%cbulk * this%ioncctype(i)%z**2
+        END DO
+        !
+        IF (neutral > 1.D-8) &
+            CALL io%error(sub_name, "Bulk electrolyte is not neutral", 1)
+        !
+        kT = K_BOLTZMANN_RY * temperature
+        !
+        this%k2 = sum_cz2 / kT * e2 * fpi ! k^2 = eps / lambda_D^2
+        !
+        this%cionmax = cionmax * BOHR_RADIUS_SI**3 / AMU_SI
+        !
+        !--------------------------------------------------------------------------------
+        ! If not given cionmax in input, but given radius, calculate cionmax
+        !
+        IF (cionmax == 0.D0 .AND. radius > 0.D0) &
+            this%cionmax = 0.64D0 * 3.D0 / fpi / radius**3
+        !
+        !--------------------------------------------------------------------------------
+        ! Check suitability of cionmax value
+        !
+        sumcbulk = SUM(this%ioncctype%cbulk)
+        !
+        IF (this%cionmax > 0.D0 .AND. this%cionmax <= sumcbulk) &
+            CALL io%error(sub_name, "cionmax should be larger than the sum of cbulks", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_environ_electrolyte_base
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_solver_iterative(this)
+    SUBROUTINE destroy_environ_electrolyte_base(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(solver_iterative), INTENT(INOUT) :: this
+        CLASS(environ_electrolyte_base), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_solver_iterative'
+        INTEGER :: i
         !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ASSOCIATED(this%direct)) CALL io%destroy_error(sub_name)
+        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_electrolyte_base'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%destroy_cores()
-        !
-        CALL this%direct%destroy()
-        !
-        NULLIFY (this%direct)
+        IF (.NOT. ALLOCATED(this%ioncctype)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_solver_iterative
+        !
+        DO i = 1, this%ntyp
+            CALL this%ioncctype(i)%destroy()
+        END DO
+        !
+        DEALLOCATE (this%ioncctype)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_environ_electrolyte_base
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_solver_iterative
+END MODULE class_electrolyte_base
 !----------------------------------------------------------------------------------------

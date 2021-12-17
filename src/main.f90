@@ -37,8 +37,9 @@ MODULE class_environ
     !
     USE environ_param, ONLY: DP, RYTOEV
     !
-    USE env_base_input
     USE class_setup
+    !
+    USE env_base_input
     !
     USE class_cell
     USE class_density
@@ -66,7 +67,7 @@ MODULE class_environ
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, PUBLIC :: environ_obj
+    TYPE, PUBLIC :: environ_main
         !--------------------------------------------------------------------------------
         !
         TYPE(environ_setup), POINTER :: setup => NULL()
@@ -127,7 +128,8 @@ MODULE class_environ
         PROCEDURE :: init => init_environ_base
         PROCEDURE :: add_charges => environ_add_charges
         !
-        PROCEDURE :: get_vzero, get_dvtot
+        PROCEDURE :: get_vzero
+        PROCEDURE :: get_dvtot
         !
         PROCEDURE :: update_electrons => environ_update_electrons
         PROCEDURE :: update_ions => environ_update_ions
@@ -142,7 +144,7 @@ MODULE class_environ
         PROCEDURE :: print_potential_shift => print_environ_potential_shift
         !
         !--------------------------------------------------------------------------------
-    END TYPE environ_obj
+    END TYPE environ_main
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -162,18 +164,14 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_base'
         !
         !--------------------------------------------------------------------------------
         !
         IF (ASSOCIATED(this%setup)) &
-            CALL io%error(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%setup)
+            CALL io%error(sub_name, "Trying to create an existing object", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_base
@@ -194,9 +192,9 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: nelec, ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
+        CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -219,9 +217,9 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: density(nnr)
-        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: local_label = 'additional_charges'
         !
@@ -252,7 +250,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: vltot(nnr)
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_update_potential'
         !
@@ -263,7 +261,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(this%vzero%cell)) RETURN
         !
         IF (this%vzero%cell%nnr /= nnr) &
-            CALL io%error(sub_name, 'Inconsistent size in input potential', 1)
+            CALL io%error(sub_name, "Inconsistent size in input potential", 1)
         !
         this%vzero%of_r = vltot
         !
@@ -280,7 +278,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_setup), POINTER :: setup
         !
@@ -317,9 +315,9 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
-        REAL(DP), INTENT(IN), OPTIONAL :: center(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: center(3)
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP) :: local_pos(3)
         !
@@ -371,8 +369,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update cores
         !
-        IF (setup%l1da) &
-            CALL setup%core_1da_elect%update_origin(this%environment_system%pos)
+        IF (setup%l1da) CALL setup%env_1da%update_origin(this%environment_system%pos)
         !
         !--------------------------------------------------------------------------------
         ! Update rigid environ properties, defined on ions
@@ -437,9 +434,9 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
-        REAL(DP), INTENT(IN), OPTIONAL :: nelec
+        REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP), ALLOCATABLE :: aux(:)
         !
@@ -531,7 +528,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: drho(nnr)
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP), ALLOCATABLE :: aux(:)
         !
@@ -594,7 +591,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         INTEGER, INTENT(IN) :: nnr
-        CLASS(environ_obj), TARGET, INTENT(IN) :: this
+        CLASS(environ_main), INTENT(IN) :: this
         !
         REAL(DP) :: vzero(nnr)
         !
@@ -603,7 +600,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (nnr /= this%vzero%cell%nnr) &
-            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+            CALL io%error(sub_name, "Mismatch in grid size", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -619,7 +616,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         INTEGER, INTENT(IN) :: nnr
-        CLASS(environ_obj), TARGET, INTENT(IN) :: this
+        CLASS(environ_main), INTENT(IN) :: this
         !
         REAL(DP) :: dvtot(nnr)
         !
@@ -628,7 +625,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (nnr /= this%dvtot%cell%nnr) &
-            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+            CALL io%error(sub_name, "Mismatch in grid size", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -651,9 +648,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: local_label
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
@@ -669,47 +664,31 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Create local storage for base potential, that needs to be modified
         !
-        local_label = 'vzero'
+        CALL this%vzero%init(system_cell, 'vzero')
         !
-        CALL this%vzero%init(system_cell, local_label)
-        !
-        local_label = 'dvtot'
-        !
-        CALL this%dvtot%init(system_cell, local_label)
+        CALL this%dvtot%init(system_cell, 'dvtot')
         !
         !--------------------------------------------------------------------------------
         ! Electrostatic contribution
         !
         IF (setup%lelectrostatic) THEN
-            local_label = 'velectrostatic'
             !
-            CALL this%velectrostatic%init(environment_cell, local_label)
+            CALL this%velectrostatic%init(environment_cell, 'velectrostatic')
             !
-            local_label = 'vreference'
-            !
-            CALL this%vreference%init(system_cell, local_label)
+            CALL this%vreference%init(system_cell, 'vreference')
             !
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Contribution to the potential due to boundary
         !
-        IF (setup%lsoftcavity) THEN
-            local_label = 'vsoftcavity'
-            !
-            CALL this%vsoftcavity%init(environment_cell, local_label)
-            !
-        END IF
+        IF (setup%lsoftcavity) &
+            CALL this%vsoftcavity%init(environment_cell, 'vsoftcavity')
         !
         !--------------------------------------------------------------------------------
         ! Confinement contribution
         !
-        IF (setup%lconfine) THEN
-            local_label = 'vconfine'
-            !
-            CALL this%vconfine%init(environment_cell, local_label)
-            !
-        END IF
+        IF (setup%lconfine) CALL this%vconfine%init(environment_cell, 'vconfine')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_init_potential
@@ -725,11 +704,9 @@ CONTAINS
         INTEGER, INTENT(IN) :: nelec, nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
+        CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: local_label
+        CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
@@ -838,7 +815,6 @@ CONTAINS
         ! Solvent boundary
         !
         IF (setup%lsolvent) THEN
-            local_label = 'solvent'
             !
             CALL this%solvent%init( &
                 setup%lgradient, setup%need_factsqrt, setup%lsurface, &
@@ -847,8 +823,8 @@ CONTAINS
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
                 field_awareness, charge_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%derivatives, environment_cell, &
-                local_label)
+                this%environment_system, setup%outer_container, deriv_method, &
+                environment_cell, 'solvent')
             !
         END IF
         !
@@ -864,9 +840,9 @@ CONTAINS
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
                 filling_threshold, filling_spread, field_awareness, charge_asymmetry, &
                 field_max, field_min, this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%derivatives, temperature, cion, &
-                cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized, &
-                environment_cell)
+                this%environment_system, temperature, cion, cionmax, rion, zion, &
+                electrolyte_entropy, electrolyte_linearized, setup%outer_container, &
+                electrolyte_deriv_method, environment_cell)
             !
             CALL this%environment_charges%add(electrolyte=this%electrolyte)
             !
@@ -950,10 +926,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=2), INTENT(IN) :: prog
-        LOGICAL, INTENT(IN), OPTIONAL :: de_flag
-        !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_main), TARGET, INTENT(IN) :: this
+        CHARACTER(LEN=*), INTENT(IN) :: prog
+        LOGICAL, OPTIONAL, INTENT(IN) :: de_flag
         !
         INTEGER, POINTER :: unit
         TYPE(environ_setup), POINTER :: setup
@@ -1000,24 +975,24 @@ CONTAINS
             IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte * 0.5D0
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Wrong program calling Environ', 1)
+            CALL io%error(sub_name, "Unexpected calling program", 1)
             !
         END SELECT
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT('     electrostatic embedding   =', F17.8, ' Ry')
-1001    FORMAT('     cavitation energy         =', F17.8, ' Ry')
-1002    FORMAT('     PV energy                 =', F17.8, ' Ry')
-1003    FORMAT('     confinement energy        =', F17.8, ' Ry')
-1004    FORMAT('     electrolyte free energy   =', F17.8, ' Ry')
-1005    FORMAT('     correction to one-el term =', F17.8, ' Ry')
+1000    FORMAT("     electrostatic embedding   =", F17.8, " Ry")
+1001    FORMAT("     cavitation energy         =", F17.8, " Ry")
+1002    FORMAT("     PV energy                 =", F17.8, " Ry")
+1003    FORMAT("     confinement energy        =", F17.8, " Ry")
+1004    FORMAT("     electrolyte free energy   =", F17.8, " Ry")
+1005    FORMAT("     correction to one-el term =", F17.8, " Ry")
         !
-1006    FORMAT('     electrostatic embedding = ', F14.5, ' Hartree a.u.')
-1007    FORMAT('           cavitation energy = ', F14.5, ' Hartree a.u.')
-1008    FORMAT('                   PV energy = ', F14.5, ' Hartree a.u.')
-1009    FORMAT('     electrolyte free energy = ', F14.5, ' Hartree a.u.')
-1010    FORMAT('          confinement energy = ', F14.5, ' Hartree a.u.')
+1006    FORMAT("     electrostatic embedding = ", F14.5, " Hartree a.u.")
+1007    FORMAT("           cavitation energy = ", F14.5, " Hartree a.u.")
+1008    FORMAT("                   PV energy = ", F14.5, " Hartree a.u.")
+1009    FORMAT("     electrolyte free energy = ", F14.5, " Hartree a.u.")
+1010    FORMAT("          confinement energy = ", F14.5, " Hartree a.u.")
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_energies
@@ -1031,7 +1006,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_main), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -1041,8 +1016,8 @@ CONTAINS
             WRITE (io%unit, 1100) this%environment_ions%potential_shift * RYTOEV
         !
 1100    FORMAT(/, 5(' '), &
-                'the potential shift due to the Gaussian-smeared nuclei is ', &
-                F10.4, ' ev')
+                "the potential shift due to the Gaussian-smeared nuclei is ", &
+                F10.4, " ev")
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_potential_shift

@@ -20,24 +20,28 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Edan Bainglass (Department of Physics, UNT)
+! Authors: Edan Bainglass   (Department of Physics, UNT)
+!          Matthew Truscott (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_container_derivatives
+MODULE environ_api
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
     !
-    USE class_density
-    USE class_gradient
-    USE class_hessian
+    USE env_base_scatter, ONLY: env_scatter_grid, env_gather_grid
     !
-    USE class_core_container
-    USE class_core_fd_derivatives
-    USE class_core_fft_derivatives
+    USE environ_param, ONLY: DP
+    !
+    USE class_calculator
+    USE class_destructor
+    USE class_environ
+    USE class_setup
+    !
+    USE environ_input, ONLY: read_environ_input
     !
     !------------------------------------------------------------------------------------
     !
@@ -49,259 +53,288 @@ MODULE class_core_container_derivatives
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(core_container), PUBLIC :: container_derivatives
+    TYPE :: environ_interface
         !--------------------------------------------------------------------------------
+        !
+        TYPE(environ_setup) :: setup
+        TYPE(environ_main) :: main
+        TYPE(environ_calculator) :: calc
+        TYPE(environ_destructor) :: clean
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: gradient => calc_gradient
-        PROCEDURE :: graddot => calc_graddot
-        PROCEDURE :: hessian => calc_hessian
-        PROCEDURE :: laplacian => calc_laplacian
+        PROCEDURE :: init => init_interface
         !
-        PROCEDURE, PRIVATE :: &
-            calc_convolution_density, &
-            calc_convolution_gradient, &
-            calc_convolution_hessian
+        PROCEDURE, NOPASS :: init_io
+        PROCEDURE, NOPASS :: read_input
         !
-        GENERIC :: convolution => &
-            calc_convolution_density, &
-            calc_convolution_gradient, &
-            calc_convolution_hessian
+        PROCEDURE :: update_cell
+        PROCEDURE :: update_electrons
+        !
+        PROCEDURE :: add_charges
+        !
+        PROCEDURE, NOPASS :: get_verbosity
+        !
+        PROCEDURE :: calc_potential
         !
         !--------------------------------------------------------------------------------
-    END TYPE container_derivatives
+    END TYPE environ_interface
     !------------------------------------------------------------------------------------
+    !
+    TYPE(environ_interface), PUBLIC :: environ
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
-    !                                 DERIVATIVE METHODS
+    !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradient(this, density, gradient)
+    SUBROUTINE init_interface(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        CLASS(environ_interface), TARGET, INTENT(INOUT) :: this
         !
-        CLASS(container_derivatives), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_gradient'
+        CHARACTER(LEN=80) :: sub_name = 'init_interface'
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fd_derivatives)
-            CALL core%gradient(density, gradient)
-            !
-        TYPE IS (core_fft_derivatives)
-            CALL core%gradient(density, gradient)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        this%calc%main => this%main
+        this%clean%main => this%main
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_gradient
+    END SUBROUTINE init_interface
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_graddot(this, gradient, density)
+    SUBROUTINE init_io(ionode, ionode_id, comm, program_unit, lstdout)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_gradient), INTENT(IN) :: gradient
+        LOGICAL, INTENT(IN) :: ionode
+        INTEGER, INTENT(IN) :: ionode_id
+        INTEGER, INTENT(IN) :: comm
+        INTEGER, INTENT(IN) :: program_unit
+        LOGICAL, INTENT(IN) :: lstdout
         !
-        CLASS(container_derivatives), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: density
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_graddot'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_derivatives)
-            CALL core%graddot(gradient, density)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        CHARACTER(LEN=80) :: sub_name = 'init_io'
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_graddot
+        !
+        CALL io%init(ionode, ionode_id, comm, program_unit, lstdout)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_io
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_hessian(this, density, gradient, hessian)
+    SUBROUTINE read_input(filename, nsx)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: filename
+        INTEGER, OPTIONAL, INTENT(IN) :: nsx
         !
-        CLASS(container_derivatives), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
-        TYPE(environ_hessian), INTENT(INOUT) :: hessian
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_hessian'
+        CHARACTER(LEN=80) :: sub_name = 'read_input'
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_derivatives)
-            CALL core%hessian(density, gradient, hessian)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        CALL read_environ_input(filename, nsx)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_hessian
+    END SUBROUTINE read_input
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   UPDATE METHODS
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_laplacian(this, density, laplacian)
+    SUBROUTINE update_cell(this, at)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        REAL(DP), INTENT(IN) :: at(3, 3)
         !
-        CLASS(container_derivatives), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: laplacian
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_laplacian'
+        CLASS(environ_interface), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_derivatives)
-            CALL core%laplacian(density, laplacian)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        CALL this%setup%update_cell(at)
+        !
+        CALL this%main%update_cell_dependent_quantities()
+        !
+        CALL this%setup%end_cell_update()
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_laplacian
+    END SUBROUTINE update_cell
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_convolution_density(this, fa, fb, fc)
+    SUBROUTINE update_electrons(this, rho, lscatter)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(container_derivatives), INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN) :: fa
-        TYPE(environ_density), INTENT(IN) :: fb
+        REAL(DP), INTENT(IN) :: rho(:)
+        LOGICAL, OPTIONAL, INTENT(IN) :: lscatter
         !
-        TYPE(environ_density), INTENT(INOUT) :: fc
+        CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_density'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_derivatives)
-            CALL core%convolution_density(fa, fb, fc)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
+        REAL(DP) :: nelec
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_convolution_density
+        !
+#if defined(__MPI)
+        IF (PRESENT(lscatter)) THEN
+            !
+            IF (lscatter) THEN
+                CALL env_scatter_grid(this%setup%system_cell%dfft, rho, aux)
+            ELSE
+                aux = rho
+            END IF
+            !
+        ELSE
+            aux = rho
+        END IF
+        !
+#else
+        aux = rho
+#endif
+        nelec = REAL(this%main%system_electrons%number, DP)
+        !
+        CALL this%main%update_electrons(this%setup%system_cell%dfft%nnr, aux, nelec)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE update_electrons
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_convolution_gradient(this, fa, gb, gc)
+    SUBROUTINE add_charges(this, rho, lscatter)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(container_derivatives), INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN) :: fa
-        TYPE(environ_gradient), INTENT(IN) :: gb
+        REAL(DP), INTENT(IN) :: rho(:)
+        LOGICAL, OPTIONAL, INTENT(IN) :: lscatter
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gc
+        CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_gradient'
+        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
         !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_derivatives)
-            CALL core%convolution_gradient(fa, gb, gc)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        CHARACTER(LEN=80) :: local_label = 'mbx_charges'
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_convolution_gradient
+        !
+#if defined(__MPI)
+        IF (PRESENT(lscatter)) THEN
+            !
+            IF (lscatter) THEN
+                CALL env_scatter_grid(this%setup%system_cell%dfft, rho, aux)
+            ELSE
+                aux = rho
+            END IF
+            !
+        ELSE
+            aux = rho
+        END IF
+        !
+#else
+        aux = rho
+        !
+#endif
+        CALL this%main%add_charges(this%setup%system_cell%dfft%nnr, aux, local_label)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE add_charges
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ACCESS METHODS
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_convolution_hessian(this, fa, hb, hc)
+    INTEGER FUNCTION get_verbosity()
+        !--------------------------------------------------------------------------------
+        !
+        get_verbosity = io%verbosity
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_verbosity
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                COMPUTATION METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_potential(this, update, potential, local_verbose, lgather)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(container_derivatives), INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN) :: fa
-        TYPE(environ_hessian), INTENT(IN) :: hb
+        LOGICAL, INTENT(IN) :: update
+        INTEGER, OPTIONAL, INTENT(IN) :: local_verbose
+        LOGICAL, OPTIONAL, INTENT(IN) :: lgather
         !
-        TYPE(environ_hessian), INTENT(INOUT) :: hc
+        CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_hessian'
+        REAL(DP), INTENT(OUT) :: potential(this%setup%system_cell%dfft%nnt)
         !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_derivatives)
-            CALL core%convolution_hessian(fa, hb, hc)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_convolution_hessian
+        !
+        CALL this%calc%potential(update, local_verbose)
+        !
+        aux = this%main%dvtot%of_r
+        !
+#if defined(__MPI)
+        IF (PRESENT(lgather)) THEN
+            !
+            IF (lgather) THEN
+                CALL env_gather_grid(this%setup%system_cell%dfft, aux, potential)
+            ELSE
+                potential = aux
+            END IF
+            !
+        ELSE
+            potential = aux
+        END IF
+#else
+        !
+        potential = aux
+#endif
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_potential
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_core_container_derivatives
+END MODULE environ_api
 !----------------------------------------------------------------------------------------

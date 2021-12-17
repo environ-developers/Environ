@@ -191,6 +191,29 @@ code...
 
 <br>
 
+# SELECT TYPE/CASE
+
+- Use a default case to catch unintended behavior
+  - SELECT TYPE -> CLASS DEFAULT
+  - SELECT CASE -> CASE DEFAULT
+- Exception: omit default case if the code should simply proceed (ignore other cases)
+
+```
+SELECT CASE (deriv_method)
+!
+CASE IS ('fft')
+    ...
+    !
+CASE IS ('chain')
+    ...
+    !
+END SELECT
+```
+
+- In the above case, any other option is meant to be ignored
+
+<br>
+
 # VARIABLE DECLARATION
 
 - define same-type variables in a single (or continued) line using a single TYPE descriptor
@@ -206,6 +229,9 @@ TYPE2 :: name7 ! comment
 TYPE2 :: name8 ! comment
 TYPE3 :: name9, name10
 ```
+
+- use `TYPE, ATTRIBUTE, INTENT :: var` order for argument declarations
+  - `ATTRIBUTE` is alphabetized, e.g. (O)PTIONAL, (T)ARGET, etc.
 
 # Dimensions
 
@@ -269,7 +295,6 @@ sum_ = 1 + var1 + &
   - core classes (containers, then cores; no !-separator)
   - solver classes (setup, then solvers; no !-separator)
   - physical-quantity classes
-  - generators
   - I/O
   - debugging
 - each block is sorted alphabetically
@@ -290,5 +315,75 @@ sum_ = 1 + var1 + &
   - sentence-cased message
 - use `io%write` for indented messages
 - use `io%warning` for non-indented, non-terminating warning messages
-  - outputs `'Warning: '` + supplied message
+  - outputs `'ENVIRON WARNING (ierr): message'`
   - lowercased message
+
+<br>
+
+# ASSOCIATE BLOCKS
+
+- use ASSOCIATE blocks instead of many POINTERs
+
+```
+ASSOCIATE (item1 => this%item1, &
+           item2 => this%item2)
+```
+
+- pointers can point to expressions
+
+```
+ASSOCIATE (item1 => SUM(some_items))
+```
+
+- pointers cannot reference one another
+
+  incorrect
+
+  ```
+  ASSOCIATE (item1 => this%item1, &
+             attr1 => item1%some_attr)
+  ```
+
+  correct
+
+  ```
+  ASSOCIATE (item1 => this%item1, &
+             attr1 => this%item1%some_attr)
+  ```
+
+- ASSOCIATE block pointers do not require declaration
+- ASSOCIATE block targets do not require the TARGET attribute
+
+<br>
+
+# GENERAL SYNTAX
+
+- use correct INTENT for arguments
+
+- avoid GOTO statements
+
+- DO NOT exceed col 90
+
+  - exceptions for long strings, but not past col 130
+
+- use `array = ...` when operating on the entire array (no need for `array(:)`)
+
+  - `array(1, :) = ...` is necessary when operating on all members along specific dimensions
+
+- use `i`, `j`, `k`, `l`, `m`, `n` for loop indices whenever possible
+
+- do not use `TRIM(ADJUSTL())` for input parameter checks
+
+  - input parameters are pre-tested against set values in `checkin` routines
+
+- use "" for messages
+
+```
+CALL io%error(sub_name, "blah blah blah", 1)
+```
+
+- use '' for parameters
+
+```
+CALL routine('value')
+```

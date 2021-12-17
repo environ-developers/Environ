@@ -51,8 +51,8 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(IN) :: density
         TYPE(environ_ions), INTENT(IN) :: ions
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, unit, idx
-        CHARACTER(LEN=100), INTENT(IN), OPTIONAL :: label
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, unit, idx
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CHARACTER(LEN=100) :: filename, filemod, local_label
         !
