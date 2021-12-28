@@ -237,7 +237,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL environ%setup%init_cores(gcutm_scaled)\
       !\
-      CALL environ%main%init(environ%setup, 1, nat, ntyp, atom_label, ityp, zv)\
+      CALL environ%main%init(1, nat, ntyp, atom_label, ityp, zv)\
       !\
   END IF\
 !Environ patch
@@ -376,7 +376,7 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF ( use_environ ) THEN\
       !\
-      CALL environ%init()\
+      CALL environ%init_interface()\
       !\
       CALL environ%init_io(ionode, ionode_id, intra_image_comm, stdout, ionode)\
       !\

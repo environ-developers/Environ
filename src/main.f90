@@ -182,12 +182,10 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, setup, nelec, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE init_environ_base(this, nelec, nat, ntyp, atom_label, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        TYPE(environ_setup), TARGET, INTENT(IN) :: setup
         !
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: nelec, ityp(nat)
@@ -197,8 +195,6 @@ CONTAINS
         CLASS(environ_main), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
-        !
-        this%setup => setup
         !
         CALL this%init_potential()
         !

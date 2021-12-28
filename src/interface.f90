@@ -65,7 +65,8 @@ MODULE environ_api
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: init => init_interface
+        PROCEDURE, PRIVATE :: create => create_interface
+        PROCEDURE :: init_interface
         !
         PROCEDURE, NOPASS :: init_io
         PROCEDURE, NOPASS :: read_input
@@ -97,6 +98,29 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_interface(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_interface), TARGET, INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_interface'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%main%setup)) CALL io%create_error(sub_name)
+        !
+        IF (ASSOCIATED(this%calc%main)) CALL io%create_error(sub_name)
+        !
+        IF (ASSOCIATED(this%clean%main)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_interface
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_interface(this)
         !--------------------------------------------------------------------------------
         !
@@ -108,6 +132,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
+        this%main%setup => this%setup
         this%calc%main => this%main
         this%clean%main => this%main
         !
