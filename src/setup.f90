@@ -308,6 +308,11 @@ CONTAINS
         IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1003)
         !
         !--------------------------------------------------------------------------------
+        ! Initializing necessary mp buffers
+        !
+        CALL env_allocate_mp_buffers()
+        !
+        !--------------------------------------------------------------------------------
         !
         CALL this%system_cell%init(gcutm, comm_in, at, nr, 'system')
         !

@@ -211,8 +211,6 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       IF (alat < 1.D-8) CALL errore(sub_name, "Wrong alat", 1)\
       !\
-      CALL env_allocate_mp_buffers()\
-      !\
       ALLOCATE (at_scaled(3, 3))\
       at_scaled = at * alat\
       !\
