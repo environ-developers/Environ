@@ -80,6 +80,8 @@ MODULE environ_api
         !
         PROCEDURE :: calc_potential
         !
+        PROCEDURE :: destroy => destroy_interface
+        !
         !--------------------------------------------------------------------------------
     END TYPE environ_interface
     !------------------------------------------------------------------------------------
@@ -183,6 +185,61 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE read_input
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_interface(this, level)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, OPTIONAL, INTENT(IN) :: level
+        !
+        CLASS(environ_interface), TARGET, INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_interface'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(this%main%setup)) CALL io%destroy_error(sub_name)
+        !
+        IF (.NOT. ASSOCIATED(this%calc%main)) CALL io%destroy_error(sub_name)
+        !
+        IF (.NOT. ASSOCIATED(this%clean%main)) CALL io%destroy_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(level)) THEN
+            !
+            SELECT CASE (level)
+                !
+            CASE (1)
+                CALL this%clean%first()
+                !
+            CASE (2)
+                CALL this%clean%second()
+                !
+                NULLIFY (this%clean%main)
+                NULLIFY (this%calc%main)
+                NULLIFY (this%main%setup)
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected clean level", 1)
+                !
+            END SELECT
+            !
+        ELSE
+            !
+            CALL this%clean%everything()
+            !
+            NULLIFY (this%clean%main)
+            NULLIFY (this%calc%main)
+            NULLIFY (this%main%setup)
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_interface
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

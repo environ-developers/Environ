@@ -104,7 +104,7 @@ USE environ_api, ONLY : environ\
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-   if(use_environ) CALL environ%clean%everything()\
+   if(use_environ) CALL environ%destroy()\
 !Environ patch
 ' tmp.1 > tmp.2
 
