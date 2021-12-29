@@ -273,18 +273,18 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_electrons(this, rho, lscatter)
+    SUBROUTINE update_electrons(this, rho, nelec, lscatter)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: rho(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         LOGICAL, OPTIONAL, INTENT(IN) :: lscatter
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
         REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
-        REAL(DP) :: nelec
         !
         !--------------------------------------------------------------------------------
         !
@@ -304,7 +304,6 @@ CONTAINS
 #else
         aux = rho
 #endif
-        nelec = REAL(this%main%system_electrons%number, DP)
         !
         CALL this%main%update_electrons(this%setup%system_cell%dfft%nnr, aux, nelec)
         !

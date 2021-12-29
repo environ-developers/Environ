@@ -416,7 +416,7 @@ sed '/Environ CALLS BEGIN/ a\
             IF ( nspin == 2 ) rhoaux(:) = rhoaux(:) + rhoin%of_r(:, 2)\
         END IF\
         !\
-        CALL environ%main%update_electrons( dfftp%nnr, rhoaux, nelec )\
+        CALL environ%update_electrons( rhoaux, nelec )\
         !\
         ! environ contribution to the local potential\
         !\
