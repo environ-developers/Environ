@@ -104,7 +104,7 @@ USE environ_api, ONLY : environ\
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-   if(use_environ) CALL environ%clean%everything()\
+   if(use_environ) CALL environ%destroy()\
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -226,8 +226,6 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       IF (alat < 1.D-8) CALL errore(sub_name, "Wrong alat", 1)\
       !\
-      CALL env_allocate_mp_buffers()\
-      !\
       ALLOCATE (at_scaled(3, 3))\
       at_scaled = at * alat\
       !\
@@ -239,7 +237,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL environ%setup%init_cores(gcutm_scaled)\
       !\
-      CALL environ%main%init(environ%setup, 1, nat, ntyp, atom_label, ityp, zv)\
+      CALL environ%main%init(1, nat, ntyp, atom_label, ityp, zv)\
       !\
   END IF\
 !Environ patch
@@ -378,7 +376,7 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF ( use_environ ) THEN\
       !\
-      CALL environ%init()\
+      CALL environ%init_interface()\
       !\
       CALL environ%init_io(ionode, ionode_id, intra_image_comm, stdout, ionode)\
       !\

@@ -53,7 +53,7 @@ MODULE environ_api
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE :: environ_interface
+    TYPE, PUBLIC :: environ_interface
         !--------------------------------------------------------------------------------
         !
         TYPE(environ_setup) :: setup
@@ -65,7 +65,8 @@ MODULE environ_api
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: init => init_interface
+        PROCEDURE, PRIVATE :: create => create_interface
+        PROCEDURE :: init_interface
         !
         PROCEDURE, NOPASS :: init_io
         PROCEDURE, NOPASS :: read_input
@@ -78,6 +79,8 @@ MODULE environ_api
         PROCEDURE, NOPASS :: get_verbosity
         !
         PROCEDURE :: calc_potential
+        !
+        PROCEDURE :: destroy => destroy_interface
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_interface
@@ -97,6 +100,29 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_interface(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_interface), TARGET, INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_interface'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%main%setup)) CALL io%create_error(sub_name)
+        !
+        IF (ASSOCIATED(this%calc%main)) CALL io%create_error(sub_name)
+        !
+        IF (ASSOCIATED(this%clean%main)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_interface
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_interface(this)
         !--------------------------------------------------------------------------------
         !
@@ -108,6 +134,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
+        this%main%setup => this%setup
         this%calc%main => this%main
         this%clean%main => this%main
         !
@@ -157,6 +186,61 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE read_input
     !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_interface(this, level)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, OPTIONAL, INTENT(IN) :: level
+        !
+        CLASS(environ_interface), TARGET, INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_interface'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(this%main%setup)) CALL io%destroy_error(sub_name)
+        !
+        IF (.NOT. ASSOCIATED(this%calc%main)) CALL io%destroy_error(sub_name)
+        !
+        IF (.NOT. ASSOCIATED(this%clean%main)) CALL io%destroy_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(level)) THEN
+            !
+            SELECT CASE (level)
+                !
+            CASE (1)
+                CALL this%clean%first()
+                !
+            CASE (2)
+                CALL this%clean%second()
+                !
+                NULLIFY (this%clean%main)
+                NULLIFY (this%calc%main)
+                NULLIFY (this%main%setup)
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected clean level", 1)
+                !
+            END SELECT
+            !
+        ELSE
+            !
+            CALL this%clean%everything()
+            !
+            NULLIFY (this%clean%main)
+            NULLIFY (this%calc%main)
+            NULLIFY (this%main%setup)
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_interface
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
     !                                   UPDATE METHODS
@@ -189,18 +273,18 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_electrons(this, rho, lscatter)
+    SUBROUTINE update_electrons(this, rho, nelec, lscatter)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: rho(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         LOGICAL, OPTIONAL, INTENT(IN) :: lscatter
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
         REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
-        REAL(DP) :: nelec
         !
         !--------------------------------------------------------------------------------
         !
@@ -220,7 +304,6 @@ CONTAINS
 #else
         aux = rho
 #endif
-        nelec = REAL(this%main%system_electrons%number, DP)
         !
         CALL this%main%update_electrons(this%setup%system_cell%dfft%nnr, aux, nelec)
         !
