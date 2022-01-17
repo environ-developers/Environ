@@ -131,7 +131,7 @@ devs:
 ################################################################################
 
 compile: check-Environ-makeinc
-	@ printf "\nCompiling Environ $(ENVIRON_VERSION)...\n\n"
+	@ printf "\nCompiling Environ $(ENVIRON_VERSION)...\n"
 	@ $(MAKE) compile-util
 	@ $(MAKE) compile-fft
 	@ $(MAKE) compile-src
@@ -140,7 +140,7 @@ compile: check-Environ-makeinc
 		cat utils_comp.log FFTs_comp.log src_comp.log > Environ_comp.log; \
 		/bin/rm utils_comp.log FFTs_comp.log src_comp.log \
 	)
-	@ printf "\nEnviron $(ENVIRON_VERSION) compilation successful! \n\n"
+	@ printf "\nEnviron $(ENVIRON_VERSION) compilation successful! \n"
 
 compile-QE: check-QE-makeinc
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi; \
@@ -192,7 +192,7 @@ check-for-errors:
 		  printf "\nErrors found. See install/$(prog)_comp.log\n\n"; \
 		  exit 1; \
 	  else \
-		  printf "\n$(prog) compilation successful! \n\n"; \
+		  printf "\n$(prog) compilation successful! \n"; \
 		  exit; \
 	  fi
 
@@ -253,6 +253,8 @@ install: check-Environ-makeinc check-QE-makeinc
 	esac; \
 	\
 	printf "\nUse # cores (default = 1) -> "; read cores; \
+	\
+	make revert; \
 	\
 	make -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
 	if [ $$? -ne 0 ]; then exit; fi; \
