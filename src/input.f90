@@ -271,6 +271,9 @@ CONTAINS
         verbose = 0
         environ_thr = 1.D-1
         environ_nskip = 1
+        !
+        env_ecut = 0.D0
+        !
         environ_type = 'input'
         !
         system_ntyp = 0
@@ -435,6 +438,8 @@ CONTAINS
         CALL env_mp_bcast(environ_thr, io%node, io%comm)
         !
         CALL env_mp_bcast(environ_nskip, io%node, io%comm)
+        !
+        CALL env_mp_bcast(env_ecut, io%node, io%comm)
         !
         CALL env_mp_bcast(environ_type, io%node, io%comm)
         !

@@ -89,7 +89,7 @@ MODULE class_cell
         INTEGER :: j0, k0 ! starting indexes of processor-specific boxes of grid points
         REAL(DP) :: in1, in2, in3 ! inverse number of grid points
         !
-        REAL(DP) :: gcutm = 0.0_DP ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
+        REAL(DP) :: gcutm = 0.0_DP ! cutoff for |G|^2
         !
         INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
         ! needed in parallel execution:
