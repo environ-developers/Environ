@@ -166,13 +166,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_cell(this, gcutm, comm, at, nr, label)
+    SUBROUTINE init_environ_cell(this, comm, at, gcutm, nr, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: comm
-        REAL(DP), INTENT(IN) :: gcutm, at(3, 3)
+        REAL(DP), INTENT(IN) :: at(3, 3), gcutm
         INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
@@ -413,7 +413,7 @@ CONTAINS
         IF (this%omega < 0.0_DP) THEN
             this%omega = ABS(this%omega)
             !
-            CALL io%warning("axis vectors are left-handed", 1004)
+            CALL io%warning("axis vectors are left-handed", 1005)
             !
         END IF
         !

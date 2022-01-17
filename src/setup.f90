@@ -35,7 +35,7 @@ MODULE class_setup
     !
     USE class_io, ONLY: io
     !
-    USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
+    USE environ_param, ONLY: DP, tpi2, BOHR_RADIUS_SI, RYDBERG_SI
     !
     USE env_base_input
     !
@@ -285,14 +285,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_cell(this, gcutm, comm_in, at, nr)
+    SUBROUTINE environ_init_cell(this, comm_in, at, gcutm, nr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: comm_in
         REAL(DP), INTENT(IN) :: at(3, 3)
-        REAL(DP), INTENT(IN) :: gcutm
+        REAL(DP), OPTIONAL, INTENT(IN) :: gcutm
         INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
@@ -301,11 +301,27 @@ CONTAINS
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
+        REAL(DP) :: local_gcutm, at2
+        !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
         !
         !--------------------------------------------------------------------------------
         !
         IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1003)
+        !
+        !--------------------------------------------------------------------------------
+        ! Set G-vector cutoff value
+        !
+        IF (PRESENT(gcutm)) THEN ! passed from calling program
+            local_gcutm = gcutm
+        ELSE IF (env_ecut /= 0.D0) THEN ! derived from user-defined energy cutoff
+            local_gcutm = env_ecut / tpi2
+        ELSE IF (PRESENT(nr)) THEN ! overestimated from calling program FFT-grid
+            at2 = SUM(at(:, 1)**2)
+            local_gcutm = CEILING((nr(1) - 3)**2 * 0.25 / at2 + 0.5 / SQRT(at2) * nr(1))
+        ELSE
+            CALL io%error(sub_name, "Missing FFT-grid information", 1004)
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Initializing necessary mp buffers
@@ -314,7 +330,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%system_cell%init(gcutm, comm_in, at, nr, 'system')
+        CALL this%system_cell%init(comm_in, at, local_gcutm, nr, 'system')
         !
         !--------------------------------------------------------------------------------
         ! Double cell and mapping
@@ -333,7 +349,7 @@ CONTAINS
             environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
             environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
             !
-            CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
+            CALL this%environment_cell%init(comm_in, environment_at, local_gcutm, &
                                             environment_nr, 'environment')
             !
         ELSE
@@ -349,12 +365,10 @@ CONTAINS
     !! Set up active numerical cores
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_cores(this, gcutm)
+    SUBROUTINE init_environ_numerical_cores(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: gcutm
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !

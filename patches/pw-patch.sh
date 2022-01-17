@@ -220,11 +220,11 @@ sed '/Environ CALLS BEGIN/ a\
       nr(2) = dfftp%nr2\
       nr(3) = dfftp%nr3\
       !\
-      CALL environ%setup%init_cell(gcutm_scaled, intra_bgrp_comm, at_scaled, nr)\
+      CALL environ%setup%init_cell(intra_bgrp_comm, at_scaled, gcutm=gcutm_scaled, nr=nr)\
       !\
       DEALLOCATE (at_scaled)\
       !\
-      CALL environ%setup%init_cores(gcutm_scaled)\
+      CALL environ%setup%init_cores()\
       !\
       CALL environ%main%init(1, nat, nsp, atm, ityp, zv)\
       !\
