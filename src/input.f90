@@ -99,7 +99,7 @@ CONTAINS
         !
         CALL environ_read_cards(environ_unit_input)
         !
-        WRITE (io%unit, *) ! blank line after default settings
+        CALL io%writer('') ! blank line after default settings
         !
         CLOSE (environ_unit_input)
         !
@@ -1419,8 +1419,7 @@ CONTAINS
                 IF (solver /= 'fixed-point') THEN
                     solver = 'fixed-point'
                     !
-                    CALL io%writer( &
-                        "* setting solver to fixed-point (required for gcs correction)")
+                    CALL io%writer("* setting solver to fixed-point (required for gcs correction)")
                     !
                 END IF
                 !
