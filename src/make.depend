@@ -186,6 +186,7 @@ interface.o : calculator.o
 interface.o : constants.o
 interface.o : destructor.o
 interface.o : input.o
+interface.o : iontype.o
 interface.o : main.o
 interface.o : setup.o
 ioncctype.o : cell.o

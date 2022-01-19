@@ -41,7 +41,7 @@ MODULE class_iontype
     !
     PRIVATE
     !
-    PUBLIC :: print_environ_iontypes
+    PUBLIC :: print_environ_iontypes, get_element
     !
     !------------------------------------------------------------------------------------
     !>
@@ -69,9 +69,13 @@ MODULE class_iontype
     END TYPE environ_iontype
     !------------------------------------------------------------------------------------
     !
+    INTERFACE get_element
+        MODULE PROCEDURE get_element_by_number, get_element_by_weight
+    END INTERFACE get_element
+    !
     !------------------------------------------------------------------------------------
     !
-    CHARACTER(LEN=2) :: elements(92)
+    CHARACTER(LEN=3) :: elements(92)
     !
     REAL(DP), DIMENSION(92) :: pauling_radii, bondi_radii, UFF_diameters, &
                                MUFF_diameters, weights
@@ -301,6 +305,79 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_atmnum
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                               PUBLIC HELPER METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    CHARACTER(LEN=3) FUNCTION get_element_by_number(number) RESULT(label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: number
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_element_by_number'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (number > SIZE(elements)) THEN
+            WRITE (io%unit, '(/, 5X, "Atomic number = ", I10)') number
+            !
+            CALL io%error(sub_name, "Atomic number out of bounds", 1)
+            !
+        END IF
+        !
+        label = elements(number)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_element_by_number
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    CHARACTER(LEN=3) FUNCTION get_element_by_weight(weight) RESULT(label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: weight
+        !
+        INTEGER :: i, index
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_element_by_weight'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        index = -1
+        !
+        DO i = 1, SIZE(weights)
+            !
+            IF (ABS(weights(i) - weight) < 1.D-1) THEN
+                index = i
+                !
+                EXIT
+                !
+            END IF
+            !
+        END DO
+        !
+        IF (index < 0) THEN
+            WRITE (io%unit, '(/, 5X, "Atomic weight = ", F9.5)') weight
+            !
+            CALL io%error(sub_name, "Wrong atomic weight", 1)
+            !
+        END IF
+        !
+        label = elements(index)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_element_by_weight
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
