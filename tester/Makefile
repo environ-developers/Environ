@@ -20,13 +20,11 @@
 #
 #----------------------------------------------------------------------------------------
 #
-# Authors: Oliviero Andreussi (Department of Physics, UNT)
-#          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
-#          Edan Bainglass     (Department of Physics, UNT)
+# Authors: Edan Bainglass (Department of Physics, UNT)
 #
 #----------------------------------------------------------------------------------------
 #
-# Makefile for src
+# Makefile for tester
 #
 #----------------------------------------------------------------------------------------
 
@@ -40,18 +38,12 @@ MODFLAGS = $(BASEMOD_FLAGS)
 
 all: tester.x
 
-tester.x: tester.o
-	@ $(LD) $(LDFLAGS) -o $@ tester.o ../libs/* $(ENVLIBS)
+OBJS = utilities.o tester.o
 
-tester.o : ../utils/parallel_include.o
-tester.o : ../utils/io.o
-tester.o : ../src/constants.o
-tester.o : ../src/setup.o
-tester.o : ../src/environment.o
-tester.o : ../src/calculator.o
-tester.o : ../src/destructor.o
-tester.o : ../src/input.o
-tester.o : ../src/base_input.o
+tester.x: tester.o
+	@ $(LD) $(LDFLAGS) -o $@ $(OBJS) ../libs/* $(ENVLIBS)
 
 clean:
 	@ /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90 *.x fort.* environ.debug CRASH
+
+tester.o : utilities.o

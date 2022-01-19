@@ -34,13 +34,9 @@ PROGRAM tester
     !
     USE environ_param, ONLY: DP, tpi2
     !
-    USE class_setup
-    USE class_environ
-    USE class_calculator, ONLY: calc
-    USE class_destructor, ONLY: clean
+    USE environ_api, ONLY: environ_interface, get_atom_labels
     !
-    USE environ_input
-    USE env_base_input
+    USE tester_utils, ONLY: from_cube
     !
     !------------------------------------------------------------------------------------
     !
@@ -51,57 +47,19 @@ PROGRAM tester
     IMPLICIT NONE
     !
     !------------------------------------------------------------------------------------
-    ! Global objects
+    ! Declare interface
     !
-    TYPE(environ_setup), SAVE :: setup1
-    TYPE(environ_obj), SAVE :: env1
+    TYPE(environ_interface) :: environ
     !
     !------------------------------------------------------------------------------------
+    ! Declare MPI parameters
     !
+    INTEGER :: comm, ionode
+    LOGICAL :: lnode
+    LOGICAL :: initialized
     INTEGER :: ierr ! mpi error
     !
-    INTEGER :: i, j ! loop indices
-    !
-    !------------------------------------------------------------------------------------
-    ! MP parameters
-    !
-    INTEGER :: comm
-    LOGICAL :: ionode
-    !
     INTEGER, EXTERNAL :: env_mp_rank
-    !
-    !------------------------------------------------------------------------------------
-    ! Cell parameters
-    !
-    REAL(DP) :: L
-    REAL(DP) :: at(3, 3)
-    !
-    INTEGER :: ecutrho
-    !
-    !------------------------------------------------------------------------------------
-    ! Ion parameters
-    !
-    INTEGER :: nat
-    INTEGER :: ntyp
-    INTEGER, ALLOCATABLE :: ityp(:)
-    CHARACTER(LEN=3), ALLOCATABLE :: atom_label(:)
-    REAL(DP), ALLOCATABLE :: zv(:)
-    REAL(DP), ALLOCATABLE :: tau(:, :)
-    !
-    !------------------------------------------------------------------------------------
-    ! PBC Parameters
-    !
-    LOGICAL :: apply_pbc_correction
-    !
-    !------------------------------------------------------------------------------------
-    ! Results
-    !
-    REAL(DP) :: energy
-    REAL(DP), ALLOCATABLE :: force(:, :)
-    !
-    !------------------------------------------------------------------------------------
-    !
-    !                                    MAIN PROGRAM
     !
     !------------------------------------------------------------------------------------
     ! Initialize MPI
@@ -110,192 +68,150 @@ PROGRAM tester
     !
     CALL MPI_Init(ierr)
     !
-    IF (ierr /= 0) CALL env_mp_abort(ierr, comm)
-    !
-    CALL env_allocate_mp_buffers()
-    !
-    !------------------------------------------------------------------------------------
-    ! Lattice setup
-    !
-    L = 40.D0
-    !
-    CALL set_lattice(L) ! assumes cubic for now
-    !
-    !------------------------------------------------------------------------------------
-    ! Ions setup
-    !
-    nat = 1
-    ntyp = 1
-    !
-    ALLOCATE (ityp(nat))
-    ALLOCATE (atom_label(nat))
-    ALLOCATE (zv(nat))
-    ALLOCATE (tau(3, nat))
-    !
-    ityp = 1
-    atom_label = 'H'
-    zv = 1.D0
-    !
-    tau = 0.D0
-    !
-    DO i = 1, nat
-        !
-        DO j = 1, 3
-            tau(j, i) = L / 2.D0
-        END DO
-        !
-    END DO
+    IF (ierr /= 0) CALL env_mp_stop(8000)
     !
     !------------------------------------------------------------------------------------
     ! Initialize I/O
     !
-    ionode = env_mp_rank(comm) == 0
+    ionode = 0
+    lnode = env_mp_rank(comm) == ionode
     !
-    CALL io%init(ionode, 0, comm, 6, .TRUE.)
+    CALL environ%init_interface()
     !
-    !------------------------------------------------------------------------------------
-    ! Environ input
-    !
-    CALL read_environ_input()
-    !
-    io%verbosity = verbose
-    !
-    !------------------------------------------------------------------------------------
-    ! Initialize Environ setup and base
-    !
-    ecutrho = 300
-    apply_pbc_correction = .TRUE.
-    !
-    CALL init(setup1, env1, ecutrho)
+    CALL environ%init_io(lnode, ionode, comm, 6, .FALSE.)
     !
     !------------------------------------------------------------------------------------
     !
-    CALL remove_self_interaction(env1)
+    !                                   SELECT PROGRAM
     !
     !------------------------------------------------------------------------------------
-    ! Test
     !
-    CALL calc%potential(env1, .TRUE.)
+
     !
-    CALL calc%energy(env1, energy)
+    !------------------------------------------------------------------------------------
+    ! Clean up
     !
-    ALLOCATE (force(3, nat))
+    CALL environ%destroy()
     !
-    CALL calc%force(env1, nat, force)
+    CALL MPI_Finalize(ierr)
     !
-    CALL print_results()
+    IF (ierr /= 0) CALL env_mp_stop(8001)
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
+    !! An Environ calculation on a "frozen" density provided in a cube file
+    !!
+    !! Default values:
+    !!
+    !! - inputfile          = 'environ.in'
+    !! - cubefile           = 'density.cube'
+    !! - use_pbc_correction = .FALSE.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_lattice(size_in)
+    SUBROUTINE run_environ_from_cube(inputfile, cubefile, use_pbc_correction)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: size_in
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: inputfile
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: cubefile
+        LOGICAL, OPTIONAL, INTENT(IN) :: use_pbc_correction
+        !
+        INTEGER :: nat
+        INTEGER :: ntyp
+        REAL(DP) :: nelec
+        INTEGER, ALLOCATABLE :: ityp(:)
+        CHARACTER(LEN=2), ALLOCATABLE :: label(:)
+        REAL(DP), ALLOCATABLE :: zv(:)
+        REAL(DP), ALLOCATABLE :: tau(:, :)
+        REAL(DP) :: origin(3)
+        INTEGER :: nr(3)
+        REAL(DP) :: at(3, 3)
+        REAL(DP), ALLOCATABLE :: rho(:)
+        !
+        REAL(DP), ALLOCATABLE :: env_potential(:)
+        REAL(DP) :: env_energy
+        !
+        REAL(DP) :: volume, avg_dvtot, avg_velectrostatic
+        !
+        INTEGER :: i, nrmax
+        !
+        REAL(DP) :: gcutm, tmp, a1(3), sumat2, est
+        !
+        CHARACTER(LEN=80) :: sub_name = 'run_environ_from_cube'
         !
         !--------------------------------------------------------------------------------
+        ! Get input parameters from file
         !
-        at = 0.D0
-        !
-        DO i = 1, 3
-            at(i, i) = size_in
-        END DO
+        CALL from_cube(nat, ntyp, ityp, label, zv, nelec, tau, origin, nr, at, rho, &
+                       cubefile)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_lattice
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init(setup, env, ecut)
-        !--------------------------------------------------------------------------------
+        ! Initialize Environ
         !
-        IMPLICIT NONE
+        CALL environ%read_input(inputfile)
         !
-        INTEGER, INTENT(IN) :: ecut
+        CALL environ%setup%init(use_pbc_correction)
         !
-        TYPE(environ_setup), INTENT(INOUT) :: setup
-        TYPE(environ_obj), INTENT(INOUT) :: env
+        CALL environ%setup%init_cell(io%comm, at, nr=nr)
         !
-        REAL(DP) :: gcutm
+        CALL environ%setup%init_cores()
+        !
+        CALL environ%main%init(nat, ntyp, label, ityp, zv)
         !
         !--------------------------------------------------------------------------------
+        ! Update Environ parameters
         !
-        gcutm = ecut / tpi2
+        CALL environ%main%update_ions(nat, tau, origin)
         !
-        CALL setup%init()
-        !
-        CALL setup%init_cell(gcutm, io%comm, at)
-        ! !
-        CALL setup%init_cores(gcutm, apply_pbc_correction)
-        !
-        CALL env%init(setup, 0, nat, ntyp, atom_label, ityp, zv)
-        !
-        CALL env%update_ions(nat, tau)
-        !
-        CALL setup%update_cell(at)
-        !
-        CALL env%update_cell_dependent_quantities()
-        !
-        CALL setup%end_cell_update()
+        CALL environ%update_electrons(rho, nelec=nelec, lscatter=.TRUE.)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE remove_self_interaction(env)
-        !--------------------------------------------------------------------------------
+        ! Compute potential
         !
-        IMPLICIT NONE
+        ALLOCATE (env_potential(SIZE(rho)))
         !
-        TYPE(environ_obj), INTENT(INOUT) :: env
+        CALL environ%calc_potential(.TRUE., env_potential, lgather=.TRUE.)
         !
-        CHARACTER(LEN=80) :: sub_name = 'remove_self_interaction'
+        CALL environ%calc%energy(env_energy)
         !
         !--------------------------------------------------------------------------------
+        ! Print results
         !
-        CALL env%system_charges%add(externals=env%externals)
+        volume = environ%setup%system_cell%omega
+        avg_dvtot = environ%main%dvtot%integrate() / volume
         !
-        env%system_charges%include_ions = .FALSE.
-        !
-        CALL env%system_charges%update()
-        !
-        env%environment_charges%include_ions = .FALSE.
-        !
-        CALL env%environment_charges%update()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE remove_self_interaction
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE print_results()
-        !--------------------------------------------------------------------------------
+        IF (environ%setup%has_electrostatics()) &
+            avg_velectrostatic = environ%main%velectrostatic%integrate() / volume
         !
         IF (io%lnode) THEN
             !
-            PRINT '(5X, A15, F14.8, /)', 'total energy = ', energy
+            CALL environ%main%print_energies('PW', .FALSE.)
             !
-            PRINT '(5X, A6, /)', 'forces'
+            WRITE (io%unit, 1000), env_energy
+            WRITE (io%unit, 1001), environ%main%system_charges%charge
+            WRITE (io%unit, 1002), avg_dvtot
             !
-            DO i = 1, nat
-                PRINT '(5X, 3F14.8)', force(:, i)
-            END DO
+            IF (environ%setup%has_electrostatics()) &
+                WRITE (io%unit, 1003), avg_velectrostatic
             !
-            PRINT *, ''
-            !
+            WRITE (io%unit, *) ! final blank line
         END IF
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE print_results
+        !
+1000    FORMAT(5X, "total energy              =", F17.8, " Ry")
+        !
+1001    FORMAT(/, 5X, "total charge              =", F17.8, " a.u.")
+        !
+1002    FORMAT(/, 5X, "average total potential           =", F17.8, " Ry")
+
+1003    FORMAT(5X, "average electrostatic potential   =", F17.8, " Ry")
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE run_environ_from_cube
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
