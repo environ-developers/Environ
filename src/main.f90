@@ -182,13 +182,13 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, nelec, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE init_environ_base(this, nat, ntyp, atom_label, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nat, ntyp
-        INTEGER, INTENT(IN) :: nelec, ityp(nat)
+        INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
@@ -198,7 +198,7 @@ CONTAINS
         !
         CALL this%init_potential()
         !
-        CALL this%init_physical(nelec, nat, ntyp, atom_label, ityp, zv)
+        CALL this%init_physical(nat, ntyp, atom_label, ityp, zv)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_base
@@ -692,12 +692,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_physical(this, nelec, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE environ_init_physical(this, nat, ntyp, atom_label, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nelec, nat, ntyp
+        INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
@@ -720,14 +720,14 @@ CONTAINS
         !
         IF (setup%loptical) THEN
             !
-            CALL this%system_response_electrons%init(0, system_cell)
+            CALL this%system_response_electrons%init(system_cell)
             !
             CALL this%system_response_charges%init(system_cell)
             !
             CALL this%system_response_charges%add( &
                 electrons=this%system_response_electrons)
             !
-            CALL this%environment_response_electrons%init(0, environment_cell)
+            CALL this%environment_response_electrons%init(environment_cell)
             !
             CALL this%environment_response_charges%init(environment_cell)
             !
@@ -753,9 +753,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Electrons
         !
-        CALL this%system_electrons%init(nelec, system_cell)
+        CALL this%system_electrons%init(system_cell)
         !
-        CALL this%environment_electrons%init(nelec, environment_cell)
+        CALL this%environment_electrons%init(environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! System

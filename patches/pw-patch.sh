@@ -226,7 +226,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL environ%setup%init_cores()\
       !\
-      CALL environ%main%init(1, nat, nsp, atm, ityp, zv)\
+      CALL environ%main%init(nat, nsp, atm, ityp, zv)\
       !\
   END IF\
 !Environ patch
