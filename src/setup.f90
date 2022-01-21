@@ -1032,7 +1032,7 @@ CONTAINS
         !
         LOGICAL :: lconjugate
         !
-        CHARACTER(LEN=80) :: local_auxiliary, local_problem, inner_problem
+        CHARACTER(LEN=80) :: local_auxiliary, local_problem
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_electrostatic'
         !
@@ -1090,7 +1090,6 @@ CONTAINS
             CASE ('fixed-point')
                 !
                 IF (auxiliary == 'ioncc') THEN
-                    inner_problem = 'generalized'
                     !
                     SELECT CASE (inner_solver)
                         !
@@ -1124,7 +1123,6 @@ CONTAINS
                 END IF
                 !
             CASE ('newton')
-                inner_problem = 'linpb'
                 lconjugate = .TRUE.
                 !
                 CALL this%inner_gradient%init( &

@@ -1444,6 +1444,24 @@ CONTAINS
         IF (solver == 'fixed-point' .AND. auxiliary == 'none') auxiliary = 'full'
         !
         !--------------------------------------------------------------------------------
+        ! Set inner problem
+        !
+        IF (inner_solver /= 'none') THEN
+            !
+            SELECT CASE (solver)
+                !
+            CASE ('fixed-point')
+                !
+                IF (auxiliary == 'ioncc') inner_problem = 'generalized'
+                !
+            CASE ('newton')
+                inner_problem = 'linpb'
+                !
+            END SELECT
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
         ! Validate use of inner solver
         !
         IF (.NOT. (problem == 'pb' .OR. &
@@ -1455,66 +1473,71 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Validate problem/solver combination and check for PBC correction if needed
         !
-        SELECT CASE (problem)
+        CALL validate_electrostatic_input(problem, solver)
+        !
+        IF (inner_solver /= 'none') &
+            CALL validate_electrostatic_input(inner_problem, inner_solver)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE electrostatics_setup
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE validate_electrostatic_input(problem_in, solver_in)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CHARACTER(LEN=*), INTENT(IN) :: problem_in
+        CHARACTER(LEN=*), INTENT(IN) :: solver_in
+        !
+        CHARACTER(LEN=80) :: sub_name = 'validate_electrostatic_input'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT CASE (problem_in)
+            !
+        CASE ('poisson')
             !
         CASE ('generalized') ! generalized Poisson-Boltzmann
             !
-            IF (solver == 'direct' .OR. inner_solver == 'direct') &
-                CALL io%error(sub_name, &
-                              "Cannot use a direct solver for the Generalized Poisson eq.", 1)
+            IF (solver_in == 'direct') &
+                CALL io%error(sub_name, "Cannot use a direct solver for the Generalized Poisson eq.", 1)
             !
         CASE ('linpb', 'linmodpb') ! linearized Poisson-Boltzmann
             !
-            SELECT CASE (solver)
+            SELECT CASE (solver_in)
                 !
-            CASE ('none', 'cg', 'sd')
-                !
-            CASE DEFAULT
-                CALL io%error(sub_name, &
-                              "Only gradient-based solver for the linearized Poisson-Boltzmann eq.", 1)
-                !
-            END SELECT
-            !
-            SELECT CASE (inner_solver)
-                !
-            CASE ('none', 'cg', 'sd')
+            CASE ('cg', 'sd')
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, &
-                              "Only gradient-based solver for the linearized Poisson-Boltzmann eq.", 1)
+                CALL io%error(sub_name, "Only gradient-based solver for the linearized Poisson-Boltzmann eq.", 1)
                 !
             END SELECT
             !
             IF (pbc_correction /= 'parabolic') &
-                CALL io%error(sub_name, &
-                              "Linearized-PB problem requires parabolic pbc correction", 1)
+                CALL io%error(sub_name, "Linearized-PB problem requires parabolic pbc correction", 1)
             !
         CASE ('pb', 'modpb') ! Poisson-Boltzmann
             !
-            SELECT CASE (solver)
+            SELECT CASE (solver_in)
                 !
             CASE ('direct', 'cg', 'sd')
-                CALL io%error(sub_name, &
-                              "No direct or gradient-based solver for the full Poisson-Boltzmann eq.", 1)
-                !
-            END SELECT
-            !
-            SELECT CASE (inner_solver)
-                !
-            CASE ('direct', 'cg', 'sd')
-                CALL io%error(sub_name, &
-                              "No direct or gradient-based solver for the full Poisson-Boltzmann eq.", 1)
+                CALL io%error(sub_name, "No direct or gradient-based solver for the full Poisson-Boltzmann eq.", 1)
                 !
             END SELECT
             !
             IF (pbc_correction /= 'parabolic') &
-                CALL io%error(sub_name, &
-                              "Linearized-PB problem requires parabolic pbc correction", 1)
+                CALL io%error(sub_name, "Full-PB problem requires parabolic pbc correction", 1)
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected keyword for electrostatic problem", 1)
             !
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE electrostatics_setup
+    END SUBROUTINE validate_electrostatic_input
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

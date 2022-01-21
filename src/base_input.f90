@@ -509,6 +509,14 @@ MODULE env_base_input
     !
     ! linmodpb    = linearized modified poisson-boltzmann equation
     !
+    CHARACTER(LEN=80) :: inner_problem = 'none'
+    !
+    ! type of electrostatic problem for inner loop in nested algorithms
+    !
+    ! generalized = generalized poisson equation
+    !
+    ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
+    !
     !------------------------------------------------------------------------------------
     !
     REAL(DP) :: tol = 1.D-5
