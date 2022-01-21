@@ -44,11 +44,11 @@ OBJS += $(C_OBJS)
 all: libsdir driver
 
 driver:
-	@ if test $(DFTI); then \
-		  make enable-mkl-include; \
+	@ if test $(QEDIR) && test $(DFTI); then \
 		  $(MAKE) libfft.a; \
 		  make disable-mkl-include; \
 		  $(MAKE) libfft.a; \
+		  make enable-mkl-include; \
 	  else \
 	      $(MAKE) libfft.a; \
 	  fi
@@ -75,7 +75,9 @@ libfft.a: $(OBJS)
 enable-mkl-include:
 	@ file=fft_scalar.DFTI.f90; \
 	  pattern='^! #include "mkl'; \
-	  sed -i.tmp -e "/$$pattern/s/! //" $$file && /bin/rm $$file.tmp
+	  if grep -q "$$pattern" $$file; then \
+	  	sed -i.tmp -e "/$$pattern/s/! //" $$file && /bin/rm $$file.tmp; \
+	  fi
 
 disable-mkl-include:
 	@ file=fft_scalar.DFTI.f90; \
