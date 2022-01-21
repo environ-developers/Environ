@@ -207,8 +207,8 @@ CONTAINS
         !
         INTEGER, OPTIONAL, INTENT(IN) :: unit
         !
-        INTEGER :: local_unit = 5
-        LOGICAL :: tend = .FALSE.
+        INTEGER :: local_unit
+        LOGICAL :: tend
         !
         CHARACTER(LEN=256) :: input_line
         CHARACTER(LEN=80) :: card
@@ -218,7 +218,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set default READ unit if none provided
         !
-        IF (PRESENT(unit)) local_unit = unit
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = 5
+        END IF
         !
         CALL env_read_line(local_unit, input_line, end_of_file=tend)
         !
@@ -262,8 +266,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_defaults()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
         !
         environ_debug = .FALSE.
         !
@@ -319,8 +321,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE boundary_defaults()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
         !
         solvent_mode = 'electronic'
         !
@@ -380,8 +380,6 @@ CONTAINS
     SUBROUTINE electrostatic_defaults()
         !--------------------------------------------------------------------------------
         !
-        IMPLICIT NONE
-        !
         problem = 'none'
         tol = 1.D-5
         !
@@ -426,8 +424,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_bcast()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
         !
         CALL env_mp_bcast(environ_debug, io%node, io%comm)
         !
@@ -500,8 +496,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE boundary_bcast()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
         !
         CALL env_mp_bcast(solvent_mode, io%node, io%comm)
         !
@@ -580,8 +574,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE electrostatic_bcast()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
         !
         CALL env_mp_bcast(problem, io%node, io%comm)
         !
@@ -712,7 +704,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER :: i
-        LOGICAL :: allowed = .FALSE.
+        LOGICAL :: allowed
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_checkin'
         !
@@ -827,7 +819,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER :: i
-        LOGICAL :: allowed = .FALSE.
+        LOGICAL :: allowed
         !
         CHARACTER(LEN=80) :: sub_name = 'boundary_checkin'
         !
@@ -983,7 +975,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER :: i
-        LOGICAL :: allowed = .FALSE.
+        LOGICAL :: allowed
         !
         CHARACTER(LEN=80) :: sub_name = 'electrostatic_checkin'
         !
@@ -2054,9 +2046,7 @@ CONTAINS
         LOGICAL, OPTIONAL, INTENT(OUT) :: end_of_file, error
         !
         INTEGER :: ios
-        !
-        LOGICAL :: tend = .FALSE.
-        LOGICAL :: terr = .FALSE.
+        LOGICAL :: tend, terr
         !
         CHARACTER(LEN=80) :: sub_name = 'env_read_line'
         !
@@ -2066,6 +2056,9 @@ CONTAINS
             CALL io%error(sub_name, "Input line too short", MAX(LEN(line), 1))
         !
         !--------------------------------------------------------------------------------
+        !
+        tend = .FALSE.
+        terr = .FALSE.
         !
         IF (io%lnode) THEN
             ios = 0

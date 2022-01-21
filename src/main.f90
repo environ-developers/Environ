@@ -929,7 +929,7 @@ CONTAINS
         INTEGER, POINTER :: unit
         TYPE(environ_setup), POINTER :: setup
         !
-        LOGICAL :: print_de = .TRUE.
+        LOGICAL :: print_de
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_energies'
         !
@@ -937,7 +937,11 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        IF (PRESENT(de_flag)) print_de = de_flag
+        IF (PRESENT(de_flag)) THEN
+            print_de = de_flag
+        ELSE
+            print_de = .TRUE.
+        END IF
         !
         unit => io%unit
         setup => this%setup
