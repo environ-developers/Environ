@@ -30,9 +30,11 @@ TOPDIR = $(dir $(abspath $(filter %make.inc,$(MAKEFILE_LIST))))
 
 # TOPDIR = @topdir@
 
+# QE root directory
+QEDIR = @qedir@
+
 # DFLAGS  = precompilation options (possible arguments to -D and -U)
 #           used by the C compiler and preprocessor
-# To use libxc (v>=3.0.1), add -D__LIBXC to DFLAGS
 # See include/defs.h.README for a list of options and their meaning
 # With the exception of IBM xlf, FDFLAGS = $(DFLAGS)
 # For IBM xlf, FDFLAGS is the same as DFLAGS with separating commas
@@ -84,6 +86,8 @@ CUDA_RUNTIME=@gpu_runtime@
 
 # CUDA F90 Flags
 CUDA_F90FLAGS=@cuda_fflags@
+# CUDA C Flags
+CUDA_CFLAGS=@CUDA_CFLAGS@
 
 # C preprocessor and preprocessing flags - for explicit preprocessing,
 # if needed (see the compilation rules above)
@@ -96,7 +100,7 @@ CPPFLAGS       = @cppflags@ $(DFLAGS) $(IFLAGS)
 # C flags must include DFLAGS and IFLAGS
 # F90 flags must include MODFLAGS, IFLAGS, and FDFLAGS with appropriate syntax
 
-CFLAGS         = @cflags@ $(DFLAGS) $(IFLAGS)
+CFLAGS         = @cflags@ $(DFLAGS) $(IFLAGS) $(CUDA_CFLAGS)
 F90FLAGS       = @f90flags@ @pre_fdflags@$(FDFLAGS) $(CUDA_F90FLAGS) $(IFLAGS) $(MODFLAGS)
 
 # compiler flags with and without optimization for fortran-77
@@ -111,8 +115,6 @@ FFLAGS_NOMAIN   = @fflags_nomain@
 
 # Linker, linker-specific flags (if any)
 # Typically LD coincides with F90 or MPIF90, LD_LIBS is empty
-# for libxc, set LD_LIBS=-L/path/to/libxc/lib/ -lxcf90 -lxc
-# If libxc is older than v5.0.0 replace -lxcf90 with -lxcf03
 
 LD             = @ld@
 LDFLAGS        = @ldflags@
@@ -138,6 +140,9 @@ SCALAPACK_LIBS = @scalapack_libs@
 # (needs -D__FFTW in DFLAGS)
 
 FFT_LIBS       = @fft_libs@
+
+# HDF5
+HDF5_LIBS = @hdf5_libs@
 
 # For parallel execution, the correct path to MPI libraries must
 # be specified in MPI_LIBS (except for IBM if you use mpxlf)
@@ -166,8 +171,8 @@ RANLIB         = @ranlib@
 
 FLIB_TARGETS   = all
 
-LIBXC_LIBS     = @LIBS_LIBXC@
-ENVLIBS         = $(LIBXC_LIBS) $(CUDA_LIBS) $(SCALAPACK_LIBS) $(LAPACK_LIBS) $(FFT_LIBS) $(BLAS_LIBS) $(MPI_LIBS) $(MASS_LIBS) $(LD_LIBS)
+ENVLIBS         = $(CUDA_LIBS) $(SCALAPACK_LIBS) $(LAPACK_LIBS) $(FFT_LIBS) $(BLAS_LIBS) \
+				  $(MPI_LIBS) $(MASS_LIBS) $(LD_LIBS)
 
 # wget or curl - useful to download from network
 WGET = @wget@

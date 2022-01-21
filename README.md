@@ -69,8 +69,9 @@ From Environ root: (placed in the QE root directory)
 
 1. configure Environ with
 
-   - `./configure`
-   - in most cases, no prefix should be enough
+   - `./configure --with-qe`
+   - the script will attempt to find the necessary libraries/compilers
+     - if it fails, the user may need to manually modify `make.inc`
 
 2. install QE + Environ 2.0 with
 
