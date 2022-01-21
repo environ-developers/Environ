@@ -54,6 +54,7 @@ MODULE class_iontype
         INTEGER :: atmnum
         CHARACTER(LEN=3) :: label
         REAL(DP) :: zv
+        REAL(DP) :: weight
         REAL(DP) :: atomicspread
         REAL(DP) :: corespread
         REAL(DP) :: solvationrad
@@ -242,7 +243,7 @@ CONTAINS
             CALL io%error(sub_name, &
                           'Cannot assign the atom type associated with input label', 1)
         !
-        ! this%weight = weights(this%atmnum) ! #TODO future work
+        this%weight = weights(this%atmnum)
         !
         this%atomicspread = 0.5D0
         this%corespread = 0.5D0

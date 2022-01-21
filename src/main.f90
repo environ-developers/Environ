@@ -304,14 +304,14 @@ CONTAINS
     !! be the most efficient choice, but it is a safe choice.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_update_ions(this, nat, tau, center)
+    SUBROUTINE environ_update_ions(this, nat, tau, com)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
-        REAL(DP), OPTIONAL, INTENT(IN) :: center(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: com(3)
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
@@ -329,7 +329,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update system ions parameters
         !
-        CALL this%system_ions%update(nat, tau, center)
+        CALL this%system_ions%update(nat, tau, com)
         !
         !--------------------------------------------------------------------------------
         ! Update system system parameters
@@ -342,30 +342,30 @@ CONTAINS
             ! using fixed system_pos from input for debugging with finite-differences
             !
         ELSE
-            CALL this%system_system%update(center)
+            CALL this%system_system%update(com)
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Update cell mapping
         !
-        CALL setup%update_mapping(this%system_system%pos)
+        CALL setup%update_mapping(this%system_system%com)
         !
         !--------------------------------------------------------------------------------
         ! Update environment ions parameters
         !
-        CALL this%environment_ions%update(nat, tau, center)
+        CALL this%environment_ions%update(nat, tau, com)
         !
         !--------------------------------------------------------------------------------
         ! Update environment system parameters
         !
         this%environment_system%lupdate = .TRUE.
         !
-        CALL this%environment_system%update(this%system_system%pos)
+        CALL this%environment_system%update(this%system_system%com)
         !
         !--------------------------------------------------------------------------------
         ! Update cores
         !
-        IF (setup%l1da) CALL setup%env_1da%update_origin(this%environment_system%pos)
+        IF (setup%l1da) CALL setup%env_1da%update_origin(this%environment_system%com)
         !
         !--------------------------------------------------------------------------------
         ! Update rigid environ properties, defined on ions

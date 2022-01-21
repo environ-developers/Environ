@@ -67,7 +67,7 @@ MODULE class_ions
         LOGICAL :: lupdate = .FALSE.
         !
         INTEGER :: number = 0
-        REAL(DP) :: center(3) = 0.D0
+        REAL(DP) :: com(3) = 0.D0 ! center of mass
         !
         !--------------------------------------------------------------------------------
         ! Specifications of point-like ions
@@ -299,6 +299,7 @@ CONTAINS
         INTEGER :: dim, axis
         REAL(DP) :: charge, spread
         REAL(DP) :: pos(3)
+        REAL(DP) :: tot_weight
         !
         CHARACTER(LEN=80) :: sub_name = 'update_environ_ions'
         !
@@ -309,24 +310,23 @@ CONTAINS
         this%tau = tau ! update positions
         !
         !--------------------------------------------------------------------------------
-        ! Center of ionic charge used by three sub-modules
+        ! Center of mass used by three sub-modules
         !
         IF (PRESENT(center)) THEN
-            this%center = center
+            this%com = center
         ELSE
-            this%center = 0.D0
+            this%com = 0.D0
+            tot_weight = 0.D0
             !
             DO i = 1, this%number
                 !
-                this%center = this%center + &
-                              this%tau(:, i) * this%iontype(this%ityp(i))%zv
+                this%com = this%com + &
+                           this%tau(:, i) * this%iontype(this%ityp(i))%weight
                 !
+                tot_weight = tot_weight + this%iontype(this%ityp(i))%weight
             END DO
             !
-            IF (ABS(this%charge) < 1.D-8) &
-                CALL io%error(sub_name, "Ionic charge equal to zero", 1)
-            !
-            this%center = this%center / this%charge
+            this%com = this%com / tot_weight
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -346,7 +346,7 @@ CONTAINS
             !
             this%quadrupole_pc = this%quadrupole_pc + &
                                  this%iontype(this%ityp(i))%zv * &
-                                 ((this%tau(:, i) - this%center))**2
+                                 ((this%tau(:, i) - this%com))**2
             !
             IF (this%use_smeared_ions) THEN
                 !
@@ -635,7 +635,7 @@ CONTAINS
                 WRITE (local_unit, 1000)
                 !
                 WRITE (local_unit, 1001) &
-                    this%charge, this%center, this%dipole, this%quadrupole_pc
+                    this%charge, this%com, this%dipole, this%quadrupole_pc
                 !
                 IF (this%use_smeared_ions) &
                     WRITE (local_unit, 1002) this%quadrupole_gauss
