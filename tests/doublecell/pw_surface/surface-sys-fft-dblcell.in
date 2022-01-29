@@ -13,6 +13,6 @@
    solvent_mode = 'system'
    solvent_distance = 3.D0
    solvent_spread = 0.5D0
-   derivatives = 'fft'
+   deriv_method = 'fft'
    !
  /

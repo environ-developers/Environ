@@ -216,7 +216,7 @@ CONTAINS
         TYPE(environ_density) :: rho
         TYPE(environ_gradient) :: field
         !
-        INTEGER :: i, ipol
+        INTEGER :: i
         REAL(DP) :: dx, x0, epsilon
         REAL(DP), ALLOCATABLE :: fd_partial_of_ion_field(:)
         REAL(DP), ALLOCATABLE :: analytic_partial_of_ion_field(:, :, :)
@@ -259,7 +259,7 @@ CONTAINS
         !
         WRITE (io%debug_unit, '(a,f14.7,a,f14.7)') &
             'total_charge = ', rho%integrate(), &
-            ' total flux throught !soft-spheres = ', SUM(bound%ion_field(:))
+            ' total flux throught !soft-spheres = ', SUM(bound%ion_field)
         !
         CALL bound%gradient%scalar_product(field, rho)
 
@@ -370,9 +370,9 @@ CONTAINS
             !
             DO i = 1, bound%ions%number
                 !
-                DO ipol = 1, 3
-                    x0 = bound%ions%tau(ipol, i)
-                    bound%ions%tau(ipol, i) = x0 - dx
+                DO j = 1, 3
+                    x0 = bound%ions%tau(j, i)
+                    bound%ions%tau(j, i) = x0 - dx
                     !
                     CALL bound%ions%update(bound%ions%number, bound%ions%tau)
                     !
@@ -386,7 +386,7 @@ CONTAINS
                     !
                     fd_partial_of_ion_field = bound%ion_field
                     !
-                    bound%ions%tau(ipol, i) = x0 + dx
+                    bound%ions%tau(j, i) = x0 + dx
                     !
                     CALL bound%ions%update(bound%ions%number, bound%ions%tau)
                     !
@@ -402,17 +402,17 @@ CONTAINS
                     !
                     fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx
                     !
-                    WRITE (io%debug_unit, *) ' i  = ', i, ' ipol = ', ipol
+                    WRITE (io%debug_unit, *) ' i  = ', i, ' j = ', j
                     !
                     WRITE (io%debug_unit, '(a,10f20.10)') 'analytic     = ', &
-                        analytic_partial_of_ion_field(ipol, :, i)
+                        analytic_partial_of_ion_field(j, :, i)
                     !
                     WRITE (io%debug_unit, '(a,10f20.10)') 'finite-diff  = ', &
-                        fd_partial_of_ion_field(:)
+                        fd_partial_of_ion_field
                     !
                     WRITE (io%debug_unit, *) ' '
                     !
-                    bound%ions%tau(ipol, i) = x0
+                    bound%ions%tau(j, i) = x0
                 END DO
                 !
             END DO
@@ -441,8 +441,6 @@ CONTAINS
         !
         INTEGER :: debugcubes = 0
         !
-        CHARACTER(len=100) :: local_label = 'None'
-        !
         CHARACTER(len=80) :: sub_name = 'update_test_boundary'
         !
         !--------------------------------------------------------------------------------
@@ -460,14 +458,10 @@ CONTAINS
             SELECT CASE (debugcubes)
                 !
             CASE (2)
-                local_label = "standard"
-                !
-                CALL bound%scaled%write_cube_no_ions(label=local_label)
+                CALL bound%scaled%write_cube_no_ions(label='standard')
                 !
             CASE (1)
-                local_label = "standard"
-                !
-                CALL bound%density%write_cube_no_ions(label=local_label)
+                CALL bound%density%write_cube_no_ions(label='standard')
                 !
             CASE DEFAULT
                 !
@@ -486,7 +480,7 @@ CONTAINS
             CALL bound%boundary_of_density(electrons%density)
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unrecognized boundary mode', 1)
+            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
             !
         END SELECT
         !
@@ -530,7 +524,7 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        INTEGER :: i, ipol
+        INTEGER :: i, j
         REAL(DP) :: epsilon
         REAL(DP) :: localpressure, localsurface_tension
         REAL(DP) :: de_fd, de_analytic, etmp
@@ -585,7 +579,7 @@ CONTAINS
                 !
                 ! CALL field_aware_de_drho(bound, de_dboundary, vanalytic)
                 !
-                CALL io%error('field-aware6', 'Option not yet implimented ', 1)
+                CALL io%error('field-aware6', "Option not yet implimented", 1)
                 !
             ELSE
                 vanalytic%of_r = bound%dscaled%of_r * de_dboundary%of_r
@@ -727,12 +721,12 @@ CONTAINS
                 !
                 force = -partial%scalar_product_density(de_dboundary)
                 !
-                DO ipol = 1, 3
+                DO j = 1, 3
                     !
                     de_fd = 0.D0 ! FINITE DIFFERENCE VALUE STORED HERE
                     bound%ions%tau(:, :) = tau0(:, :) ! RESET IONS
                     !
-                    bound%ions%tau(ipol, i) = tau0(ipol, i) - dx ! MINUS dx
+                    bound%ions%tau(j, i) = tau0(j, i) - dx ! MINUS dx
                     !
                     CALL bound%ions%update(bound%ions%number, bound%ions%tau)
                     !
@@ -746,7 +740,7 @@ CONTAINS
                     !
                     de_fd = de_fd - etmp
                     !
-                    bound%ions%tau(ipol, i) = tau0(ipol, i) + dx ! PLUS dx
+                    bound%ions%tau(j, i) = tau0(j, i) + dx ! PLUS dx
                     !
                     CALL bound%ions%update(bound%ions%number, bound%ions%tau)
                     !
@@ -767,14 +761,14 @@ CONTAINS
                         !
                         IF (io%lnode) &
                             WRITE (io%debug_unit, '(a,i3,a,i3,4f20.10)') ' i = ', i, &
-                            ' ipol != ', ipol, force(ipol), ssforce(ipol), de_fd, &
-                            force(ipol) - de_fd
+                            ' j != ', j, force(j), ssforce(j), de_fd, &
+                            force(j) - de_fd
                         !
                     ELSE
                         !
                         IF (io%lnode) &
                             WRITE (io%debug_unit, '(a,i3,a,i3,3f20.10)') ' i = ', i, &
-                            ' ipol != ', ipol, force(ipol), de_fd, force(ipol) - de_fd
+                            ' j != ', j, force(j), de_fd, force(j) - de_fd
                         !
                     END IF
                     !
@@ -808,9 +802,6 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        CHARACTER(len=100) :: strg = 'e'
-        CHARACTER(len=100) :: strl = 'i'
-        !
         CHARACTER(LEN=80) :: sub_name = 'extract_boundary_data'
         !
         !--------------------------------------------------------------------------------
@@ -820,9 +811,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Compute the field and the field-aware interface
         !
-        CALL bound%electrons%density%write_cube_no_ions(label=strg)
+        CALL bound%electrons%density%write_cube_no_ions(label='e')
         !
-        CALL bound%ions%density%write_cube_no_ions(label=strl)
+        CALL bound%ions%density%write_cube_no_ions(label='i')
         !
         STOP
         !

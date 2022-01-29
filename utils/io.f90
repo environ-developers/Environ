@@ -51,7 +51,8 @@ MODULE class_io
         !
         INTEGER :: unit
         INTEGER :: debug_unit
-        INTEGER :: verbosity
+        !
+        INTEGER :: verbosity = 0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -161,7 +162,7 @@ CONTAINS
             !
         END DO unit_loop
         !
-        CALL env_warning('free unit not found?!?')
+        CALL io%warning("free unit not found?!?", 1002)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION env_find_free_unit
@@ -313,7 +314,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        CALL io%error(routine, 'Trying to create an existing object', 1)
+        CALL io%error(routine, "Trying to create an existing object", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_create_error
@@ -332,7 +333,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        CALL io%error(routine, 'Trying to destroy an empty object', 1)
+        CALL io%error(routine, "Trying to destroy an empty object", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_destroy_error
@@ -354,8 +355,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        CALL io%error(routine, &
-                      "'"//TRIM(input)//"' is not a valid option for "//TRIM(param), 1)
+        CALL io%error(routine, "'"//TRIM(input)//"' is not a valid option for "//param, 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_invalid_opt
@@ -381,7 +381,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        WRITE (io%unit, '(5X,A)') TRIM(message)
+        WRITE (io%unit, '(5X,A)') message
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_write
@@ -396,15 +396,19 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: lblank
+        LOGICAL, OPTIONAL, INTENT(IN) :: lblank
+        !
+        LOGICAL :: local_blank = .FALSE.
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
         !
+        IF (PRESENT(lblank)) local_blank = lblank
+        !
         WRITE (io%unit, FMT=1)
         !
-        IF (lblank) WRITE (io%unit, *) ! blank line
+        IF (local_blank) WRITE (io%unit, *) ! blank line
         !
 1       FORMAT(/, 5X, 80('='))
         !
@@ -426,7 +430,9 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        WRITE (io%unit, '(/,5X,A)') TRIM(message)
+        WRITE (io%unit, *)
+        !
+        CALL io%writer(message)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_header
@@ -435,18 +441,25 @@ CONTAINS
     !! Writes a message message to output warning the user of a non-terminating issue
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_warning(message)
+    SUBROUTINE env_warning(message, ierr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=*), INTENT(IN) :: message ! the output message
+        CHARACTER(LEN=*), INTENT(IN) :: message
+        INTEGER, INTENT(IN) :: ierr
+        !
+        CHARACTER(LEN=6) :: cerr
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
         !
-        WRITE (io%unit, '("Warning: ", A,/)') TRIM(message)
+        WRITE (cerr, '(I6)') ierr
+        !
+        WRITE (io%unit, 20) TRIM(ADJUSTL(cerr)), message
+        !
+20      FORMAT(/, "Environ Warning (", A, "): ", A,/)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_warning
@@ -466,9 +479,6 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: comment
         !
-        CHARACTER(LEN=25) :: p
-        CHARACTER(LEN=15) :: d
-        !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
@@ -479,10 +489,7 @@ CONTAINS
             comment = ''
         END IF
         !
-        p = ADJUSTL(param)
-        d = ADJUSTL(default)
-        !
-        WRITE (io%unit, '(5X,A," = ",A, A)') p, d, TRIM(ADJUSTL(comment))
+        WRITE (io%unit, '(5X,A," = ",A, A)') param, default, comment
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_default
@@ -501,6 +508,8 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: verbose, base_verbose, unit
+        !
+        CHARACTER(LEN=80) :: sub_name = 'env_block_divider'
         !
         !--------------------------------------------------------------------------------
         !
@@ -522,6 +531,9 @@ CONTAINS
             !
         CASE (4)
             WRITE (unit, 14)
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected verbose value", 1)
             !
         END SELECT
         !

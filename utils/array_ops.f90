@@ -1,17 +1,18 @@
 !----------------------------------------------------------------------------------------
 !
 ! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2001-2008 Quantum ESPRESSO (www.quantum-espresso.org)
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 2.1
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 2.1 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 2.1 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -24,12 +25,13 @@
 !
 !----------------------------------------------------------------------------------------
 !>
+!! Array operations
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_numerical
+MODULE env_array_ops
     !------------------------------------------------------------------------------------
     !
-    USE class_cell
+    USE class_io, ONLY: io
     !
     !------------------------------------------------------------------------------------
     !
@@ -37,39 +39,50 @@ MODULE class_core_numerical
     !
     PRIVATE
     !
+    PUBLIC :: env_get_index
+    !
+    !------------------------------------------------------------------------------------
+    !
+    INTERFACE env_get_index
+        MODULE PROCEDURE env_get_index_integer
+    END INTERFACE env_get_index
+    !
+    !------------------------------------------------------------------------------------
+CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, ABSTRACT, PUBLIC :: numerical_core
+    INTEGER FUNCTION env_get_index_integer(element, array) RESULT(index)
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: core_type
+        IMPLICIT NONE
         !
-        TYPE(environ_cell), POINTER :: cell => NULL()
+        INTEGER, INTENT(IN) :: element, array(:)
         !
-        !--------------------------------------------------------------------------------
-    CONTAINS
-        !--------------------------------------------------------------------------------
+        INTEGER :: i
         !
-        PROCEDURE(create_core), DEFERRED :: create
-        PROCEDURE(destroy_core), DEFERRED :: destroy
+        CHARACTER(LEN=80) :: fun_name = 'env_get_index:integer'
         !
         !--------------------------------------------------------------------------------
-    END TYPE numerical_core
+        !
+        DO i = 1, SIZE(array)
+            !
+            IF (array(i) == element) THEN
+                index = i
+                !
+                RETURN
+                !
+            END IF
+            !
+        END DO
+        !
+        CALL io%error(fun_name, "Element not found", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION env_get_index_integer
     !------------------------------------------------------------------------------------
     !
-    ABSTRACT INTERFACE
-        SUBROUTINE create_core(this)
-            IMPORT numerical_core
-            CLASS(numerical_core), INTENT(INOUT) :: this
-        END SUBROUTINE
-        SUBROUTINE destroy_core(this)
-            IMPORT numerical_core
-            CLASS(numerical_core), INTENT(INOUT) :: this
-        END SUBROUTINE
-    END INTERFACE
-    !
     !------------------------------------------------------------------------------------
-END MODULE class_core_numerical
+END MODULE env_array_ops
 !----------------------------------------------------------------------------------------

@@ -36,11 +36,11 @@ inputs_args = ('neutral.in', 'dielectric-sccs-default.in'), ('neutral.in', 'diel
 
 [pw_surface/]
 program = PW
-inputs_args = ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), ('pw.in', 'surface-sys-default.in'), ('pw.in', 'surface-sys-fft.in')
+inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), ('pw.in', 'surface-sys-default.in'), ('pw.in', 'surface-sys-fft.in')
 
 [pw_volume/]
 program = PW
-inputs_args = ('pw.in', 'volume-ss-default.in'), ('pw.in', 'volume-sys-default.in')
+inputs_args = ('pw.in', 'volume-sccs-default.in'), ('pw.in', 'volume-ss-default.in'), ('pw.in', 'volume-sys-default.in')
 
 [pw_electrolyte/]
 program = PW

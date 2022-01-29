@@ -41,7 +41,7 @@ MODULE class_iontype
     !
     PRIVATE
     !
-    PUBLIC :: print_environ_iontypes
+    PUBLIC :: print_environ_iontypes, get_element
     !
     !------------------------------------------------------------------------------------
     !>
@@ -54,6 +54,7 @@ MODULE class_iontype
         INTEGER :: atmnum
         CHARACTER(LEN=3) :: label
         REAL(DP) :: zv
+        REAL(DP) :: weight
         REAL(DP) :: atomicspread
         REAL(DP) :: corespread
         REAL(DP) :: solvationrad
@@ -69,9 +70,13 @@ MODULE class_iontype
     END TYPE environ_iontype
     !------------------------------------------------------------------------------------
     !
+    INTERFACE get_element
+        MODULE PROCEDURE get_element_by_number, get_element_by_weight
+    END INTERFACE get_element
+    !
     !------------------------------------------------------------------------------------
     !
-    CHARACTER(LEN=2) :: elements(92)
+    CHARACTER(LEN=3) :: elements(92)
     !
     REAL(DP), DIMENSION(92) :: pauling_radii, bondi_radii, UFF_diameters, &
                                MUFF_diameters, weights
@@ -164,8 +169,8 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        CHARACTER(LEN=*), INTENT(IN) :: atom_label
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         REAL(DP), INTENT(IN) :: zv, atomicspread, corespread, solvationrad
         LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions
         !
@@ -181,7 +186,11 @@ CONTAINS
         !
         IF (atomicspread > 0) this%atomicspread = atomicspread
         !
-        IF (corespread > 0) this%corespread = corespread
+        IF (this%label == 'H') THEN
+            this%corespread = 1.D-10
+        ELSE IF (corespread > 0) THEN
+            this%corespread = corespread
+        END IF
         !
         IF (solvationrad > 0) this%solvationrad = solvationrad
         !
@@ -217,8 +226,8 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
-        CHARACTER(LEN=3), INTENT(IN) :: label
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        CHARACTER(LEN=*), INTENT(IN) :: label
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
@@ -232,10 +241,9 @@ CONTAINS
         !
         IF (this%atmnum == 0) &
             CALL io%error(sub_name, &
-                          'Cannot assign the atom type associated &
-                          &with input label', 1)
+                          'Cannot assign the atom type associated with input label', 1)
         !
-        ! this%weight = weights(this%atmnum) ! #TODO future work
+        this%weight = weights(this%atmnum)
         !
         this%atomicspread = 0.5D0
         this%corespread = 0.5D0
@@ -255,7 +263,7 @@ CONTAINS
             this%solvationrad = MUFF_diameters(this%atmnum) * 0.5_DP
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unknown radius_mode', 1)
+            CALL io%error(sub_name, "Unknown radius_mode", 1)
             !
         END SELECT
         !
@@ -274,7 +282,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=3), INTENT(IN) :: label
+        CHARACTER(LEN=*), INTENT(IN) :: label
         !
         INTEGER :: i, get_atmnum
         CHARACTER(LEN=2) :: lowcase_label
@@ -301,6 +309,79 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
+    !                               PUBLIC HELPER METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    CHARACTER(LEN=3) FUNCTION get_element_by_number(number) RESULT(label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: number
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_element_by_number'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (number > SIZE(elements)) THEN
+            WRITE (io%unit, '(/, 5X, "Atomic number = ", I10)') number
+            !
+            CALL io%error(sub_name, "Atomic number out of bounds", 1)
+            !
+        END IF
+        !
+        label = elements(number)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_element_by_number
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    CHARACTER(LEN=3) FUNCTION get_element_by_weight(weight) RESULT(label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: weight
+        !
+        INTEGER :: i, index
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_element_by_weight'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        index = -1
+        !
+        DO i = 1, SIZE(weights)
+            !
+            IF (ABS(weights(i) - weight) < 1.D-1) THEN
+                index = i
+                !
+                EXIT
+                !
+            END IF
+            !
+        END DO
+        !
+        IF (index < 0) THEN
+            WRITE (io%unit, '(/, 5X, "Atomic weight = ", F9.5)') weight
+            !
+            CALL io%error(sub_name, "Wrong atomic weight", 1)
+            !
+        END IF
+        !
+        label = elements(index)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_element_by_weight
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
     !                                   OUTPUT METHODS
     !
     !------------------------------------------------------------------------------------
@@ -322,9 +403,10 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: ntyp
         TYPE(environ_iontype), INTENT(IN) :: this(ntyp)
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
-        INTEGER :: base_verbose, local_verbose, local_unit, ityp
+        INTEGER :: i
+        INTEGER :: base_verbose, local_verbose, local_unit
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_iontypes'
         !
@@ -374,24 +456,24 @@ CONTAINS
             IF (local_verbose < 3) THEN
                 WRITE (local_unit, 1002) ! table headers
                 !
-                DO ityp = 1, ntyp
+                DO i = 1, ntyp
                     !
                     WRITE (local_unit, 1003) &
-                        this(ityp)%index, this(ityp)%label, &
-                        this(ityp)%atmnum, this(ityp)%zv
+                        this(i)%index, this(i)%label, &
+                        this(i)%atmnum, this(i)%zv
                     !
                 END DO
                 !
             ELSE
                 WRITE (local_unit, 1004) ! table headers
                 !
-                DO ityp = 1, ntyp
+                DO i = 1, ntyp
                     !
                     WRITE (local_unit, 1005) &
-                        this(ityp)%index, this(ityp)%label, &
-                        this(ityp)%atmnum, this(ityp)%zv, &
-                        this(ityp)%atomicspread, this(ityp)%corespread, &
-                        this(ityp)%solvationrad
+                        this(i)%index, this(i)%label, &
+                        this(i)%atmnum, this(i)%zv, &
+                        this(i)%atomicspread, this(i)%corespread, &
+                        this(i)%solvationrad
                     !
                 END DO
                 !
@@ -406,19 +488,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' IONTYPES ', 66('%'))
-1001    FORMAT(/, ' IONTYPES', /, ' ========')
+1000    FORMAT(/, 4('%'), " IONTYPES ", 66('%'))
+1001    FORMAT(/, " IONTYPES", /, " ========")
         !
-1002    FORMAT(/, '               atomic', /, &
-                '   i | label | number | charge', /, 1X, 29('-'))
+1002    FORMAT(/, "               atomic", /, &
+                "   i | label | number | charge", /, 1X, 29('-'))
         !
-1003    FORMAT(1X, I3, ' | ', A5, ' | ', I6, ' | ', F6.2)
+1003    FORMAT(1X, I3, " | ", A5, " | ", I6, " | ", F6.2)
 !
-1004    FORMAT(/, '               atomic            atomic    core    solvation', /, &
-                '   i | label | number | charge | spread | spread |    radius', /, &
+1004    FORMAT(/, "               atomic            atomic    core    solvation", /, &
+                "   i | label | number | charge | spread | spread |    radius", /, &
                 1X, 59('-'))
 !
-1005    FORMAT(1X, I3, ' | ', A5, ' | ', I6, 3(' | ', F6.2), ' |', F10.2)
+1005    FORMAT(1X, I3, " | ", A5, " | ", I6, 3(" | ", F6.2), " |", F10.2)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_iontypes

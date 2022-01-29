@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
 !
 !----------------------------------------------------------------------------------------
 !
@@ -20,26 +20,28 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
-!          Oliviero Andreussi (Department of Physics, UNT)
-!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
-!          Edan Bainglass     (Department of Physics, UNT)
+! Authors: Quinn Campbell (Sandia National Laboratories)
+!          Ismaila Dabo   (DMSE, Penn State)
+!          Edan Bainglass (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
+!! Module containing the main routines to handle environ_semiconductor
+!! derived data types. Environ_semiconductor contains all the specifications
+!! and the details of the user defined semiconductor region
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_solver_iterative
+MODULE class_semiconductor_base
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
     !
     USE environ_param, ONLY: DP
     !
-    USE class_core_container
-    !
-    USE class_solver
-    USE class_solver_direct
+    USE class_cell
+    USE class_density
+    USE class_function_erfc
+    USE class_functions
     !
     !------------------------------------------------------------------------------------
     !
@@ -51,25 +53,27 @@ MODULE class_solver_iterative
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, ABSTRACT, EXTENDS(electrostatic_solver), PUBLIC :: solver_iterative
+    TYPE, PUBLIC :: environ_semiconductor_base
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: auxiliary
-        REAL(DP) :: tol
-        INTEGER :: maxiter
+        REAL(DP) :: temperature = 0.D0
+        REAL(DP) :: permittivity = 0.D0
+        REAL(DP) :: carrier_density = 0.D0
         !
-        TYPE(solver_direct), POINTER :: direct
+        REAL(DP) :: sc_distance = 0.D0
+        REAL(DP) :: sc_spread = 0.D0
+        !
+        REAL(DP) :: electrode_charge = 0.D0
+        REAL(DP) :: charge_threshold = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create_iterative => create_solver_iterative
-        PROCEDURE :: init_iterative => init_solver_iterative
-        PROCEDURE :: destroy => destroy_solver_iterative
+        PROCEDURE :: init => init_environ_semiconductor_base
         !
         !--------------------------------------------------------------------------------
-    END TYPE solver_iterative
+    END TYPE environ_semiconductor_base
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -84,82 +88,36 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_solver_iterative(this)
+    SUBROUTINE init_environ_semiconductor_base(this, temperature, sc_permittivity, &
+                                               sc_carrier_density, sc_electrode_chg, &
+                                               sc_distance, sc_spread, sc_chg_thr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(solver_iterative), INTENT(INOUT) :: this
+        REAL(DP), INTENT(IN) :: temperature, sc_permittivity, sc_electrode_chg, &
+                                sc_carrier_density, sc_distance, sc_spread, sc_chg_thr
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_solver_iterative'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ASSOCIATED(this%direct)) CALL io%create_error(sub_name)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_solver_iterative
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_iterative(this, cores, direct, maxiter, tol, auxiliary)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(core_container), INTENT(IN) :: cores
-        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
-        INTEGER, INTENT(IN) :: maxiter
-        REAL(DP), INTENT(IN) :: tol
-        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: auxiliary
-        !
-        CLASS(solver_iterative), INTENT(INOUT) :: this
+        CLASS(environ_semiconductor_base), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%create_iterative()
+        this%temperature = temperature
+        this%permittivity = sc_permittivity
+        this%carrier_density = sc_carrier_density
+        this%sc_distance = sc_distance
+        this%sc_spread = sc_spread
         !
-        CALL this%set_cores(cores)
+        this%carrier_density = this%carrier_density * 1.48D-25
+        ! convert carrier density to units of (bohr)^-3
         !
-        this%direct => direct
-        !
-        this%maxiter = maxiter
-        this%tol = tol
-        !
-        IF (PRESENT(auxiliary)) this%auxiliary = auxiliary
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_solver_iterative
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_solver_iterative(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(solver_iterative), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_solver_iterative'
+        this%electrode_charge = sc_electrode_chg
+        this%charge_threshold = sc_chg_thr
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ASSOCIATED(this%direct)) CALL io%destroy_error(sub_name)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%destroy_cores()
-        !
-        CALL this%direct%destroy()
-        !
-        NULLIFY (this%direct)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_solver_iterative
+    END SUBROUTINE init_environ_semiconductor_base
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_solver_iterative
+END MODULE class_semiconductor_base
 !----------------------------------------------------------------------------------------

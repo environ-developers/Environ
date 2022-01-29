@@ -92,94 +92,89 @@ CONTAINS
         l = n / 2 + 1 ! initialize indices for hiring and retirement-promotion phase
         ir = n
         !
-10      CONTINUE
-        !
-        !--------------------------------------------------------------------------------
-        ! Still in hiring phase
-        !
-        IF (l > 1) THEN
-            l = l - 1
-            rra = ra(l)
-            iind = ind(l)
-        ELSE
+        DO WHILE (.TRUE.)
             !
             !----------------------------------------------------------------------------
-            ! In retirement-promotion phase.
+            ! Still in hiring phase
             !
-            rra = ra(ir) ! clear a space at the end of the array
-            iind = ind(ir)
-            ra(ir) = ra(1) ! retire the top of the heap into it
-            ind(ir) = ind(1)
-            ir = ir - 1 ! decrease the size of the corporation
-            !
-            !----------------------------------------------------------------------------
-            ! Done with the last promotion
-            !
-            IF (ir == 1) THEN
-                ra(1) = rra ! the least competent worker at all
-                ind(1) = iind
-                !
-                RETURN
-                !
-            END IF
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Whether in hiring or promotion phase, we set up to place rra in its proper level
-        !
-        i = l
-        j = l + l
-        !
-        DO WHILE (j <= ir)
-            !
-            IF (j < ir) THEN
+            IF (l > 1) THEN
+                l = l - 1
+                rra = ra(l)
+                iind = ind(l)
+            ELSE
                 !
                 !------------------------------------------------------------------------
-                ! Compare to better underling
+                ! In retirement-promotion phase
                 !
-                IF (ra(j) < ra(j + 1)) THEN
-                    j = j + 1
-                ELSE IF (ra(j) == ra(j + 1)) THEN
-                    IF (ind(j) < ind(j + 1)) j = j + 1
-                END IF
+                rra = ra(ir) ! clear a space at the end of the array
+                iind = ind(ir)
+                ra(ir) = ra(1) ! retire the top of the heap into it
+                ind(ir) = ind(1)
+                ir = ir - 1 ! decrease the size of the corporation
+                !
+                IF (ir == 1) EXIT ! done with the last promotion
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! Demote rra
+            ! Whether in hiring or promotion phase, 
+            ! we set up to place rra in its proper level
             !
-            IF (rra < ra(j)) THEN
-                ra(i) = ra(j)
-                ind(i) = ind(j)
-                i = j
-                j = j + j
-            ELSE IF (rra == ra(j)) THEN
+            i = l
+            j = l + l
+            !
+            DO WHILE (j <= ir)
+                !
+                IF (j < ir) THEN
+                    !
+                    !--------------------------------------------------------------------
+                    ! Compare to better underling
+                    !
+                    IF (ra(j) < ra(j + 1)) THEN
+                        j = j + 1
+                    ELSE IF (ra(j) == ra(j + 1)) THEN
+                        IF (ind(j) < ind(j + 1)) j = j + 1
+                    END IF
+                    !
+                END IF
                 !
                 !------------------------------------------------------------------------
                 ! Demote rra
                 !
-                IF (iind < ind(j)) THEN
+                IF (rra < ra(j)) THEN
                     ra(i) = ra(j)
                     ind(i) = ind(j)
                     i = j
                     j = j + j
+                ELSE IF (rra == ra(j)) THEN
+                    !
+                    !--------------------------------------------------------------------
+                    ! Demote rra
+                    !
+                    IF (iind < ind(j)) THEN
+                        ra(i) = ra(j)
+                        ind(i) = ind(j)
+                        i = j
+                        j = j + j
+                    ELSE
+                        j = ir + 1 ! set j to terminate do-while loop
+                    END IF
+                    !
+                    ! this is the right place for rra
+                    !
                 ELSE
                     j = ir + 1 ! set j to terminate do-while loop
                 END IF
                 !
-                ! this is the right place for rra
-                !
-            ELSE
-                j = ir + 1 ! set j to terminate do-while loop
-            END IF
+            END DO
+            !
+            ra(i) = rra
+            ind(i) = iind
             !
         END DO
         !
-        ra(i) = rra
-        ind(i) = iind
-        !
-        GOTO 10
+        ra(1) = rra ! the least competent worker at all
+        ind(1) = iind
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_hpsort

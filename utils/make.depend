@@ -1,3 +1,4 @@
+array_ops.o : io.o
 base_mp.o : data_buffer.o
 base_mp.o : io.o
 base_mp.o : kinds.o

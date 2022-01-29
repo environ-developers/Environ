@@ -497,7 +497,18 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       derivatives
+   Variable:       deriv_core
+   
+   Type:           CHARACTER
+   Default:        'fft'
+   Description:    The choice of the core numerical methods to be exploited for computing derivatives.
+                   
+                   'fft' : fast Fourier transforms
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       deriv_method
    
    Type:           CHARACTER
    Default:        see below
@@ -525,6 +536,27 @@ NAMELIST: &BOUNDARY
    Description:    Main parameter of ions-dependent interface function, corresponding to the homogeneous
                    scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
                    Used for the electrolyte interface.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       electrolyte_deriv_method
+   
+   Type:           CHARACTER
+   Default:        see below
+   Description:    Specify the numerical approach used to compute derivatives of the electrolyte interface with respect
+                   to real-space coordinates or QM degrees of freedom.
+                   
+                   'fft'     : fast Fourier transform
+                   'chain'   : chain rule derivatives for as much as possible (and FFTs for the rest)
+                   'highmem' : analytic derivatives for soft-sphere computed by storing all spherical functions
+                               and derivatives
+                   'lowmem'  : more efficient analytic derivatives
+                   
+                   DEFAULT:
+                   
+                   solvent_mode .EQ. electronic | full : 'chain'
+                   solvent_mode .EQ. ionic             : 'lowmem'
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -921,6 +953,17 @@ NAMELIST: &ELECTROSTATIC
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
+   Variable:       inner_core
+   
+   Type:           CHARACTER
+   Default:        'fft'
+   Description:    The choice of the core numerical methods to be exploited for nested electrostatics.
+                   
+                   'fft' : fast Fourier transforms
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
    Variable:       inner_maxstep
    
    Type:           INTEGER
@@ -1028,6 +1071,17 @@ NAMELIST: &ELECTROSTATIC
                    
                    pbc_dim .EQ. 1 : specified axis is along the 1D direction.
                    pbc_dim .EQ. 2 : specified axis is orthogonal to 2D plane.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       pbc_core
+   
+   Type:           CHARACTER
+   Default:        '1da'
+   Description:    The choice of the core numerical methods to be exploited for pbc corrections.
+                   
+                   '1da' : 1d-analytic
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -1391,4 +1445,4 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Fri Oct 01 09:13:57 CDT 2021
+This file has been created by helpdoc utility on Wed Dec 01 11:47:34 CST 2021

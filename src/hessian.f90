@@ -120,7 +120,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_hessian), INTENT(INOUT) :: this
         !
@@ -254,7 +254,7 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradout
         !
-        INTEGER :: ir, ipol
+        INTEGER :: i, j
         !
         CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_hessian'
         !
@@ -263,15 +263,15 @@ CONTAINS
         gradout%of_r = 0.D0
         !
         IF (.NOT. ASSOCIATED(gradin%cell, this%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domain of input hessian/gradients', 1)
+            CALL io%error(sub_name, "Mismatch in domain of input hessian/gradients", 1)
         !
         IF (.NOT. ASSOCIATED(gradin%cell, gradout%cell)) &
-            CALL io%error(sub_name, 'Mismatch in domain of input and output', 1)
+            CALL io%error(sub_name, "Mismatch in domain of input and output", 1)
         !
-        DO ir = 1, this%cell%ir_end
+        DO i = 1, this%cell%ir_end
             !
-            DO ipol = 1, 3
-                gradout%of_r(ipol, ir) = SUM(this%of_r(:, ipol, ir) * gradin%of_r(:, ir))
+            DO j = 1, 3
+                gradout%of_r(j, i) = SUM(this%of_r(:, j, i) * gradin%of_r(:, i))
             END DO
             !
         END DO
@@ -302,7 +302,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_hessian), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
@@ -371,32 +371,32 @@ CONTAINS
                 CALL dens%init(this%cell)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xx'
-                dens%of_r(:) = this%of_r(1, 1, :)
+                dens%of_r = this%of_r(1, 1, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xy'
-                dens%of_r(:) = this%of_r(1, 2, :)
+                dens%of_r = this%of_r(1, 2, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xz'
-                dens%of_r(:) = this%of_r(1, 3, :)
+                dens%of_r = this%of_r(1, 3, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_yy'
-                dens%of_r(:) = this%of_r(2, 2, :)
+                dens%of_r = this%of_r(2, 2, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_yz'
-                dens%of_r(:) = this%of_r(2, 3, :)
+                dens%of_r = this%of_r(2, 3, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_zz'
-                dens%of_r(:) = this%of_r(3, 3, :)
+                dens%of_r = this%of_r(3, 3, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
@@ -413,10 +413,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' HESSIAN ', 67('%'))
-1001    FORMAT(/, ' HESSIAN', /, '=======')
+1000    FORMAT(/, 4('%'), " HESSIAN ", 67('%'))
+1001    FORMAT(/, " HESSIAN", /, "=======")
         !
-1002    FORMAT(/, ' hessian label              = ', A50)
+1002    FORMAT(/, " hessian label              = ", A50)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_hessian

@@ -65,3 +65,6 @@ CRASH
 
 # Development files/folders
 .vscode/
+deploy
+*.tar.gz
+*.zip
