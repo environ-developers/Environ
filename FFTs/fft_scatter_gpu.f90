@@ -416,7 +416,7 @@ CONTAINS
         !
         INTEGER :: ierr, me, me2, me2_start, me2_end, me3
         INTEGER :: nproc3, iproc3, ncpx, nr3px, ip, ip0
-        INTEGER :: nr1x, nr2x, nr3, nr3x
+        INTEGER :: nr1x, nr2x, nr3, nr3x, nnt, nntx
         INTEGER :: i, it, it0, k, kfrom, kdest, offset, ioff
         INTEGER :: mc, m1, m2, i1, sendsize, aux
         INTEGER, ALLOCATABLE :: ncp_(:)
@@ -443,7 +443,10 @@ CONTAINS
         nr2x = desc%nr2x
         nr3 = desc%nr3
         nr3x = desc%nr3x
-        nnt = nr1x * nr2x * nr3x
+        !
+        nnt = nr1 * nr2 * nr3
+        nntx = nr1x * nr2x * nr3x
+        !
         ! this mapping improves readability but, most importantly, it is needed
         ! in the cuf kernels (as of PGI 18.10) since otherwise, when variables from
         ! `desc` appear in the body of the do loops, the compiler generates incorrect
@@ -767,7 +770,7 @@ CONTAINS
         !
         INTEGER :: ierr, me, me2, me3, nproc3, iproc3, ncpx, nr3px
         INTEGER :: ip, ip0, me2_start, me2_end
-        INTEGER :: nr1x, nr2x, nr3, nr3x, nnr
+        INTEGER :: nr1x, nr2x, nr3, nr3x, nnr, nnt, nntx
         INTEGER :: i, j, it, it0, k, kfrom, kdest, offset, ioff
         INTEGER :: mc, m1, m2, i1, sendsize, aux
         INTEGER, ALLOCATABLE :: ncp_(:)
@@ -791,8 +794,10 @@ CONTAINS
         nr2x = desc%nr2x
         nr3 = desc%nr3
         nr3x = desc%nr3x
+        !
         nnr = desc%nnr
-        nnt = nr1x * nr2x * nr3x
+        nnt = nr1 * nr2 * nr3
+        nntx = nr1x * nr2x * nr3x
         !
         ! this mapping improves readability but, most importantly, it is needed
         ! in the cuf kernels (as of PGI 18.10) since otherwise, when variables from

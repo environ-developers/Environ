@@ -195,7 +195,9 @@ MODULE class_setup
         PROCEDURE :: get_threshold
         PROCEDURE :: get_nskip
         PROCEDURE :: get_nnt
-        PROCEDURE :: get_nrx
+        PROCEDURE :: get_nntx
+        PROCEDURE :: get_nri
+        PROCEDURE :: get_nrxi
         PROCEDURE :: is_tddfpt
         PROCEDURE :: is_restart
         PROCEDURE :: has_solvent
@@ -599,7 +601,26 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    INTEGER FUNCTION get_nrx(this, i)
+    INTEGER FUNCTION get_nntx(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        !
+        CHARACTER(LEN=80) :: fun_name = 'get_nntx'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        get_nntx = this%system_cell%dfft%nntx
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_nntx
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    INTEGER FUNCTION get_nri(this, i)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -607,25 +628,56 @@ CONTAINS
         CLASS(environ_setup), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: i
         !
-        CHARACTER(LEN=80) :: fun_name = 'get_nrx'
+        CHARACTER(LEN=80) :: fun_name = 'get_nri'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT CASE (i)
             !
         CASE (0)
-            get_nrx = this%system_cell%dfft%nr1x
+            get_nri = this%system_cell%dfft%nr1
             !
         CASE (1)
-            get_nrx = this%system_cell%dfft%nr2x
+            get_nri = this%system_cell%dfft%nr2
             !
         CASE (2)
-            get_nrx = this%system_cell%dfft%nr3x
+            get_nri = this%system_cell%dfft%nr3
             !
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION get_nrx
+    END FUNCTION get_nri
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    INTEGER FUNCTION get_nrxi(this, i)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: i
+        !
+        CHARACTER(LEN=80) :: fun_name = 'get_nrxi'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT CASE (i)
+            !
+        CASE (0)
+            get_nrxi = this%system_cell%dfft%nr1x
+            !
+        CASE (1)
+            get_nrxi = this%system_cell%dfft%nr2x
+            !
+        CASE (2)
+            get_nrxi = this%system_cell%dfft%nr3x
+            !
+        END SELECT
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_nrxi
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -1056,6 +1108,8 @@ CONTAINS
         !
         SELECT CASE (solver)
             !
+        CASE ('none')
+            !
         CASE ('direct')
             local_outer_solver => this%direct
             !
@@ -1199,7 +1253,7 @@ CONTAINS
         !
         SELECT CASE (solver_setup%problem)
             !
-        CASE ('poisson')
+        CASE ('none', 'poisson')
             !
         CASE ('generalized', 'linpb', 'linmodpb', 'pb', 'modpb')
             !

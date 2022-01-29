@@ -171,7 +171,8 @@ MODULE env_types_fft
         ! - in parallel execution may differ from nr1x*nr2x*nr3x
         ! - not to be confused either with nr1*nr2*nr3
         !
-        INTEGER :: nnt = 0 ! global number of FFT grid elements  ( ~nr1x*nr2x*nr3x )
+        INTEGER :: nnt = 0 ! global number of FFT grid elements  ( nr1*nr2*nr3 )
+        INTEGER :: nntx = 0 ! global number of optimized FFT grid elements ( nr1x*nr2x*nr3x )
         !
         INTEGER :: nnr_tg = 0
         ! local number of grid elements for task group FFT ( ~nr1*nr2*nr3/proc3 )
@@ -610,10 +611,12 @@ CONTAINS
         desc%nr1 = 0
         desc%nr2 = 0
         desc%nr3 = 0
+        desc%nnt = 0
+        !
         desc%nr1x = 0
         desc%nr2x = 0
         desc%nr3x = 0
-        desc%nnt = 0
+        desc%nntx = 0
         !
         desc%grid_id = 0
         !
@@ -1240,7 +1243,8 @@ CONTAINS
         dfft%nr2x = dfft%nr2
         dfft%nr3x = env_good_fft_dimension(dfft%nr3)
         !
-        dfft%nnt = dfft%nr1x * dfft%nr2x * dfft%nr3x
+        dfft%nnt = dfft%nr1 * dfft%nr2 * dfft%nr3
+        dfft%nntx = dfft%nr1x * dfft%nr2x * dfft%nr3x
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_realspace_grid_init
