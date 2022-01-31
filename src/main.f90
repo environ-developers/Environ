@@ -70,6 +70,10 @@ MODULE class_environ
     TYPE, PUBLIC :: environ_main
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         TYPE(environ_setup), POINTER :: setup => NULL()
         !
         !--------------------------------------------------------------------------------
@@ -199,6 +203,8 @@ CONTAINS
         CALL this%init_potential()
         !
         CALL this%init_physical(nat, ntyp, atom_label, ityp, zv)
+        !
+        this%initialized = .TRUE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_base
