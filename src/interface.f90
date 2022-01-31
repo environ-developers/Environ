@@ -83,6 +83,10 @@ MODULE environ_api
         !
         PROCEDURE :: calc_potential
         !
+        PROCEDURE :: get_coords_from_grid
+        !
+        PROCEDURE, PRIVATE :: map_to_gridx
+        !
         PROCEDURE :: destroy => destroy_interface
         !
         !--------------------------------------------------------------------------------
@@ -284,20 +288,33 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_electrons(this, rho, nelec, lscatter)
+    SUBROUTINE update_electrons(this, rho_in, nelec, lscatter)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: rho(:)
+        REAL(DP), INTENT(IN) :: rho_in(:)
         REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         LOGICAL, OPTIONAL, INTENT(IN) :: lscatter
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
+        REAL(DP) :: rho(this%setup%system_cell%dfft%nntx)
         REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
         !
         !--------------------------------------------------------------------------------
+        ! On certain machines, the FFT-grid dimensions are performance-optimized. If
+        ! on such a machine, map incoming density (given on physical grid points) onto
+        ! the optimized grid.
+        !
+#if defined(__LINUX_ESSL)||defined(__SX6)
+        CALL this%map_to_gridx(rho_in, rho)
+#else
+        rho = rho_in
+#endif
+        !
+        !--------------------------------------------------------------------------------
+        ! Scatter density to processors
         !
 #if defined(__MPI)
         IF (PRESENT(lscatter)) THEN
@@ -315,6 +332,8 @@ CONTAINS
         !
         aux = rho
 #endif
+        !
+        !--------------------------------------------------------------------------------
         !
         CALL this%main%update_electrons(this%setup%system_cell%dfft%nnr, aux, nelec)
         !
@@ -514,6 +533,88 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE get_atom_labels_from_atomic_weights
+    !------------------------------------------------------------------------------------
+    !>
+    !! Convert grid points to physical coordinates
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE get_coords_from_grid(this, coords)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_interface), INTENT(IN) :: this
+        !
+        REAL(DP), INTENT(INOUT) :: coords(:, :)
+        !
+        INTEGER :: ir
+        !
+        REAL(DP) :: r(3)
+        LOGICAL :: physical
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_coords_from_grid'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ALL(SHAPE(coords) == (/3, this%setup%system_cell%dfft%nnt/))) &
+            CALL io%error(sub_name, "Wrong size of array", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        coords = 0.D0
+        !
+        DO ir = 1, this%setup%system_cell%dfft%nntx
+            !
+            CALL this%setup%system_cell%ir2r(ir, r, physical)
+            !
+            IF (.NOT. physical) CYCLE
+            !
+            coords(:, ir) = r
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE get_coords_from_grid
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                               PRIVATE HELPER METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !! Map array onto parallelization-optimized grid
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE map_to_gridx(this, array_in, array_out)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_interface), INTENT(IN) :: this
+        REAL(DP), INTENT(IN) :: array_in(this%setup%system_cell%dfft%nnt)
+        !
+        REAL(DP), INTENT(OUT) :: array_out(this%setup%system_cell%dfft%nntx)
+        !
+        INTEGER :: ir, i, j, k
+        LOGICAL :: physical
+        !
+        CHARACTER(LEN=80) :: sub_name = 'map_to_gridx'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        array_out = 0.D0
+        !
+        DO ir = 1, this%setup%system_cell%dfft%nntx
+            !
+            CALL this%setup%system_cell%ir2ijk(ir, i, j, k, physical)
+            !
+            IF (.NOT. physical) CYCLE
+            !
+            array_out(ir) = array_in(ir)
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE map_to_gridx
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

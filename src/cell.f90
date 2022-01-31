@@ -117,9 +117,9 @@ MODULE class_cell
         PROCEDURE :: volume
         PROCEDURE :: get_min_distance
         PROCEDURE :: ir2ijk
+        PROCEDURE :: ir2r
         PROCEDURE :: planar_average
         !
-        PROCEDURE, PRIVATE :: ir2r
         PROCEDURE, PRIVATE :: minimum_image
         PROCEDURE, PRIVATE :: is_cubic
         !
