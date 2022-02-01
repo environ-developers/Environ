@@ -1,14 +1,9 @@
 #!/bin/sh
 
-for i in $(seq 10); do
+set -eu
 
-    if [ "$i" -lt 10 ]; then
-        cd example0"$i" || exit
-    else
-        cd example"$i" || exit
-    fi
-
+for dir in example*; do
+    cd "$dir"
     ./run_example.sh
-
     cd ../
 done

@@ -53,3 +53,9 @@ example10: cp.x (only for QE-5.3.0 and later versions)
 
     Calculation of the total solvation free energy of an isolated
     molecule including electrostatic/cavitation/PV contributions
+
+example11: pw.x
+
+    Use of a Mott-Schottky counter charge layer to model a charged 
+    slab embedded in a semiconducting region with different defect 
+    densities.
