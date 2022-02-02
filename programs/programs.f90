@@ -23,28 +23,29 @@
 ! Authors: Edan Bainglass (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
-!>
-!!
-!----------------------------------------------------------------------------------------
-PROGRAM tester
+MODULE programs
     !------------------------------------------------------------------------------------
     !
     USE env_parallel_include
     USE class_io, ONLY: io
     !
-    USE environ_param, ONLY: DP, tpi2
+    USE environ_param, ONLY: DP
     !
-    USE environ_api, ONLY: environ_interface, get_atom_labels
+    USE environ_api, ONLY: environ_interface
     !
-    USE tester_utils, ONLY: from_cube
+    USE cmdline_args
     !
-    !------------------------------------------------------------------------------------
-    !
-    !                                     PARAMETERS
+    USE prog_utils
     !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
+    !
+    PRIVATE
+    !
+    PUBLIC :: run_tester, run_environ_from_cube
+    !
+    PUBLIC :: general_setup, clean_up, print_available_programs
     !
     !------------------------------------------------------------------------------------
     ! Declare interface
@@ -52,83 +53,56 @@ PROGRAM tester
     TYPE(environ_interface) :: environ
     !
     !------------------------------------------------------------------------------------
-    ! Declare MPI parameters
-    !
-    INTEGER :: comm, ionode
-    LOGICAL :: lnode
-    LOGICAL :: initialized
-    INTEGER :: ierr ! mpi error
-    !
-    INTEGER, EXTERNAL :: env_mp_rank
-    !
-    !------------------------------------------------------------------------------------
-    ! Initialize MPI
-    !
-    comm = MPI_COMM_WORLD
-    !
-    CALL MPI_Init(ierr)
-    !
-    IF (ierr /= 0) CALL env_mp_stop(8000)
-    !
-    !------------------------------------------------------------------------------------
-    ! Initialize I/O
-    !
-    ionode = 0
-    lnode = env_mp_rank(comm) == ionode
-    !
-    CALL environ%init_interface()
-    !
-    CALL environ%init_io(lnode, ionode, comm, 6, .FALSE.)
-    !
-    !------------------------------------------------------------------------------------
-    !
-    !                                   SELECT PROGRAM
-    !
-    !------------------------------------------------------------------------------------
-    !
-
-    !
-    !------------------------------------------------------------------------------------
-    ! Clean up
-    !
-    CALL environ%destroy()
-    !
-    CALL MPI_Finalize(ierr)
-    !
-    IF (ierr /= 0) CALL env_mp_stop(8001)
-    !
-    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  PROGRAM ROUTINES
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
     !>
-    !! An Environ calculation on a "frozen" density provided in a cube file
-    !!
-    !! Default values:
-    !!
-    !! - inputfile          = 'environ.in'
-    !! - cubefile           = 'density.cube'
-    !! - use_pbc_correction = .FALSE.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE run_environ_from_cube(inputfile, cubefile, use_pbc_correction)
+    SUBROUTINE print_available_programs()
+        !--------------------------------------------------------------------------------
+        !
+        IF (io%lnode) &
+            PRINT '(3(/, A))', &
+            'Available calculations:', &
+            '- tester', &
+            '- from_cube'
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_available_programs
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE run_tester()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: inputfile
-        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: cubefile
-        LOGICAL, OPTIONAL, INTENT(IN) :: use_pbc_correction
+
         !
-        INTEGER :: nat
-        INTEGER :: ntyp
+        !--------------------------------------------------------------------------------
+        !
+
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE run_tester
+    !------------------------------------------------------------------------------------
+    !>
+    !! An Environ calculation on a "frozen" density provided in a cube file
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE run_environ_from_cube()
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
         REAL(DP) :: nelec
-        INTEGER, ALLOCATABLE :: ityp(:)
-        CHARACTER(LEN=2), ALLOCATABLE :: label(:)
-        REAL(DP), ALLOCATABLE :: zv(:)
-        REAL(DP), ALLOCATABLE :: tau(:, :)
-        REAL(DP) :: origin(3)
-        INTEGER :: nr(3)
-        REAL(DP) :: at(3, 3)
         REAL(DP), ALLOCATABLE :: rho(:)
         !
         REAL(DP), ALLOCATABLE :: env_potential(:)
@@ -143,28 +117,9 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'run_environ_from_cube'
         !
         !--------------------------------------------------------------------------------
-        ! Get input parameters from file
-        !
-        CALL from_cube(nat, ntyp, ityp, label, zv, nelec, tau, origin, nr, at, rho, &
-                       cubefile)
-        !
-        !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL environ%read_input(inputfile)
-        !
-        CALL environ%setup%init(use_pbc_correction)
-        !
-        CALL environ%setup%init_cell(io%comm, at, nr=nr)
-        !
-        CALL environ%setup%init_cores()
-        !
-        CALL environ%main%init(nat, ntyp, label, ityp, zv)
-        !
-        !--------------------------------------------------------------------------------
-        ! Update Environ parameters
-        !
-        CALL environ%main%update_ions(nat, tau, origin)
+        CALL init_environ_from_cube(environ, cubefile, rho, nelec)
         !
         CALL environ%update_electrons(rho, nelec=nelec, lscatter=.TRUE.)
         !
@@ -213,7 +168,99 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE run_environ_from_cube
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   SETUP ROUTINES
     !
     !------------------------------------------------------------------------------------
-END PROGRAM tester
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE general_setup()
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER :: comm
+        LOGICAL :: lnode
+        INTEGER :: ionode = 0
+        !
+        INTEGER, EXTERNAL :: env_mp_rank
+        !
+        !--------------------------------------------------------------------------------
+        !
+        comm = get_comm()
+        lnode = env_mp_rank(comm) == ionode
+        !
+        CALL environ%init_interface()
+        !
+        CALL environ%init_io(lnode, ionode, comm, 6, .FALSE.)
+        !
+        CALL environ%read_input(inputfile)
+        !
+        CALL environ%setup%init(use_pbc_corr)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE general_setup
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE clean_up()
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER :: ierr
+        !
+        CHARACTER(LEN=80) :: sub_name = 'clean_up'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (environ%main%initialized) CALL environ%destroy()
+        !
+#if defined(__MPI)
+        CALL MPI_Finalize(ierr)
+        !
+        IF (ierr /= 0) CALL env_mp_stop(8001)
+#endif
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE clean_up
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                              PRIVATE HELPER ROUTINES
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    INTEGER FUNCTION get_comm() RESULT(comm)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER :: ierr
+        !
+        !--------------------------------------------------------------------------------
+        !
+#if defined(__MPI)
+        comm = MPI_COMM_WORLD
+        !
+        CALL MPI_Init(ierr)
+        !
+        IF (ierr /= 0) CALL env_mp_stop(8000)
+#else
+        comm = 0
+#endif
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_comm
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+END MODULE programs
 !----------------------------------------------------------------------------------------

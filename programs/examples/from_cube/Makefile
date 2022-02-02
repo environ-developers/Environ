@@ -32,13 +32,13 @@ ifndef VERBOSE
 .SILENT:
 endif
 
-include ../../make.inc
+include ../../../make.inc
 
 PROC = 4
 
 EXAMPLES = $(subst /,,$(wildcard */))
 
-TESTER = $(TOPDIR)/tester/tester.x
+CMD = $(TOPDIR)/programs/driver -n from_cube
 
 help:
 	@ echo 
@@ -49,14 +49,14 @@ help:
 
 run: check-dir
 	@ if test $$? = 0; then \
-	    (cd $(example); $(TESTER)); \
+	    (cd $(example); $(CMD)); \
 	  else \
 		exit; \
 	  fi
 
 run-parallel: check-dir
 	@ if test $$? = 0; then \
-	    (cd $(example); mpirun -n $(PROC) $(TESTER)); \
+	    (cd $(example); mpirun -n $(PROC) $(CMD)); \
 	  else \
 		exit; \
 	  fi

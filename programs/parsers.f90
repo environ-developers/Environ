@@ -26,22 +26,16 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE tester_utils
+MODULE parsers
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_bcast
     USE env_array_ops, ONLY: env_get_index
     !
-    USE environ_param, ONLY: DP, tpi2
+    USE environ_param, ONLY: DP
     !
-    USE environ_api, ONLY: environ_interface, get_atom_labels
-    !
-    !------------------------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    PUBLIC :: from_input, from_cube, from_xml
+    USE environ_api, ONLY: get_atom_labels
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -49,43 +43,24 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE from_input(filename)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CHARACTER(LEN=*), INTENT(IN) :: filename
-        !
-        CHARACTER(LEN=80) :: sub_name = 'from_input'
-        !
-        !--------------------------------------------------------------------------------
-        !
-
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE from_input
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE from_cube(natoms, nspecies, ispecies, label, ionic_charge, nelectrons, &
-                         atom_position, system_origin, grid, lattice, density, cubefile)
+    SUBROUTINE read_cube(nat, ntyp, ityp, atom_label, zv, nelec, tau, origin, nr, at, &
+                         rho, cubefile)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: cubefile
         !
-        INTEGER, INTENT(OUT) :: natoms, nspecies
-        REAL(DP), INTENT(OUT) :: nelectrons
-        INTEGER, ALLOCATABLE, INTENT(OUT) :: ispecies(:)
-        CHARACTER(LEN=2), ALLOCATABLE, INTENT(OUT) :: label(:)
-        REAL(DP), INTENT(OUT) :: system_origin(3)
-        INTEGER, INTENT(OUT) :: grid(3)
-        REAL(DP), INTENT(OUT) :: lattice(3, 3)
-        REAL(DP), ALLOCATABLE, INTENT(OUT) :: ionic_charge(:)
-        REAL(DP), ALLOCATABLE, INTENT(OUT) :: atom_position(:, :)
-        REAL(DP), ALLOCATABLE, INTENT(OUT) :: density(:)
+        INTEGER, INTENT(OUT) :: nat, ntyp
+        REAL(DP), INTENT(OUT) :: nelec
+        INTEGER, ALLOCATABLE, INTENT(OUT) :: ityp(:)
+        CHARACTER(LEN=2), ALLOCATABLE, INTENT(OUT) :: atom_label(:)
+        REAL(DP), INTENT(OUT) :: origin(3)
+        INTEGER, INTENT(OUT) :: nr(3)
+        REAL(DP), INTENT(OUT) :: at(3, 3)
+        REAL(DP), ALLOCATABLE, INTENT(OUT) :: zv(:)
+        REAL(DP), ALLOCATABLE, INTENT(OUT) :: tau(:, :)
+        REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
         !
         INTEGER :: i, j, k, l, count, unit, current, nnt
         LOGICAL :: ext
@@ -99,12 +74,12 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: filename = 'density.cube'
         !
-        CHARACTER(LEN=80) :: sub_name = 'from_cube'
+        CHARACTER(LEN=80) :: sub_name = 'read_cube'
         !
         !--------------------------------------------------------------------------------
         ! Open cube file
         !
-        IF (PRESENT(cubefile)) filename = cubefile 
+        IF (PRESENT(cubefile)) filename = cubefile
         !
         unit = io%find_free_unit()
         INQUIRE (file=TRIM(filename), exist=ext)
@@ -115,7 +90,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%header('Reading cube data from '//TRIM(filename))
+        CALL io%writer('Reading cube data from '//TRIM(filename))
+        !
+        CALL io%writer('') ! blank line
         !
         !--------------------------------------------------------------------------------
         ! Discard comment lines
@@ -131,11 +108,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Read number of atoms and origin
         !
-        IF (io%lnode) READ (unit, *) natoms, system_origin
+        IF (io%lnode) READ (unit, *) nat, origin
         !
-        CALL env_mp_bcast(natoms, io%node, io%comm)
+        CALL env_mp_bcast(nat, io%node, io%comm)
         !
-        CALL env_mp_bcast(system_origin, io%node, io%comm)
+        CALL env_mp_bcast(origin, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
         ! Read grid size and lattice vectors
@@ -144,28 +121,28 @@ CONTAINS
         IF (io%lnode) THEN
             !
             DO i = 1, 3
-                READ (unit, *) grid(i), lattice(i, :)
+                READ (unit, *) nr(i), at(i, :)
             END DO
             !
         END IF
         !
-        CALL env_mp_bcast(grid, io%node, io%comm)
+        CALL env_mp_bcast(nr, io%node, io%comm)
         !
-        CALL env_mp_bcast(lattice, io%node, io%comm)
+        CALL env_mp_bcast(at, io%node, io%comm)
         !
-        lattice = lattice * SPREAD(grid, 1, 3)
+        at = at * SPREAD(nr, 1, 3)
         !
         !--------------------------------------------------------------------------------
         ! Read atomic numbers, charges, and positions
         !
-        ALLOCATE (atomic_number(natoms))
-        ALLOCATE (charge(natoms))
-        ALLOCATE (atom_position(3, natoms))
+        ALLOCATE (atomic_number(nat))
+        ALLOCATE (charge(nat))
+        ALLOCATE (tau(3, nat))
         !
         IF (io%lnode) THEN
             !
-            DO i = 1, natoms
-                READ (unit, *) atomic_number(i), charge(i), atom_position(:, i)
+            DO i = 1, nat
+                READ (unit, *) atomic_number(i), charge(i), tau(:, i)
             END DO
             !
         END IF
@@ -174,41 +151,41 @@ CONTAINS
         !
         CALL env_mp_bcast(charge, io%node, io%comm)
         !
-        CALL env_mp_bcast(atom_position, io%node, io%comm)
+        CALL env_mp_bcast(tau, io%node, io%comm)
         !
-        nelectrons = SUM(charge)
+        nelec = SUM(charge)
         !
         !--------------------------------------------------------------------------------
         ! Determine number of species and assign species index per atom
         !
-        ALLOCATE (species(natoms))
-        ALLOCATE (ispecies(natoms))
+        ALLOCATE (species(nat))
+        ALLOCATE (ityp(nat))
         !
-        nspecies = 0
+        ntyp = 0
         species = 0
         !
-        DO i = 1, natoms
+        DO i = 1, nat
             !
             IF (.NOT. ANY(species == atomic_number(i))) THEN
-                nspecies = nspecies + 1
+                ntyp = ntyp + 1
                 species(i) = atomic_number(i)
             END IF
             !
-            ispecies(i) = env_get_index(atomic_number(i), species)
+            ityp(i) = env_get_index(atomic_number(i), species)
         END DO
         !
         !--------------------------------------------------------------------------------
         ! Reduce charges to unique array
         !
-        ALLOCATE (ionic_charge(nspecies))
+        ALLOCATE (zv(ntyp))
         current_charge = 0.D0
         count = 0
         !
-        DO i = 1, natoms
+        DO i = 1, nat
             !
             IF (charge(i) /= current_charge) THEN
                 count = count + 1
-                ionic_charge(count) = charge(i)
+                zv(count) = charge(i)
                 current_charge = charge(i)
             END IF
             !
@@ -217,64 +194,49 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Convert atomic numbers to atom labels
         !
-        ALLOCATE (label(nspecies))
+        ALLOCATE (atom_label(ntyp))
         !
-        CALL get_atom_labels(species, label)
+        CALL get_atom_labels(species, atom_label)
         !
         !--------------------------------------------------------------------------------
         ! Read density
         !
-        nnt = PRODUCT(grid)
-        ALLOCATE (unsorted(nnt))
-        ALLOCATE (density(nnt))
-        !
-        IF (io%lnode) READ (unit, *) unsorted ! read unsorted cube density
-        !
-        CALL env_mp_bcast(unsorted, io%node, io%comm)
-        !
-        count = 0
-        !
-        DO i = 1, grid(1)
+        IF (PRESENT(rho)) THEN
             !
-            DO j = 1, grid(2)
+            nnt = PRODUCT(nr)
+            ALLOCATE (unsorted(nnt))
+            ALLOCATE (rho(nnt))
+            !
+            IF (io%lnode) READ (unit, *) unsorted ! read unsorted cube density
+            !
+            CALL env_mp_bcast(unsorted, io%node, io%comm)
+            !
+            count = 0
+            !
+            DO i = 1, nr(1)
                 !
-                DO k = 1, grid(3)
-                    count = count + 1
-                    l = i + (j - 1) * grid(1) + (k - 1) * grid(1) * grid(2)
-                    density(l) = unsorted(count)
+                DO j = 1, nr(2)
+                    !
+                    DO k = 1, nr(3)
+                        count = count + 1
+                        l = i + (j - 1) * nr(1) + (k - 1) * nr(1) * nr(2)
+                        rho(l) = unsorted(count)
+                    END DO
+                    !
                 END DO
                 !
             END DO
             !
-        END DO
+        END IF
         !
         !--------------------------------------------------------------------------------
         !
         CLOSE (unit)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE from_cube
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE from_xml(filename)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CHARACTER(LEN=*), INTENT(IN) :: filename
-        !
-        CHARACTER(LEN=80) :: sub_name = 'from_xml'
-        !
-        !--------------------------------------------------------------------------------
-        !
-
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE from_xml
+    END SUBROUTINE read_cube
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE tester_utils
+END MODULE parsers
 !----------------------------------------------------------------------------------------

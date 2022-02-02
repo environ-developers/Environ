@@ -36,14 +36,47 @@ include ../make.inc
 
 MODFLAGS = $(BASEMOD_FLAGS)
 
-all: tester.x
+DRIVER_OBJS = cmdline_args.o parsers.o prog_utils.o programs.o driver.o 
 
-OBJS = utilities.o tester.o
+driver: driver.o
+	@ $(LD) $(LDFLAGS) -o $@ $(DRIVER_OBJS) ../libs/* $(ENVLIBS)
 
-tester.x: tester.o
-	@ $(LD) $(LDFLAGS) -o $@ $(OBJS) ../libs/* $(ENVLIBS)
+help:
+	@ echo
+	@ echo \'make driver\' \(default\) to compile the driver \(requires Environ compilation\)
+	@ echo
+	@ echo \'make avail\' for available calculations
+	@ echo
+	@ echo \'make usage name=name-of-calculation\' for specific execution instructions
+	@ echo
+	@ echo \'make clean\' to clean directory
+	@ echo
+
+avail:
+	@ echo 
+	@ echo "Available calculations:"
+	@ echo
+	@ echo "tester"
+	@ echo
+	@ echo "  For testing custom features"
+	@ echo
+	@ echo "from_cube"
+	@ echo
+	@ echo "  Computes environment contributions to properties of a \"frozen\" density given as a cube file"
+	@ echo
+	
+usage:
+	@ echo
+	@ case "$(name)" in \
+	  	from_cube) usage='driver -n name-of-calculation -i input-file -c cube-file';; \
+		*) usage='make usage name=name-of-calculation';; \
+	  esac; \
+	  echo Usage: $$usage
+	@ echo
 
 clean:
-	@ /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90 *.x fort.* environ.debug CRASH
+	@ /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90 tester driver fort.* environ.debug CRASH
 
-tester.o : utilities.o
+driver.o: cmdline_args.o programs.o
+programs.o: cmdline_args.o prog_utils.o
+prog_utils.o: parsers.o 
