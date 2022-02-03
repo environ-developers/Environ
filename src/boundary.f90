@@ -2774,17 +2774,23 @@ CONTAINS
                 !
             END IF
             !
-            ! //TODO: consider moving this out since it needs to loop
             IF (this%field_aware) THEN
                 !
                 IF (io%lnode .AND. local_verbose >= 1) THEN
+                    !
+                    WRITE (local_unit, 1113)
+                    !
                     DO i = 1, this%ions%number
-                        WRITE (local_unit, 1113) i, &
+                        !
+                        WRITE (local_unit, 1114) i, &
                             this%ions%iontype(this%ions%ityp(i))%label, &
                             this%ions%iontype(this%ions%ityp(i))%solvationrad, &
                             this%ion_field(i), this%scaling_of_field(i)
+                        !
                     END DO
+                    !
                 END IF
+                !
             END IF
             !
             IF (local_verbose >= 5) THEN
@@ -2853,11 +2859,11 @@ CONTAINS
                 " solvent radius x rad scale = ", F14.7, /, &
                 " spread of solvent probe    = ", F14.7)
         !
-1113    FORMAT(/, ' atom number = ', I3, &
-                ' atom label = ', A3, &
-                ' solvation radius = ', F8.4, &
-                ' field flux = ', F8.4, &
-                ' scaling of field = ', F8.4)
+1113    FORMAT(/, "                solvation                scaling of", /, &
+                "   i | label |     radius | field flux |      field", /, &
+                1X, 50('-'))
+        !
+1114    FORMAT(1X, I3, " | ", A5, 3(" | ", F10.4))
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_boundary
