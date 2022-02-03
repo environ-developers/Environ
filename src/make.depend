@@ -87,6 +87,7 @@ debugging.o : ../utils/io.o
 debugging.o : boundary.o
 debugging.o : cell.o
 debugging.o : constants.o
+debugging.o : core_container.o
 debugging.o : density.o
 debugging.o : electrons.o
 debugging.o : function_gaussian.o

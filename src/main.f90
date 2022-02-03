@@ -823,7 +823,7 @@ CONTAINS
                 solvent_mode, stype, rhomax, rhomin, tbeta, env_static_permittivity, &
                 alpha, softness, solvent_distance, solvent_spread, solvent_radius, &
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
-                field_awareness, charge_asymmetry, field_max, field_min, &
+                field_aware, field_factor, field_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
                 this%environment_system, setup%outer_container, deriv_method, &
                 environment_cell, 'solvent')
@@ -840,11 +840,11 @@ CONTAINS
                 electrolyte_rhomin, electrolyte_tbeta, env_static_permittivity, &
                 electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
-                filling_threshold, filling_spread, field_awareness, charge_asymmetry, &
-                field_max, field_min, this%environment_electrons, this%environment_ions, &
-                this%environment_system, temperature, cion, cionmax, rion, zion, &
-                electrolyte_entropy, electrolyte_linearized, setup%outer_container, &
-                electrolyte_deriv_method, environment_cell)
+                filling_threshold, filling_spread, field_aware, field_factor, &
+                field_asymmetry, field_max, field_min, this%environment_electrons, &
+                this%environment_ions, this%environment_system, temperature, cion, &
+                cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized, &
+                setup%outer_container, electrolyte_deriv_method, environment_cell)
             !
             CALL this%environment_charges%add(electrolyte=this%electrolyte)
             !

@@ -1,18 +1,22 @@
-! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+!----------------------------------------------------------------------------------------
 !
-!    This file is part of Environ version 1.1
+! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
 !
-!    Environ 1.1 is free software: you can redistribute it and/or modify
-!    it under the terms of the GNU General Public License as published by
-!    the Free Software Foundation, either version 2 of the License, or
-!    (at your option) any later version.
+!----------------------------------------------------------------------------------------
 !
-!    Environ 1.1 is distributed in the hope that it will be useful,
-!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more detail, either the file
-!    `License' in the root directory of the present distribution, or
-!    online at <http://www.gnu.org/licenses/>.
+!     This file is part of Environ version 2.0
+!
+!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     it under the terms of the GNU General Public License as published by
+!     the Free Software Foundation, either version 2 of the License, or
+!     (at your option) any later version.
+!
+!     Environ 2.0 is distributed in the hope that it will be useful,
+!     but WITHOUT ANY WARRANTY; without even the implied warranty of
+!     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!     GNU General Public License for more detail, either the file
+!     `License' in the root directory of the present distribution, or
+!     online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
 !
@@ -345,10 +349,11 @@ CONTAINS
         filling_threshold = 0.825D0
         filling_spread = 0.02D0
         !
-        field_awareness = 0.D0
-        charge_asymmetry = -1.D0
-        field_max = 10.D0
-        field_min = 1.D0
+        field_aware = .FALSE.
+        field_factor = 0.08D0
+        field_asymmetry = -0.32D0
+        field_max = 6.D0
+        field_min = 2.D0
         !
         electrolyte_mode = 'electronic'
         !
@@ -531,9 +536,11 @@ CONTAINS
         !
         CALL env_mp_bcast(filling_spread, io%node, io%comm)
         !
-        CALL env_mp_bcast(field_awareness, io%node, io%comm)
+        CALL env_mp_bcast(field_aware, io%node, io%comm)
         !
-        CALL env_mp_bcast(charge_asymmetry, io%node, io%comm)
+        CALL env_mp_bcast(field_factor, io%node, io%comm)
+        !
+        CALL env_mp_bcast(field_asymmetry, io%node, io%comm)
         !
         CALL env_mp_bcast(field_max, io%node, io%comm)
         !
@@ -874,11 +881,11 @@ CONTAINS
         IF (filling_spread <= 0.0_DP) &
             CALL io%error(sub_name, "filling_spread out of range", 1)
         !
-        IF (field_awareness < 0.0_DP) &
-            CALL io%error(sub_name, "field_awareness out of range", 1)
+        IF (field_factor < 0.0_DP) &
+            CALL io%error(sub_name, "field_factor out of range", 1)
         !
-        IF (ABS(charge_asymmetry) > 1.0_DP) &
-            CALL io%error(sub_name, "charge_asymmetry out of range", 1)
+        IF (ABS(field_asymmetry) > 1.0_DP) &
+            CALL io%error(sub_name, "field_asymmetry out of range", 1)
         !
         IF (field_min < 0.0_DP) CALL io%error(sub_name, "field_min out of range", 1)
         !
@@ -1163,7 +1170,7 @@ CONTAINS
         !
         SELECT CASE (TRIM(solvent_mode))
             !
-        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+        CASE ('electronic', 'full', 'system')
             !
             SELECT CASE (TRIM(deriv_method))
                 !
@@ -1179,7 +1186,7 @@ CONTAINS
                 !
             END SELECT
             !
-        CASE ('ionic', 'fa-ionic')
+        CASE ('ionic')
             !
             SELECT CASE (TRIM(deriv_method))
                 !
@@ -1270,7 +1277,7 @@ CONTAINS
                 !
             END SELECT
             !
-        ELSE IF (solvent_mode == 'ionic' .OR. solvent_mode == 'fa-ionic') THEN
+        ELSE IF (solvent_mode == 'ionic') THEN
             !
             !----------------------------------------------------------------------------
             ! Soft-sphere continuum solvation
@@ -1364,7 +1371,7 @@ CONTAINS
             !
             SELECT CASE (TRIM(electrolyte_mode))
                 !
-            CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+            CASE ('electronic', 'full', 'system')
                 !
                 SELECT CASE (TRIM(electrolyte_deriv_method))
                     !
@@ -1381,7 +1388,7 @@ CONTAINS
                     !
                 END SELECT
                 !
-            CASE ('ionic', 'fa-ionic')
+            CASE ('ionic')
                 !
                 SELECT CASE (TRIM(electrolyte_deriv_method))
                     !

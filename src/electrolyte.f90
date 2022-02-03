@@ -120,8 +120,8 @@ CONTAINS
                                         tbeta, const, alpha, softness, distance, &
                                         spread, solvent_radius, radial_scale, &
                                         radial_spread, filling_threshold, &
-                                        filling_spread, field_awareness, &
-                                        charge_asymmetry, field_max, field_min, &
+                                        filling_spread, field_aware, field_factor, &
+                                        field_asymmetry, field_max, field_min, &
                                         electrons, ions, system, temperature, cbulk, &
                                         cionmax, radius, z, electrolyte_entropy, &
                                         linearized, cores, deriv_method, cell)
@@ -129,14 +129,14 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: linearized
+        LOGICAL, INTENT(IN) :: linearized, field_aware
         INTEGER, INTENT(IN) :: ntyp, stype
         CHARACTER(LEN=*), INTENT(IN) :: mode, electrolyte_entropy, deriv_method
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, &
                                 alpha, softness, temperature, solvent_radius, &
                                 radial_scale, radial_spread, filling_threshold, &
-                                filling_spread, field_awareness, charge_asymmetry, &
+                                filling_spread, field_factor, field_asymmetry, &
                                 field_max, field_min, cionmax, radius
         !
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: cbulk, z
@@ -159,9 +159,10 @@ CONTAINS
         CALL this%boundary%init(.TRUE., .TRUE., .FALSE., mode, stype, rhomax, &
                                 rhomin, tbeta, const, alpha, softness, distance, &
                                 spread, solvent_radius, radial_scale, radial_spread, &
-                                filling_threshold, filling_spread, field_awareness, &
-                                charge_asymmetry, field_max, field_min, electrons, &
-                                ions, system, cores, deriv_method, cell, 'electrolyte')
+                                filling_threshold, filling_spread, field_aware, &
+                                field_factor, field_asymmetry, field_max, field_min, &
+                                electrons, ions, system, cores, deriv_method, cell, &
+                                'electrolyte')
         !
         !--------------------------------------------------------------------------------
         ! Densities

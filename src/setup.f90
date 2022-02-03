@@ -928,16 +928,16 @@ CONTAINS
                         this%lconfine
         !
         this%lelectrostatic = this%ldielectric .OR. this%lelectrolyte .OR. &
-                              this%lexternals .OR. this%lperiodic
+                              this%lexternals .OR. this%lperiodic .OR. field_aware
         !
         this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
                                                  solvent_mode == 'full' .OR. &
-                                                 solvent_mode(1:2) == 'fa')
+                                                 field_aware)
         !
         this%lsoftelectrolyte = this%lelectrolyte .AND. &
                                 (electrolyte_mode == 'electronic' .OR. &
                                  electrolyte_mode == 'full' .OR. &
-                                 electrolyte_mode(1:2) == 'fa') ! field-aware
+                                 field_aware)
         !
         this%lsoftcavity = this%lsoftsolvent .OR. this%lsoftelectrolyte
         this%lrigidsolvent = this%lsolvent .AND. solvent_mode /= 'electronic'
@@ -949,7 +949,7 @@ CONTAINS
         !
         this%lsmearedions = this%lelectrostatic
         this%lboundary = this%lsolvent .OR. this%lelectrolyte
-        this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa') ! field-aware
+        this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_derived_flags
@@ -1381,12 +1381,9 @@ CONTAINS
             !
             IF (solvent_radius > 0.D0) WRITE (io%unit, 1017)
             !
-            IF (field_awareness > 0.D0) THEN
+            IF (field_aware) THEN
                 WRITE (io%unit, 1018)
-                !
-                WRITE (io%unit, 1019) &
-                    field_awareness, charge_asymmetry, field_min, field_max
-                !
+                WRITE (io%unit, 1019) field_factor, field_asymmetry, field_min, field_max
             END IF
             !
         END IF
