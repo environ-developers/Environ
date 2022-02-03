@@ -639,6 +639,52 @@ electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
+      <var name="field_aware" type="LOGICAL" >
+         <default> .FALSE.
+         </default>
+         <info>
+Switch to turn on the field-awareness scaling factor (only works with ionic boundary mode).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_factor" type="REAL" >
+         <default> 0.08D0
+         </default>
+         <info>
+Maximum scaling factor possible by the field-aware model.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_asymmetry" type="REAL" >
+         <default> -0.32D0
+         </default>
+         <info>
+Charge asymmetry factor. Positive values result in more field-awareness for positive charges,
+and vice-versa.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_max" type="REAL" >
+         <default> 6.D0
+         </default>
+         <info>
+Maximum flux value for switching function.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_min" type="REAL" >
+         <default> 2.D0
+         </default>
+         <info>
+Minimum flux value for switching function.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <var name="filling_spread" type="REAL" >
          <default> 0.02D0
          </default>

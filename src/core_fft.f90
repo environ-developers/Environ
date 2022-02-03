@@ -91,6 +91,7 @@ MODULE class_core_fft
         PROCEDURE :: grad_poisson => grad_poisson_fft
         PROCEDURE :: force => force_fft
         !
+        PROCEDURE :: grad_v_h_of_rho_r
         PROCEDURE :: hess_v_h_of_rho_r
         PROCEDURE :: field_of_grad_rho
         !
@@ -1019,9 +1020,87 @@ CONTAINS
     END SUBROUTINE force_fft
     !------------------------------------------------------------------------------------
     !>
+    !!  Gradient of Hartree potential in R space from a total
+    !!  (spinless) density in R space n(r)
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE grad_v_h_of_rho_r(this, nnr, rho, grad_v)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_fft), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: nnr
+        REAL(DP), INTENT(IN) :: rho(nnr)
+        !
+        REAL(DP), INTENT(OUT) :: grad_v(3, nnr)
+        !
+        INTEGER :: i, j
+        LOGICAL :: gamma_only = .TRUE.
+        !
+        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
+        !
+        CHARACTER(LEN=80) :: sub_name = 'grad_v_h_of_rho_r'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nnr /= this%cell%nnr) CALL io%error(sub_name, "Mismatch in FFT domain", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   nl => this%cell%dfft%nl, &
+                   g => this%cell%g, &
+                   gg => this%cell%gg)
+            !
+            !----------------------------------------------------------------------------
+            ! Bring rho to G space
+            !
+            ALLOCATE (auxr(nnr))
+            auxr = CMPLX(rho, 0.D0, KIND=DP)
+            !
+            CALL env_fwfft(auxr, dfft)
+            !
+            !----------------------------------------------------------------------------
+            ! Compute total potential in G space
+            !
+            ALLOCATE (auxg(nnr))
+            !
+            DO i = 1, 3
+                auxg = (0.0_DP, 0.0_DP)
+                !
+                DO j = this%cell%gstart, dfft%ngm
+                    !
+                    auxg(nl(j)) = &
+                        g(i, j) * (1.D0 / gg(j) + this%correction(j) * tpi2) * &
+                        CMPLX(-AIMAG(auxr(nl(j))), REAL(auxr(nl(j))), kind=DP)
+                    !
+                END DO
+                !
+                auxg = auxg * e2 * fpi / tpi
+                ! add the factor e2*fpi/2\pi coming from the missing prefactor of
+                ! V = e2 * fpi divided by the 2\pi factor missing in G
+                !
+                IF (gamma_only) THEN
+                    !
+                    auxg(dfft%nlm) = &
+                        CMPLX(REAL(auxg(nl)), -AIMAG(auxg(nl)), kind=DP)
+                    !
+                END IF
+                !
+                CALL env_invfft(auxg, dfft) ! bring back to R-space
+                !
+                grad_v(i, :) = REAL(auxg)
+            END DO
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE grad_v_h_of_rho_r
+    !------------------------------------------------------------------------------------
+    !>
     !! Gradient of Hartree potential in R space from a total
     !! (spinless) density in R space n(r)
-    !! wg_corr_h => calc_vmt
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE hess_v_h_of_rho_r(this, nnr, rho, hess_v)
@@ -1070,7 +1149,7 @@ CONTAINS
                 DO j = 1, 3
                     auxg = (0.0_DP, 0.0_DP)
                     !
-                    DO k = this%cell%gstart, this%cell%dfft%ngm
+                    DO k = this%cell%gstart, dfft%ngm
                         !
                         auxg(nl(k)) = &
                             g(i, k) * g(j, k) * &
@@ -1079,11 +1158,9 @@ CONTAINS
                         !
                     END DO
                     !
-                    !--------------------------------------------------------------------
-                    ! Add the factor e2*fpi coming from the missing prefactor of
-                    ! V = e2 * fpi
-                    !
                     auxg = auxg * e2 * fpi
+                    ! add the factor e2*fpi coming from the missing prefactor of
+                    ! V = e2 * fpi
                     !
                     IF (gamma_only) &
                         auxg(dfft%nlm) = CMPLX(DBLE(auxg(nl)), -AIMAG(auxg(nl)), kind=DP)
@@ -1091,7 +1168,6 @@ CONTAINS
                     CALL env_invfft(auxg, dfft) ! bring back to R-space
                     !
                     hess_v(i, j, :) = REAL(auxg)
-                    !
                 END DO
                 !
             END DO
@@ -1152,7 +1228,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Compute total potential in G space
                 !
-                DO j = this%cell%gstart, this%cell%dfft%ngm
+                DO j = this%cell%gstart, dfft%ngm
                     !
                     auxr(nl(j)) = &
                         this%cell%g(i, j) * &
@@ -1167,9 +1243,6 @@ CONTAINS
                 !
                 auxe = auxe + auxr
             END DO
-            !
-            DEALLOCATE (auxg)
-            DEALLOCATE (auxr)
             !
             IF (gamma_only) &
                 auxe(dfft%nlm) = CMPLX(REAL(auxe(nl)), -AIMAG(auxe(nl)), kind=DP)

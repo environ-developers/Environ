@@ -653,6 +653,52 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
+   Variable:       field_aware
+   
+   Type:           LOGICAL
+   Default:        .FALSE.
+   Description:    Switch to turn on the field-awareness scaling factor (only works with ionic boundary mode).
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       field_factor
+   
+   Type:           REAL
+   Default:        0.08D0
+   Description:    Maximum scaling factor possible by the field-aware model.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       field_asymmetry
+   
+   Type:           REAL
+   Default:        -0.32D0
+   Description:    Charge asymmetry factor. Positive values result in more field-awareness for positive charges,
+                   and vice-versa.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       field_max
+   
+   Type:           REAL
+   Default:        6.D0
+   Description:    Maximum flux value for switching function.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       field_min
+   
+   Type:           REAL
+   Default:        2.D0
+   Description:    Minimum flux value for switching function.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
    Variable:       filling_spread
    
    Type:           REAL
@@ -1445,4 +1491,4 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Wed Dec 01 11:47:34 CST 2021
+This file has been created by helpdoc utility on Sat Dec 18 11:16:21 CST 2021
