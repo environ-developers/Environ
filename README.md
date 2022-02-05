@@ -42,7 +42,7 @@
     - Environ compilation
     - QE patching, dependency updating, and recompilation
 
-    Note that Environ now uses its own FFTXlib and utils libraries modeled
+    Note that Environ now uses its own FFTXlib and UtilXlib libraries modeled
     respectively after the FFTXlib and UtilXlib libraries of QE 6.7
 
     If there are any problems with the QE compilation step, look for solutions

@@ -64,9 +64,9 @@ apply_prefix() {
     done
 }
 
-# point hpsort to Environ/utils/sorting.f90
+# point hpsort to Environ/UtilXlib/sorting.f90
 # QE stores hpsort in FFTXlib
-# Environ stores hpsort in utils/sorting.f90
+# Environ stores hpsort in UtilXlib/sorting.f90
 reroute_hpsort() {
     sed -i '/SUBROUTINE env_hpsort/,/END SUBROUTINE env_hpsort/d' ./*.f90 2>/dev/null
     sed -i "/USE env_fft_param/a USE env_sorting" stick_base.f90

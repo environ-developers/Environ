@@ -49,7 +49,7 @@ export LC_ALL
 cd "$(echo "$0" | sed 's/\(.*\)\/.*/\1/')" || exit # extract pathname
 TOPDIR=$(pwd)
 
-dirs="utils FFTXlib src"
+dirs="UtilXlib FFTXlib src"
 
 for dir in $dirs; do
 
@@ -60,8 +60,8 @@ for dir in $dirs; do
         cd "$TOPDIR"/../"$dir" || exit
 
         case "$dir" in
-        FFTXlib) DEPENDS="$DEPENDS ../utils" ;;
-        src) DEPENDS="$DEPENDS ../utils ../FFTXlib" ;;
+        FFTXlib) DEPENDS="$DEPENDS ../UtilXlib" ;;
+        src) DEPENDS="$DEPENDS ../UtilXlib ../FFTXlib" ;;
         esac
 
         "$TOPDIR"/moduledep.sh "$DEPENDS" >make.depend
