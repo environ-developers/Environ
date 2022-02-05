@@ -289,7 +289,7 @@ sum_ = 1 + var1 + &
 - unless importing a class, use explicit imports (DO NOT rely on nested imports!!!)
 - grouped at the top of the module, !-separated into subgroups (in order):
   - utils imports
-  - FFTs imports
+  - FFTXlib imports
   - constants
   - representation classes (cell, density, etc.)
   - core classes (containers, then cores; no !-separator)

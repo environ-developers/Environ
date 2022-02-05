@@ -1,4 +1,4 @@
-# Environ FFTs
+# FFTXlib
 
     Implements real space grid parallelization of FFTs.
 

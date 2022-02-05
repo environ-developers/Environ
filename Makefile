@@ -68,7 +68,7 @@ devs:
 	@ echo
 	@ echo "* compile (requires Environ/make.inc)"
 	@ echo
-	@ echo "  - compiles Environ's utils, FFTs, and src"
+	@ echo "  - compiles Environ's utils, FFTXlib, and src"
 	@ echo "  - compilation generates Environ/install/Environ_comp.log"
 	@ echo
 	@ echo "  * NOTE: Environ is decoupled from QE. Changes to QE files"
@@ -99,7 +99,7 @@ devs:
 	@ echo
 	@ echo "* depend"
 	@ echo
-	@ echo "  - updates dependencies in Environ's utils, FFTs, and src"
+	@ echo "  - updates dependencies in Environ's utils, FFTXlib, and src"
 	@ echo
 	@ echo "* depend-QE [prog=]"
 	@ echo
@@ -137,8 +137,8 @@ compile: check-Environ-makeinc
 	@ $(MAKE) compile-src
 	@ ( \
 		cd install; \
-		cat utils_comp.log FFTs_comp.log src_comp.log > Environ_comp.log; \
-		/bin/rm utils_comp.log FFTs_comp.log src_comp.log \
+		cat utils_comp.log FFTXlib_comp.log src_comp.log > Environ_comp.log; \
+		/bin/rm utils_comp.log FFTXlib_comp.log src_comp.log \
 	)
 	@ printf "\nEnviron $(ENVIRON_VERSION) compilation successful! \n"
 
@@ -157,10 +157,10 @@ compile-util: check-Environ-makeinc
 	@ $(MAKE) check-for-errors prog=utils
 
 compile-fft: check-Environ-makeinc
-	@ printf "\nCompiling FFTs...\n\n" 2>&1 | \
-	tee install/FFTs_comp.log
-	@ ( cd FFTs && $(MAKE) all || exit 1 ) 2>&1 | tee -a install/FFTs_comp.log
-	@ $(MAKE) check-for-errors prog=FFTs
+	@ printf "\nCompiling FFTXlib...\n\n" 2>&1 | \
+	tee install/FFTXlib_comp.log
+	@ ( cd FFTXlib && $(MAKE) all || exit 1 ) 2>&1 | tee -a install/FFTXlib_comp.log
+	@ $(MAKE) check-for-errors prog=FFTXlib
 	 
 compile-src: check-Environ-makeinc
 	@ printf "\nCompiling src...\n\n" 2>&1 | \
@@ -338,8 +338,8 @@ clean-util:
 	@ printf " done! \n"
 
 clean-fft:
-	@ printf "FFTs.........."
-	@ (cd FFTs && $(MAKE) clean)
+	@ printf "FFTXlib......."
+	@ (cd FFTXlib && $(MAKE) clean)
 	@ printf " done! \n"
 
 clean-src:

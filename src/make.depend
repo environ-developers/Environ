@@ -29,9 +29,9 @@ calculator.o : density.o
 calculator.o : gradient.o
 calculator.o : main.o
 calculator.o : setup.o
-cell.o : ../FFTs/base_stick.o
-cell.o : ../FFTs/fft_ggen.o
-cell.o : ../FFTs/types_fft.o
+cell.o : ../FFTXlib/base_stick.o
+cell.o : ../FFTXlib/fft_ggen.o
+cell.o : ../FFTXlib/types_fft.o
 cell.o : ../utils/io.o
 cell.o : ../utils/mp.o
 cell.o : ../utils/sorting.o
@@ -69,7 +69,7 @@ core_1da.o : gradient.o
 core_1da.o : semiconductor_base.o
 core_container.o : ../utils/io.o
 core_container.o : core.o
-core_fft.o : ../FFTs/fft_main.o
+core_fft.o : ../FFTXlib/fft_main.o
 core_fft.o : ../utils/io.o
 core_fft.o : ../utils/mp.o
 core_fft.o : ../utils/tools_math.o
@@ -94,8 +94,8 @@ debugging.o : function_gaussian.o
 debugging.o : functions.o
 debugging.o : gradient.o
 debugging.o : ions.o
-density.o : ../FFTs/base_scatter.o
-density.o : ../FFTs/types_fft.o
+density.o : ../FFTXlib/base_scatter.o
+density.o : ../FFTXlib/types_fft.o
 density.o : ../utils/io.o
 density.o : ../utils/mp.o
 density.o : cell.o
@@ -181,7 +181,7 @@ input.o : ../utils/io.o
 input.o : ../utils/mp.o
 input.o : base_input.o
 input.o : constants.o
-interface.o : ../FFTs/base_scatter.o
+interface.o : ../FFTXlib/base_scatter.o
 interface.o : ../utils/io.o
 interface.o : calculator.o
 interface.o : constants.o
@@ -221,7 +221,7 @@ main.o : ions.o
 main.o : semiconductor.o
 main.o : setup.o
 main.o : system.o
-mapping.o : ../FFTs/base_scatter.o
+mapping.o : ../FFTXlib/base_scatter.o
 mapping.o : ../utils/io.o
 mapping.o : ../utils/mp.o
 mapping.o : cell.o
