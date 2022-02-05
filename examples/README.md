@@ -53,3 +53,8 @@ example10: cp.x (only for QE-5.3.0 and later versions)
 
     Calculation of the total solvation free energy of an isolated
     molecule including electrostatic/cavitation/PV contributions
+
+example12: pw.x
+
+    Use of the field-aware interface to automatically adjust the
+    interface for charged solutes.
