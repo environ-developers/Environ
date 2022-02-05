@@ -103,6 +103,13 @@ CPPFLAGS       = @cppflags@ $(DFLAGS) $(IFLAGS)
 CFLAGS         = @cflags@ $(DFLAGS) $(IFLAGS) $(CUDA_CFLAGS)
 F90FLAGS       = @f90flags@ @pre_fdflags@$(FDFLAGS) $(CUDA_F90FLAGS) $(IFLAGS) $(MODFLAGS)
 
+# add flags to silence warnings coming from cannibalized libraries
+ifeq ($(F90),ifort)
+	F90FLAGS   += -diag-disable 5462 -diag-disable 6843
+else ifeq ($(F90),gfortran)
+	F90FLAGS   += -w
+endif
+
 # compiler flags with and without optimization for fortran-77
 # the latter is NEEDED to properly compile dlamch.f, used by lapack
 FFLAGS         = @fflags@
