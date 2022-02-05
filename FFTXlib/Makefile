@@ -37,10 +37,6 @@ MODFLAGS = $(BASEMOD_FLAGS)
 
 OBJS = $(patsubst %.f90,%.o,$(wildcard *.f90))
 
-C_OBJS = fft_stick.o fftw.o fftw_sp.o fftw_dp.o
-
-OBJS += $(C_OBJS)
-
 all: libsdir driver
 
 driver:
