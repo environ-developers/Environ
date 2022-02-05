@@ -32,7 +32,7 @@ MODULE environ_api
     !
     USE class_io, ONLY: io
     !
-    USE env_base_scatter, ONLY: env_scatter_grid, env_gather_grid
+    USE env_scatter_mod, ONLY: env_scatter_grid, env_gather_grid
     !
     USE environ_param, ONLY: DP
     !
@@ -295,7 +295,7 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
+        REAL(DP) :: aux(this%setup%system_cell%nnr)
         !
         !--------------------------------------------------------------------------------
         !
@@ -316,7 +316,7 @@ CONTAINS
         aux = rho
 #endif
         !
-        CALL this%main%update_electrons(this%setup%system_cell%dfft%nnr, aux, nelec)
+        CALL this%main%update_electrons(this%setup%system_cell%nnr, aux, nelec)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_electrons
@@ -334,7 +334,7 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
+        REAL(DP) :: aux(this%setup%system_cell%nnr)
         !
         CHARACTER(LEN=80) :: local_label = 'mbx_charges'
         !
@@ -399,9 +399,9 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP), INTENT(OUT) :: potential(this%setup%system_cell%dfft%nnt)
+        REAL(DP), INTENT(OUT) :: potential(this%setup%system_cell%nnt)
         !
-        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
+        REAL(DP) :: aux(this%setup%system_cell%nnr)
         !
         !--------------------------------------------------------------------------------
         !

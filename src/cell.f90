@@ -37,9 +37,9 @@ MODULE class_cell
     !
     USE environ_param, ONLY: DP, tpi, eps8
     !
-    USE env_base_stick, ONLY: env_sticks_map, env_sticks_map_deallocate
+    USE env_stick_base, ONLY: env_sticks_map, env_sticks_map_deallocate
     !
-    USE env_types_fft, ONLY: env_fft_type_descriptor, env_fft_type_init, &
+    USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_type_init, &
                              env_fft_stick_index, env_fft_type_deallocate
     !
     USE env_fft_ggen, ONLY: env_fft_set_nl
@@ -83,7 +83,7 @@ MODULE class_cell
         !
         TYPE(env_fft_type_descriptor) :: dfft
         !
-        INTEGER :: ntot ! total number of grid points
+        INTEGER :: nnt ! total number of grid points
         INTEGER :: nnr ! number of grid points allocated in every processor
         INTEGER :: ir_end ! actual number grid points accessed by each processor
         INTEGER :: j0, k0 ! starting indexes of processor-specific boxes of grid points
@@ -220,7 +220,7 @@ CONTAINS
         this%ir_end = this%nnr
 #endif
         !
-        this%ntot = this%dfft%nr1 * this%dfft%nr2 * this%dfft%nr3
+        this%nnt = this%dfft%nr1 * this%dfft%nr2 * this%dfft%nr3
         ! total number of physical points
         !
         !--------------------------------------------------------------------------------
@@ -269,7 +269,7 @@ CONTAINS
         CALL recips(this%at(1, 1), this%at(1, 2), this%at(1, 3), &
                     this%bg(1, 1), this%bg(1, 2), this%bg(1, 3))
         !
-        this%domega = this%omega / this%ntot ! set volume element
+        this%domega = this%omega / this%nnt ! set volume element
         !
         !--------------------------------------------------------------------------------
         ! Calculate corners for minimum image convention
@@ -352,8 +352,8 @@ CONTAINS
         CALL recips(at(1, 1), at(1, 2), at(1, 3), bg(1, 1), bg(1, 2), bg(1, 3))
         ! calculate the reciprocal lattice vectors
         !
-        CALL env_fft_type_init(this%dfft, smap, .TRUE., .TRUE., comm, at, bg, gcutm, &
-                               nyfft=1, nmany=1)
+        CALL env_fft_type_init(this%dfft, smap, 'rho', .TRUE., .TRUE., comm, at, bg, &
+                               gcutm, nyfft=1, nmany=1)
         !
         this%dfft%rho_clock_label = 'fft'
         !
@@ -578,7 +578,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        narea = this%ntot / naxis
+        narea = this%nnt / naxis
         !
         IF (reverse) THEN
             f = 0.D0
@@ -1239,7 +1239,7 @@ CONTAINS
             IF (local_verbose >= 3) THEN
                 WRITE (local_unit, 1004) this%at
                 WRITE (local_unit, 1005) this%dfft%nr1, this%dfft%nr2, this%dfft%nr3
-                WRITE (local_unit, 1006) this%ntot, this%nnr, this%domega
+                WRITE (local_unit, 1006) this%nnt, this%nnr, this%domega
             END IF
             !
             IF (local_verbose < base_verbose) &
