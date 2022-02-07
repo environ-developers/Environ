@@ -121,7 +121,7 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL start_clock( 'env_cft_1z' )
+     CALL env_start_clock( 'env_cft_1z' )
 #endif
 
 
@@ -136,7 +136,7 @@
           cout(1), ldz, tablez (1, ip), work, isys)
 
 #if defined(__FFT_CLOCKS)
-     CALL stop_clock( 'env_cft_1z' )
+     CALL env_stop_clock( 'env_cft_1z' )
 #endif
 
      RETURN
@@ -249,7 +249,7 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL start_clock( 'env_cft_2xy' )
+     CALL env_start_clock( 'env_cft_2xy' )
 #endif
 
 
@@ -304,7 +304,7 @@
      END IF
 
 #if defined(__FFT_CLOCKS)
-     CALL stop_clock( 'env_cft_2xy' )
+     CALL env_stop_clock( 'env_cft_2xy' )
 #endif
 
      RETURN

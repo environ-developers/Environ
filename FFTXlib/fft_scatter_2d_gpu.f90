@@ -126,7 +126,7 @@ SUBROUTINE env_fft_scatter_gpu ( dfft, f_in_d, f_in, nr3x, nxx_, f_aux_d, f_aux,
      gcomm = dfft%comm
 
 
-     CALL start_clock ('a2a_fw')
+     CALL env_start_clock ('a2a_fw')
 #ifdef __GPU_MPI
 
      istat = cudaDeviceSynchronize()
@@ -159,7 +159,7 @@ SUBROUTINE env_fft_scatter_gpu ( dfft, f_in_d, f_in, nr3x, nxx_, f_aux_d, f_aux,
 #else
      CALL mpi_alltoall (f_aux(1), sendsiz, MPI_DOUBLE_COMPLEX, f_in(1), sendsiz, MPI_DOUBLE_COMPLEX, gcomm, ierr)
 #endif
-     CALL stop_clock ('a2a_fw')
+     CALL env_stop_clock ('a2a_fw')
 
      IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('env_fft_scatter', 'info<>0', abs(ierr) )
 
@@ -284,7 +284,7 @@ SUBROUTINE env_fft_scatter_gpu ( dfft, f_in_d, f_in, nr3x, nxx_, f_aux_d, f_aux,
 #endif
      !
      ! CALL mpi_barrier (gcomm, ierr)  ! why barrier? for buggy openmpi over ib
-     CALL start_clock ('a2a_bw')
+     CALL env_start_clock ('a2a_bw')
 #ifdef __GPU_MPI
 
      istat = cudaDeviceSynchronize()
@@ -317,7 +317,7 @@ SUBROUTINE env_fft_scatter_gpu ( dfft, f_in_d, f_in, nr3x, nxx_, f_aux_d, f_aux,
 #else
      CALL mpi_alltoall (f_in(1), sendsiz, MPI_DOUBLE_COMPLEX, f_aux(1), sendsiz, MPI_DOUBLE_COMPLEX, gcomm, ierr)
 #endif
-     CALL stop_clock ('a2a_bw')
+     CALL env_stop_clock ('a2a_bw')
      IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('env_fft_scatter', 'info<>0', abs(ierr) )
      !
      !  step one: store contiguously the columns
@@ -447,7 +447,7 @@ SUBROUTINE env_fft_scatter_gpu_batch ( dfft, f_in_d, f_in, nr3x, nxx_, f_aux_d, 
      !
      gcomm = dfft%comm
 
-     CALL start_clock ('a2a_fw')
+     CALL env_start_clock ('a2a_fw')
 
      istat = cudaDeviceSynchronize()
      ! Here the data are sent to all processors involved in the FFT.
@@ -497,7 +497,7 @@ SUBROUTINE env_fft_scatter_gpu_batch ( dfft, f_in_d, f_in, nr3x, nxx_, f_aux_d, 
      IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('env_fft_scatter', 'MPI_WAITALL info<>0', abs(ierr) )
      istat = cudaDeviceSynchronize()
 
-     CALL stop_clock ('a2a_fw')
+     CALL env_stop_clock ('a2a_fw')
 
 #ifndef __GPU_MPI
      f_in_d(1:sendsiz*dfft%nproc) = f_in(1:sendsiz*dfft%nproc)
@@ -624,7 +624,7 @@ SUBROUTINE env_fft_scatter_gpu_batch ( dfft, f_in_d, f_in, nr3x, nxx_, f_aux_d, 
 #endif
 
      ! CALL mpi_barrier (gcomm, ierr)  ! why barrier? for buggy openmpi over ib
-     CALL start_clock ('a2a_bw')
+     CALL env_start_clock ('a2a_bw')
 
 
      istat = cudaDeviceSynchronize()
@@ -669,7 +669,7 @@ SUBROUTINE env_fft_scatter_gpu_batch ( dfft, f_in_d, f_in, nr3x, nxx_, f_aux_d, 
      IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('env_fft_scatter', 'MPI_WAITALL info<>0', abs(ierr) )
      istat = cudaDeviceSynchronize()
 
-     CALL stop_clock ('a2a_bw')
+     CALL env_stop_clock ('a2a_bw')
      !
      !  step one: store contiguously the columns
      !
@@ -863,7 +863,7 @@ SUBROUTINE env_fft_scatter_many_columns_to_planes_send ( dfft, f_in_d, f_in, nr3
    !
    ! JR Note: Holding off staging receives until buffer is packed.
    istat = cudaEventSynchronize( dfft%bevents(batch_id) )
-   CALL start_clock ('A2A')
+   CALL env_start_clock ('A2A')
 #ifdef __IPC
    !TODO: possibly remove this barrier by ensuring recv buffer is not used by previous operation
    call MPI_Barrier( gcomm, ierr )
@@ -927,7 +927,7 @@ SUBROUTINE env_fft_scatter_many_columns_to_planes_send ( dfft, f_in_d, f_in, nr3
    CALL sync_ipc_sends( gcomm )
    CALL MPI_Barrier( gcomm, ierr )
 #endif
-   CALL stop_clock ('A2A')
+   CALL env_stop_clock ('A2A')
 
    IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('env_fft_scatter', 'info<>0', abs(ierr) )
 
@@ -1220,7 +1220,7 @@ SUBROUTINE env_fft_scatter_many_planes_to_columns_send ( dfft, f_in_d, f_in, nr3
    !
    ! JR Note: Holding off staging receives until buffer is packed.
    istat = cudaEventSynchronize( dfft%bevents(batch_id) )
-   CALL start_clock ('A2A')
+   CALL env_start_clock ('A2A')
 #ifdef __IPC
    ! TODO: possibly remove this barrier
    CALL MPI_Barrier( gcomm, ierr )
@@ -1286,7 +1286,7 @@ SUBROUTINE env_fft_scatter_many_planes_to_columns_send ( dfft, f_in_d, f_in, nr3
    call sync_ipc_sends( gcomm )
    call MPI_Barrier( gcomm, ierr )
 #endif
-   CALL stop_clock ('A2A')
+   CALL env_stop_clock ('A2A')
 
    IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('env_fft_scatter', 'info<>0', abs(ierr) )
    !

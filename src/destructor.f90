@@ -85,7 +85,7 @@ CONTAINS
         !
         CALL this%second()
         !
-        CALL env_deallocate_mp_buffers()
+        CALL env_deallocate_buffers()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean

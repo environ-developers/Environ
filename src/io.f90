@@ -30,7 +30,6 @@ MODULE class_io
     !------------------------------------------------------------------------------------
     !
     USE env_char_ops, ONLY: env_uppercase
-    USE env_mp, ONLY: env_mp_rank, env_mp_abort
     !
     IMPLICIT NONE
     !
@@ -62,9 +61,9 @@ MODULE class_io
         PROCEDURE :: init => init_base_io
         PROCEDURE :: update_unit => update_output_program_unit
         !
-        PROCEDURE, NOPASS :: find_free_unit => env_find_free_unit
+        PROCEDURE, NOPASS :: find_free_unit
         !
-        PROCEDURE, NOPASS :: error => env_errore
+        PROCEDURE, NOPASS :: error
         PROCEDURE, NOPASS :: create_error => env_create_error
         PROCEDURE, NOPASS :: destroy_error => env_destroy_error
         PROCEDURE, NOPASS :: invalid_opt => env_invalid_opt
@@ -136,37 +135,19 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    INTEGER FUNCTION env_find_free_unit()
+    INTEGER FUNCTION find_free_unit()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER :: iunit
-        LOGICAL :: opnd
-        !
-        CHARACTER(LEN=80) :: fun_name = 'env_find_free_unit'
+        INTEGER, EXTERNAL :: env_find_free_unit
         !
         !--------------------------------------------------------------------------------
         !
-        env_find_free_unit = -1
-        !
-        unit_loop: DO iunit = 99, 1, -1
-            !
-            INQUIRE (UNIT=iunit, OPENED=opnd)
-            !
-            IF (.NOT. opnd) THEN
-                env_find_free_unit = iunit
-                !
-                RETURN
-                !
-            END IF
-            !
-        END DO unit_loop
-        !
-        CALL io%warning("free unit not found?!?", 1002)
+        find_free_unit = env_find_free_unit()
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION env_find_free_unit
+    END FUNCTION find_free_unit
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -191,113 +172,21 @@ CONTAINS
     !! produced by loadleveler).
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_errore(calling_routine, message, ierr)
-        !--------------------------------------------------------------------------------
-        !
-        USE env_parallel_include, ONLY: MPI_COMM_WORLD
-        !
-#if defined(__PTRACE)&&defined(__INTEL_COMPILER)
-        USE ifcore, ONLY: tracebackqq
-#endif
-        !
+    SUBROUTINE error(calling_routine, message, ierr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=*), INTENT(IN) :: calling_routine
-        ! the name of the calling calling_routine
-        !
-        CHARACTER(LEN=*), INTENT(IN) :: message ! the output message
-        INTEGER, INTENT(IN) :: ierr ! the error flag
-        !
-        INTEGER :: crashunit, mpime
-        CHARACTER(LEN=6) :: cerr
+        CHARACTER(LEN=*), INTENT(IN) :: message
+        INTEGER, INTENT(IN) :: ierr
         !
         !--------------------------------------------------------------------------------
         !
-        ! #TODO figure this out
-        !
-        ! IF (.NOT. ionode) CALL env_mp_abort(1, MPI_COMM_WORLD) ! #TODO what if ionode != 0?
-        !
-        IF (ierr <= 0) RETURN
+        CALL env_errore(calling_routine, message, ierr)
         !
         !--------------------------------------------------------------------------------
-        ! The error message is written in the "*" unit
-        !
-        WRITE (cerr, FMT='(I6)') ierr
-        WRITE (UNIT=*, FMT='(/,1X,78("%"))')
-        !
-        WRITE (UNIT=*, FMT='(5X,"Error in routine ",A," (",A,"):")') &
-            TRIM(calling_routine), TRIM(ADJUSTL(cerr))
-        !
-        WRITE (UNIT=*, FMT='(5X,A)') TRIM(message)
-        WRITE (UNIT=*, FMT='(1X,78("%"),/)')
-        !
-#if defined(__MPI)&&defined(__AIX)
-        !
-        !--------------------------------------------------------------------------------
-        ! In the case of ibm machines it is also written on the "0" unit
-        ! which is automatically connected to stderr
-        !
-        WRITE (UNIT=0, FMT='(/,1X,78("%"))')
-        !
-        WRITE (UNIT=0, FMT='(5X,"Error in routine ",A," (",A,"):")') &
-            TRIM(calling_routine), TRIM(ADJUSTL(cerr))
-        !
-        WRITE (UNIT=0, FMT='(5X,A)') TRIM(message)
-        WRITE (UNIT=0, FMT='(1X,78("%"),/)')
-        !
-#endif
-        !
-        WRITE (*, '("     stopping ...")')
-        !
-        FLUSH (io%unit) ! #TODO why?
-        !
-#if defined(__PTRACE)
-#if defined(__INTEL_COMPILER)
-        CALL tracebackqq(user_exit_code=-1)
-#elif __GFORTRAN__
-#if (__GNUC__>4)||((__GNUC__==4)&&(__GNUC_MINOR__>=8))
-        CALL backtrace
-#endif
-#else
-        WRITE (UNIT=0, FMT='(5X,A)') "Printing strace..."
-        !
-        CALL ptrace()
-#endif
-#endif
-        !
-#if defined(__MPI)
-        !
-        mpime = env_mp_rank(MPI_COMM_WORLD)
-        !
-        !--------------------------------------------------------------------------------
-        ! Write the message to a file and close it before exiting
-        ! This will prevent loss of information on systems that
-        ! do not flush the open streams
-        ! Added by C.C.
-        !
-        crashunit = io%find_free_unit()
-        OPEN (UNIT=crashunit, FILE='CRASH', POSITION='APPEND', STATUS='UNKNOWN')
-        !
-        WRITE (UNIT=crashunit, FMT='(/,1X,78("%"))')
-        WRITE (UNIT=crashunit, FMT='(5X,"task #",I10)') mpime
-        !
-        WRITE (UNIT=crashunit, &
-               FMT='(5X,"from ",A," : error #",I10)') TRIM(calling_routine), ierr
-        !
-        WRITE (UNIT=crashunit, FMT='(5X,A)') message
-        WRITE (UNIT=crashunit, FMT='(1X,78("%"),/)')
-        !
-        CLOSE (UNIT=crashunit)
-        !
-        CALL env_mp_abort(1, MPI_COMM_WORLD) ! try to exit in a smooth way
-#endif
-        !
-        STOP 1
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE env_errore
+    END SUBROUTINE error
     !------------------------------------------------------------------------------------
     !>
     !!

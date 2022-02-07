@@ -81,7 +81,7 @@ SUBROUTINE env_fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn, comm )
 
 #if defined(__MPI)
 !$omp master
-  CALL start_clock ('fft_scatt_xy')
+  CALL env_start_clock ('fft_scatt_xy')
 !$omp end master
 
   IF (PRESENT(comm)) THEN
@@ -101,7 +101,7 @@ SUBROUTINE env_fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn, comm )
   end if
   !
 !$omp master
-  CALL stop_clock ('fft_scatt_xy')
+  CALL env_stop_clock ('fft_scatt_xy')
 !$omp end master
 
   RETURN
@@ -359,7 +359,7 @@ SUBROUTINE env_fft_scatter_many_xy ( desc, f_in, f_aux, isgn, howmany)
      print *, "ERRORE, this should never happen!"
   end if
   !
-  CALL start_clock ('fft_scatt_many_xy')
+  CALL env_start_clock ('fft_scatt_many_xy')
   !
   ! calculate the message size
   !
@@ -568,7 +568,7 @@ SUBROUTINE env_fft_scatter_many_xy ( desc, f_in, f_aux, isgn, howmany)
      ENDIF
   ENDIF
 
-  CALL stop_clock ('fft_scatt_many_xy')
+  CALL env_stop_clock ('fft_scatt_many_xy')
 
 #endif
 
@@ -622,7 +622,7 @@ SUBROUTINE env_fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
 
 #if defined(__MPI)
   !
-  CALL start_clock ('fft_scatt_yz')
+  CALL env_start_clock ('fft_scatt_yz')
 
   if ( abs (isgn) == 1 ) then      ! It's a potential FFT
      CALL env_impl_yz(desc%mype2+1, desc%mype2+1, desc%nsp, desc%ir1p, desc%nsp_offset)
@@ -632,7 +632,7 @@ SUBROUTINE env_fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
      CALL env_impl_yz(1, desc%nproc2, desc%nsw, desc%ir1w_tg, desc%nsw_offset)
   end if
 
-  CALL stop_clock ('fft_scatt_yz')
+  CALL env_stop_clock ('fft_scatt_yz')
 
   RETURN
 
@@ -906,7 +906,7 @@ SUBROUTINE env_fft_scatter_many_yz ( desc, f_in, f_aux, isgn, howmany )
      print *, "ERRORE, this should never happen!"
   end if
   !
-  CALL start_clock ('fft_scatt_many_yz')
+  CALL env_start_clock ('fft_scatt_many_yz')
   !
   ! calculate the message size
   !
@@ -1103,7 +1103,7 @@ SUBROUTINE env_fft_scatter_many_yz ( desc, f_in, f_aux, isgn, howmany )
      !
   ENDIF
 
-  CALL stop_clock ('fft_scatt_many_yz')
+  CALL env_stop_clock ('fft_scatt_many_yz')
 
 #endif
 
@@ -1135,7 +1135,7 @@ SUBROUTINE env_fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
 
   INTEGER :: ierr
 
-  CALL start_clock ('fft_scatt_tg')
+  CALL env_start_clock ('fft_scatt_tg')
 
   if ( abs (isgn) /= 3 ) call env_fftx_error__ ('env_fft_scatter_tg', 'wrong call', 1 )
 
@@ -1156,7 +1156,7 @@ SUBROUTINE env_fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
    end if
 
 #endif
-  CALL stop_clock ('fft_scatt_tg')
+  CALL env_stop_clock ('fft_scatt_tg')
 
   RETURN
 
@@ -1184,7 +1184,7 @@ SUBROUTINE env_fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
 
   INTEGER :: ierr
 
-  CALL start_clock ('fft_scatt_tg')
+  CALL env_start_clock ('fft_scatt_tg')
 
   if ( abs (isgn) /= 3 ) call env_fftx_error__ ('env_fft_scatter_tg', 'wrong call', 1 )
 
@@ -1204,7 +1204,7 @@ SUBROUTINE env_fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
    end if
 
 #endif
-  CALL stop_clock ('fft_scatt_tg')
+  CALL env_stop_clock ('fft_scatt_tg')
 
   RETURN
 

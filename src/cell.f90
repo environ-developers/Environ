@@ -32,8 +32,7 @@ MODULE class_cell
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
-    USE env_sorting, ONLY: env_hpsort_eps
-    USE env_mp, ONLY: env_mp_sum
+    USE env_mp, ONLY: env_mp_sum, env_mp_rank, env_mp_size
     !
     USE environ_param, ONLY: DP, tpi, eps8
     !
@@ -889,8 +888,6 @@ CONTAINS
         LOGICAL :: global_sort, is_local
         INTEGER, ALLOCATABLE :: ngmpe(:)
         !
-        INTEGER, EXTERNAL :: env_mp_rank, env_mp_size
-        !
         CHARACTER(LEN=80) :: sub_name = 'env_ggen'
         !
         !--------------------------------------------------------------------------------
@@ -1161,6 +1158,133 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_deallocate_gvect
+    !------------------------------------------------------------------------------------
+    !>
+    !! Sort an array ra(1:n) into ascending order using heapsort algorithm,
+    !! and considering two elements being equal if their values differ
+    !! for less than "eps".
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_hpsort_eps(n, ra, ind, eps)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: n
+        REAL(DP), INTENT(IN) :: eps
+        !
+        INTEGER, INTENT(INOUT) :: ind(*)
+        REAL(DP), INTENT(INOUT) :: ra(*)
+        !
+        INTEGER :: i, ir, j, l, iind
+        REAL(DP) :: rra
+        !
+        !--------------------------------------------------------------------------------
+        ! Initialize index array
+        !
+        IF (ind(1) == 0) THEN
+            !
+            DO i = 1, n
+                ind(i) = i
+            END DO
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (n < 2) RETURN ! nothing to order
+        !
+        l = n / 2 + 1
+        ir = n
+        !
+        sorting: DO
+            !
+            IF (l > 1) THEN ! hiring phase
+                !
+                l = l - 1
+                rra = ra(l)
+                iind = ind(l)
+                !
+            ELSE ! retirement-promotion phase
+                !
+                rra = ra(ir)
+                iind = ind(ir)
+                ! clear a space at the end of the array
+                !
+                ra(ir) = ra(1)
+                ind(ir) = ind(1)
+                ! retire the top of the heap into it
+                !
+                ir = ir - 1 ! decrease the size of the corporation
+                !
+                IF (ir == 1) THEN ! done with the last promotion
+                    !
+                    ra(1) = rra
+                    ind(1) = iind
+                    ! the least competent worker
+                    !
+                    EXIT sorting
+                    !
+                END IF
+                !
+            END IF
+            !
+            !----------------------------------------------------------------------------
+            ! Regardless of phase, we prepare to place rra in its proper level
+            !
+            i = l
+            j = l + l
+            !
+            DO WHILE (j <= ir)
+                !
+                IF (j < ir) THEN
+                    !
+                    IF (ABS(ra(j) - ra(j + 1)) >= eps) THEN
+                        !
+                        IF (ra(j) < ra(j + 1)) j = j + 1
+                        ! compare to better underling
+                        !
+                    ELSE ! this means ra(j) == ra(j+1) within tolerance
+                        !
+                        IF (ind(j) < ind(j + 1)) j = j + 1
+                        !
+                    END IF
+                    !
+                END IF
+                !
+                IF (ABS(rra - ra(j)) >= eps) THEN ! demote rra
+                    !
+                    IF (rra < ra(j)) THEN
+                        ra(i) = ra(j)
+                        ind(i) = ind(j)
+                        i = j
+                        j = j + j
+                    ELSE
+                        j = ir + 1 ! set j to terminate do-while loop
+                    END IF
+                    !
+                ELSE ! this means rra == ra(j) within tolerance
+                    !
+                    IF (iind < ind(j)) THEN ! demote rra
+                        ra(i) = ra(j)
+                        ind(i) = ind(j)
+                        i = j
+                        j = j + j
+                    ELSE
+                        j = ir + 1 ! set j to terminate do-while loop
+                    END IF
+                    !
+                END IF
+                !
+            END DO
+            !
+            ra(i) = rra
+            ind(i) = iind
+            !
+        END DO sorting
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_hpsort_eps
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

@@ -95,7 +95,7 @@
      call env_fftx_error__(" env_fft_scalar_cuFFT: env_cft_1z_gpu ", " failed to set stream ", istat)
 
 #if defined(__FFT_CLOCKS)
-     CALL start_clock( 'GPU_cft_1z' )
+     CALL env_start_clock( 'GPU_cft_1z' )
 #endif
 
      IF (isign < 0) THEN
@@ -124,7 +124,7 @@
      END IF
 
 #if defined(__FFT_CLOCKS)
-     CALL stop_clock( 'GPU_cft_1z' )
+     CALL env_stop_clock( 'GPU_cft_1z' )
 #endif
 
 #ifdef TRACK_FLOPS
@@ -283,7 +283,7 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL start_clock( 'GPU_cft_2xy' )
+     CALL env_start_clock( 'GPU_cft_2xy' )
 #endif
 
      IF( isign < 0 ) THEN
@@ -389,7 +389,7 @@
 
 
 #if defined(__FFT_CLOCKS)
-     CALL stop_clock( 'GPU_cft_2xy' )
+     CALL env_stop_clock( 'GPU_cft_2xy' )
 #endif
 
 #ifdef TRACK_FLOPS

@@ -545,7 +545,7 @@ SUBROUTINE env_tg_cft3s_gpu( f_d, dfft, isgn )
   CALL env_check_buffers_size( dfft )
   !
   IF ( isgn > 0 ) THEN  ! G -> R
-     !CALL nvtxStartRangeAsync("env_tg_cft3s_gpu G->R", 1)
+     !CALL env_nvtxStartRangeAsync("env_tg_cft3s_gpu G->R", 1)
      if (isgn==+3) then 
         call env_fft_scatter_tg_opt_gpu ( dfft, f_d, aux_d, nnr_, isgn, stream)
         CALL env_cft_1z_gpu( aux_d, nsticks_z, n3, nx3, isgn, f_d, stream )
@@ -565,11 +565,11 @@ SUBROUTINE env_tg_cft3s_gpu( f_d, dfft, isgn )
             f_d(i) = (0.0_DP,0.0_DP)
         end do
      endif
-     !CALL nvtxEndRangeAsync()
+     !CALL env_nvtxEndRangeAsync()
      !
   ELSE                  ! R -> G
      !
-     !CALL nvtxStartRangeAsync("env_tg_cft3s_gpu R->G", 2)
+     !CALL env_nvtxStartRangeAsync("env_tg_cft3s_gpu R->G", 2)
      CALL env_cft_1z_gpu( f_d, nsticks_x, n1, nx1, isgn, aux_d, stream )
      CALL env_fft_scatter_xy_gpu ( dfft, f_d, aux_d, nnr_, isgn, stream )
      CALL env_cft_1z_gpu( f_d, nsticks_y, n2, nx2, isgn, aux_d, stream )
@@ -597,7 +597,7 @@ SUBROUTINE env_tg_cft3s_gpu( f_d, dfft, isgn )
            end do
         endif
      endif
-     !CALL nvtxEndRangeAsync()
+     !CALL env_nvtxEndRangeAsync()
   ENDIF
   !write (6,99) f_d(1:400); write(6,*); FLUSH(6)
   !
@@ -695,7 +695,7 @@ SUBROUTINE env_many_cft3s_gpu( f_d, dfft, isgn, howmany )
   ierr = cudaDeviceSynchronize()
   !
   IF ( isgn > 0 ) THEN  ! G -> R
-     !CALL nvtxStartRangeAsync("env_many_cft3s_gpu G->R", 1)
+     !CALL env_nvtxStartRangeAsync("env_many_cft3s_gpu G->R", 1)
      DO i = 0, howmany-1
         CALL env_cft_1z_gpu( f_d(i*nnr_+1:), nsticks_z, n3, nx3, isgn, aux_d(nx3*nsticks_zx*i+1:), &
                          stream ) !dfft%stream_many((mod(i,nstreams)+1)) )
@@ -728,11 +728,11 @@ SUBROUTINE env_many_cft3s_gpu( f_d, dfft, isgn, howmany )
         END DO
      ENDIF
      !
-     !CALL nvtxEndRangeAsync()
+     !CALL env_nvtxEndRangeAsync()
      !
   ELSE                  ! R -> G
      !
-     !CALL nvtxStartRangeAsync("env_many_cft3s_gpu R->G", 2)
+     !CALL env_nvtxStartRangeAsync("env_many_cft3s_gpu R->G", 2)
      DO i = 0, howmany-1
         CALL env_cft_1z_gpu( f_d(i*nnr_+1:), nsticks_x, n1, nx1, isgn, aux_d(i*nnr_+1:), &
                          stream ) ! dfft%stream_many((mod(i,nstreams)+1)) )
@@ -763,7 +763,7 @@ SUBROUTINE env_many_cft3s_gpu( f_d, dfft, isgn, howmany )
            END DO
         END DO
      ENDIF
-     !CALL nvtxEndRangeAsync()
+     !CALL env_nvtxEndRangeAsync()
   ENDIF
   !write (6,99) f_d(1:400); write(6,*); FLUSH(6)
   !

@@ -95,7 +95,7 @@ SUBROUTINE env_fft_scatter_xy_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn, stream )
   INTEGER :: sh(desc%nproc2), rh(desc%nproc2)
 #endif
   !
-  !CALL nvtxStartRangeAsync("env_fft_scatter_xy_gpu", isgn + 5)
+  !CALL env_nvtxStartRangeAsync("env_fft_scatter_xy_gpu", isgn + 5)
   !
   me2    = desc%mype2 + 1
   nproc2 = desc%nproc2 ; if ( abs(isgn) == 3 ) nproc2 = 1
@@ -124,7 +124,7 @@ SUBROUTINE env_fft_scatter_xy_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn, stream )
      my_nr2p=desc%nr2x                 ! in task group FFTs whole Y colums are distributed
   end if
   !
-  CALL start_clock ('fft_scatt_xy')
+  CALL env_start_clock ('fft_scatt_xy')
   !
   ! calculate the message size
   !
@@ -322,9 +322,9 @@ SUBROUTINE env_fft_scatter_xy_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn, stream )
 
   ENDIF
   !
-  !CALL nvtxEndRangeAsync()
+  !CALL env_nvtxEndRangeAsync()
   DEALLOCATE ( ncp_ )
-  CALL stop_clock ('fft_scatt_xy')
+  CALL env_stop_clock ('fft_scatt_xy')
 
 #endif
 
@@ -394,7 +394,7 @@ SUBROUTINE env_fft_scatter_yz_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn )
   INTEGER :: sh(desc%nproc3), rh(desc%nproc3)
 #endif
   TYPE(cudaEvent) :: zero_event
-  !CALL nvtxStartRangeAsync("env_fft_scatter_yz_gpu", isgn + 5)
+  !CALL env_nvtxStartRangeAsync("env_fft_scatter_yz_gpu", isgn + 5)
   ierr = cudaEventCreate( zero_event )
   !
   me     = desc%mype  + 1
@@ -429,7 +429,7 @@ SUBROUTINE env_fft_scatter_yz_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn )
      me2_start = 1 ; me2_end = desc%nproc2
   end if
   !
-  CALL start_clock ('fft_scatt_yz')
+  CALL env_start_clock ('fft_scatt_yz')
   !
   ! calculate the message size
   !
@@ -653,8 +653,8 @@ SUBROUTINE env_fft_scatter_yz_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn )
   ENDIF
 
   DEALLOCATE ( ncp_ )
-  !CALL nvtxEndRangeAsync()
-  CALL stop_clock ('fft_scatt_yz')
+  !CALL env_nvtxEndRangeAsync()
+  CALL env_stop_clock ('fft_scatt_yz')
 
 #endif
 
@@ -690,7 +690,7 @@ SUBROUTINE env_fft_scatter_tg_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn, stream )
 
   INTEGER :: ierr
 
-  CALL start_clock ('fft_scatt_tg')
+  CALL env_start_clock ('fft_scatt_tg')
 
   if ( abs (isgn) /= 3 ) call env_fftx_error__ ('env_fft_scatter_tg', 'wrong call', 1 )
   ! get pinned memory buffers for ALLTOALL, check allocation
@@ -719,7 +719,7 @@ SUBROUTINE env_fft_scatter_tg_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn, stream )
   !ierr = cudaStreamSynchronize(stream)
 #endif
   !
-  CALL stop_clock ('fft_scatt_tg')
+  CALL env_stop_clock ('fft_scatt_tg')
   RETURN
 99 format ( 20 ('(',2f12.9,')') )
 
@@ -751,7 +751,7 @@ SUBROUTINE env_fft_scatter_tg_opt_gpu ( desc, f_in_d, f_out_d, nxx_, isgn, strea
 
   INTEGER :: ierr
 
-  CALL start_clock ('fft_scatt_tg')
+  CALL env_start_clock ('fft_scatt_tg')
 
   if ( abs (isgn) /= 3 ) call env_fftx_error__ ('env_fft_scatter_tg', 'wrong call', 1 )
   !
@@ -779,7 +779,7 @@ SUBROUTINE env_fft_scatter_tg_opt_gpu ( desc, f_in_d, f_out_d, nxx_, isgn, strea
   ierr = cudaMemcpyAsync( f_out_d, f_out, nxx_, cudaMemcpyHostToDevice, stream )
   !ierr = cudaStreamSynchronize(stream)
   !
-  CALL stop_clock ('fft_scatt_tg')
+  CALL env_stop_clock ('fft_scatt_tg')
 
   RETURN
 99 format ( 20 ('(',2f12.9,')') )
@@ -849,7 +849,7 @@ SUBROUTINE env_fft_scatter_many_yz_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn, howm
 #if defined(__NON_BLOCKING_SCATTER)
   INTEGER :: sh(desc%nproc3), rh(desc%nproc3)
 #endif
-  !CALL nvtxStartRangeAsync("env_fft_scatter_many_yz_gpu", isgn + 5)
+  !CALL env_nvtxStartRangeAsync("env_fft_scatter_many_yz_gpu", isgn + 5)
   !
   me     = desc%mype  + 1
   me2    = desc%mype2 + 1
@@ -881,7 +881,7 @@ SUBROUTINE env_fft_scatter_many_yz_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn, howm
      print *, "ERRORE, this should never happen!"
   end if
   !
-  CALL start_clock ('fft_scatt_many_yz')
+  CALL env_start_clock ('fft_scatt_many_yz')
   !
   ! calculate the message size
   !
@@ -1030,8 +1030,8 @@ SUBROUTINE env_fft_scatter_many_yz_gpu ( desc, f_in_d, f_aux_d, nxx_, isgn, howm
   ENDIF
 
   DEALLOCATE ( ncp_ )
-  !CALL nvtxEndRangeAsync()
-  CALL stop_clock ('fft_scatt_many_yz')
+  !CALL env_nvtxEndRangeAsync()
+  CALL env_stop_clock ('fft_scatt_many_yz')
 
 #endif
 

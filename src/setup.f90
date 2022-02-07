@@ -33,6 +33,8 @@
 MODULE class_setup
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_start
+    !
     USE class_io, ONLY: io
     !
     USE environ_param, ONLY: DP, tpi2, BOHR_RADIUS_SI, RYDBERG_SI
@@ -298,6 +300,9 @@ CONTAINS
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
         INTEGER :: i
+        !
+        INTEGER :: nproc, mpime
+        !
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
@@ -326,7 +331,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initializing necessary mp buffers
         !
-        CALL env_allocate_mp_buffers()
+        CALL env_mp_start(nproc, mpime, io%comm)
         !
         !--------------------------------------------------------------------------------
         !

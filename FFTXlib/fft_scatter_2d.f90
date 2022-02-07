@@ -79,7 +79,7 @@ SUBROUTINE env_fft_scatter ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn )
   !
   nprocp = dfft%nproc
   !
-  CALL start_clock ('env_fft_scatter')
+  CALL env_start_clock ('env_fft_scatter')
   !
   ncpx = 0
   nppx = 0
@@ -252,7 +252,7 @@ SUBROUTINE env_fft_scatter ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn )
 
   ENDIF
 
-  CALL stop_clock ('env_fft_scatter')
+  CALL env_stop_clock ('env_fft_scatter')
 
 #endif
 
