@@ -2,7 +2,11 @@
 
 set -eu
 
-for dir in example*; do
+examples=" \
+    water
+"
+
+for dir in $examples; do
     cd "$dir"
     ./run_example.sh
     cd ../

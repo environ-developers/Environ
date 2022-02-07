@@ -34,10 +34,21 @@ example06: pw.x
     Same as example05, but the electrolyte counter charge layer is
     modeled according to the linearized Poisson-Boltzmann model.
 
+example11: pw.x
+
+    Use of a Mott-Schottky counter charge layer to model a charged
+    slab embedded in a semiconducting region with different defect
+    densities.
+
 example07: pw.x
 
     Use of the solvent-aware interface to prevent the dielectric to
     penetrate regions that should remain solvent-free.
+
+example12: pw.x
+
+    Use of the field-aware interface to automatically adjust the
+    interface for charged solutes.
 
 example08: pw.x turbo_lanczos.x
 
@@ -53,14 +64,3 @@ example10: cp.x (only for QE-5.3.0 and later versions)
 
     Calculation of the total solvation free energy of an isolated
     molecule including electrostatic/cavitation/PV contributions
-
-example11: pw.x
-
-    Use of a Mott-Schottky counter charge layer to model a charged
-    slab embedded in a semiconducting region with different defect
-    densities.
-
-example12: pw.x
-
-    Use of the field-aware interface to automatically adjust the
-    interface for charged solutes.

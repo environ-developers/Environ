@@ -38,8 +38,9 @@ make.depend
 *.app
 *.x
 
-# Directories with results of examples
+# Examples
 results/
+environment
 
 # Emacs temporary backups
 *~
