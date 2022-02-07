@@ -1,0 +1,180 @@
+#!/usr/bin/env sh
+
+###################################################################################################
+
+# check if library is already modified
+already_modified() {
+    test "$(grep env_ ./*.f90)" && return 0 || return 1
+}
+
+# apply 'env_' prefix to object
+modify() {
+    find . -maxdepth 1 \( -name "*.f90" -o -name "*.c" \) -print0 | xargs -0 sed -i "s/\<$1\>/env_$1/gi"
+    find ../FFTXlib -maxdepth 1 \( -name "*.f90" -o -name "*.c" \) -print0 | xargs -0 sed -i "s/\<$1\>/env_$1/gi"
+}
+
+# revert modifications
+revert_modification() {
+    sed -i 's/env_//g' ./*.f90 2>/dev/null
+}
+
+# remove extra whitespace including tabs
+strip() {
+    sed -e "s/\t/ /g" -e 's/  */ /g' -e 's/^ //'
+}
+
+# return unique list of object names
+clean_results() {
+    rev | strip | cut -d ' ' -f 1 | rev | uniq
+}
+
+# get files to modify
+get_files() {
+    find . -maxdepth 1 \( -name "*.f90" -o -name "*.c" \) -print0
+}
+
+# get objects to modify
+get_objects() {
+    get_files | xargs -0 grep -hiE "$1"
+}
+
+# backup Environ files
+backup_files() {
+    files_to_keep="sorting.f90 array_ops.f90 char_ops.f90 io.f90 tools_math.f90"
+    mkdir backup
+    mv $files_to_keep backup
+}
+
+# remove current library files
+clean_library() {
+    backup_files
+    rm ./*.f90 ./*.c 2>/dev/null
+}
+
+restore_backup() {
+    mv backup/*.f90 .
+    rm -fr backup
+}
+
+# prefix env_ to modules, routines, and interfaces
+apply_prefix() {
+    modules="$(get_objects '^\s*module ' | awk 'BEGIN {IGNORECASE = 1} {if ($2!="procedure") print $0}' | clean_results)"
+    derived_types="$(get_objects '^\s*type(\s*,\s*\w+)*\s*(:{2})?\s*[^(]\w+' | clean_results)"
+    subroutines="$(get_objects '^\s*subroutine ' | cut -d '(' -f 1 | clean_results)"
+    functions="$(get_objects '^\s*(pure|recursive|integer|logical|(complex|real)\s*\(\w+\)\s*)?\s*function ' | grep -ioE 'function \w+' | clean_results)"
+    interfaces="$(get_objects '^\s*(abstract)?\s*interface\s+\w+' | clean_results)"
+    c_routines="$(get_objects 'cclock|scnds' | cut -d '(' -f 1 | clean_results)"
+
+    for object in \
+        $modules \
+        $derived_types \
+        $subroutines \
+        $functions \
+        $interfaces \
+        $c_routines; do
+        modify "$object"
+    done
+}
+
+# copy files over from QE/UtilXlib
+copy_files() {
+
+    # fortran files
+    find "$1/UtilXlib" -maxdepth 1 -name '*.f90' \
+        ! -name 'clib_wrappers.f90' \
+        ! -name 'device_helper.f90' \
+        ! -name 'divide.f90' \
+        ! -name 'export_gstart_2_solvers.f90' \
+        ! -name 'fletcher32_mod.f90' \
+        ! -name 'hash.f90' \
+        ! -name '*mem*' \
+        ! -name 'mp_bands_util.f90' \
+        ! -name 'set_mpi_comm_4_solvers.f90' \
+        ! -name 'thread_util.f90' \
+        ! -name 'find_free_unit.f90' \
+        ! -name 'error_handler.f90' \
+        -exec cp -t . {} +
+
+    # c files
+    cp "$1"/UtilXlib/cptimer.c .
+
+}
+
+# check files exist to be modified
+check_files() {
+    if test "$(find . -maxdepth 1 \( -name "*.f90" -o -name "*.c" \) 2>/dev/null)"; then
+        return 0
+    else
+        printf "\nNo files found\n\n" && return 1
+    fi
+}
+
+check_path() {
+    if test -d "$1/UtilXlib"; then
+        return 0
+    else
+        printf "\nQE not found at %s\n\n", "$1" && return 1
+    fi
+}
+
+# print script usage message
+help_message() {
+    printf "\nupdate -h for help\n\n"
+}
+
+###################################################################################################
+
+test ! "$1" && help_message && exit
+
+while getopts "hmrcv:p:" opt; do
+
+    case "$opt" in
+    h)
+        echo
+        echo "usage: update <flag> <option>"
+        echo
+        echo "To update library, run update -p <qeroot> -m -v ###"
+        echo
+        echo "-c             clean current library state (rm *.f90)"
+        echo
+        echo "-p <qe-path>   copy files from <qe-path>/UtilXlib to Environ/UtilXlib"
+        echo
+        echo "-m             apply 'env_' prefix modification"
+        echo
+        echo "-r             revert 'env_' prefix modification"
+        echo
+        echo "-v ###         update version in README.md to ###"
+        echo
+        ;;
+    c)
+        printf "\nClean library (*.f90, *.c) (y|n)? "
+        read -r o
+        test "$o" = y && clean_library && echo && exit
+        ;;
+    m)
+        check_files || exit
+        already_modified && exit
+        apply_prefix
+        ;;
+    r)
+        revert_modification && exit
+        ;;
+    v)
+        # update library version number
+        version=$(grep -oE '[0-9][0-9.]+' README.md)
+        sed -i "s/$version/$OPTARG/" README.md
+        ;;
+    p)
+        check_path "$OPTARG" || exit
+        clean_library
+        copy_files "$OPTARG"
+        ;;
+    *)
+        help_message
+        ;;
+    esac
+
+done
+
+# if made it here, restore and discard backup
+restore_backup
