@@ -38,22 +38,9 @@ get_objects() {
     get_files | xargs -0 grep -hiE "$1"
 }
 
-# backup Environ files
-backup_files() {
-    files_to_keep="sorting.f90 array_ops.f90 char_ops.f90 io.f90 tools_math.f90"
-    mkdir backup
-    mv $files_to_keep backup
-}
-
 # remove current library files
 clean_library() {
-    backup_files
     rm ./*.f90 ./*.c 2>/dev/null
-}
-
-restore_backup() {
-    mv backup/*.f90 .
-    rm -fr backup
 }
 
 # prefix env_ to modules, routines, and interfaces
@@ -133,7 +120,9 @@ while getopts "hmrcv:p:" opt; do
         echo
         echo "usage: update <flag> <option>"
         echo
-        echo "To update library, run update -p <qeroot> -m -v ###"
+        echo "To update library, run"
+        echo 
+        echo "   update -p <qeroot> -m -v ###"
         echo
         echo "-c             clean current library state (rm *.f90)"
         echo
@@ -175,6 +164,3 @@ while getopts "hmrcv:p:" opt; do
     esac
 
 done
-
-# if made it here, restore and discard backup
-restore_backup
