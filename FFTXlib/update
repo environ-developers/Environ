@@ -2,16 +2,33 @@
 
 ###################################################################################################
 
-# check if object has been modified
+# check if library is already modified
 already_modified() {
-    string="$1"
-    test "${string#*env_}" != "$string" && return 0
-    return 1
+    test "$(grep env_ ./*.f90)" && return 0 || return 1
 }
 
 # apply 'env_' prefix to object
 modify() {
-    ! already_modified "$1" && find . -name '*.f90' -print0 | xargs -0 sed -i "s/\<$1\>/env_$1/gi"
+    find . -maxdepth 1 -name '*.f90' -print0 | xargs -0 sed -i "s/\<$1\>/env_$1/gi"
+
+    # clean bad mods
+    if test "$1" = allowed; then
+        sed -i 's/not env_allowed/not allowed/g' ./*.f90
+        sed -i 's/Max env_allowed fft dimension/Max allowed fft dimension/' ./*.f90
+    fi
+}
+
+# revert modifications
+revert_modification() {
+
+    # undo info broadcasting
+    sed -i \
+        -e '/USE env_mp, ONLY: env_mp_bcast/d' \
+        -e '/CALL env_mp_bcast(info, dfft%root, dfft%comm)/d' scatter_mod.f90
+
+    # remove env_ prefix
+    sed -i 's/env_//g' ./*.f90 2>/dev/null
+
 }
 
 # remove extra whitespace including tabs
@@ -26,7 +43,7 @@ clean_results() {
 
 # get files to modify
 get_files() {
-    find . -name '*.f90' -print0
+    find . -maxdepth 1 -name '*.f90' -print0
 }
 
 # get objects to modify
@@ -39,7 +56,6 @@ clean_library() {
     rm ./*.f90 2>/dev/null
 }
 
-# remove references of discarded modules
 discard_modules() {
     sed -i '/SUBROUTINE invfft_b/,/END SUBROUTINE invfft_b/d' ./*.f90 2>/dev/null
     sed -i '/elif defined(__FFTW)/,/USE fft_scalar_fftw/d' ./*.f90 2>/dev/null
@@ -48,10 +64,10 @@ discard_modules() {
 
 # prefix env_ to modules, routines, and interfaces
 apply_prefix() {
-    modules="$(get_objects '^\s*module' | awk 'BEGIN {IGNORECASE = 1} {if ($2!="procedure") print $0}' | clean_results)"
+    modules="$(get_objects '^\s*module ' | awk 'BEGIN {IGNORECASE = 1} {if ($2!="procedure") print $0}' | clean_results)"
     derived_types="$(get_objects '^\s*type(\s*,\s*\w+)*\s*(:{2})?\s*[^(]\w+' | clean_results)"
-    subroutines="$(get_objects '^\s*subroutine' | cut -d '(' -f 1 | clean_results)"
-    functions="$(get_objects '^\s*(pure|recursive|integer|logical|(complex|real)\s*\(\w+\)\s*)\s*function' | rev | cut -d '(' -f 2 | rev | clean_results)"
+    subroutines="$(get_objects '^\s*subroutine ' | cut -d '(' -f 1 | clean_results)"
+    functions="$(get_objects '^\s*(pure|recursive|integer|logical|(complex|real)\s*\(\w+\)\s*)?\s*function ' | grep -ioE 'function \w+' | clean_results)"
     interfaces="$(get_objects '^\s*(abstract)?\s*interface\s+\w+' | clean_results)"
 
     for object in \
@@ -64,49 +80,40 @@ apply_prefix() {
     done
 }
 
-# point hpsort to Environ/UtilXlib/sorting.f90
-# QE stores hpsort in FFTXlib
-# Environ stores hpsort in UtilXlib/sorting.f90
-reroute_hpsort() {
-    sed -i '/SUBROUTINE env_hpsort/,/END SUBROUTINE env_hpsort/d' ./*.f90 2>/dev/null
-    sed -i "/USE env_fft_param/a USE env_sorting" stick_base.f90
-}
-
 # fix needed by PyE-C
 broadcast_info() {
     sed -i \
         -e '/USE env_fft_param/a \        USE env_mp, ONLY: env_mp_bcast' \
-        -e '/info < 0/i \\n  CALL env_mp_bcast(info, dfft%root, dfft%comm)\n' scatter_mod.f90
+        -e '/info < 0/i \  CALL env_mp_bcast(info, dfft%root, dfft%comm)' scatter_mod.f90
 }
 
 # copy files over from QE/FFTXlib
 copy_files() {
-    find "$1/FFTXlib" -name '*.f90' \
-        ! -name '*test*' \
+    find "$1/FFTXlib" -maxdepth 1 -name '*.f90' \
         ! -name '*smallbox*' \
-        ! -name 'utils.f90' \
-        ! -name 'sort.f90' \
-        ! -name 'recips.f90' \
+        ! -name 'fft_test.f90' \
         ! -name 'fftw_interfaces.f90' \
         ! -name 'fft_scalar.FFTW.f90' \
         -exec cp -t . {} +
 }
 
+# check files exist to be modified
 check_files() {
-    if test "$(find . -name '*.f90' 2>/dev/null)"; then
+    if test "$(find . -maxdepth 1 -name '*.f90' 2>/dev/null)"; then
         return 0
     else
         printf "\nNo files found\n\n" && return 1
     fi
 }
 
+# print script usage message
 help_message() {
     printf "\nupdate -h for help\n\n"
 }
 
 ###################################################################################################
 
-! test "$1" && help_message && exit
+test ! "$1" && help_message && exit
 
 while getopts "hmrcv:p:" opt; do
 
@@ -135,14 +142,13 @@ while getopts "hmrcv:p:" opt; do
         ;;
     m)
         check_files || exit
+        already_modified && exit
         discard_modules
         apply_prefix
-        reroute_hpsort
         broadcast_info
         ;;
     r)
-        # revert env_ prefix and exit
-        sed -i s/env_//g ./*.f90 2>/dev/null && exit
+        revert_modification && exit
         ;;
     v)
         # update library version number

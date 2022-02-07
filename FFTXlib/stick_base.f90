@@ -3,7 +3,6 @@ MODULE env_stick_base
 !=----------------------------------------------------------------------=
 
    USE env_fft_param
-USE env_sorting
    IMPLICIT NONE
    PRIVATE
    SAVE
@@ -602,6 +601,114 @@ CONTAINS
    END SUBROUTINE env_get_sticks
 
 !---------------------------------------------------------------------
+   SUBROUTINE env_hpsort (n, ra, ind)
+      !---------------------------------------------------------------------
+      ! sort an array ra(1:n) into ascending order using heapsort algorithm.
+      ! n is input, ra is replaced on output by its sorted rearrangement.
+      ! create an index table (ind) by making an exchange in the index array
+      ! whenever an exchange is made on the sorted data array (ra).
+      ! in case of equal values in the data array (ra) the values in the
+      ! index array (ind) are used to order the entries.
+      ! if on input ind(1)  = 0 then indices are initialized in the routine,
+      ! if on input ind(1) != 0 then indices are assumed to have been
+      !                initialized before entering the routine and these
+      !                indices are carried around during the sorting process
+      !
+      ! no work space needed !
+      ! free us from machine-dependent sorting-routines !
+      !
+      ! adapted from Numerical Recipes pg. 329 (new edition)
+      !
+      IMPLICIT NONE
+      !-input/output variables
+      INTEGER :: n
+      INTEGER :: ind (n)
+      REAL(DP) :: ra (n)
+      !-local variables
+      INTEGER :: i, ir, j, l, iind
+      REAL(DP) :: rra
+      !
+      IF (n < 1 ) RETURN
+      ! initialize index array
+      IF (ind (1) ==0) THEN
+         DO i = 1, n
+            ind (i) = i
+         ENDDO
+      ENDIF
+      ! nothing to order
+      IF (n < 2) RETURN
+      ! initialize indices for hiring and retirement-promotion phase
+      l = n / 2 + 1
+      ir = n
+10    CONTINUE
+      ! still in hiring phase
+      IF (l>1) THEN
+         l = l - 1
+         rra = ra (l)
+         iind = ind (l)
+         ! in retirement-promotion phase.
+      ELSE
+         ! clear a space at the end of the array
+         rra = ra (ir)
+         !
+         iind = ind (ir)
+         ! retire the top of the heap into it
+         ra (ir) = ra (1)
+         !
+         ind (ir) = ind (1)
+         ! decrease the size of the corporation
+         ir = ir - 1
+         ! done with the last promotion
+         IF (ir==1) THEN
+            ! the least competent worker at all !
+            ra (1) = rra
+            !
+            ind (1) = iind
+            RETURN
+         ENDIF
+      ENDIF
+      ! wheter in hiring or promotion phase, we
+      i = l
+      ! set up to place rra in its proper level
+      j = l + l
+      !
+      DO WHILE (j<=ir)
+         IF (j<ir) THEN
+            ! compare to better underling
+            IF (ra (j) <ra (j + 1) ) THEN
+               j = j + 1
+            ELSEIF (ra (j) ==ra (j + 1) ) THEN
+               IF (ind (j) <ind (j + 1) ) j = j + 1
+            ENDIF
+         ENDIF
+         ! demote rra
+         IF (rra<ra (j) ) THEN
+            ra (i) = ra (j)
+            ind (i) = ind (j)
+            i = j
+            j = j + j
+         ELSEIF (rra==ra (j) ) THEN
+            ! demote rra
+            IF (iind<ind (j) ) THEN
+               ra (i) = ra (j)
+               ind (i) = ind (j)
+               i = j
+               j = j + j
+            ELSE
+               ! set j to terminate do-while loop
+               j = ir + 1
+            ENDIF
+            ! this is the right place for rra
+         ELSE
+            ! set j to terminate do-while loop
+            j = ir + 1
+         ENDIF
+      ENDDO
+      ra (i) = rra
+      ind (i) = iind
+      GOTO 10
+      !
+   END SUBROUTINE env_hpsort
 
 !=----------------------------------------------------------------------=
 END MODULE env_stick_base
