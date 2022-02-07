@@ -30,6 +30,7 @@ MODULE class_io
     !------------------------------------------------------------------------------------
     !
     USE env_char_ops, ONLY: env_uppercase
+    USE env_mp, ONLY: env_mp_rank, env_mp_abort
     !
     IMPLICIT NONE
     !
@@ -211,8 +212,6 @@ CONTAINS
         !
         INTEGER :: crashunit, mpime
         CHARACTER(LEN=6) :: cerr
-        !
-        INTEGER, EXTERNAL :: env_mp_rank
         !
         !--------------------------------------------------------------------------------
         !
