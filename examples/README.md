@@ -56,6 +56,11 @@ example10: cp.x (only for QE-5.3.0 and later versions)
 
 example11: pw.x
 
-    Use of a Mott-Schottky counter charge layer to model a charged 
-    slab embedded in a semiconducting region with different defect 
+    Use of a Mott-Schottky counter charge layer to model a charged
+    slab embedded in a semiconducting region with different defect
     densities.
+
+example12: pw.x
+
+    Use of the field-aware interface to automatically adjust the
+    interface for charged solutes.
