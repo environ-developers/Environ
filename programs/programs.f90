@@ -27,6 +27,8 @@ MODULE programs
     !------------------------------------------------------------------------------------
     !
     USE env_parallel_include
+    USE env_mp, ONLY: env_mp_rank, env_mp_stop
+    !
     USE class_io, ONLY: io
     !
     USE environ_param, ONLY: DP
@@ -185,8 +187,6 @@ CONTAINS
         INTEGER :: comm
         LOGICAL :: lnode
         INTEGER :: ionode = 0
-        !
-        INTEGER, EXTERNAL :: env_mp_rank
         !
         !--------------------------------------------------------------------------------
         !
