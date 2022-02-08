@@ -32,14 +32,13 @@ MODULE class_cell
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
-    USE env_sorting, ONLY: env_hpsort_eps
-    USE env_mp, ONLY: env_mp_sum
+    USE env_mp, ONLY: env_mp_sum, env_mp_rank, env_mp_size
     !
     USE environ_param, ONLY: DP, tpi, eps8
     !
-    USE env_base_stick, ONLY: env_sticks_map, env_sticks_map_deallocate
+    USE env_stick_base, ONLY: env_sticks_map, env_sticks_map_deallocate
     !
-    USE env_types_fft, ONLY: env_fft_type_descriptor, env_fft_type_init, &
+    USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_type_init, &
                              env_fft_stick_index, env_fft_type_deallocate
     !
     USE env_fft_ggen, ONLY: env_fft_set_nl
@@ -83,7 +82,7 @@ MODULE class_cell
         !
         TYPE(env_fft_type_descriptor) :: dfft
         !
-        INTEGER :: ntot ! total number of grid points
+        INTEGER :: nnt ! total number of grid points
         INTEGER :: nnr ! number of grid points allocated in every processor
         INTEGER :: ir_end ! actual number grid points accessed by each processor
         INTEGER :: j0, k0 ! starting indexes of processor-specific boxes of grid points
@@ -220,7 +219,7 @@ CONTAINS
         this%ir_end = this%nnr
 #endif
         !
-        this%ntot = this%dfft%nr1 * this%dfft%nr2 * this%dfft%nr3
+        this%nnt = this%dfft%nr1 * this%dfft%nr2 * this%dfft%nr3
         ! total number of physical points
         !
         !--------------------------------------------------------------------------------
@@ -269,7 +268,7 @@ CONTAINS
         CALL recips(this%at(1, 1), this%at(1, 2), this%at(1, 3), &
                     this%bg(1, 1), this%bg(1, 2), this%bg(1, 3))
         !
-        this%domega = this%omega / this%ntot ! set volume element
+        this%domega = this%omega / this%nnt ! set volume element
         !
         !--------------------------------------------------------------------------------
         ! Calculate corners for minimum image convention
@@ -352,8 +351,8 @@ CONTAINS
         CALL recips(at(1, 1), at(1, 2), at(1, 3), bg(1, 1), bg(1, 2), bg(1, 3))
         ! calculate the reciprocal lattice vectors
         !
-        CALL env_fft_type_init(this%dfft, smap, .TRUE., .TRUE., comm, at, bg, gcutm, &
-                               nyfft=1, nmany=1)
+        CALL env_fft_type_init(this%dfft, smap, 'rho', .TRUE., .TRUE., comm, at, bg, &
+                               gcutm, nyfft=1, nmany=1)
         !
         this%dfft%rho_clock_label = 'fft'
         !
@@ -578,7 +577,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        narea = this%ntot / naxis
+        narea = this%nnt / naxis
         !
         IF (reverse) THEN
             f = 0.D0
@@ -889,8 +888,6 @@ CONTAINS
         LOGICAL :: global_sort, is_local
         INTEGER, ALLOCATABLE :: ngmpe(:)
         !
-        INTEGER, EXTERNAL :: env_mp_rank, env_mp_size
-        !
         CHARACTER(LEN=80) :: sub_name = 'env_ggen'
         !
         !--------------------------------------------------------------------------------
@@ -1162,6 +1159,133 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_deallocate_gvect
     !------------------------------------------------------------------------------------
+    !>
+    !! Sort an array ra(1:n) into ascending order using heapsort algorithm,
+    !! and considering two elements being equal if their values differ
+    !! for less than "eps".
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_hpsort_eps(n, ra, ind, eps)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: n
+        REAL(DP), INTENT(IN) :: eps
+        !
+        INTEGER, INTENT(INOUT) :: ind(*)
+        REAL(DP), INTENT(INOUT) :: ra(*)
+        !
+        INTEGER :: i, ir, j, l, iind
+        REAL(DP) :: rra
+        !
+        !--------------------------------------------------------------------------------
+        ! Initialize index array
+        !
+        IF (ind(1) == 0) THEN
+            !
+            DO i = 1, n
+                ind(i) = i
+            END DO
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (n < 2) RETURN ! nothing to order
+        !
+        l = n / 2 + 1
+        ir = n
+        !
+        sorting: DO
+            !
+            IF (l > 1) THEN ! hiring phase
+                !
+                l = l - 1
+                rra = ra(l)
+                iind = ind(l)
+                !
+            ELSE ! retirement-promotion phase
+                !
+                rra = ra(ir)
+                iind = ind(ir)
+                ! clear a space at the end of the array
+                !
+                ra(ir) = ra(1)
+                ind(ir) = ind(1)
+                ! retire the top of the heap into it
+                !
+                ir = ir - 1 ! decrease the size of the corporation
+                !
+                IF (ir == 1) THEN ! done with the last promotion
+                    !
+                    ra(1) = rra
+                    ind(1) = iind
+                    ! the least competent worker
+                    !
+                    EXIT sorting
+                    !
+                END IF
+                !
+            END IF
+            !
+            !----------------------------------------------------------------------------
+            ! Regardless of phase, we prepare to place rra in its proper level
+            !
+            i = l
+            j = l + l
+            !
+            DO WHILE (j <= ir)
+                !
+                IF (j < ir) THEN
+                    !
+                    IF (ABS(ra(j) - ra(j + 1)) >= eps) THEN
+                        !
+                        IF (ra(j) < ra(j + 1)) j = j + 1
+                        ! compare to better underling
+                        !
+                    ELSE ! this means ra(j) == ra(j+1) within tolerance
+                        !
+                        IF (ind(j) < ind(j + 1)) j = j + 1
+                        !
+                    END IF
+                    !
+                END IF
+                !
+                IF (ABS(rra - ra(j)) >= eps) THEN ! demote rra
+                    !
+                    IF (rra < ra(j)) THEN
+                        ra(i) = ra(j)
+                        ind(i) = ind(j)
+                        i = j
+                        j = j + j
+                    ELSE
+                        j = ir + 1 ! set j to terminate do-while loop
+                    END IF
+                    !
+                ELSE ! this means rra == ra(j) within tolerance
+                    !
+                    IF (iind < ind(j)) THEN ! demote rra
+                        ra(i) = ra(j)
+                        ind(i) = ind(j)
+                        i = j
+                        j = j + j
+                    ELSE
+                        j = ir + 1 ! set j to terminate do-while loop
+                    END IF
+                    !
+                END IF
+                !
+            END DO
+            !
+            ra(i) = rra
+            ind(i) = iind
+            !
+        END DO sorting
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_hpsort_eps
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
     !                                   OUTPUT METHODS
@@ -1239,7 +1363,7 @@ CONTAINS
             IF (local_verbose >= 3) THEN
                 WRITE (local_unit, 1004) this%at
                 WRITE (local_unit, 1005) this%dfft%nr1, this%dfft%nr2, this%dfft%nr3
-                WRITE (local_unit, 1006) this%ntot, this%nnr, this%domega
+                WRITE (local_unit, 1006) this%nnt, this%nnr, this%domega
             END IF
             !
             IF (local_verbose < base_verbose) &

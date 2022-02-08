@@ -33,6 +33,8 @@
 MODULE class_setup
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_start
+    !
     USE class_io, ONLY: io
     !
     USE environ_param, ONLY: DP, tpi2, BOHR_RADIUS_SI, RYDBERG_SI
@@ -195,9 +197,7 @@ MODULE class_setup
         PROCEDURE :: get_threshold
         PROCEDURE :: get_nskip
         PROCEDURE :: get_nnt
-        PROCEDURE :: get_nntx
         PROCEDURE :: get_nri
-        PROCEDURE :: get_nrxi
         PROCEDURE :: is_tddfpt
         PROCEDURE :: is_restart
         PROCEDURE :: has_solvent
@@ -300,6 +300,9 @@ CONTAINS
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
         INTEGER :: i
+        !
+        INTEGER :: nproc, mpime
+        !
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
@@ -328,7 +331,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initializing necessary mp buffers
         !
-        CALL env_allocate_mp_buffers()
+        CALL env_mp_start(nproc, mpime, io%comm)
         !
         !--------------------------------------------------------------------------------
         !
@@ -593,29 +596,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        get_nnt = this%system_cell%dfft%nnt
+        get_nnt = this%system_cell%nnt
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nnt
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    INTEGER FUNCTION get_nntx(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_setup), INTENT(IN) :: this
-        !
-        CHARACTER(LEN=80) :: fun_name = 'get_nntx'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        get_nntx = this%system_cell%dfft%nntx
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION get_nntx
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -647,37 +631,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nri
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    INTEGER FUNCTION get_nrxi(this, i)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_setup), INTENT(IN) :: this
-        INTEGER, INTENT(IN) :: i
-        !
-        CHARACTER(LEN=80) :: fun_name = 'get_nrxi'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT CASE (i)
-            !
-        CASE (0)
-            get_nrxi = this%system_cell%dfft%nr1x
-            !
-        CASE (1)
-            get_nrxi = this%system_cell%dfft%nr2x
-            !
-        CASE (2)
-            get_nrxi = this%system_cell%dfft%nr3x
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION get_nrxi
     !------------------------------------------------------------------------------------
     !>
     !!
