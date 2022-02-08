@@ -156,7 +156,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Check integral of function is consistent with analytic one
             !
-            integral = SUM(local) * cell%omega / DBLE(cell%ntot) * 0.5D0
+            integral = SUM(local) * cell%omega / DBLE(cell%nnt) * 0.5D0
             !
             CALL env_mp_sum(integral, cell%dfft%comm)
             !
@@ -520,7 +520,7 @@ CONTAINS
             !
             CALL env_mp_sum(integral, cell%dfft%comm)
             !
-            integral = integral * cell%omega / DBLE(cell%ntot) * 0.5D0
+            integral = integral * cell%omega / DBLE(cell%nnt) * 0.5D0
             !
             IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
                 CALL io%warning('wrong integral of erfc function', 1005)
