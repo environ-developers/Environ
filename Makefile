@@ -225,6 +225,12 @@ depend-QE:
 	  esac; \
 	  (cd ../ && ./install/makedeps.sh $$DIRS)
 
+cannibalize-QE:
+	@ if test -d $(qedir) && test $(version); then \
+		./update_libs.sh -l fft -p $(qedir) -m -v $(version); \
+		./update_libs.sh -l util -p $(qedir) -m -v $(version); \
+	  fi
+
 ################################################################################
 # INSTALL ROUTINES FOR QE+ENVIRON
 ################################################################################
