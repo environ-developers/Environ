@@ -86,12 +86,11 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrons(this, nelec, cell)
+    SUBROUTINE init_environ_electrons(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nelec
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
@@ -99,8 +98,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%density%init(cell, 'electrons')
-        !
-        this%number = nelec
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrons

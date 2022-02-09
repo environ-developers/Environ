@@ -124,7 +124,7 @@ CONTAINS
         CALL this%density%init(cell, 'semiconductor')
         !
         CALL this%simple%init(3, system%axis, system%dim, sc_distance, sc_spread, &
-                              1.D0, system%pos)
+                              1.D0, system%com)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor

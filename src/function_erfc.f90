@@ -64,6 +64,7 @@ MODULE class_function_erfc
         PROCEDURE :: gradient => gradient_of_function
         PROCEDURE :: laplacian => laplacian_of_function
         PROCEDURE :: hessian => hessian_of_function
+        PROCEDURE :: derivative => derivative_of_function
         !
         PROCEDURE, PRIVATE :: get_charge
         PROCEDURE, PRIVATE :: erfcvolume
@@ -150,25 +151,22 @@ CONTAINS
                 arg = (dist - width) / spread
                 !
                 local(i) = environ_erfc(arg) ! compute error function
-                !
             END DO
             !
             !----------------------------------------------------------------------------
             ! Check integral of function is consistent with analytic one
             !
-            integral = SUM(local) * cell%omega / DBLE(cell%ntot) * 0.5D0
+            integral = SUM(local) * cell%omega / DBLE(cell%nnt) * 0.5D0
             !
             CALL env_mp_sum(integral, cell%dfft%comm)
             !
             IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
-                CALL io%warning("wrong integral of erfc function", 1005)
+                CALL io%warning("wrong integral of erfc function", 1006)
             !
             !----------------------------------------------------------------------------
             !
             density%of_r = density%of_r + scale * local
             ! rescale generated function to obtain the requested integral
-            !
-            DEALLOCATE (local)
             !
         END ASSOCIATE
         !
@@ -247,7 +245,6 @@ CONTAINS
             END DO
             !
             gradient%of_r = gradient%of_r + gradlocal * scale
-            DEALLOCATE (gradlocal)
             !
         END ASSOCIATE
         !
@@ -348,7 +345,6 @@ CONTAINS
             END DO
             !
             laplacian%of_r = laplacian%of_r + lapllocal * scale
-            DEALLOCATE (lapllocal)
             !
         END ASSOCIATE
         !
@@ -443,12 +439,101 @@ CONTAINS
             END DO
             !
             hessian%of_r = hessian%of_r + hesslocal * scale
-            DEALLOCATE (hesslocal)
             !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE derivative_of_function(this, derivative, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function_erfc), INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        !
+        TYPE(environ_density), INTENT(INOUT) :: derivative
+        !
+        INTEGER :: i
+        LOGICAL :: physical
+        REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
+        REAL(DP), ALLOCATABLE :: derivlocal(:)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'derivative_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(sub_name, "Wrong value of axis", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
+        !
+        IF (PRESENT(zero)) THEN
+            IF (zero) derivative%of_r = 0.D0
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (cell => derivative%cell, &
+                   pos => this%pos, &
+                   spread => this%spread, &
+                   width => this%width, &
+                   dim => this%dim, &
+                   axis => this%axis)
+            !
+            !----------------------------------------------------------------------------
+            !
+            local_charge = this%get_charge(cell)
+            chargeanalytic = this%erfcvolume(cell)
+            !
+            scale = local_charge / chargeanalytic / sqrtpi / spread
+            ! scaling factor, take into account rescaling of generated density
+            ! to obtain the correct integrated total charge
+            !
+            !----------------------------------------------------------------------------
+            !
+            ALLOCATE (derivlocal(cell%nnr))
+            derivlocal = 0.D0
+            integral = 0.D0
+            !
+            DO i = 1, cell%ir_end
+                !
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                dist = SQRT(r2)
+                arg = (dist - width) / spread
+                !
+                IF (dist > func_tol) derivlocal(i) = -EXP(-arg**2)
+                !
+                integral = integral + environ_erfc(arg)
+            END DO
+            !
+            !----------------------------------------------------------------------------
+            ! Check integral of function is consistent with analytic one
+            !
+            CALL env_mp_sum(integral, cell%dfft%comm)
+            !
+            integral = integral * cell%omega / DBLE(cell%nnt) * 0.5D0
+            !
+            IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
+                CALL io%warning('wrong integral of erfc function', 1005)
+            !
+            !----------------------------------------------------------------------------
+            !
+            derivative%of_r = derivative%of_r + scale * derivlocal
+            ! rescale generated function to obtain the requested integral
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE derivative_of_function
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -528,10 +613,10 @@ CONTAINS
     !>
     !! type 2 - CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
     !!
-    !! type 4 - HARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
+    !! type 3 - HARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
     !!          goes from charge to 0
     !!
-    !! type 5 - CHARGE * (1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF)
+    !! type 4 - CHARGE * (1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF)
     !!          goes from 0 to charge
     !!
     !------------------------------------------------------------------------------------

@@ -57,7 +57,7 @@ MODULE class_system
         INTEGER :: dim = 0
         INTEGER :: axis = 1
         REAL(DP) :: width = 0.D0
-        REAL(DP) :: pos(3) = 0.D0
+        REAL(DP) :: com(3) = 0.D0 ! center of mass
         !
         TYPE(environ_ions), POINTER :: ions => NULL()
         !
@@ -149,15 +149,13 @@ CONTAINS
         INTEGER :: i, j
         INTEGER :: max_ntyp
         REAL(DP) :: charge, dist
-        !
-        INTEGER, POINTER :: ityp
-        REAL(DP), POINTER :: zv
+        REAL(DP) :: tot_weight
         !
         CHARACTER(LEN=80) :: sub_name = 'update_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
-        this%pos = 0.D0
+        this%com = 0.D0
         this%width = 0.D0
         !
         max_ntyp = this%ntyp
@@ -165,35 +163,32 @@ CONTAINS
         IF (this%ntyp == 0) max_ntyp = this%ions%ntyp
         !
         IF (PRESENT(pos)) THEN
-            this%pos = pos ! fixed position (debugging with finite-differences)
+            this%com = pos ! fixed position (debugging with finite-differences)
         ELSE
             !
             !----------------------------------------------------------------------------
-            ! Compute center of charge
+            ! Compute center of mass
             !
-            charge = 0.D0
+            tot_weight = 0.D0
             !
             DO i = 1, this%ions%number
-                ityp => this%ions%ityp(i)
                 !
-                IF (ityp > max_ntyp) CYCLE
+                IF (this%ions%ityp(i) > max_ntyp) CYCLE
                 !
-                zv => this%ions%iontype(ityp)%zv
-                charge = charge + zv
-                this%pos = this%pos + this%ions%tau(:, i) * zv
+                this%com = this%com + this%ions%tau(:, i) * &
+                           this%ions%iontype(this%ions%ityp(i))%weight
+                !
+                tot_weight = tot_weight + this%ions%iontype(this%ions%ityp(i))%weight
             END DO
             !
-            IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, "System charge is zero", 1)
-            !
-            this%pos = this%pos / charge
+            this%com = this%com / tot_weight
         END IF
         !
         this%width = 0.D0
         !
         DO i = 1, this%ions%number
-            ityp => this%ions%ityp(i)
             !
-            IF (ityp > max_ntyp) CYCLE
+            IF (this%ions%ityp(i) > max_ntyp) CYCLE
             !
             dist = 0.D0
             !
@@ -202,7 +197,7 @@ CONTAINS
                 IF ((this%dim == 1 .AND. j == this%axis) .OR. &
                     (this%dim == 2 .AND. j /= this%axis)) CYCLE
                 !
-                dist = dist + (this%ions%tau(j, i) - this%pos(j))**2
+                dist = dist + (this%ions%tau(j, i) - this%com(j))**2
             END DO
             !
             ! need to modify it into a smooth maximum to compute derivatives
@@ -308,7 +303,7 @@ CONTAINS
             END IF
             !
             WRITE (local_unit, 1003) this%dim, this%axis
-            WRITE (local_unit, 1004) this%pos, this%width
+            WRITE (local_unit, 1004) this%com, this%width
             !
         END IF
         !

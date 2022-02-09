@@ -231,13 +231,13 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       gcutm_scaled = gcutm / alat**2\
       !\
-      CALL environ%setup%init_cell(gcutm_scaled, intra_bgrp_comm, at_scaled)\
+      CALL environ%setup%init_cell(intra_bgrp_comm, at_scaled, gcutm=gcutm_scaled)\
       !\
       DEALLOCATE (at_scaled)\
       !\
-      CALL environ%setup%init_cores(gcutm_scaled)\
+      CALL environ%setup%init_cores()\
       !\
-      CALL environ%main%init(1, nat, ntyp, atom_label, ityp, zv)\
+      CALL environ%main%init(nat, ntyp, atom_label, ityp, zv)\
       !\
   END IF\
 !Environ patch
