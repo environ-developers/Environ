@@ -8,7 +8,7 @@ examples=" \
     pbc \
     slab \
     helmholtz \
-    helmholtz_libpb \
+    helmholtz_linpb \
     mott_schottky \
     solvent_aware \
     field_aware \
