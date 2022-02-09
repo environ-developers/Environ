@@ -1,7 +1,6 @@
 # @configure_input@
 
 # compilation rules
-
 .SUFFIXES :
 .SUFFIXES : .o .c .f90 .h .fh
 
@@ -27,7 +26,6 @@
 # The following syntax should always point to TOPDIR:
 TOPDIR = $(dir $(abspath $(filter %make.inc,$(MAKEFILE_LIST))))
 # if it doesn't work, uncomment the following line (edit if needed):
-
 # TOPDIR = @topdir@
 
 # QE root directory
@@ -38,7 +36,6 @@ QEDIR = @qedir@
 # See include/defs.h.README for a list of options and their meaning
 # With the exception of IBM xlf, FDFLAGS = $(DFLAGS)
 # For IBM xlf, FDFLAGS is the same as DFLAGS with separating commas
-
 # MANUAL_DFLAGS  = additional precompilation option(s), if desired
 #                  BEWARE: it does not work for IBM xlf! Manually edit FDFLAGS
 MANUAL_DFLAGS  =
@@ -48,12 +45,9 @@ FDFLAGS        = @fdflags@
 # IFLAGS = how to locate directories with *.h or *.f90 file to be included
 #          typically -I$(TOPDIR)/include -I/some/other/directory/
 #          the latter contains .e.g. files needed by FFT libraries
-# for libxc add -I/path/to/libxc/include/
-
 IFLAGS         = @iflags@
 
 # MOD_FLAG = flag used by f90 compiler to locate modules
-
 MOD_FLAG      = @imod@
 
 # BASEMOD_FLAGS points to directories containing basic modules,
@@ -70,7 +64,6 @@ BASEMOD_FLAGS= $(MOD_FLAG)$(TOPDIR)/UtilXlib $(MOD_FLAG)$(TOPDIR)/FFTXlib $(MOD_
 # If you have a parallel machine but no suitable candidate for MPIF90,
 # try to specify the directory containing "mpif.h" in IFLAGS
 # and to specify the location of MPI libraries in MPI_LIBS
-
 MPIF90         = @mpif90@
 F90            = @f90@
 CC             = @cc@
@@ -86,20 +79,19 @@ CUDA_RUNTIME=@gpu_runtime@
 
 # CUDA F90 Flags
 CUDA_F90FLAGS=@cuda_fflags@
+
 # CUDA C Flags
 CUDA_CFLAGS=@CUDA_CFLAGS@
 
 # C preprocessor and preprocessing flags - for explicit preprocessing,
 # if needed (see the compilation rules above)
 # preprocessing flags must include DFLAGS and IFLAGS
-
 CPP            = @cpp@
 CPPFLAGS       = @cppflags@ $(DFLAGS) $(IFLAGS)
 
 # compiler flags: C, F90
 # C flags must include DFLAGS and IFLAGS
 # F90 flags must include MODFLAGS, IFLAGS, and FDFLAGS with appropriate syntax
-
 CFLAGS         = @cflags@ $(DFLAGS) $(IFLAGS) $(CUDA_CFLAGS)
 F90FLAGS       = @f90flags@ @pre_fdflags@$(FDFLAGS) $(CUDA_F90FLAGS) $(IFLAGS) $(MODFLAGS)
 
@@ -117,35 +109,18 @@ FFLAGS_NOOPT   = @fflags_noopt@
 
 # compiler flag needed by some compilers when the main program is not fortran
 # Currently used for Yambo
-
 FFLAGS_NOMAIN   = @fflags_nomain@
 
 # Linker, linker-specific flags (if any)
 # Typically LD coincides with F90 or MPIF90, LD_LIBS is empty
-
 LD             = @ld@
 LDFLAGS        = @ldflags@
 LD_LIBS        = @ld_libs@
 
 # External Libraries (if any) : blas, lapack, fft, MPI
-
-# If you have nothing better, use the local copy
-# BLAS_LIBS = $(TOPDIR)/LAPACK/libblas.a
-
 BLAS_LIBS      = @blas_libs@
-
-# If you have nothing better, use the local copy
-# LAPACK_LIBS_SWITCH = internal
-# LAPACK_LIBS = $(TOPDIR)/LAPACK/liblapack.a
-
 LAPACK_LIBS    = @lapack_libs@
-LAPACK_LIBS_SWITCH = @lapack_libs_switch@
-
 SCALAPACK_LIBS = @scalapack_libs@
-
-# nothing needed here if the the internal copy of FFTW is compiled
-# (needs -D__FFTW in DFLAGS)
-
 FFT_LIBS       = @fft_libs@
 
 # HDF5
@@ -153,11 +128,9 @@ HDF5_LIBS = @hdf5_libs@
 
 # For parallel execution, the correct path to MPI libraries must
 # be specified in MPI_LIBS (except for IBM if you use mpxlf)
-
 MPI_LIBS       = @mpi_libs@
 
 # IBM-specific: MASS libraries, if available and if -D__MASS is defined in FDFLAGS
-
 MASS_LIBS      = @mass_libs@
 
 # CUDA libraries
@@ -165,19 +138,15 @@ CUDA_LIBS=@cuda_libs@
 CUDA_EXTLIBS = @cuda_extlibs@
 
 # ar command and flags - for most architectures: AR = ar, ARFLAGS = ruv
-
 AR             = @ar@
 ARFLAGS        = @arflags@
 
 # ranlib command. If ranlib is not needed (it isn't in most cases) use
 # RANLIB = echo
-
 RANLIB         = @ranlib@
 
-# all internal and external libraries - do not modify
-
+# all libraries - do not modify
 FLIB_TARGETS   = all
-
 ENVLIBS         = $(CUDA_LIBS) $(SCALAPACK_LIBS) $(LAPACK_LIBS) $(FFT_LIBS) $(BLAS_LIBS) \
 				  $(MPI_LIBS) $(MASS_LIBS) $(LD_LIBS)
 

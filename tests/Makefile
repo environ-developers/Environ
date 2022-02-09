@@ -37,7 +37,7 @@ ifndef VERBOSE
 .SILENT:
 endif
 
-include ./ENVIRONMENT
+include ./environment
 
 default :
 	@echo 'To run Environ tests, type at the shell prompt:'

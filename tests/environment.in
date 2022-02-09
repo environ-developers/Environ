@@ -39,7 +39,7 @@ export REFERENCE_VERSION=GIT
 
 # Edit this line _ONLY_ iff you run test-code outside the QE main directory
 export ENVIRON_ROOT=${PWD}/../
-export ESPRESSO_ROOT=${PWD}/../../
+export ESPRESSO_ROOT=
 
 export ESPRESSO_PSEUDO=${ESPRESSO_ROOT}/pseudo
 export ESPRESSO_TMPDIR=${ESPRESSO_ROOT}/tempdir
