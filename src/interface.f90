@@ -357,7 +357,7 @@ CONTAINS
         aux = rho
         !
 #endif
-        CALL this%main%add_charges(this%setup%system_cell%dfft%nnr, aux, local_label)
+        CALL this%main%add_charges(this%setup%system_cell%nnr, aux, local_label)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE add_charges
