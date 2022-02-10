@@ -85,7 +85,7 @@ CONTAINS
         !
         CALL this%second()
         !
-        CALL env_deallocate_mp_buffers()
+        CALL env_deallocate_buffers()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean
@@ -241,6 +241,10 @@ CONTAINS
         CALL setup%environment_cell%destroy()
         !
         CALL setup%mapping%destroy()
+        !
+        !--------------------------------------------------------------------------------
+        !
+        main%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean_second

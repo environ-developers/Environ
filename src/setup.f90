@@ -33,6 +33,8 @@
 MODULE class_setup
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_start
+    !
     USE class_io, ONLY: io
     !
     USE environ_param, ONLY: DP, tpi2, BOHR_RADIUS_SI, RYDBERG_SI
@@ -195,9 +197,7 @@ MODULE class_setup
         PROCEDURE :: get_threshold
         PROCEDURE :: get_nskip
         PROCEDURE :: get_nnt
-        PROCEDURE :: get_nntx
         PROCEDURE :: get_nri
-        PROCEDURE :: get_nrxi
         PROCEDURE :: is_tddfpt
         PROCEDURE :: is_restart
         PROCEDURE :: has_solvent
@@ -300,6 +300,9 @@ CONTAINS
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
         INTEGER :: i
+        !
+        INTEGER :: nproc, mpime
+        !
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
@@ -328,7 +331,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initializing necessary mp buffers
         !
-        CALL env_allocate_mp_buffers()
+        CALL env_mp_start(nproc, mpime, io%comm)
         !
         !--------------------------------------------------------------------------------
         !
@@ -347,9 +350,7 @@ CONTAINS
                 environment_at(:, i) = at(:, i) * (2.D0 * env_nrep(i) + 1.D0)
             END DO
             !
-            environment_nr(1) = this%system_cell%dfft%nr1 * (2 * env_nrep(1) + 1)
-            environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
-            environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
+            environment_nr = this%system_cell%nr * (2 * env_nrep + 1)
             !
             CALL this%environment_cell%init(comm_in, environment_at, local_gcutm, &
                                             environment_nr, 'environment')
@@ -593,29 +594,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        get_nnt = this%system_cell%dfft%nnt
+        get_nnt = this%system_cell%nnt
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nnt
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    INTEGER FUNCTION get_nntx(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_setup), INTENT(IN) :: this
-        !
-        CHARACTER(LEN=80) :: fun_name = 'get_nntx'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        get_nntx = this%system_cell%dfft%nntx
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION get_nntx
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -632,52 +614,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT CASE (i)
-            !
-        CASE (0)
-            get_nri = this%system_cell%dfft%nr1
-            !
-        CASE (1)
-            get_nri = this%system_cell%dfft%nr2
-            !
-        CASE (2)
-            get_nri = this%system_cell%dfft%nr3
-            !
-        END SELECT
+        get_nri = this%system_cell%nr(i)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nri
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    INTEGER FUNCTION get_nrxi(this, i)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_setup), INTENT(IN) :: this
-        INTEGER, INTENT(IN) :: i
-        !
-        CHARACTER(LEN=80) :: fun_name = 'get_nrxi'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT CASE (i)
-            !
-        CASE (0)
-            get_nrxi = this%system_cell%dfft%nr1x
-            !
-        CASE (1)
-            get_nrxi = this%system_cell%dfft%nr2x
-            !
-        CASE (2)
-            get_nrxi = this%system_cell%dfft%nr3x
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION get_nrxi
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -928,16 +868,16 @@ CONTAINS
                         this%lconfine
         !
         this%lelectrostatic = this%ldielectric .OR. this%lelectrolyte .OR. &
-                              this%lexternals .OR. this%lperiodic
+                              this%lexternals .OR. this%lperiodic .OR. field_aware
         !
         this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
                                                  solvent_mode == 'full' .OR. &
-                                                 solvent_mode(1:2) == 'fa')
+                                                 field_aware)
         !
         this%lsoftelectrolyte = this%lelectrolyte .AND. &
                                 (electrolyte_mode == 'electronic' .OR. &
                                  electrolyte_mode == 'full' .OR. &
-                                 electrolyte_mode(1:2) == 'fa') ! field-aware
+                                 field_aware)
         !
         this%lsoftcavity = this%lsoftsolvent .OR. this%lsoftelectrolyte
         this%lrigidsolvent = this%lsolvent .AND. solvent_mode /= 'electronic'
@@ -949,7 +889,7 @@ CONTAINS
         !
         this%lsmearedions = this%lelectrostatic
         this%lboundary = this%lsolvent .OR. this%lelectrolyte
-        this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa') ! field-aware
+        this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_derived_flags
@@ -1381,12 +1321,9 @@ CONTAINS
             !
             IF (solvent_radius > 0.D0) WRITE (io%unit, 1017)
             !
-            IF (field_awareness > 0.D0) THEN
+            IF (field_aware) THEN
                 WRITE (io%unit, 1018)
-                !
-                WRITE (io%unit, 1019) &
-                    field_awareness, charge_asymmetry, field_min, field_max
-                !
+                WRITE (io%unit, 1019) field_factor, field_asymmetry, field_min, field_max
             END IF
             !
         END IF

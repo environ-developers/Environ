@@ -1,0 +1,6 @@
+  Input                = ho 
+  Solvation Energy     = -94.4127834552 Kcal/mol
+  Input                = h2o 
+  Solvation Energy     = -5.8042217952 Kcal/mol
+  Input                = h3o 
+  Solvation Energy     = -92.5801488336 Kcal/mol

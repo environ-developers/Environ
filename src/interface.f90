@@ -32,7 +32,7 @@ MODULE environ_api
     !
     USE class_io, ONLY: io
     !
-    USE env_base_scatter, ONLY: env_scatter_grid, env_gather_grid
+    USE env_scatter_mod, ONLY: env_scatter_grid, env_gather_grid
     !
     USE environ_param, ONLY: DP
     !
@@ -299,8 +299,8 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP) :: rho(this%setup%system_cell%dfft%nntx)
-        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
+        REAL(DP) :: rho(this%setup%system_cell%nntx)
+        REAL(DP) :: aux(this%setup%system_cell%nnr)
         !
         !--------------------------------------------------------------------------------
         ! On certain machines, the FFT-grid dimensions are performance-optimized. If
@@ -333,9 +333,7 @@ CONTAINS
         aux = rho
 #endif
         !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%main%update_electrons(this%setup%system_cell%dfft%nnr, aux, nelec)
+        CALL this%main%update_electrons(this%setup%system_cell%nnr, aux, nelec)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_electrons
@@ -353,7 +351,7 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
+        REAL(DP) :: aux(this%setup%system_cell%nnr)
         !
         CHARACTER(LEN=80) :: local_label = 'mbx_charges'
         !
@@ -376,7 +374,7 @@ CONTAINS
         aux = rho
         !
 #endif
-        CALL this%main%add_charges(this%setup%system_cell%dfft%nnr, aux, local_label)
+        CALL this%main%add_charges(this%setup%system_cell%nnr, aux, local_label)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE add_charges
@@ -418,9 +416,9 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP), INTENT(OUT) :: potential(this%setup%system_cell%dfft%nnt)
+        REAL(DP), INTENT(OUT) :: potential(this%setup%system_cell%nnt)
         !
-        REAL(DP) :: aux(this%setup%system_cell%dfft%nnr)
+        REAL(DP) :: aux(this%setup%system_cell%nnr)
         !
         !--------------------------------------------------------------------------------
         !
@@ -556,14 +554,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALL(SHAPE(coords) == (/3, this%setup%system_cell%dfft%nnt/))) &
+        IF (.NOT. ALL(SHAPE(coords) == (/3, this%setup%system_cell%nnt/))) &
             CALL io%error(sub_name, "Wrong size of array", 1)
         !
         !--------------------------------------------------------------------------------
         !
         coords = 0.D0
         !
-        DO ir = 1, this%setup%system_cell%dfft%nntx
+        DO ir = 1, this%setup%system_cell%nntx
             !
             CALL this%setup%system_cell%ir2r(ir, r, physical)
             !
@@ -591,9 +589,9 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_interface), INTENT(IN) :: this
-        REAL(DP), INTENT(IN) :: array_in(this%setup%system_cell%dfft%nnt)
+        REAL(DP), INTENT(IN) :: array_in(this%setup%system_cell%nnt)
         !
-        REAL(DP), INTENT(OUT) :: array_out(this%setup%system_cell%dfft%nntx)
+        REAL(DP), INTENT(OUT) :: array_out(this%setup%system_cell%nntx)
         !
         INTEGER :: ir, i, j, k
         LOGICAL :: physical
@@ -604,7 +602,7 @@ CONTAINS
         !
         array_out = 0.D0
         !
-        DO ir = 1, this%setup%system_cell%dfft%nntx
+        DO ir = 1, this%setup%system_cell%nntx
             !
             CALL this%setup%system_cell%ir2ijk(ir, i, j, k, physical)
             !

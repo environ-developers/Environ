@@ -35,8 +35,8 @@ MODULE class_density
     USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_base_scatter, ONLY: env_gather_grid
-    USE env_types_fft, ONLY: env_fft_type_descriptor
+    USE env_scatter_mod, ONLY: env_gather_grid
+    USE env_fft_types, ONLY: env_fft_type_descriptor
     !
     USE environ_param, ONLY: DP
     !
@@ -400,7 +400,7 @@ CONTAINS
         !
         CALL env_mp_sum(quadratic_mean, this%cell%dfft%comm)
         !
-        quadratic_mean = SQRT(quadratic_mean / this%cell%ntot)
+        quadratic_mean = SQRT(quadratic_mean / this%cell%nnt)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION quadratic_mean_environ_density

@@ -8039,6 +8039,7 @@ $as_echo "found at $qedir" >&6; }
 				echo "$qedir is not a valid path"; exit 1
 			fi
 
+      sed "s|^PREFIX=|PREFIX=$qedir|" examples/qe/environment.in > examples/qe/environment
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: not coupled" >&5

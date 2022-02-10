@@ -226,8 +226,9 @@ CONTAINS
                 IF (main%solvent%solvent_aware) &
                     CALL main%solvent%sa_de_dboundary(de_dboundary)
                 !
+                ! if field-aware interface correct the potential
                 IF (main%solvent%field_aware) THEN
-                    CALL io%error(sub_name, "field-aware not yet implimented", 1)
+                    CALL main%solvent%fa_de_drho(de_dboundary, main%vsoftcavity)
                 ELSE
                     !
                     main%vsoftcavity%of_r = de_dboundary%of_r * main%solvent%dscaled%of_r
@@ -247,8 +248,12 @@ CONTAINS
                 IF (main%electrolyte%boundary%solvent_aware) &
                     CALL main%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
+                ! if field-aware interface correct the potential
                 IF (main%electrolyte%boundary%field_aware) THEN
-                    CALL io%error(sub_name, "field-aware not yet implimented", 1)
+                    !
+                    CALL main%electrolyte%boundary%fa_de_drho(de_dboundary, &
+                                                              main%vsoftcavity)
+                    !
                 ELSE
                     !
                     ! multiply for the derivative of the boundary w.r.t electronic density
@@ -419,7 +424,6 @@ CONTAINS
             CALL partial%init(environment_cell)
             !
             IF (setup%lrigidsolvent) THEN
-                !
                 de_dboundary%of_r = 0.D0
                 !
                 ! if surface tension greater than zero, calculate cavity contribution
@@ -445,12 +449,20 @@ CONTAINS
                 IF (main%solvent%solvent_aware) &
                     CALL main%solvent%sa_de_dboundary(de_dboundary)
                 !
+                IF (main%solvent%field_aware) CALL main%solvent%ion_field_partial()
+                ! if field-aware, compute partial derivatives of field fluxes w.r.t
+                ! ionic positions
+                !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
                 !
                 DO i = 1, nat
                     !
                     CALL main%solvent%dboundary_dions(i, partial)
+                    !
+                    ! if field-aware, correct the derivative of the interface function
+                    IF (main%solvent%field_aware) &
+                        CALL main%solvent%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)
@@ -460,7 +472,6 @@ CONTAINS
             END IF
             !
             IF (setup%lrigidelectrolyte) THEN
-                !
                 de_dboundary%of_r = 0.D0
                 !
                 ! if electrolyte is present, add its non-electrostatic contribution
@@ -470,12 +481,20 @@ CONTAINS
                 IF (main%electrolyte%boundary%solvent_aware) &
                     CALL main%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
+                IF (main%solvent%field_aware) CALL main%solvent%ion_field_partial()
+                ! if field-aware, compute partial derivatives of field fluxes w.r.t
+                ! ionic positions
+                !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
                 !
                 DO i = 1, nat
                     !
                     CALL main%electrolyte%boundary%dboundary_dions(i, partial)
+                    !
+                    ! if field-aware, correct the derivative of the interface function
+                    IF (main%solvent%field_aware) &
+                        CALL main%solvent%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)

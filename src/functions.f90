@@ -80,6 +80,7 @@ MODULE class_functions
         PROCEDURE :: gradient => gradient_of_functions
         PROCEDURE :: laplacian => laplacian_of_functions
         PROCEDURE :: hessian => hessian_of_functions
+        PROCEDURE :: derivative => derivative_of_functions
         !
         PROCEDURE :: printout => print_environ_functions
         !
@@ -393,6 +394,34 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_functions
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE derivative_of_functions(this, derivative, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_functions), INTENT(IN) :: this
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        !
+        TYPE(environ_density), INTENT(INOUT) :: derivative
+        !
+        INTEGER :: i
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(zero)) THEN
+            IF (zero) derivative%of_r = 0.D0
+        END IF
+        !
+        DO i = 1, this%number
+            CALL this%array(i)%derivative(derivative)
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE derivative_of_functions
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

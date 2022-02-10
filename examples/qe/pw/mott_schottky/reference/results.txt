@@ -1,0 +1,4 @@
+1.16 cm^-3 potential = -26.2342 V (abs. scale)
+1.17 cm^-3 potential = -8.0033 V (abs. scale)
+1.18 cm^-3 potential = -6.1802 V (abs. scale)
+
