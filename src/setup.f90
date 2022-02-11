@@ -33,9 +33,11 @@
 MODULE class_setup
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_start
+    !
     USE class_io, ONLY: io
     !
-    USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
+    USE environ_param, ONLY: DP, tpi2, BOHR_RADIUS_SI, RYDBERG_SI
     !
     USE env_base_input
     !
@@ -195,7 +197,7 @@ MODULE class_setup
         PROCEDURE :: get_threshold
         PROCEDURE :: get_nskip
         PROCEDURE :: get_nnt
-        PROCEDURE :: get_nrx
+        PROCEDURE :: get_nri
         PROCEDURE :: is_tddfpt
         PROCEDURE :: is_restart
         PROCEDURE :: has_solvent
@@ -285,21 +287,26 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_cell(this, gcutm, comm_in, at, nr)
+    SUBROUTINE environ_init_cell(this, comm_in, at, gcutm, nr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: comm_in
         REAL(DP), INTENT(IN) :: at(3, 3)
-        REAL(DP), INTENT(IN) :: gcutm
+        REAL(DP), OPTIONAL, INTENT(IN) :: gcutm
         INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
         INTEGER :: i
+        !
+        INTEGER :: nproc, mpime
+        !
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
+        !
+        REAL(DP) :: local_gcutm, at2
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
         !
@@ -308,8 +315,27 @@ CONTAINS
         IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1003)
         !
         !--------------------------------------------------------------------------------
+        ! Set G-vector cutoff value
         !
-        CALL this%system_cell%init(gcutm, comm_in, at, nr, 'system')
+        IF (PRESENT(gcutm)) THEN ! passed from calling program
+            local_gcutm = gcutm
+        ELSE IF (env_ecut /= 0.D0) THEN ! derived from user-defined energy cutoff
+            local_gcutm = env_ecut / tpi2
+        ELSE IF (PRESENT(nr)) THEN ! overestimated from calling program FFT-grid
+            at2 = SUM(at(:, 1)**2)
+            local_gcutm = CEILING((nr(1) - 3)**2 * 0.25 / at2 + 0.5 / SQRT(at2) * nr(1))
+        ELSE
+            CALL io%error(sub_name, "Missing FFT-grid information", 1004)
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Initializing necessary mp buffers
+        !
+        CALL env_mp_start(nproc, mpime, io%comm)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%system_cell%init(comm_in, at, local_gcutm, nr, 'system')
         !
         !--------------------------------------------------------------------------------
         ! Double cell and mapping
@@ -324,11 +350,9 @@ CONTAINS
                 environment_at(:, i) = at(:, i) * (2.D0 * env_nrep(i) + 1.D0)
             END DO
             !
-            environment_nr(1) = this%system_cell%dfft%nr1 * (2 * env_nrep(1) + 1)
-            environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
-            environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
+            environment_nr = this%system_cell%nr * (2 * env_nrep + 1)
             !
-            CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
+            CALL this%environment_cell%init(comm_in, environment_at, local_gcutm, &
                                             environment_nr, 'environment')
             !
         ELSE
@@ -344,12 +368,10 @@ CONTAINS
     !! Set up active numerical cores
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_cores(this, gcutm)
+    SUBROUTINE init_environ_numerical_cores(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: gcutm
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
@@ -530,6 +552,8 @@ CONTAINS
     REAL(DP) FUNCTION get_threshold(this)
         !--------------------------------------------------------------------------------
         !
+        IMPLICIT NONE
+        !
         CLASS(environ_setup), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
@@ -544,6 +568,8 @@ CONTAINS
     !------------------------------------------------------------------------------------
     INTEGER FUNCTION get_nskip(this)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(IN) :: this
         !
@@ -568,7 +594,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        get_nnt = this%system_cell%dfft%nnt
+        get_nnt = this%system_cell%nnt
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nnt
@@ -576,7 +602,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    INTEGER FUNCTION get_nrx(this, i)
+    INTEGER FUNCTION get_nri(this, i)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -584,31 +610,22 @@ CONTAINS
         CLASS(environ_setup), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: i
         !
-        CHARACTER(LEN=80) :: fun_name = 'get_nrx'
+        CHARACTER(LEN=80) :: fun_name = 'get_nri'
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT CASE (i)
-            !
-        CASE (0)
-            get_nrx = this%system_cell%dfft%nr1x
-            !
-        CASE (1)
-            get_nrx = this%system_cell%dfft%nr2x
-            !
-        CASE (2)
-            get_nrx = this%system_cell%dfft%nr3x
-            !
-        END SELECT
+        get_nri = this%system_cell%nr(i)
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION get_nrx
+    END FUNCTION get_nri
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
     LOGICAL FUNCTION is_tddfpt(this)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(IN) :: this
         !
@@ -624,6 +641,8 @@ CONTAINS
     !------------------------------------------------------------------------------------
     LOGICAL FUNCTION is_restart(this)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(IN) :: this
         !
@@ -1013,7 +1032,7 @@ CONTAINS
         !
         LOGICAL :: lconjugate
         !
-        CHARACTER(LEN=80) :: local_auxiliary, local_problem, inner_problem
+        CHARACTER(LEN=80) :: local_auxiliary, local_problem
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_electrostatic'
         !
@@ -1028,6 +1047,8 @@ CONTAINS
         CALL this%direct%init(this%outer_container, pbc_correction)
         !
         SELECT CASE (solver)
+            !
+        CASE ('none')
             !
         CASE ('direct')
             local_outer_solver => this%direct
@@ -1071,7 +1092,6 @@ CONTAINS
             CASE ('fixed-point')
                 !
                 IF (auxiliary == 'ioncc') THEN
-                    inner_problem = 'generalized'
                     !
                     SELECT CASE (inner_solver)
                         !
@@ -1105,7 +1125,6 @@ CONTAINS
                 END IF
                 !
             CASE ('newton')
-                inner_problem = 'linpb'
                 lconjugate = .TRUE.
                 !
                 CALL this%inner_gradient%init( &
@@ -1174,7 +1193,7 @@ CONTAINS
         !
         SELECT CASE (solver_setup%problem)
             !
-        CASE ('poisson')
+        CASE ('none', 'poisson')
             !
         CASE ('generalized', 'linpb', 'linmodpb', 'pb', 'modpb')
             !

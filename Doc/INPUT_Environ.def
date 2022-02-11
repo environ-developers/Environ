@@ -121,6 +121,14 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { REQUIRED }
         }
         
+        var env_ecut -type REAL {
+            default { 0.D0 }
+            info {
+                Cutoff value (Ry) used to derive the G-vector cutoff on Environ's internal FFT-grid.
+            }
+            status { OPTIONAL }
+        }
+
         var env_electrolyte_ntyp -type INTEGER {
             default { 0 }
             info {

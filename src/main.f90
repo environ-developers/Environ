@@ -70,6 +70,10 @@ MODULE class_environ
     TYPE, PUBLIC :: environ_main
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         TYPE(environ_setup), POINTER :: setup => NULL()
         !
         !--------------------------------------------------------------------------------
@@ -182,15 +186,13 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, setup, nelec, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE init_environ_base(this, nat, ntyp, atom_label, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_setup), TARGET, INTENT(IN) :: setup
-        !
         INTEGER, INTENT(IN) :: nat, ntyp
-        INTEGER, INTENT(IN) :: nelec, ityp(nat)
+        INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
@@ -198,11 +200,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%setup => setup
-        !
         CALL this%init_potential()
         !
-        CALL this%init_physical(nelec, nat, ntyp, atom_label, ityp, zv)
+        CALL this%init_physical(nat, ntyp, atom_label, ityp, zv)
+        !
+        this%initialized = .TRUE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_base
@@ -308,14 +310,14 @@ CONTAINS
     !! be the most efficient choice, but it is a safe choice.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_update_ions(this, nat, tau, center)
+    SUBROUTINE environ_update_ions(this, nat, tau, com)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
-        REAL(DP), OPTIONAL, INTENT(IN) :: center(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: com(3)
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
@@ -333,7 +335,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update system ions parameters
         !
-        CALL this%system_ions%update(nat, tau, center)
+        CALL this%system_ions%update(nat, tau, com)
         !
         !--------------------------------------------------------------------------------
         ! Update system system parameters
@@ -346,30 +348,30 @@ CONTAINS
             ! using fixed system_pos from input for debugging with finite-differences
             !
         ELSE
-            CALL this%system_system%update(center)
+            CALL this%system_system%update(com)
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Update cell mapping
         !
-        CALL setup%update_mapping(this%system_system%pos)
+        CALL setup%update_mapping(this%system_system%com)
         !
         !--------------------------------------------------------------------------------
         ! Update environment ions parameters
         !
-        CALL this%environment_ions%update(nat, tau, center)
+        CALL this%environment_ions%update(nat, tau, com)
         !
         !--------------------------------------------------------------------------------
         ! Update environment system parameters
         !
         this%environment_system%lupdate = .TRUE.
         !
-        CALL this%environment_system%update(this%system_system%pos)
+        CALL this%environment_system%update(this%system_system%com)
         !
         !--------------------------------------------------------------------------------
         ! Update cores
         !
-        IF (setup%l1da) CALL setup%env_1da%update_origin(this%environment_system%pos)
+        IF (setup%l1da) CALL setup%env_1da%update_origin(this%environment_system%com)
         !
         !--------------------------------------------------------------------------------
         ! Update rigid environ properties, defined on ions
@@ -696,12 +698,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_physical(this, nelec, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE environ_init_physical(this, nat, ntyp, atom_label, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nelec, nat, ntyp
+        INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
@@ -724,14 +726,14 @@ CONTAINS
         !
         IF (setup%loptical) THEN
             !
-            CALL this%system_response_electrons%init(0, system_cell)
+            CALL this%system_response_electrons%init(system_cell)
             !
             CALL this%system_response_charges%init(system_cell)
             !
             CALL this%system_response_charges%add( &
                 electrons=this%system_response_electrons)
             !
-            CALL this%environment_response_electrons%init(0, environment_cell)
+            CALL this%environment_response_electrons%init(environment_cell)
             !
             CALL this%environment_response_charges%init(environment_cell)
             !
@@ -757,9 +759,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Electrons
         !
-        CALL this%system_electrons%init(nelec, system_cell)
+        CALL this%system_electrons%init(system_cell)
         !
-        CALL this%environment_electrons%init(nelec, environment_cell)
+        CALL this%environment_electrons%init(environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! System
@@ -933,7 +935,7 @@ CONTAINS
         INTEGER, POINTER :: unit
         TYPE(environ_setup), POINTER :: setup
         !
-        LOGICAL :: print_de = .TRUE.
+        LOGICAL :: print_de
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_energies'
         !
@@ -941,7 +943,11 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        IF (PRESENT(de_flag)) print_de = de_flag
+        IF (PRESENT(de_flag)) THEN
+            print_de = de_flag
+        ELSE
+            print_de = .TRUE.
+        END IF
         !
         unit => io%unit
         setup => this%setup

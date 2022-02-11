@@ -338,7 +338,7 @@ CONTAINS
         !
         IF (this%need_system) &
             CALL this%simple%init(3, system%axis, system%dim, system_distance, &
-                                  system_spread, 1.D0, system%pos)
+                                  system_spread, 1.D0, system%com)
         !
         !--------------------------------------------------------------------------------
         ! Derivatives

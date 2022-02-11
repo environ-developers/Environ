@@ -90,6 +90,12 @@ MODULE env_base_input
     INTEGER :: environ_nskip = 1 ! # steps to skip before starting add. pot. computation
     !
     !------------------------------------------------------------------------------------
+    ! Energy cutoff used for internal FFT-grid generation
+    !
+    REAL(DP) :: env_ecut = 0.D0
+    ! may be used when coupled with non-FFT calling programs or via the tester program
+    !
+    !------------------------------------------------------------------------------------
     ! Predefined environ types
     !
     CHARACTER(LEN=80) :: environ_type = 'input'
@@ -230,7 +236,7 @@ MODULE env_base_input
     !------------------------------------------------------------------------------------
     !
     NAMELIST /environ/ &
-        environ_debug, environ_restart, verbose, environ_thr, environ_nskip, &
+        environ_debug, environ_restart, verbose, environ_thr, environ_nskip, env_ecut, &
         environ_type, system_ntyp, system_dim, system_axis, env_nrep, system_pos, &
         env_electrostatic, atomicspread, env_static_permittivity, &
         env_optical_permittivity, env_surface_tension, env_pressure, env_confine, &
@@ -507,6 +513,14 @@ MODULE env_base_input
     ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
     !
     ! linmodpb    = linearized modified poisson-boltzmann equation
+    !
+    CHARACTER(LEN=80) :: inner_problem = 'none'
+    !
+    ! type of electrostatic problem for inner loop in nested algorithms
+    !
+    ! generalized = generalized poisson equation
+    !
+    ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
     !
     !------------------------------------------------------------------------------------
     !

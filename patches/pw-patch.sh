@@ -105,7 +105,7 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
       !\
-      CALL environ%init()\
+      CALL environ%init_interface()\
       !\
       CALL environ%init_io(ionode, ionode_id, intra_image_comm, stdout, ionode)\
       !\
@@ -143,7 +143,7 @@ sed '/Environ CALLS BEGIN/ a\
          ! ones initialized while processing the input:\
          ! this allows NEB simulations\
          !\
-         IF (.NOT. environ%setup%is_tddfpt()) CALL environ%clean%everything()\
+         IF (.NOT. environ%setup%is_tddfpt()) CALL environ%destroy()\
          !\
       ELSE IF ( prog(1:2) == "TD" ) THEN\
          !\
@@ -153,9 +153,9 @@ sed '/Environ CALLS BEGIN/ a\
          ! fully cleaned (no NEB with TD).\
          !\
          IF (.NOT. lflag) THEN\
-            CALL environ%clean%first()\
+            CALL environ%destroy(1)\
          ELSE\
-            CALL environ%clean%second()\
+            CALL environ%destroy(2)\
          END IF\
          !\
       END IF\
@@ -211,8 +211,6 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       IF (alat < 1.D-8) CALL errore(sub_name, "Wrong alat", 1)\
       !\
-      CALL env_allocate_mp_buffers()\
-      !\
       ALLOCATE (at_scaled(3, 3))\
       at_scaled = at * alat\
       !\
@@ -222,13 +220,13 @@ sed '/Environ CALLS BEGIN/ a\
       nr(2) = dfftp%nr2\
       nr(3) = dfftp%nr3\
       !\
-      CALL environ%setup%init_cell(gcutm_scaled, intra_bgrp_comm, at_scaled, nr)\
+      CALL environ%setup%init_cell(intra_bgrp_comm, at_scaled, gcutm=gcutm_scaled, nr=nr)\
       !\
       DEALLOCATE (at_scaled)\
       !\
-      CALL environ%setup%init_cores(gcutm_scaled)\
+      CALL environ%setup%init_cores()\
       !\
-      CALL environ%main%init(environ%setup, 1, nat, nsp, atm, ityp, zv)\
+      CALL environ%main%init(nat, nsp, atm, ityp, zv)\
       !\
   END IF\
 !Environ patch
@@ -418,7 +416,7 @@ sed '/Environ CALLS BEGIN/ a\
             IF ( nspin == 2 ) rhoaux(:) = rhoaux(:) + rhoin%of_r(:, 2)\
         END IF\
         !\
-        CALL environ%main%update_electrons( dfftp%nnr, rhoaux, nelec )\
+        CALL environ%update_electrons( rhoaux, nelec )\
         !\
         ! environ contribution to the local potential\
         !\
