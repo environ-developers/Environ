@@ -211,7 +211,7 @@ revert: check-QE-makeinc
 
 depend:
 	@ printf "\nUpdating Environ dependencies...\n\n"
-	@ ./install/makedeps.sh
+	@ ./install/makedeps.sh; echo
 
 depend-QE:
 	@ printf "\nUpdating QE dependencies...\n\n"
