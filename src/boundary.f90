@@ -1308,7 +1308,7 @@ CONTAINS
                    scal => this%scaled, &
                    grad => this%gradient, &
                    lapl => this%laplacian, &
-                   dsruf => this%dsurface)
+                   dsurf => this%dsurface)
             !
             !----------------------------------------------------------------------------
             ! Compute soft spheres and generate boundary
@@ -1351,7 +1351,7 @@ CONTAINS
                 !
                 IF (deriv == 2) CALL derivatives%laplacian(scal, lapl)
                 !
-                IF (deriv == 3) CALL this%calc_dsurface(scal, grad, lapl, hess, dsruf)
+                IF (deriv == 3) CALL this%calc_dsurface(scal, grad, lapl, hess, dsurf)
                 !
             CASE ('highmem')
                 !
@@ -1388,7 +1388,7 @@ CONTAINS
                 !
                 IF (deriv == 3) &
                     CALL dsurface_of_boundary(nss, denloc, gradloc, hessloc, grad, &
-                                              lapl, hess, dsruf)
+                                              lapl, hess, dsurf)
                 !
                 DO i = 1, nss
                     !
@@ -1442,7 +1442,7 @@ CONTAINS
                 !
                 IF (deriv == 3) &
                     CALL dsurface_of_boundary(nss, denloc, gradloc, hessloc, grad, &
-                                              lapl, hess, scal, dsruf)
+                                              lapl, hess, scal, dsurf)
                 !
                 DO i = 1, nss
                     !
@@ -1481,7 +1481,7 @@ CONTAINS
                 IF (deriv >= 2) lapl%of_r = -lapl%of_r
                 !
                 IF (deriv == 3) THEN
-                    dsruf%of_r = -dsruf%of_r
+                    dsurf%of_r = -dsurf%of_r
                     !
                     IF (this%solvent_aware) THEN
                         hess%of_r = -hess%of_r
