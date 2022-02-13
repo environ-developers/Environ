@@ -95,7 +95,7 @@ CONTAINS
     SUBROUTINE run_program()
         !--------------------------------------------------------------------------------
         !
-        CALL general_setup() ! interface and I/O
+        CALL initial_setup() ! interface and I/O
         !
         SELECT CASE (prog)
             !

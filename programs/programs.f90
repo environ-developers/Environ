@@ -47,7 +47,7 @@ MODULE programs
     !
     PUBLIC :: run_tester, run_environ_from_cube
     !
-    PUBLIC :: general_setup, clean_up, print_available_programs
+    PUBLIC :: initial_setup, clean_up, print_available_programs
     !
     !------------------------------------------------------------------------------------
     ! Declare interface
@@ -179,7 +179,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE general_setup()
+    SUBROUTINE initial_setup()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -198,7 +198,7 @@ CONTAINS
         CALL environ%init_io(lnode, ionode, comm, 6, .FALSE.)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE general_setup
+    END SUBROUTINE initial_setup
     !------------------------------------------------------------------------------------
     !>
     !!
