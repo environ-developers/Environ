@@ -30,7 +30,7 @@ MODULE parsers
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
-    USE env_mp, ONLY: env_mp_bcast
+    USE env_mp, ONLY: env_mp_bcast, env_mp_abort
     USE env_array_ops, ONLY: env_get_index
     !
     USE environ_param, ONLY: DP
@@ -38,6 +38,14 @@ MODULE parsers
     USE environ_api, ONLY: get_atom_labels
     !
     USE cmdline_args
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    PRIVATE
+    !
+    PUBLIC :: read_cube
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -62,8 +70,10 @@ CONTAINS
         REAL(DP), ALLOCATABLE, INTENT(OUT) :: tau(:, :)
         REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
         !
-        INTEGER :: i, j, k, l, count, unit, current, nnt
+        INTEGER :: ios
         LOGICAL :: ext
+        !
+        INTEGER :: i, j, k, l, count, unit, current, nnt
         !
         REAL(DP) :: current_charge
         !
@@ -96,7 +106,10 @@ CONTAINS
         IF (io%lnode) THEN
             !
             DO i = 1, 2
-                READ (unit, *)
+                READ (unit, *, iostat=ios)
+                !
+                CALL check_ios(ios)
+                !
             END DO
             !
         END IF
@@ -104,7 +117,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Read number of atoms and origin
         !
-        IF (io%lnode) READ (unit, *) nat, origin
+        IF (io%lnode) THEN
+            READ (unit, *, iostat=ios) nat, origin
+            !
+            CALL check_ios(ios)
+            !
+        END IF
         !
         CALL env_mp_bcast(nat, io%node, io%comm)
         !
@@ -117,7 +135,10 @@ CONTAINS
         IF (io%lnode) THEN
             !
             DO i = 1, 3
-                READ (unit, *) nr(i), at(i, :)
+                READ (unit, *, iostat=ios) nr(i), at(i, :)
+                !
+                CALL check_ios(ios)
+                !
             END DO
             !
         END IF
@@ -138,7 +159,10 @@ CONTAINS
         IF (io%lnode) THEN
             !
             DO i = 1, nat
-                READ (unit, *) atomic_number(i), charge(i), tau(:, i)
+                READ (unit, *, iostat=ios) atomic_number(i), charge(i), tau(:, i)
+                !
+                CALL check_ios(ios)
+                !
             END DO
             !
         END IF
@@ -203,7 +227,12 @@ CONTAINS
             ALLOCATE (unsorted(nnt))
             ALLOCATE (rho(nnt))
             !
-            IF (io%lnode) READ (unit, *) unsorted ! read unsorted cube density
+            IF (io%lnode) THEN
+                READ (unit, *, iostat=ios) unsorted ! read unsorted cube density
+                !
+                CALL check_ios(ios)
+                !
+            END IF
             !
             CALL env_mp_bcast(unsorted, io%node, io%comm)
             !
@@ -231,6 +260,43 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE read_cube
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                              PRIVATE HELPER ROUTINES
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE check_ios(ios)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: ios
+        !
+        CHARACTER(LEN=80) :: sub_name = 'check_EOF'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ios == 0) THEN
+            RETURN
+        ELSE IF (ios > 0) THEN
+            WRITE (io%unit, 1) "Error encountered while reading. Check input file."
+        ELSE IF (ios < 0) THEN
+            WRITE (io%unit, 1) "End-of-file encountered while reading. Check input file."
+        END IF
+        !
+        CALL env_mp_abort(ios, io%comm)
+        !
+        !--------------------------------------------------------------------------------
+        !
+1       FORMAT(/, 5X, A,/)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE check_ios
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
