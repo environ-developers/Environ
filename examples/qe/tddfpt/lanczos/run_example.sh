@@ -18,7 +18,13 @@ $ECHO "functional perturbation theory according to I. Timrov, O. Andreussi, A. B
 $ECHO "N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)."
 
 # set the needed environment variables
-. ../../../environment_variables
+x=$EXAMPLE_DIR
+while test "$x" != "/"; do
+    x=$(dirname "$x")
+    if test -f "$x/environment"; then
+      . "$x/environment"; break
+    fi
+done
 
 # compatibility with QE for versions prior to 6.4
 if [ -z $NETWORK_PSEUDO ]; then

@@ -33,7 +33,13 @@ $ECHO "                   J. Chem. Phys. 150, 041722 (2019)."
 $ECHO
 
 # set the needed environment variables
-. ../../../environment_variables
+x=$EXAMPLE_DIR
+while test "$x" != "/"; do
+    x=$(dirname "$x")
+    if test -f "$x/environment"; then
+      . "$x/environment"; break
+    fi
+done
 
 # compatibility with QE for versions prior to 6.4
 if [ -z $NETWORK_PSEUDO ]; then

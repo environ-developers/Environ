@@ -12,19 +12,20 @@ $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
 $ECHO "This example shows how to use pw.x to calculate the solvation energy "
 $ECHO "and other solvent related quantites for a water molecule in water"
-$ECHO "using a fully self consistent dielectric defined on the electronic"
-$ECHO "density according to "
+$ECHO "using a the soft-sphere continuum solvation model as described in"
 $ECHO
-$ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
+$ECHO "  G. Fisicaro, L. Genovese, O. Andreussi, S. Mandal, N.N. Nair, "
+$ECHO "N. Marzari, and S.Goedecker, J. Chem. Theor. Comput. 13, 3829 (2017) "
 $ECHO
-$ECHO "Two equivalent calculations are performed, using two different "
-$ECHO "algorithms to obtain the self consistent dielectic as described in "
-$ECHO
-$ECHO "G. Fisicaro, L. Genovese, O. Andreussi, N. Marzari and S. Goedecker,"
-$ECHO "               J. Chem. Phys. 144, 014103 (2016)"
 
 # set the needed environment variables
-. ../../../environment_variables
+x=$EXAMPLE_DIR
+while test "$x" != "/"; do
+    x=$(dirname "$x")
+    if test -f "$x/environment"; then
+      . "$x/environment"; break
+    fi
+done
 
 # compatibility with QE for versions prior to 6.4
 if [ -z $NETWORK_PSEUDO ]; then
@@ -90,7 +91,7 @@ $ECHO
 $ECHO "  running pw.x as: $PW_COMMAND"
 $ECHO
 
-### ELECTROSTATIC EMBEDDING PARAMETERS ######################################
+### ELECTROSTATIC EMBEDDING PARAMETERS #####################################
 verbose=0                  # if GE 1 prints debug informations
                            # if GE 2 prints out gaussian cube files with
                            # dielectric function, polarization charges, etc
@@ -103,9 +104,9 @@ environ_type='vacuum'      # type of environment
                            # water: parameters from experimental values
                            #   and specifically tuned for neutral molecules
                            # water-anions: same as water, but parameters are
-                           #   tuned for anions (Dupont et al., JCP (2013))
+                           #   tuned for anions (Fisicaro et al., JCTC (2017))
                            # water-cations: same as water, but parameters are
-                           #   tuned for cations (Dupont et al., JCP (2013))
+                           #   tuned for cations (Fisicaro et al., JCTC (2017))
 env_electrostatic='.true.' # modify electrostatic embedding (required to
                            #   switch on PBC corrections in vacuum)
 pbc_correction='parabolic' # correction scheme to remove PBC
@@ -116,43 +117,35 @@ pbc_dim=0                  # select the desired system dimensionality
                            # if pbc_dim=1 or 2: pbc_axis set the axis along
                            #   the 1D direction or normal to the 2D plane
                            #   (pbc_axis = 1, 2 or 3 for x, y or z axis)
-### SOLVER PARAMETERS #######################################################
-solver='fixed-point'       # type of solver (cg is default with dielectric)
-                           # direct: direct poisson solver (only for vacuum)
-                           # cg: conjugate gradient with sqrt preconditioner
-                           # sd: steepest descent with sqrt preconditioner
-                           # fixed-point: iterative approach
-auxiliary='full'           # auxiliary charge in the solver
-                           # none: no charge, solve for the potential
-                           # full: solve for the polarization charge
-tol='1.d-11'               # tolerance of the solver
-mix='0.6'                  # mixing for the solver
-############################################################################
+### SOFT-SPHERE PARAMETERS #################################################
+solvent_mode='ionic'       # specify the charge density that is used to
+                           # build the dielectric cavity:
+                           # electronic: use the electronic density (default)
+                           # ionic: use a fictitious charge density calculated
+                           #        for atomic-centered interlocking spheres,
+                           #        whose analytical expression is based on the
+                           #        error function
+# with solvent_mode='ionic' and environ_type='water' the following
+# parameters take the optimized values for molecules and clusters
+# (Fisicaro et al., JCTC 2017)
+#radius_mode='uff'         # vdW radii parametetrization (unified force field
+#                          # is default)
+#alpha=1.12                # vdW radii multiplying factor
+#softness=0.5              # width parameter for the transition region
+#env_surface_tension=50    # non-electrostatic parameters (see example01)
+#env_pressure=-0.35        #
+###########################################################################
 
 for environ_type in vacuum water ; do
-
-    if   [ $environ_type = "water" ]; then
-      solvers="fixed-point cg"
-    else
-      solvers="direct"
-    fi
-
-  for solver in $solvers ; do
-
-    if [ $solver = "fixed-point" ]; then
-      auxiliary='full'
-    else
-      auxiliary='none'
-    fi
 
     # clean TMP_DIR
     $ECHO "  cleaning $TMP_DIR...\c"
     rm -rf $TMP_DIR/*
     $ECHO " done"
 
-    $ECHO "  running the relax calculation in $environ_type with $solver solver"
+    $ECHO "  running the relax calculation in $environ_type "
 
-  prefix=h2o_${environ_type}_${solver}
+  prefix=h2o_${environ_type}
   input=${prefix}'.in'
   output=${prefix}'.out'
   cat > $input << EOF
@@ -198,7 +191,7 @@ O   11.79  12.05  11.50
 H   13.45  11.22  11.50
 H   10.56  10.66  11.50
 EOF
-  cat > environ_${environ_type}_${solver}.in << EOF
+  cat > environ_${environ_type}.in << EOF
  &ENVIRON
    !
    verbose = $verbose
@@ -208,39 +201,34 @@ EOF
    !
  /
  &BOUNDARY
+   !
+   solvent_mode='$solvent_mode'
+   !
  /
  &ELECTROSTATIC
    !
    pbc_correction = '$pbc_correction'
    pbc_dim = $pbc_dim
    !
-   tol = $tol
-   mix = $mix
-   solver = '$solver'
-   auxiliary = '$auxiliary'
+   tol = 1.d-11
    !
  /
 EOF
 
-  cp environ_${environ_type}_${solver}.in environ.in
+  cp environ_${environ_type}.in environ.in
   $PW_COMMAND < $input > $output
   check_failure $?
   $ECHO " done"
 
-  done
-
 done
 
-for solver in fixed-point cg ; do
-
-evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum_direct.out)
-esol=$(awk '/^!/ {en=$5}; END {print en}' h2o_water_${solver}.out)
+evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum.out)
+esol=$(awk '/^!/ {en=$5}; END {print en}' h2o_water.out)
 dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l)
-ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {print en}' h2o_water_${solver}.out)
-epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {print en}' h2o_water_${solver}.out)
+ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {print en}' h2o_water.out)
+epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {print en}' h2o_water.out)
 
-$ECHO "  Solver               = $solver "        >> results.txt
-$ECHO "  Solvation Energy     = $dgsol Kcal/mol" >> results.txt
+$ECHO "  Solvation Energy     = $dgsol Kcal/mol" > results.txt
 iprint=0
 dgelec=$dgsol
 if [ $ecav != 0 ]; then
@@ -258,9 +246,7 @@ fi
 if [ $iprint != 0 ]; then
   $ECHO "  Electrostatic Energy = $dgelec Kcal/mol" >> results.txt
 fi
-$ECHO                                            >> results.txt
 
-done
 
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

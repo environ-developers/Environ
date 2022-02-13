@@ -17,7 +17,13 @@ $ECHO "interface normal and the atomic positions, according to "
 $ECHO "M Truscott, O Andreussi, J. Phys. Chem. B 2019, 123, 16, 3513–3524"
 
 # set the needed environment variables
-. ../../../environment_variables
+x=$EXAMPLE_DIR
+while test "$x" != "/"; do
+    x=$(dirname "$x")
+    if test -f "$x/environment"; then
+      . "$x/environment"; break
+    fi
+done
 
 # compatibility with QE for versions prior to 6.4
 if [ -z $NETWORK_PSEUDO ]; then

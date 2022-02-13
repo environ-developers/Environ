@@ -2,8 +2,8 @@
 
 set -eu
 
-for dir in example*; do
+for dir in pw td cp; do
     cd "$dir"
-    ./run_example.sh
+    ./run_all.sh
     cd ../
 done

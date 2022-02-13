@@ -350,9 +350,7 @@ CONTAINS
                 environment_at(:, i) = at(:, i) * (2.D0 * env_nrep(i) + 1.D0)
             END DO
             !
-            environment_nr(1) = this%system_cell%dfft%nr1 * (2 * env_nrep(1) + 1)
-            environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
-            environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
+            environment_nr = this%system_cell%nr * (2 * env_nrep + 1)
             !
             CALL this%environment_cell%init(comm_in, environment_at, local_gcutm, &
                                             environment_nr, 'environment')
@@ -616,18 +614,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT CASE (i)
-            !
-        CASE (0)
-            get_nri = this%system_cell%dfft%nr1
-            !
-        CASE (1)
-            get_nri = this%system_cell%dfft%nr2
-            !
-        CASE (2)
-            get_nri = this%system_cell%dfft%nr3
-            !
-        END SELECT
+        get_nri = this%system_cell%nr(i)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nri

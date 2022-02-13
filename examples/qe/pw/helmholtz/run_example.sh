@@ -21,7 +21,13 @@ $ECHO
 $ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) "
 
 # set the needed environment variables
-. ../../../environment_variables
+x=$EXAMPLE_DIR
+while test "$x" != "/"; do
+    x=$(dirname "$x")
+    if test -f "$x/environment"; then
+      . "$x/environment"; break
+    fi
+done
 
 # compatibility with QE for versions prior to 6.4
 if [ -z $NETWORK_PSEUDO ]; then
@@ -94,24 +100,23 @@ verbose=0             # if GE 1 prints debug informations
                       # WARNING: if GE 2 lot of I/O, much slower
 environ_thr='1.d0'    # electronic convergence threshold for the onset
                       # of solvation correction
-environ_type='input'  # type of environment
-                      # input: read parameters from input
-                      # vacuum: all flags off, no environ
-                      # water: parameters from experimental values
-                      #        and specifically tuned
-solvent_mode='full'   # specify the charge density that is used to
-                      # build the dielectric cavity:
-                      # electronic: use the electronic density (default)
-                      # ionic: use a fictitious charge density calculated
-                      #        for atomic-centered interlocking spheres,
-                      #        whose analytical expression is based on the
-                      #        error function (see example02)
-                      # full: same as electronic, but a small extra
-                      #       density is added on the nuclei to avoid
-                      #       spurious holes in the density due to
-                      #       pseudopotentials. Only needed with some
-                      #       atomic types and pp, in particular
-                      #       alogens and transition metals
+### EXTERNAL CHARGES PARAMETERS #####################################
+env_extcharge_n=2          # Number of external objects to be used
+                           # key control parameter for the module,
+                           # only activated if different from 0.
+extcharge_pos_3_1='25.697'  # Position (x=1,y=2,z=3 first index of the vector)
+extcharge_pos_3_2='-10.303' # of each external object (second index) wrt
+                           # the origin specified above, only need to
+	                   # specify the values different from 0.d0.
+                           # Values specified are in internal units (a.u.)
+extcharge_dim=2            # Dimensionality of the object: 0 = gaussian point,
+	                   # 1 = gaussian line, 2 = gaussian plane
+extcharge_axis=3           # Axis of the object: for planes it is the
+                           # orthogonal axis, for lines it is the line's axis
+                           # no use for points.
+extcharge_charge='-0.5'    # Charge of each object (in internal units)
+                           # same convention as in tot_charge
+extcharge_spread='1.0'     # Spread of the object (gaussian shape) in a.u.
 ### PERIODIC BOUNDARY CONDITIONS ####################################
 env_electrostatic='.true.' # modify electrostatic embedding (required to
                            #   switch on PBC corrections in vacuum)
@@ -124,7 +129,6 @@ pbc_axis=3                 # set the axis along the 1D direction or
                            #   normal to the 2D plane (pbc_axis = 1, 2
                            #   or 3 for x, y or z axis)
 #####################################################################
-
 for epsilon in 1 80 ; do
 
     # clean TMP_DIR
@@ -140,11 +144,12 @@ for epsilon in 1 80 ; do
 
     $ECHO "  running the scf calculation in $label"
     $ECHO "  with $pbc_correction periodic boundary correction"
+    $ECHO "  and a fixed planar density of charge (helmholtz layer)"
 
-  prefix=PtCO_${label}
-  input=${prefix}'.in'
-  output=${prefix}'.out'
-  cat > $input << EOF
+    prefix=PtCO_helmholtz_${label}
+    input=${prefix}'.in'
+    output=${prefix}'.out'
+    cat > $input << EOF
  &CONTROL
    !
    calculation = 'scf'
@@ -199,21 +204,22 @@ Pt       5.335161233   7.697749113   4.753489408
 Pt       2.697860636   3.152173889   4.688412329
 Pt       7.972463687   3.152174491   4.688415209
 EOF
-  cat > environ_${label}.in << EOF
+   cat > environ_${label}.in << EOF
  &ENVIRON
    !
    verbose = $verbose
    environ_thr = $environ_thr
-   environ_type = '$environ_type'
+   environ_type = 'input'
+   env_electrostatic = $env_electrostatic
    env_static_permittivity = $epsilon
    env_surface_tension = 0.D0
    env_pressure = 0.D0
-   env_electrostatic = $env_electrostatic
+   env_external_charges = $env_extcharge_n
    !
  /
  &BOUNDARY
    !
-   solvent_mode = '$solvent_mode'
+   solvent_mode = 'full'
    !
  /
  &ELECTROSTATIC
@@ -224,25 +230,28 @@ EOF
    tol = 5.D-13
    !
  /
+ EXTERNAL_CHARGES (bohr)
+ $extcharge_charge 0. 0. $extcharge_pos_3_1 $extcharge_spread $extcharge_dim $extcharge_axis
+ $extcharge_charge 0. 0. $extcharge_pos_3_2 $extcharge_spread $extcharge_dim $extcharge_axis
 EOF
 
-  cp environ_${label}.in environ.in
-  $PW_COMMAND < $input > $output
-  check_failure $?
-  $ECHO " done"
+   cp environ_${label}.in environ.in
+   $PW_COMMAND < $input > $output
+   check_failure $?
+   $ECHO " done"
 
 done
 
-evac=$(awk '/^!/ {en=$5}; END {print en}' PtCO_vacuum.out)
-esol=$(awk '/^!/ {en=$5}; END {print en}' PtCO_water.out)
+evac=$(awk '/^!/ {en=$5}; END {print en}' PtCO_helmholtz_vacuum.out)
+esol=$(awk '/^!/ {en=$5}; END {print en}' PtCO_helmholtz_water.out)
 dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l)
 
-fermi_vac=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_vacuum.out)
-delta_vac=$(awk '/the potential shift due/ {en=$10}; END {print en}' PtCO_vacuum.out)
+fermi_vac=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_helmholtz_vacuum.out)
+delta_vac=$(awk '/the potential shift due/ {en=$10}; END {print en}' PtCO_helmholtz_vacuum.out)
 fermi_vac_new=$($ECHO "$fermi_vac+$delta_vac" | bc -l)
 
-fermi_sol=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_water.out)
-delta_sol=$(awk '/the potential shift due/ {en=$10}; END {print en}' PtCO_water.out)
+fermi_sol=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_helmholtz_water.out)
+delta_sol=$(awk '/the potential shift due/ {en=$10}; END {print en}' PtCO_helmholtz_water.out)
 fermi_sol_new=$($ECHO "$fermi_sol+$delta_sol" | bc -l)
 
 $ECHO "  Energy in vacuum                    = $evac  Ry        " >> results.txt
