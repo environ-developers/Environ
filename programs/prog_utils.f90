@@ -87,7 +87,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL environ%setup%init_cell(io%comm, at, nr=nr)
+        IF (ANY(nr == 1)) THEN
+            CALL environ%setup%init_cell(io%comm, at)
+        ELSE
+            CALL environ%setup%init_cell(io%comm, at, nr=nr)
+        END IF
         !
         CALL environ%setup%init_cores()
         !
