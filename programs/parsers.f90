@@ -37,6 +37,8 @@ MODULE parsers
     !
     USE environ_api, ONLY: get_atom_labels
     !
+    USE cmdline_args
+    !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
@@ -44,12 +46,10 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE read_cube(nat, ntyp, ityp, atom_label, zv, nelec, tau, origin, nr, at, &
-                         rho, cubefile)
+                         rho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: cubefile
         !
         INTEGER, INTENT(OUT) :: nat, ntyp
         REAL(DP), INTENT(OUT) :: nelec
@@ -72,27 +72,23 @@ CONTAINS
         INTEGER, ALLOCATABLE :: species(:) ! register for checked atomic numbers
         REAL(DP), ALLOCATABLE :: unsorted(:) ! unsorted density read from file
         !
-        CHARACTER(LEN=80) :: filename = 'density.cube'
-        !
         CHARACTER(LEN=80) :: sub_name = 'read_cube'
         !
         !--------------------------------------------------------------------------------
         ! Open cube file
         !
-        IF (PRESENT(cubefile)) filename = cubefile
-        !
         unit = io%find_free_unit()
-        INQUIRE (file=TRIM(filename), exist=ext)
+        INQUIRE (file=TRIM(cubefile), exist=ext)
         !
-        IF (.NOT. ext) CALL io%error(sub_name, TRIM(filename)//' not found', 1)
+        IF (.NOT. ext) CALL io%error(sub_name, TRIM(cubefile)//' not found', 1)
         !
-        OPEN (unit=unit, file=TRIM(filename), status='old')
+        OPEN (unit=unit, file=TRIM(cubefile), status='old')
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%writer('Reading cube data from '//TRIM(filename))
-        !
         CALL io%writer('') ! blank line
+        !
+        CALL io%writer('Reading cube data from '//TRIM(cubefile))
         !
         !--------------------------------------------------------------------------------
         ! Discard comment lines

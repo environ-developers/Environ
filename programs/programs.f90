@@ -121,7 +121,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL init_environ_from_cube(environ, cubefile, rho, nelec)
+        CALL init_environ_from_cube(environ, rho, nelec)
         !
         CALL environ%update_electrons(rho, nelec=nelec, lscatter=.TRUE.)
         !
@@ -196,10 +196,6 @@ CONTAINS
         CALL environ%init_interface()
         !
         CALL environ%init_io(lnode, ionode, comm, 6, .FALSE.)
-        !
-        CALL environ%read_input(inputfile)
-        !
-        CALL environ%setup%init(use_pbc_corr)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE general_setup
