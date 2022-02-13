@@ -312,7 +312,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1003)
+        IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1002)
         !
         !--------------------------------------------------------------------------------
         ! Set G-vector cutoff value
@@ -325,7 +325,7 @@ CONTAINS
             at2 = SUM(at(:, 1)**2)
             local_gcutm = CEILING((nr(1) - 3)**2 * 0.25 / at2 + 0.5 / SQRT(at2) * nr(1))
         ELSE
-            CALL io%error(sub_name, "Missing FFT-grid information", 1004)
+            CALL io%error(sub_name, "Missing FFT-grid information", 1003)
         END IF
         !
         !--------------------------------------------------------------------------------

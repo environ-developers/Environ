@@ -418,7 +418,7 @@ CONTAINS
         IF (this%omega < 0.0_DP) THEN
             this%omega = ABS(this%omega)
             !
-            CALL io%warning("axis vectors are left-handed", 1005)
+            CALL io%warning("axis vectors are left-handed", 1004)
             !
         END IF
         !
