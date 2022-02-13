@@ -59,14 +59,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_from_cube(environ, rho, nelec)
+    SUBROUTINE init_environ_from_cube(environ, nelec, rho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_interface), INTENT(INOUT) :: environ
+        REAL(DP), INTENT(OUT) :: nelec
         REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
-        REAL(DP), OPTIONAL, INTENT(OUT) :: nelec
         !
         INTEGER :: nat
         INTEGER :: ntyp

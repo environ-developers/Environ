@@ -121,14 +121,20 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL init_environ_from_cube(environ, rho, nelec)
-        !
-        CALL environ%update_electrons(rho, nelec=nelec, lscatter=.TRUE.)
+        IF (no_density) THEN
+            CALL init_environ_from_cube(environ, nelec)
+        ELSE
+            !
+            CALL init_environ_from_cube(environ, nelec, rho)
+            !
+            CALL environ%update_electrons(rho, nelec=nelec, lscatter=.TRUE.)
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Compute potential
         !
-        ALLOCATE (env_potential(SIZE(rho)))
+        ALLOCATE (env_potential(environ%setup%get_nnt()))
         !
         CALL environ%calc_potential(.TRUE., env_potential, lgather=.TRUE.)
         !

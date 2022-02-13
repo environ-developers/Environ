@@ -79,8 +79,11 @@ CONTAINS
             CASE ('-c', '-cube')
                 CALL GET_COMMAND_ARGUMENT(i + 1, cubefile)
                 !
-            CASE ('-with_pbc')
+            CASE ('--with_pbc')
                 use_pbc_corr = .TRUE.
+                !
+            CASE ('--no-density')
+                no_density = .TRUE.
                 !
             END SELECT
             !
