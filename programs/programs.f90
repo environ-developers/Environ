@@ -70,7 +70,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (io%lnode) &
-            PRINT '(3(/, A))', &
+            PRINT '(3(/, 5X, A), /)', &
             'Available calculations:', &
             '- tester', &
             '- from_cube'

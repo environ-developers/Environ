@@ -109,11 +109,12 @@ CONTAINS
             !
             IF (prog /= '') THEN
                 !
+                PRINT '(/, 5X, A)', TRIM(prog)//" is not available"
+                !
                 CALL print_available_programs()
                 !
-                PRINT *, TRIM(prog)//" is not available"
             ELSE
-                PRINT *, "Missing calculation name"
+                PRINT '(/, 5X, A, /)', "Missing calculation name"
             END IF
             !
         END SELECT
