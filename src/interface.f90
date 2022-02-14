@@ -488,7 +488,7 @@ CONTAINS
         CHARACTER(LEN=*), INTENT(OUT) :: label(:)
         !
         INTEGER :: i, index, ntyp
-        INTEGER, ALLOCATABLE :: weights(:)
+        REAL(DP), ALLOCATABLE :: weights(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'get_atom_labels_from_atomic_weights'
         !
