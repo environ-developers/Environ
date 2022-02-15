@@ -54,6 +54,7 @@ MODULE class_destructor
         PROCEDURE, NOPASS :: all => environ_clean
         PROCEDURE, NOPASS :: first => environ_clean_first
         PROCEDURE, NOPASS :: second => environ_clean_second
+        PROCEDURE, NOPASS :: debug => environ_close_debug_file
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_destructor
@@ -70,14 +71,26 @@ CONTAINS
     !! clean up subroutines of specific Environ modules.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean()
+    SUBROUTINE environ_clean(lflag)
         !--------------------------------------------------------------------------------
         !
-        CALL environ_clean_first()
+        IMPLICIT NONE
         !
-        CALL environ_clean_second()
+        LOGICAL, INTENT(IN) :: lflag
         !
-        CALL env_deallocate_mp_buffers()
+        !--------------------------------------------------------------------------------
+        !
+        IF (env%initialized) THEN
+            !
+            CALL environ_clean_first()
+            !
+            CALL environ_clean_second()
+            !
+            CALL env_deallocate_mp_buffers()
+            !
+        END IF
+        !
+        CALL environ_close_debug_file(lflag)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean
@@ -91,9 +104,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_clean_first()
         !--------------------------------------------------------------------------------
-        !
-        !--------------------------------------------------------------------------------
-        ! Deallocate environment variables
         !
         IF (ASSOCIATED(env%vzero%cell)) CALL env%vzero%destroy()
         !
@@ -114,13 +124,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Destroy derived types which were allocated in input
         !
-        IF (setup%lelectrostatic .OR. setup%lconfine) THEN
-            !
-            CALL env%system_charges%destroy()
-            !
-            CALL env%environment_charges%destroy()
-            !
-        END IF
+        CALL env%system_charges%destroy()
+        !
+        CALL env%environment_charges%destroy()
         !
         IF (setup%lexternals) CALL env%externals%destroy()
         !
@@ -156,26 +162,9 @@ CONTAINS
     SUBROUTINE environ_clean_second()
         !--------------------------------------------------------------------------------
         !
-        IMPLICIT NONE
+        IF (ASSOCIATED(env%velectrostatic%cell)) CALL env%velectrostatic%destroy()
         !
-        LOGICAL :: opnd
-        !
-        !--------------------------------------------------------------------------------
-        !
-        INQUIRE (unit=io%debug_unit, opened=opnd)
-        !
-        IF (opnd) CLOSE (unit=io%debug_unit)
-        !
-        !--------------------------------------------------------------------------------
-        ! base_environ variables
-        !
-        IF (setup%lelectrostatic) THEN
-            !
-            IF (ASSOCIATED(env%velectrostatic%cell)) CALL env%velectrostatic%destroy()
-            !
-            CALL electrostatic_clean()
-            !
-        END IF
+        CALL electrostatic_clean()
         !
         !--------------------------------------------------------------------------------
         ! Destroy derived types which were allocated in input
@@ -198,18 +187,41 @@ CONTAINS
         !
         IF (setup%lboundary) CALL setup%derivatives%destroy()
         !
-        IF (setup%ldoublecell) THEN
-            !
-            CALL setup%mapping%destroy()
-            !
-            CALL setup%environment_cell%destroy()
-            !
-        END IF
+        IF (setup%ldoublecell) CALL setup%environment_cell%destroy()
+        !
+        CALL setup%mapping%destroy()
         !
         CALL setup%system_cell%destroy()
         !
+        env%initialized = .FALSE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean_second
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE environ_close_debug_file(lflag)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, INTENT(IN) :: lflag
+        !
+        LOGICAL :: opnd
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (lflag) THEN
+            !
+            INQUIRE (unit=io%debug_unit, opened=opnd)
+            !
+            IF (opnd) CLOSE (unit=io%debug_unit)
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_close_debug_file
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

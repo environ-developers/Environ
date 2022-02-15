@@ -1,0 +1,4 @@
+
+This example shows how to use neb.x to run a Nudged Elastic Band (NEB)
+calculation with Environ. For details on the NEB portion of the calculation,
+see <QE_root>/NEB/examples/example01/README

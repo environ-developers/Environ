@@ -231,12 +231,13 @@ depend-QE:
 
 print_menu:
 	@ printf "\nSelect a package:\n\n"
-	@ printf "%s\n%s\n%s\n%s\n%s\n\n%s" \
+	@ printf "%s\n%s\n%s\n%s\n%s\n%s\n\n%s" \
 			 "   1 - PW" \
 			 "   2 - CP" \
 			 "   3 - TDDFPT" \
 			 "   4 - XSpectra" \
-			 "   5 - ALL" \
+			 "   5 - NEB" \
+			 "   6 - ALL" \
 			 "-> "
 
 install: check-Environ-makeinc check-QE-makeinc
@@ -248,6 +249,7 @@ install: check-Environ-makeinc check-QE-makeinc
 	2) opt=cp; patch=cp;; \
 	3) opt="pw tddfpt"; patch=tddfpt;; \
 	4) opt="pw xspectra"; patch=xspectra;; \
+	5) opt="pw neb"; patch=pw;; \
 	5) opt=all;; \
 	*) exit;; \
 	esac; \

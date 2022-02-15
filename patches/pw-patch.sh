@@ -149,7 +149,7 @@ sed '/Environ CALLS BEGIN/ a\
          ! ones initialized while processing the input:\
          ! this allows NEB simulations\
          !\
-         IF (.NOT. setup%is_tddfpt()) CALL clean%all()\
+         IF (.NOT. setup%is_tddfpt()) CALL clean%all(lflag)\
          !\
       ELSE IF ( prog(1:2) == "TD" ) THEN\
          !\
@@ -163,6 +163,8 @@ sed '/Environ CALLS BEGIN/ a\
          ELSE\
             CALL clean%second()\
          END IF\
+         !\
+         CALL clean%debug(lflag)\
          !\
       END IF\
       !\
