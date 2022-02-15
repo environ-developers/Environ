@@ -254,25 +254,28 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
+        LOGICAL :: opnd
+        !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
         !
         !--------------------------------------------------------------------------------
-        ! Open Environ ouput file 
+        ! Open Environ ouput file
         !
         io%verbosity = verbose ! set internal verbosity from input
         !
         IF (io%verbosity >= 1) THEN
             io%debug_unit = io%find_free_unit()
             !
-            OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
+            INQUIRE (unit=io%debug_unit, opened=opnd)
+            !
+            IF (.NOT. opnd) &
+                OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
             !
         END IF
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%set_flags()
-        !
-        CALL this%set_numerical_base()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_setup
@@ -350,6 +353,8 @@ CONTAINS
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%set_numerical_base()
         !
         IF (this%lfd) CALL this%core_fd%init(ifdtype, nfdpoint, this%environment_cell)
         !
