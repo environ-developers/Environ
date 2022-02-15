@@ -64,7 +64,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        DO i = 1, COMMAND_ARGUMENT_COUNT(), 2
+        DO i = 1, COMMAND_ARGUMENT_COUNT()
             !
             CALL GET_COMMAND_ARGUMENT(i, arg)
             !
@@ -79,8 +79,11 @@ CONTAINS
             CASE ('-c', '-cube')
                 CALL GET_COMMAND_ARGUMENT(i + 1, cubefile)
                 !
-            CASE ('-with_pbc')
+            CASE ('--with_pbc')
                 use_pbc_corr = .TRUE.
+                !
+            CASE ('--no-density')
+                no_density = .TRUE.
                 !
             END SELECT
             !
@@ -95,7 +98,7 @@ CONTAINS
     SUBROUTINE run_program()
         !--------------------------------------------------------------------------------
         !
-        CALL general_setup()
+        CALL initial_setup() ! interface and I/O
         !
         SELECT CASE (prog)
             !
@@ -109,11 +112,12 @@ CONTAINS
             !
             IF (prog /= '') THEN
                 !
+                PRINT '(/, 5X, A)', TRIM(prog)//" is not available"
+                !
                 CALL print_available_programs()
                 !
-                PRINT *, TRIM(prog)//" is not available"
             ELSE
-                PRINT *, "Missing calculation name"
+                PRINT '(/, 5X, A, /)', "Missing calculation name"
             END IF
             !
         END SELECT

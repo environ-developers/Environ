@@ -6,19 +6,13 @@
 
 </br>
 
-1002. No free unit
-
-      IO module was unable to find an empty unit for an IO operation
-
-</br>
-
-1003. Strange lattice parameter
+1002. Strange lattice parameter
 
       Host lattice parameter unusually small
 
 </br>
 
-1004. Missing FFT-grid information
+1003. Missing FFT-grid information
 
       Environ is missing some information required to establish both the FFT-grid and its parallelization scheme
 
@@ -31,11 +25,11 @@
 
 </br>
 
-1005. Left-handed lattice vectors
+1004. Left-handed lattice vectors
 
 </br>
 
-1006. Wrong integral of ERFC function
+1005. Wrong integral of ERFC function
 
       Error in numerical integral w.r.t analytic solution exceeds threshold
 

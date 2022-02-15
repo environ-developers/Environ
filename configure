@@ -83,7 +83,9 @@ elif [[ (-e make.inc) && (-e Makefile) ]]; then
   make -f Makefile veryclean
 fi
 
+make depend
 ./install/configure "$@"
+echo
 
 # copy make.inc in the home dir and final clean up
 #

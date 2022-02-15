@@ -312,7 +312,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1003)
+        IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1002)
         !
         !--------------------------------------------------------------------------------
         ! Set G-vector cutoff value
@@ -325,7 +325,7 @@ CONTAINS
             at2 = SUM(at(:, 1)**2)
             local_gcutm = CEILING((nr(1) - 3)**2 * 0.25 / at2 + 0.5 / SQRT(at2) * nr(1))
         ELSE
-            CALL io%error(sub_name, "Missing FFT-grid information", 1004)
+            CALL io%error(sub_name, "Missing FFT-grid information", 1003)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -350,9 +350,7 @@ CONTAINS
                 environment_at(:, i) = at(:, i) * (2.D0 * env_nrep(i) + 1.D0)
             END DO
             !
-            environment_nr(1) = this%system_cell%dfft%nr1 * (2 * env_nrep(1) + 1)
-            environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
-            environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
+            environment_nr = this%system_cell%nr * (2 * env_nrep + 1)
             !
             CALL this%environment_cell%init(comm_in, environment_at, local_gcutm, &
                                             environment_nr, 'environment')
@@ -616,18 +614,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT CASE (i)
-            !
-        CASE (0)
-            get_nri = this%system_cell%dfft%nr1
-            !
-        CASE (1)
-            get_nri = this%system_cell%dfft%nr2
-            !
-        CASE (2)
-            get_nri = this%system_cell%dfft%nr3
-            !
-        END SELECT
+        get_nri = this%system_cell%nr(i)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nri

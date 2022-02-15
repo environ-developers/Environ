@@ -47,7 +47,7 @@ MODULE programs
     !
     PUBLIC :: run_tester, run_environ_from_cube
     !
-    PUBLIC :: general_setup, clean_up, print_available_programs
+    PUBLIC :: initial_setup, clean_up, print_available_programs
     !
     !------------------------------------------------------------------------------------
     ! Declare interface
@@ -70,7 +70,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (io%lnode) &
-            PRINT '(3(/, A))', &
+            PRINT '(3(/, 5X, A), /)', &
             'Available calculations:', &
             '- tester', &
             '- from_cube'
@@ -121,14 +121,20 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL init_environ_from_cube(environ, cubefile, rho, nelec)
-        !
-        CALL environ%update_electrons(rho, nelec=nelec, lscatter=.TRUE.)
+        IF (no_density) THEN
+            CALL init_environ_from_cube(environ, nelec)
+        ELSE
+            !
+            CALL init_environ_from_cube(environ, nelec, rho)
+            !
+            CALL environ%update_electrons(rho, nelec=nelec, lscatter=.TRUE.)
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Compute potential
         !
-        ALLOCATE (env_potential(SIZE(rho)))
+        ALLOCATE (env_potential(environ%setup%get_nnt()))
         !
         CALL environ%calc_potential(.TRUE., env_potential, lgather=.TRUE.)
         !
@@ -179,7 +185,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE general_setup()
+    SUBROUTINE initial_setup()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -197,12 +203,8 @@ CONTAINS
         !
         CALL environ%init_io(lnode, ionode, comm, 6, .FALSE.)
         !
-        CALL environ%read_input(inputfile)
-        !
-        CALL environ%setup%init(use_pbc_corr)
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE general_setup
+    END SUBROUTINE initial_setup
     !------------------------------------------------------------------------------------
     !>
     !!
