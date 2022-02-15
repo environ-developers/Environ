@@ -1295,8 +1295,7 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !---------------------------------------------------------------------------
-      SUBROUTINE calc_vms_gcs( oned_analytic, electrolyte, semiconductor_in,
-charges, potential )
+      SUBROUTINE calc_vms_gcs( this, electrolyte, semiconductor, charges, v )
     !---------------------------------------------------------------------------
         !
         ! ... Given the total explicit charge, the value of the field at the
@@ -1329,11 +1328,11 @@ charges, potential )
         IMPLICIT NONE
     !    SAVE
         !
-        TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
-        TYPE( environ_semiconductor ), TARGET, INTENT(INOUT) :: semiconductor_in
-        TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
-        TYPE( environ_density ), TARGET, INTENT(IN) :: charges
-        TYPE( environ_density ), INTENT(INOUT) :: potential
+        CLASS( core_1da ), INTENT(IN) :: this
+        TYPE( environ_semiconductor_base ), INTENT(IN) :: semiconductor
+        TYPE( environ_electrolyte_base ), INTENT(IN) :: electrolyte
+        TYPE( environ_density ), INTENT(IN) :: charges
+        TYPE( environ_density ), INTENT(INOUT) :: v
         !
         INTEGER, POINTER :: nnr
         TYPE( environ_cell ), POINTER :: cell
@@ -1345,8 +1344,7 @@ charges, potential )
         REAL( DP ), DIMENSION(:,:), POINTER :: axis
         !
         REAL( DP ), POINTER :: cion, zion, permittivity_ms, permittivity_gcs
-        REAL( DP ), POINTER :: xstern_ms, xstern_gcs, electrode_charge,
-carrier_density
+        REAL( DP ), POINTER :: xstern_ms, xstern_gcs, electrode_charge, carrier_density
         REAL( DP ) :: kbt, invkbt
         !
         TYPE( environ_density ), TARGET :: local
@@ -1367,13 +1365,13 @@ carrier_density
         !
         ! ... Aliases and sanity checks
         !
-        IF ( .NOT. ASSOCIATED( potential%cell, charges%cell ) ) &
+        IF ( .NOT. ASSOCIATED( v%cell, charges%cell ) ) &
              & CALL errore(sub_name,'Missmatch in domains of potential and
 charges',1)
-        IF ( potential % cell % nnr .NE. oned_analytic % n ) &
+        IF ( v % cell % nnr .NE. oned_analytic % n ) &
              & CALL errore(sub_name,'Missmatch in domains of potential and
 solver',1)
-        cell => potential % cell
+        cell => v % cell
         nnr => cell % nnr
         !
 
@@ -1399,19 +1397,18 @@ different from two',1)
         xstern_gcs => electrolyte%boundary%simple%width
 
 
-        permittivity_ms => semiconductor_in%permittivity
-        carrier_density => semiconductor_in%carrier_density
-        electrode_charge => semiconductor_in%electrode_charge
-        xstern_ms => semiconductor_in%simple%width
+        permittivity_ms => semiconductor%permittivity
+        carrier_density => semiconductor%carrier_density
+        electrode_charge => semiconductor%electrode_charge
+        xstern_ms => semiconductor%simple%width
 
         WRITE( environ_unit, * )"carrier density: ",carrier_density
 
         !
         WRITE( environ_unit, * )"MS xstern: ",xstern_ms
-        WRITE( environ_unit, * )"carrier density: ",carrier_density
         ! ... Set Boltzmann factors
         !
-        kbt = semiconductor_in % temperature * k_boltzmann_ry
+        kbt = semiconductor % temperature * k_boltzmann_ry
         invkbt = 1.D0 / kbt
         !
         IF ( env_periodicity .NE. 2 ) &
@@ -1419,7 +1416,7 @@ different from two',1)
 Poisson-Boltzmann solver only for 2D systems',1)
         !
         CALL init_environ_density( cell, local )
-        v => local % of_r
+        vms_gcs => local % of_r
        !
         ! ... Compute multipoles of the system wrt the chosen origin
         !
@@ -1430,8 +1427,7 @@ Poisson-Boltzmann solver only for 2D systems',1)
         tot_dipole = dipole(1:3)
         tot_quadrupole = quadrupole
         area = omega / axis_length
-        semiconductor_in%surf_area_per_sq_cm = area* 2.8002D-17     ! Value of 1
-                                                       !square bohr in cm^2
+        ! Value of 1 square bohr in cm^2
         semiconductor%surf_area_per_sq_cm = area* 2.8002D-17
         !
         ! ... First apply parabolic correction
@@ -1439,9 +1435,9 @@ Poisson-Boltzmann solver only for 2D systems',1)
         fact = e2 * tpi / omega
         const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact *
 tot_quadrupole(slab_axis)
-        v(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) *
+        vms_gcs(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) *
 axis(1,:)
-        v(:) = fact * v(:) + const
+        vms_gcs(:) = fact * vms_gcs(:) + const
         dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern_gcs
         !
         ! ... Compute the physical properties of the interface
@@ -1452,7 +1448,7 @@ axis(1,:)
 
 
         ez = - tpi * e2 * tot_charge / area ! / permittivity
-        IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+        IF (semiconductor%slab_charge .EQ. 0.D0) THEN
           ez_gcs = ez
         ELSE
           ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
@@ -1478,7 +1474,7 @@ axis(1,:)
            IF ( ABS(axis(1,i)) .GE. xstern_gcs ) THEN
               !
               icount = icount + 1
-              vbound = vbound + potential % of_r(i) + v(i) - ez *
+              vbound = vbound + v % of_r(i) + vms_gcs(i) - ez *
 (ABS(axis(1,i)) - xstern_gcs)
               !
            ENDIF
@@ -1498,7 +1494,7 @@ axis(1,:)
         ! ... adding in gcs effect first, only on the positive side of xstern
         !
         WRITE (environ_unit, *)"vstern: ",vstern
-        v = v - vbound + vstern
+        vms_gcs = vms_gcs - vbound + vstern
         DO i = 1, nnr
            !
            IF ( axis(1,i) .GE. xstern_gcs ) THEN
@@ -1524,7 +1520,7 @@ axis(1,:)
               !
 
               ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
-              v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+
+              vms_gcs(i) =  vms_gcs(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+
 ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
               !v(i) =  vtmp - potential % of_r(i)
               !
@@ -1539,13 +1535,12 @@ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
 
         ! Now moving on to the ms props
         WRITE( environ_unit, *)"charge: ",tot_charge
-        IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+        IF (semiconductor%slab_charge .EQ. 0.D0) THEN
           ez_ms = 0.D0
         ELSE
-          ez_ms= -tpi * e2 * (electrode_charge-semiconductor_in%slab_charge) /
-area ! / permittivity !in units of Ry/bohr
+          ez_ms= -tpi * e2 * (electrode_charge-semiconductor%slab_charge) /area ! / permittivity !in units of Ry/bohr
         END IF
-        WRITE( environ_unit, * )"bulk sc charge:",(electrode_charge-semiconductor_in%slab_charge)
+        WRITE( environ_unit, * )"bulk sc charge:",(electrode_charge-semiconductor%slab_charge)
         WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
         fact = 1.D0/tpi / e2 /4.D0 /carrier_density !*permittivity
         WRITE(  environ_unit, *)"MS Prefactor: ",fact
@@ -1575,7 +1570,7 @@ area ! / permittivity !in units of Ry/bohr
               icount = icount + 1
               !v_cut = v_cut + potential % of_r(i)  - ez *
               !(ABS(axis(1,i))-xstern_ms)
-              v_cut = v_cut + potential % of_r(i)
+              v_cut = v_cut + v % of_r(i)
               !
            ENDIF
            !
@@ -1587,11 +1582,10 @@ area ! / permittivity !in units of Ry/bohr
         WRITE (environ_unit, *)"icount: ",icount
         v_cut = v_cut / DBLE(icount)
         WRITE (environ_unit, *)"v_cut: ",v_cut
-        WRITE ( environ_unit, * )"flatband_fermi:",semiconductor_in%flatband_fermi
+        WRITE ( environ_unit, * )"flatband_fermi:",semiconductor%flatband_fermi
 
-        semiconductor_in%bulk_sc_fermi =  vms+ semiconductor_in%flatband_fermi !+v_cut
         semiconductor%bulk_sc_fermi = vms+ semiconductor%flatband_fermi ! +v_cut
-        WRITE ( environ_unit, * )"bulk semiconductor fermi level:",semiconductor_in%bulk_sc_fermi
+        WRITE ( environ_unit, * )"bulk semiconductor fermi level:",semiconductor%bulk_sc_fermi
 
 
         ! Adjust the potential to always be 0 on right side
@@ -1614,7 +1608,7 @@ area ! / permittivity !in units of Ry/bohr
            IF ( -axis(1,i) .GE. xstern_ms ) THEN
               ! TRYING OUT SOMETHING NEW where you get gcs on "semiconductor
               ! side" for flatband pot
-              IF (semiconductor_in%slab_charge .EQ. 0.D0 ) THEN
+              IF (semiconductor%slab_charge .EQ. 0.D0 ) THEN
 
                   IF (-axis(1,i) .GE. xstern_ms) THEN
                       !
@@ -1640,8 +1634,8 @@ area ! / permittivity !in units of Ry/bohr
                       !
 
                       ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
-                      v(i) =  v(i) + vtmp - vstern - ez *
-(ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
+                      vms_gcs(i) =  vms_gcs(i) + vtmp - vstern - ez *(ABS(axis(1,i))-xstern_gcs) 
+                                        !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
                       !v(i) =  vtmp - potential % of_r(i)
                       !
                       ! WRITE( environ_unit, *)"v_i: ",v(i)
@@ -1679,7 +1673,7 @@ ez_ms*(distance) + vms
                   !
                   ! ... Remove source potential (linear) and add analytic one
                   !
-                  v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential %
+                  vms_gcs(i) =  vms_gcs(i) + vtmp  -ez*distance!-vms ! vtmp - potential %
 of_r(i)
                   !v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential %
                   !of_r(i)
@@ -1703,20 +1697,19 @@ of_r(i)
            IF ( axis(1,i) .EQ. max_axis ) THEN
               !
               icount = icount + 1
-              v_edge = v_edge + potential % of_r(i) + v(i)
+              v_edge = v_edge + v % of_r(i) + vms_gcs(i)
               !
            ENDIF
            !
         ENDDO
         v_edge = v_edge / DBLE(icount)
-        v = v - v_edge
+        vms_gcs = vms_gcs - v_edge
         !
 
 
 
-        potential % of_r = potential % of_r + v
+        v % of_r = v % of_r + vms_gcs
 
-        semiconductor = semiconductor_in
         !
         CALL destroy_environ_density(local)
         !
@@ -1735,17 +1728,16 @@ of_r(i)
     END SUBROUTINE calc_vms_gcs
     !---------------------------------------------------------------------------
     !---------------------------------------------------------------------------
-      SUBROUTINE calc_gradvms_gcs( oned_analytic, electrolyte, semiconductor_in,
-charges, gradv )
+      SUBROUTINE calc_gradvms_gcs( this, electrolyte, semiconductor,charges, grad_v )
     !---------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
-        TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
-        TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor_in
-        TYPE( environ_density ), TARGET, INTENT(IN) :: charges
-        TYPE( environ_gradient ), INTENT(INOUT) :: gradv
+        TYPE( core_1da ), INTENT(IN) :: this
+        TYPE( environ_electrolyte_base ), INTENT(IN) :: electrolyte
+        TYPE( environ_semiconductor_base ), INTENT(IN) :: semiconductor
+        TYPE( environ_density ), INTENT(IN) :: charges
+        TYPE( environ_gradient ), INTENT(INOUT) :: grad_v
         !
         INTEGER, POINTER :: nnr
         TYPE( environ_cell ), POINTER :: cell
@@ -1779,13 +1771,13 @@ carrier_density
         !
         ! ... Aliases and sanity checks
         !
-        IF ( .NOT. ASSOCIATED( gradv%cell, charges%cell ) ) &
+        IF ( .NOT. ASSOCIATED( grad_v%cell, charges%cell ) ) &
              & CALL errore(sub_name,'Missmatch in domains of potential and
 charges',1)
-        IF ( gradv % cell % nnr .NE. oned_analytic % n ) &
+        IF ( grad_v % cell % nnr .NE. oned_analytic % n ) &
              & CALL errore(sub_name,'Missmatch in domains of potential and
 solver',1)
-        cell => gradv % cell
+        cell => grad_v % cell
         nnr => cell % nnr
         !
         alat => oned_analytic % alat
@@ -1798,10 +1790,10 @@ solver',1)
         !
         ! ... Get parameters of semiconductor to compute analytic correction
         !
-        permittivity_ms => semiconductor_in%permittivity
-        electrode_charge => semiconductor_in%electrode_charge
-        carrier_density => semiconductor_in%carrier_density
-        xstern_ms => semiconductor_in%simple%width
+        permittivity_ms => semiconductor%permittivity
+        electrode_charge => semiconductor%electrode_charge
+        carrier_density => semiconductor%carrier_density
+        xstern_ms => semiconductor%simple%width
 
         cion => electrolyte % ioncctype(1) % cbulk
         zion => electrolyte % ioncctype(1) % z
@@ -1810,7 +1802,7 @@ solver',1)
         !
         ! ... Set Boltzmann factors
         !
-        kbt = semiconductor_in % temperature * k_boltzmann_ry
+        kbt = semiconductor % temperature * k_boltzmann_ry
         invkbt = 1.D0 / kbt
         !
         IF ( env_periodicity .NE. 2 ) &
@@ -1850,7 +1842,7 @@ Poisson-Boltzmann solver only for 2D systems',1)
                                                             !permittivity needs
                                                             !not
                                                             !! to be included
-        IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+        IF (semiconductor%slab_charge .EQ. 0.D0) THEN
           ez_gcs = ez
         ELSE
           ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
@@ -1893,7 +1885,7 @@ Poisson-Boltzmann solver only for 2D systems',1)
                  !
                  ! ... Remove source potential and add analytic one
                  !
-                 gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                 gvstern(slab_axis,i) = -grad_v % of_r(slab_axis,i) + &
                              & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
                  !
               ENDIF
@@ -1918,7 +1910,7 @@ Poisson-Boltzmann solver only for 2D systems',1)
                  !
                  ! ... Remove source potential (linear) and add analytic one
                  !
-                 gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                 gvstern(slab_axis,i) = -grad_v % of_r(slab_axis,i) + &
                              & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
                  !
               ENDIF
@@ -1929,10 +1921,10 @@ Poisson-Boltzmann solver only for 2D systems',1)
         !
         ! Now applying the mott schottky side
 
-        IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+        IF (semiconductor%slab_charge .EQ. 0.D0) THEN
           ez_ms = 0.D0
         ELSE
-          ez_ms= tpi * e2 * (electrode_charge-semiconductor_in%slab_charge) /
+          ez_ms= tpi * e2 * (electrode_charge-semiconductor%slab_charge) /
 area ! / permittivity !in units of Ry/bohr
         END IF
         fact = 1.D0/tpi / e2 /4.D0 /carrier_density !*permittivity
@@ -1946,7 +1938,7 @@ area ! / permittivity !in units of Ry/bohr
           IF ( -axis(1,i) .GE. xstern_ms ) THEN
               distance = ABS(axis(1,i)) - xstern_ms
 
-              IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+              IF (semiconductor%slab_charge .EQ. 0.D0) THEN
                   IF ( electrolyte % linearized ) THEN
                      !
                      ! ... Compute some constants needed for the calculation
@@ -1962,7 +1954,7 @@ area ! / permittivity !in units of Ry/bohr
                      !
                      ! ... Remove source potential and add analytic one
                      !
-                     gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                     gvstern(slab_axis,i) = -grad_v % of_r(slab_axis,i) + &
                                  & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
                   ELSE
                      ! ... Compute some constants needed for the calculation
@@ -1984,7 +1976,7 @@ permittivity_gcs )
                      !
                      ! ... Remove source potential (linear) and add analytic one
                      !
-                     gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                     gvstern(slab_axis,i) = -grad_v % of_r(slab_axis,i) + &
                                  & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
 
                      !WRITE (environ_unit, *)"This is the axis value:
@@ -2018,7 +2010,7 @@ permittivity_gcs )
                   !
                   ! ... Remove source potential (linear) and add analytic one
                   !
-                  gvstern(slab_axis,i) =  -gradv % of_r(slab_axis,i) + (vtmp -
+                  gvstern(slab_axis,i) =  -grad_v % of_r(slab_axis,i) + (vtmp -
 ez) * ABS(axis(1,i))/axis(1,i)!-vms ! vtmp - potential % of_r(i)
                   !WRITE( environ_unit, *)"This is the vi: ",ez*distance
               END IF
@@ -2028,7 +2020,7 @@ ez) * ABS(axis(1,i))/axis(1,i)!-vms ! vtmp - potential % of_r(i)
         ENDDO
 
 
-        gradv % of_r = gradv % of_r + gvstern
+        grad_v % of_r = grad_v % of_r + gvstern
 
         !
         CALL destroy_environ_gradient(glocal)

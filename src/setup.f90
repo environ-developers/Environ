@@ -101,6 +101,7 @@ MODULE class_setup
         LOGICAL :: lregions = .FALSE.
         LOGICAL :: lelectrolyte = .FALSE.
         LOGICAL :: lsemiconductor = .FALSE.
+        LOGICAL :: lmsgcs = .FALSE.
         LOGICAL :: lperiodic = .FALSE.
         LOGICAL :: ldoublecell = .FALSE.
         LOGICAL :: ltddfpt = .FALSE.
@@ -684,6 +685,7 @@ CONTAINS
         CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
             this%lperiodic = .TRUE.
             this%lsemiconductor = .TRUE.
+            this%lmsgcs = .TRUE.
             !
         CASE DEFAULT
             CALL io%error(sub_name, "Unexpected correction type", 1)
