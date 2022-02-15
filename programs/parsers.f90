@@ -75,12 +75,16 @@ CONTAINS
         !
         INTEGER :: i, j, k, l, count, unit, current, nnt
         !
-        REAL(DP) :: current_charge
+        REAL(DP) :: fact ! angstrom to bohr conversion factor
         !
         INTEGER, ALLOCATABLE :: atomic_number(:)
+        INTEGER, ALLOCATABLE :: charge_index(:) ! index of unique charges
         REAL(DP), ALLOCATABLE :: charge(:) ! unprocessed charges
         INTEGER, ALLOCATABLE :: species(:) ! register for checked atomic numbers
         REAL(DP), ALLOCATABLE :: unsorted(:) ! unsorted density read from file
+        !
+        CHARACTER(LEN=14) :: current_combo ! current number/charge
+        CHARACTER(LEN=14), ALLOCATABLE :: combo(:) ! unique set of number/charge
         !
         CHARACTER(LEN=80) :: sub_name = 'read_cube'
         !
@@ -147,7 +151,14 @@ CONTAINS
         !
         CALL env_mp_bcast(at, io%node, io%comm)
         !
-        at = at * SPREAD(nr, 1, 3)
+        IF (ANY(nr < 0)) THEN
+            fact = 1.8897259886D0
+            nr = -nr
+        ELSE
+            fact = 1.D0
+        END IF
+        !
+        at = at * SPREAD(nr, 1, 3) * fact
         !
         !--------------------------------------------------------------------------------
         ! Read atomic numbers, charges, and positions
@@ -173,6 +184,8 @@ CONTAINS
         !
         CALL env_mp_bcast(tau, io%node, io%comm)
         !
+        tau = tau * fact
+        !
         nelec = SUM(charge)
         !
         !--------------------------------------------------------------------------------
@@ -180,35 +193,35 @@ CONTAINS
         !
         ALLOCATE (species(nat))
         ALLOCATE (ityp(nat))
+        ALLOCATE (combo(nat))
+        ALLOCATE (charge_index(nat))
         !
         ntyp = 0
         species = 0
+        combo = ''
+        charge_index = 0
         !
         DO i = 1, nat
+            WRITE (current_combo, '(I3, 1X, F10.6)') atomic_number(i), charge(i)
             !
-            IF (.NOT. ANY(species == atomic_number(i))) THEN
+            IF (.NOT. ANY(combo == current_combo)) THEN
                 ntyp = ntyp + 1
-                species(i) = atomic_number(i)
+                species(ntyp) = atomic_number(i)
+                combo(ntyp) = current_combo
+                charge_index(ntyp) = i
             END IF
             !
-            ityp(i) = env_get_index(atomic_number(i), species)
+            ityp(i) = env_get_index(current_combo, combo)
         END DO
         !
         !--------------------------------------------------------------------------------
         ! Reduce charges to unique array
         !
         ALLOCATE (zv(ntyp))
-        current_charge = 0.D0
-        count = 0
+        zv = 0.D0
         !
-        DO i = 1, nat
-            !
-            IF (charge(i) /= current_charge) THEN
-                count = count + 1
-                zv(count) = charge(i)
-                current_charge = charge(i)
-            END IF
-            !
+        DO i = 1, ntyp
+            zv(i) = charge(charge_index(i))
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -217,6 +230,17 @@ CONTAINS
         ALLOCATE (atom_label(ntyp))
         !
         CALL get_atom_labels(species, atom_label)
+        !
+        ! PRINT *, ntyp
+        ! PRINT *
+        ! PRINT *, species
+        ! PRINT *
+        ! PRINT *, zv
+        ! PRINT *
+        ! PRINT *, atom_label
+        ! PRINT *
+        ! !
+        ! STOP
         !
         !--------------------------------------------------------------------------------
         ! Read density

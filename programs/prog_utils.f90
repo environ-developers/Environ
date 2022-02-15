@@ -91,7 +91,7 @@ CONTAINS
         !
         CALL environ%setup%init(use_pbc_corr)
         !
-        IF (ANY(nr == 1)) THEN
+        IF (ANY(ABS(nr) == 1)) THEN
             CALL environ%setup%init_cell(io%comm, at)
         ELSE
             CALL environ%setup%init_cell(io%comm, at, nr=nr)

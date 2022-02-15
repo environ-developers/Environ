@@ -64,7 +64,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        DO i = 1, COMMAND_ARGUMENT_COUNT(), 2
+        DO i = 1, COMMAND_ARGUMENT_COUNT()
             !
             CALL GET_COMMAND_ARGUMENT(i, arg)
             !
