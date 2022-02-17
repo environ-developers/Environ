@@ -144,7 +144,7 @@ compile: check-Environ-makeinc
 
 compile-QE: check-QE-makeinc
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi; \
-	  if [ "$$prog" = all ]; then prog="pw cp tddfpt xspectra"; fi; \
+	  if [ "$$prog" = all ]; then prog="pw cp tddfpt xspectra neb"; fi; \
 	  if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log; \
 	  (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
@@ -250,7 +250,7 @@ install: check-Environ-makeinc check-QE-makeinc
 	3) opt="pw tddfpt"; patch=tddfpt;; \
 	4) opt="pw xspectra"; patch=xspectra;; \
 	5) opt="pw neb"; patch=pw;; \
-	5) opt=all;; \
+	6) opt=all;; \
 	*) exit;; \
 	esac; \
 	\

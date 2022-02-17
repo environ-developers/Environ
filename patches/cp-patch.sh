@@ -104,7 +104,7 @@ USE class_destructor, ONLY : clean\
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL clean%all()\
+   if(use_environ) CALL clean%all(.TRUE.)\
 !Environ patch
 ' tmp.1 > tmp.2
 
