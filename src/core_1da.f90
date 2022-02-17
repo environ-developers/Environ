@@ -1402,10 +1402,10 @@ different from two',1)
         electrode_charge => semiconductor%electrode_charge
         xstern_ms => semiconductor%simple%width
 
-        WRITE( environ_unit, * )"carrier density: ",carrier_density
+        WRITE( io%debug_unit, * )"carrier density: ",carrier_density
 
         !
-        WRITE( environ_unit, * )"MS xstern: ",xstern_ms
+        WRITE( io%debug_unit, * )"MS xstern: ",xstern_ms
         ! ... Set Boltzmann factors
         !
         kbt = semiconductor % temperature * k_boltzmann_ry
@@ -1453,9 +1453,9 @@ axis(1,:)
         ELSE
           ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
         END IF
-        WRITE (environ_unit, *)"tot charge: ",tot_charge
-        WRITE (environ_unit, *)"ez: ",ez
-        WRITE (environ_unit, *)"ez_gcs: ",ez_gcs
+        WRITE (io%debug_unit, *)"tot charge: ",tot_charge
+        WRITE (io%debug_unit, *)"ez: ",ez
+        WRITE (io%debug_unit, *)"ez_gcs: ",ez_gcs
         fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity_gcs )
         arg = ez_gcs/fact
         asinh = LOG(arg + SQRT( arg**2 + 1 ))
@@ -1483,7 +1483,7 @@ axis(1,:)
         CALL mp_sum(icount,cell%comm)
         CALL mp_sum(vbound,cell%comm)
         vbound = vbound / DBLE(icount)
-        WRITE (environ_unit, *)"vbound: ",vbound
+        WRITE (io%debug_unit, *)"vbound: ",vbound
         !
         ! ... Compute some constants needed for the gcs calculation
         !
@@ -1493,7 +1493,7 @@ axis(1,:)
         ! ... Compute the analytic potential and charge
         ! ... adding in gcs effect first, only on the positive side of xstern
         !
-        WRITE (environ_unit, *)"vstern: ",vstern
+        WRITE (io%debug_unit, *)"vstern: ",vstern
         vms_gcs = vms_gcs - vbound + vstern
         DO i = 1, nnr
            !
@@ -1534,16 +1534,16 @@ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
         !
 
         ! Now moving on to the ms props
-        WRITE( environ_unit, *)"charge: ",tot_charge
+        WRITE( io%debug_unit, *)"charge: ",tot_charge
         IF (semiconductor%slab_charge .EQ. 0.D0) THEN
           ez_ms = 0.D0
         ELSE
           ez_ms= -tpi * e2 * (electrode_charge-semiconductor%slab_charge) /area ! / permittivity !in units of Ry/bohr
         END IF
-        WRITE( environ_unit, * )"bulk sc charge:",(electrode_charge-semiconductor%slab_charge)
-        WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
+        WRITE( io%debug_unit, * )"bulk sc charge:",(electrode_charge-semiconductor%slab_charge)
+        WRITE( io%debug_unit, * )"Mott Schottky electric field: ",ez_ms
         fact = 1.D0/tpi / e2 /4.D0 /carrier_density !*permittivity
-        WRITE(  environ_unit, *)"MS Prefactor: ",fact
+        WRITE( io%debug_unit, *)"MS Prefactor: ",fact
         arg = fact* (ez_ms**2.D0)
         IF (ez_ms < 0) THEN
            vms =  -arg ! +kbt
@@ -1552,8 +1552,8 @@ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
         END IF
         !Finds the total length of the depletion region
         depletion_length = ABS(2.D0 *fact*ez_ms)
-        WRITE ( environ_unit, * )"depletion length: ",depletion_length
-        WRITE ( environ_unit, * )"vms: ",vms
+        WRITE ( io%debug_unit, * )"depletion length: ",depletion_length
+        WRITE ( io%debug_unit, * )"vms: ",vms
 
 
         !
@@ -1578,14 +1578,14 @@ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
 
         CALL mp_sum(icount,cell%comm)
         CALL mp_sum(v_cut,cell%comm)
-        WRITE (environ_unit, *)"v_cut: ",v_cut
-        WRITE (environ_unit, *)"icount: ",icount
+        WRITE (io%debug_unit, *)"v_cut: ",v_cut
+        WRITE (io%debug_unit, *)"icount: ",icount
         v_cut = v_cut / DBLE(icount)
-        WRITE (environ_unit, *)"v_cut: ",v_cut
-        WRITE ( environ_unit, * )"flatband_fermi:",semiconductor%flatband_fermi
+        WRITE (io%debug_unit, *)"v_cut: ",v_cut
+        WRITE ( io%debug_unit, * )"flatband_fermi:",semiconductor%flatband_fermi
 
         semiconductor%bulk_sc_fermi = vms+ semiconductor%flatband_fermi ! +v_cut
-        WRITE ( environ_unit, * )"bulk semiconductor fermi level:",semiconductor%bulk_sc_fermi
+        WRITE ( io%debug_unit, * )"bulk semiconductor fermi level:",semiconductor%bulk_sc_fermi
 
 
         ! Adjust the potential to always be 0 on right side
