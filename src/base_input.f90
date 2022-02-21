@@ -663,7 +663,7 @@ MODULE env_base_input
     ! Periodic correction keywords
     !
     CHARACTER(LEN=80) :: pbc_correction = 'none'
-    CHARACTER(LEN=80) :: pbc_correction_allowed(4)
+    CHARACTER(LEN=80) :: pbc_correction_allowed(5)
     !
     DATA pbc_correction_allowed/'none', 'parabolic', 'gcs', 'ms', 'ms-gcs'/
     !
