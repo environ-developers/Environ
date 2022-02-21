@@ -1358,8 +1358,7 @@ CONTAINS
         REAL( DP ) :: asinh, coth, acoth
         REAL( DP ) :: f1, f2, max_axis
         REAL( DP ) :: area, vtmp, distance
-        REAL(DP) :: dipole(0:3), quadrupole(3)
-        REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+        REAL(DP) :: charge, dipole(0:3), quadrupole(3)
         CHARACTER( LEN = 80 ) :: sub_name = 'calc_vms_gcs'
         !
         CALL start_clock ('calc_vms_gcs')
@@ -1408,15 +1407,15 @@ CONTAINS
             !
             CALL local%init(v%cell)
             vms_gcs => local % of_r
-            !
-            ! ... Compute multipoles of the system wrt the chosen origin
-            !
-            CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
-            !
-            tot_charge = dipole(0)
 
-            tot_dipole = dipole(1:3)
-            tot_quadrupole = quadrupole
+            !----------------------------------------------------------------------------
+            !
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            ! compute multipoles of the system w.r.t the chosen origin
+            !
+            !----------------------------------------------------------------------------            
+
+
             area = omega / axis_length
             ! Value of 1 square bohr in cm^2
             semiconductor%surf_area_per_sq_cm = area* 2.8002D-17
@@ -1424,23 +1423,23 @@ CONTAINS
             ! ... First apply parabolic correction
             !
             fact = e2 * tpi / omega
-            const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact *tot_quadrupole(slab_axis)
-            vms_gcs(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) *axis(1,:)
+            const = - pi / 3.D0 * charge / axis_length * e2 - fact *quadrupole(slab_axis)
+            vms_gcs(:) = - charge * axis(1,:)**2 + 2.D0 * dipole(slab_axis) *axis(1,:)
             vms_gcs(:) = fact * vms_gcs(:) + const
-            dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern_gcs
+            dv = - fact * 4.D0 * dipole(slab_axis) * xstern_gcs
             !
             ! ... Compute the physical properties of the interface
             !
             ! Starting with the GCS props
 
 
-            ez = - tpi * e2 * tot_charge / area ! / permittivity
+            ez = - tpi * e2 * charge / area ! / permittivity
             IF (semiconductor%slab_charge .EQ. 0.D0) THEN
               ez_gcs = ez
             ELSE
               ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
             END IF
-            WRITE (io%debug_unit, *)"tot charge: ",tot_charge
+            WRITE (io%debug_unit, *)"tot charge: ",charge
             WRITE (io%debug_unit, *)"ez: ",ez
             WRITE (io%debug_unit, *)"ez_gcs: ",ez_gcs
             fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity_gcs )
@@ -1521,7 +1520,7 @@ CONTAINS
             !
 
             ! Now moving on to the ms props
-            WRITE( io%debug_unit, *)"charge: ",tot_charge
+            WRITE( io%debug_unit, *)"charge: ",charge
             IF (semiconductor%slab_charge .EQ. 0.D0) THEN
               ez_ms = 0.D0
             ELSE
@@ -1748,8 +1747,7 @@ CONTAINS
         REAL( DP ) :: arg, asinh, coth, acoth
         REAL( DP ) :: f1, f2, depletion_length
         REAL( DP ) :: area, dvtmp_dx, distance
-        REAL(DP) :: dipole(0:3), quadrupole(3)
-        REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+        REAL(DP) :: charge, dipole(0:3), quadrupole(3)
         CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvms_gcs'
         !
         CALL env_start_clock (sub_name)
@@ -1804,20 +1802,18 @@ CONTAINS
             !
             !---------------------------------------------------------------------------- 
             !
-            tot_charge = dipole(0)
-            tot_dipole = dipole(1:3)
             area = omega / this%size
             !
             ! ... First compute the gradient of parabolic correction
             !
             fact = e2 * fpi / omega
-            grad_vms_gcs(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
+            grad_vms_gcs(slab_axis,:) = dipole(slab_axis) - charge * axis(1,:)
             grad_vms_gcs = grad_vms_gcs * fact
 
             !
             ! ... Compute the physical properties of the interface
             !
-            ez = - tpi * e2 * tot_charge / area !/ permittivity !! the input charge
+            ez = - tpi * e2 * charge / area !/ permittivity !! the input charge
                                                 !density includes explicit and
                                                                 !! polarization
                                                                 !charges, so
