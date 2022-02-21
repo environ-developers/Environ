@@ -1333,7 +1333,7 @@ CONTAINS
         !
         IF (env_electrolyte_ntyp > 0) THEN
             !
-            IF (TRIM(pbc_correction) /= 'gcs') THEN
+            IF (TRIM(pbc_correction) /= 'gcs' .OR. TRIM(pbc_correction) /= 'ms-gcs') THEN
                 !
                 IF (electrolyte_linearized) THEN
                     !
