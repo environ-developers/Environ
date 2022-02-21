@@ -1315,7 +1315,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Electrolyte checks
         !
-        IF (TRIM(pbc_correction) == 'gcs') THEN
+        IF (TRIM(pbc_correction) == 'gcs' .OR. TRIM(pbc_correction) == 'ms-gcs') THEN
             !
             IF (electrolyte_distance == 0.0_DP) &
                 CALL io%error(sub_name, &
@@ -1333,7 +1333,7 @@ CONTAINS
         !
         IF (env_electrolyte_ntyp > 0) THEN
             !
-            IF (TRIM(pbc_correction) /= 'gcs' .OR. TRIM(pbc_correction) /= 'ms-gcs') THEN
+            IF (TRIM(pbc_correction) /= 'gcs' .AND. TRIM(pbc_correction) /= 'ms-gcs') THEN
                 !
                 IF (electrolyte_linearized) THEN
                     !
@@ -1412,7 +1412,7 @@ CONTAINS
             !
             IF (problem == 'none') problem = 'generalized'
             !
-            IF (TRIM(pbc_correction) /= 'gcs') THEN
+            IF (TRIM(pbc_correction) /= 'gcs' .AND. TRIM(pbc_correction) /= 'ms-gcs') THEN
                 IF (solver == 'none') solver = 'cg'
             ELSE
                 !
