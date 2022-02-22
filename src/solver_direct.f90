@@ -198,7 +198,7 @@ CONTAINS
                         CALL io%error(sub_name, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
-                    CALL correction%potential(semiconductor%base, density, v)
+                    CALL correction%potential(electrolyte%base,semiconductor%base, density, v)
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected corrections method", 1)

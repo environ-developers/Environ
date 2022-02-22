@@ -602,7 +602,7 @@ CONTAINS
         !
         CLASS(environ_core), INTENT(IN) :: this
         TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
+        TYPE(environ_semiconductor_base), INTENT(INOUT) :: semiconductor
         TYPE(environ_density), INTENT(IN) :: charges
         !
         TYPE(environ_density), INTENT(INOUT) :: v
@@ -619,7 +619,7 @@ CONTAINS
     !!>
     !!!
     !!------------------------------------------------------------------------------------
-    SUBROUTINE calc_grad_vms_gcs(this, electrolyte,semiconductor, charges, grad_v)
+    SUBROUTINE calc_grad_vms_gcs(this, electrolyte, semiconductor, charges, grad_v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE

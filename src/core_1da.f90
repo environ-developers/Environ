@@ -92,6 +92,9 @@ MODULE class_core_1da
         PROCEDURE :: calc_vms => calc_1da_vms
         PROCEDURE :: calc_grad_vms => calc_1da_grad_vms
         !
+        PROCEDURE :: calc_vms_gcs => calc_1da_vms_gcs
+        PROCEDURE :: calc_grad_vms_gcs => calc_1da_grad_vms_gcs
+
         !--------------------------------------------------------------------------------
     END TYPE core_1da
     !------------------------------------------------------------------------------------
@@ -1094,6 +1097,8 @@ CONTAINS
                    axis_length => this%size, &
                    axis => this%x, &
                    xstern => semiconductor%sc_distance)
+
+            WRITE( io%debug_unit, * )"carrier density: ",semiconductor%carrier_density
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -1295,7 +1300,7 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !---------------------------------------------------------------------------
-      SUBROUTINE calc_vms_gcs( this, electrolyte, semiconductor, charges, v )
+      SUBROUTINE calc_1da_vms_gcs( this, electrolyte, semiconductor, charges, v )
     !---------------------------------------------------------------------------
         !
         ! ... Given the total explicit charge, the value of the field at the
@@ -1710,15 +1715,15 @@ CONTAINS
 
         !
     !---------------------------------------------------------------------------
-    END SUBROUTINE calc_vms_gcs
+    END SUBROUTINE calc_1da_vms_gcs
     !---------------------------------------------------------------------------
     !---------------------------------------------------------------------------
-      SUBROUTINE calc_gradvms_gcs( this, electrolyte, semiconductor,charges, grad_v )
+      SUBROUTINE calc_1da_grad_vms_gcs( this, electrolyte, semiconductor,charges, grad_v )
     !---------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE( core_1da ), INTENT(IN) :: this
+        CLASS( core_1da ), INTENT(IN) :: this
         TYPE( environ_electrolyte_base ), INTENT(IN) :: electrolyte
         TYPE( environ_semiconductor_base ), INTENT(IN) :: semiconductor
         TYPE( environ_density ), INTENT(IN) :: charges
@@ -2010,7 +2015,7 @@ CONTAINS
         !
         RETURN
     !---------------------------------------------------------------------------
-    END SUBROUTINE calc_gradvms_gcs
+    END SUBROUTINE calc_1da_grad_vms_gcs
     !---------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
 END MODULE class_core_1da
