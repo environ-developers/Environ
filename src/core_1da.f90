@@ -1363,10 +1363,10 @@ CONTAINS
         REAL( DP ) :: asinh, coth, acoth
         REAL( DP ) :: f1, f2, max_axis
         REAL( DP ) :: area, vtmp, distance
-        REAL(DP) :: charge, dipole(0:3), quadrupole(3)
+        REAL(DP) :: charge, dipole(3), quadrupole(3)
         CHARACTER( LEN = 80 ) :: sub_name = 'calc_vms_gcs'
         !
-        CALL start_clock ('calc_vms_gcs')
+        CALL env_start_clock (sub_name)
         !
         ! ... Aliases and sanity checks
         !
@@ -1407,12 +1407,9 @@ CONTAINS
             kbt = semiconductor % temperature * k_boltzmann_ry
             invkbt = 1.D0 / kbt
             !
-            IF ( env_periodicity .NE. 2 ) &
-                 & CALL errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
             !
             CALL local%init(v%cell)
-            vms_gcs => local % of_r
-
+            vms_gcs => local%of_r
             !----------------------------------------------------------------------------
             !
             CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
@@ -1429,14 +1426,13 @@ CONTAINS
             !
             fact = e2 * tpi / omega
             const = - pi / 3.D0 * charge / axis_length * e2 - fact *quadrupole(slab_axis)
-            vms_gcs(:) = - charge * axis(1,:)**2 + 2.D0 * dipole(slab_axis) *axis(1,:)
-            vms_gcs(:) = fact * vms_gcs(:) + const
+            vms_gcs = - charge * axis(1,:)**2 + 2.D0 * dipole(slab_axis) *axis(1,:)
+            vms_gcs = fact * vms_gcs(:) + const
             dv = - fact * 4.D0 * dipole(slab_axis) * xstern_gcs
             !
             ! ... Compute the physical properties of the interface
             !
             ! Starting with the GCS props
-
 
             ez = - tpi * e2 * charge / area ! / permittivity
             IF (semiconductor%slab_charge .EQ. 0.D0) THEN
@@ -1703,7 +1699,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL stop_clock ('calc_vms_gcs')
+        CALL env_stop_clock (sub_name)
         !
 
 
@@ -1753,7 +1749,7 @@ CONTAINS
         REAL( DP ) :: f1, f2, depletion_length
         REAL( DP ) :: area, dvtmp_dx, distance
         REAL(DP) :: charge, dipole(0:3), quadrupole(3)
-        CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvms_gcs'
+        CHARACTER( LEN = 80 ) :: sub_name = 'calc_grad_vms_gcs'
         !
         CALL env_start_clock (sub_name)
         !
@@ -2011,7 +2007,7 @@ CONTAINS
             CALL glocal%destroy()
             !
         END ASSOCIATE 
-        CALL stop_clock ('calc_gvms_gcs')
+        CALL env_stop_clock (sub_name)
         !
         RETURN
     !---------------------------------------------------------------------------
