@@ -73,6 +73,8 @@ MODULE class_semiconductor
         REAL(DP) :: flatband_fermi = 0.D0
         REAL(DP) :: bulk_sc_fermi = 0.D0
         REAL(DP) :: surf_area_per_sq_cm = 0.D0
+        REAL(DP) :: electrode_charge = 0.D0
+        REAL(DP) :: charge_threshold  = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
