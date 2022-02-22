@@ -238,7 +238,7 @@ CONTAINS
         CLASS(electrostatic_solver), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
@@ -339,7 +339,7 @@ CONTAINS
         CLASS(electrostatic_solver), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
