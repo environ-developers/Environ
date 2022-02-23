@@ -747,7 +747,7 @@ END IF \
 WRITE(STDOUT, 1003)chg_step,prev_step_size,ss_chg,cur_dchg,& \
 &bulk_potential \
 OPEN(21,file = "q-v.dat", status = "unknown") \
-WRITE(37, *)"Potential (V-V_fb)  Surface State Potential (V-V_cut)",& \
+WRITE(21, *)"Potential (V-V_fb)  Surface State Potential (V-V_cut)",& \
 &"  Electrode Charge (e)",& \
 &"  Surface States Charge (e)    ",& \
 &"Electrode Charge per surface area (e/cm^2)     ",& \
@@ -758,7 +758,7 @@ ss_chg_per_area = ss_chg/surf_area \
 ss_potential = -bulk_potential \
 CALL mp_bcast(ss_potential, ionode_id, intra_image_comm) \
 !print *, bulk_potential,ss_potential \
-WRITE(37, 1004)total_potential, ss_potential,& \
+WRITE(21, 1004)total_potential, ss_potential,& \
 &env%semiconductor%base%electrode_charge, ss_chg,& \
 &chg_per_area,ss_chg_per_area \
 CLOSE(21) \
