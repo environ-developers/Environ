@@ -163,6 +163,24 @@ CONTAINS
         IF (ALLOCATED(this%core_electrons)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%number = 0
+        this%center = 0.D0
+        this%ntyp = 0
+        this%use_smeared_ions = .FALSE.
+        this%use_core_electrons = .FALSE.
+        this%charge = 0.D0
+        this%dipole = 0.D0
+        this%quadrupole_pc = 0.D0
+        this%quadrupole_gauss = 0.D0
+        this%quadrupole_correction = 0.D0
+        this%selfenergy_correction = 0.D0
+        this%potential_shift = 0.D0
+        !
+        NULLIFY (this%tau)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_ions
     !------------------------------------------------------------------------------------
     !>

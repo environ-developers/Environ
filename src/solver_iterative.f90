@@ -60,6 +60,7 @@ MODULE class_solver_iterative
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create_iterative => create_solver_iterative
         PROCEDURE :: init_iterative => init_solver_iterative
         !
         !--------------------------------------------------------------------------------
@@ -74,6 +75,24 @@ CONTAINS
     !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    SUBROUTINE create_solver_iterative(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_iterative), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_solver_iterative'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%auxiliary = ''
+        this%tol = 0.D0
+        this%maxiter = 0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_solver_iterative
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -91,6 +110,8 @@ CONTAINS
         CLASS(solver_iterative), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create_iterative()
         !
         CALL this%init_cores(cores)
         !

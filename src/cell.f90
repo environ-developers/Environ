@@ -90,6 +90,7 @@ MODULE class_cell
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_cell
         PROCEDURE :: init => init_environ_cell
         PROCEDURE :: update => update_environ_cell
         PROCEDURE :: destroy => destroy_environ_cell
@@ -117,6 +118,41 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_cell(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_cell'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%cubic = .FALSE.
+        this%label = 'system'
+        this%at = 0.D0
+        this%bg = 0.D0
+        this%origin = 0.D0
+        this%corners = 0.D0
+        this%omega = 0.D0
+        this%domega = 0.D0
+        this%ntot = 0
+        this%nnr = 0
+        this%ir_end = 0
+        this%j0 = 0
+        this%k0 = 0
+        this%in1 = 0
+        this%in2 = 0
+        this%in3 = 0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_cell
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_cell(this, gcutm, comm, at, nr, label)
         !--------------------------------------------------------------------------------
         !
@@ -132,6 +168,8 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_cell'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         IF (PRESENT(label)) this%label = label
         !

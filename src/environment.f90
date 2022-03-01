@@ -175,6 +175,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        this%initialized = .FALSE.
+        this%evolume = 0.0_DP
+        this%esurface = 0.0_DP
+        this%econfine = 0.0_DP
+        this%deenviron = 0.0_DP
+        this%eelectrolyte = 0.0_DP
+        this%eelectrostatic = 0.0_DP
+        !
         NULLIFY (this%setup)
         !
         !--------------------------------------------------------------------------------
@@ -201,6 +209,8 @@ CONTAINS
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         this%setup => setup
         !

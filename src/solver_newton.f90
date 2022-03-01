@@ -66,6 +66,7 @@ MODULE class_solver_newton
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create_solver_newton
         PROCEDURE :: init => init_solver_newton
         !
         PROCEDURE, PRIVATE :: pb_nested_charges, pb_nested_density
@@ -89,6 +90,25 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_solver_newton(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_newton), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_solver_newton'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%solver_type = 'newton'
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_solver_newton
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_solver_newton(this, cores, maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
@@ -103,9 +123,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
+        CALL this%create_solver_newton()
         !
-        this%solver_type = 'newton'
+        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solver_newton

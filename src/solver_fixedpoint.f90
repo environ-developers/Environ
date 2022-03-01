@@ -72,6 +72,7 @@ MODULE class_solver_fixedpoint
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create_solver_fixedpoint
         PROCEDURE :: init => init_solver_fixedpoint
         !
         PROCEDURE, PRIVATE :: &
@@ -99,6 +100,25 @@ CONTAINS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_solver_fixedpoint(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_fixedpoint), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_solver_fixedpoint'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%solver_type = 'fixed-point'
+        this%mix_type = ''
+        this%mix = 0.D0
+        this%ndiis = 0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_solver_fixedpoint
+    !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
@@ -118,9 +138,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
+        CALL this%create_solver_fixedpoint()
         !
-        this%solver_type = 'fixed-point'
+        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
         !
         this%mix_type = mix_type
         this%mix = mix

@@ -109,6 +109,13 @@ CONTAINS
         IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%label = 'hessian'
+        !
+        NULLIFY (this%cell)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_hessian
     !------------------------------------------------------------------------------------
     !>

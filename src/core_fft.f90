@@ -122,6 +122,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%core_type = 'fft'
+        this%ngm = 0
+        this%gcutm = 0.D0
+        this%gstart = 2
+        !
+        NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_fft
