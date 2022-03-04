@@ -146,6 +146,16 @@ END_ENGINE_INPUT
 END
 EOF
 
+$ECHO
+
+# NEB
+$ECHO "  running Born-Oppenheimer NEB calculation for H2+H => H+H2... \c"
+$NEB_COMMAND -inp H2+H.in  > H2+H.out
+check_failure $?
+$ECHO "done"
+
+$ECHO
+
 # Environ input
 cat > environ.in << EOF
  &ENVIRON
@@ -157,27 +167,37 @@ cat > environ.in << EOF
  /
 EOF
 
-$ECHO
-
-# NEB
-$ECHO "  running Born-Oppenheimer NEB calculation for H2+H => H+H2...\c"
-$NEB_COMMAND -inp H2+H.in  > H2+H.out
+# NEB with Environ
+$ECHO "  running Born-Oppenheimer NEB calculation for H2+H => H+H2 under pressure... \c"
+$NEB_COMMAND -inp H2+H.in --environ > H2+H_pressure.out
 check_failure $?
-$ECHO " done"
+$ECHO "done"
 
 $ECHO
+
+# Environ input
+cat > environ.in << EOF
+ &ENVIRON
+   environ_thr = 1.d2
+   env_static_permittivity = 1.d2
+ /
+ &BOUNDARY
+ /
+ &ELECTROSTATIC
+ /
+EOF
 
 # NEB with Environ
-$ECHO "  running Born-Oppenheimer NEB calculation for H2+H => H+H2 with Environ...\c"
-$NEB_COMMAND -inp H2+H.in --environ > H2+H_environ.out
+$ECHO "  running Born-Oppenheimer NEB calculation for H2+H => H+H2 in dielectric... \c"
+$NEB_COMMAND -inp H2+H.in --environ > H2+H_dielectric.out
 check_failure $?
-$ECHO " done"
+$ECHO "done"
 
 $ECHO
 
 # clean TMP_DIR
-$ECHO "  cleaning $TMP_DIR...\c"
+$ECHO "  cleaning $TMP_DIR... \c"
 rm -rf $TMP_DIR/pwscf*
-$ECHO " done"
+$ECHO "done"
 $ECHO
 $ECHO "$EXAMPLE_DIR: done"

@@ -193,6 +193,8 @@ CONTAINS
         !
         CALL setup%system_cell%destroy()
         !
+        NULLIFY (env%setup) 
+        !
         env%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------

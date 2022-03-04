@@ -79,6 +79,7 @@ MODULE class_semiconductor
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_semiconductor
         PROCEDURE :: init => init_environ_semiconductor
         PROCEDURE :: update => update_environ_semiconductor
         PROCEDURE :: destroy => destroy_environ_semiconductor
@@ -97,6 +98,34 @@ CONTAINS
     !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_semiconductor(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_semiconductor), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_semiconductor'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        !
+        this%temperature = 0.D0
+        this%permittivity = 0.D0
+        this%carrier_density = 0.D0
+        this%electrode_charge = 0.D0
+        this%charge_threshold = 0.D0
+        !
+        this%charge = 0.D0
+        this%slab_charge = 0.D0
+        this%flatband_fermi = 0.D0
+        this%bulk_sc_fermi = 0.D0
+        this%surf_area_per_sq_cm = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_semiconductor
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -120,6 +149,8 @@ CONTAINS
         CHARACTER(LEN=80) :: local_label = 'semiconductor'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         CALL this%density%init(cell, local_label)
         !

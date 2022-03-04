@@ -74,6 +74,7 @@ MODULE class_solver_gradient
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create_solver_gradient
         PROCEDURE :: init => init_solver_gradient
         !
         PROCEDURE, PRIVATE :: generalized_gradient_charges, generalized_gradient_density
@@ -106,6 +107,27 @@ CONTAINS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_solver_gradient(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_gradient), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_solver_gradient'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lconjugate = .FALSE.
+        this%step_type = ''
+        this%step = 0.D0
+        this%preconditioner = ''
+        this%screening_type = ''
+        this%screening = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_solver_gradient
+    !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
@@ -126,6 +148,8 @@ CONTAINS
         CLASS(solver_gradient), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create_solver_gradient()
         !
         CALL this%init_iterative(cores, maxiter, tol, auxiliary)
         !

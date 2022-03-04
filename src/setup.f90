@@ -188,6 +188,7 @@ MODULE class_setup
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_setup
         PROCEDURE :: init => init_environ_setup
         !
         PROCEDURE :: init_cell => environ_init_cell
@@ -244,6 +245,69 @@ CONTAINS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_setup(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_setup'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%environment_cell)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%restart = .FALSE.
+        this%threshold = 0.0_DP
+        this%nskip = 0
+        this%niter = 0
+        this%nrep = 1
+        this%static_permittivity = 0.0_DP
+        this%optical_permittivity = 0.0_DP
+        this%surface_tension = 0.0_DP
+        this%pressure = 0.0_DP
+        this%confine = 0.0_DP
+        this%lstatic = .FALSE.
+        this%loptical = .FALSE.
+        this%lsurface = .FALSE.
+        this%lvolume = .FALSE.
+        this%lconfine = .FALSE.
+        this%lexternals = .FALSE.
+        this%lregions = .FALSE.
+        this%lelectrolyte = .FALSE.
+        this%lsemiconductor = .FALSE.
+        this%lperiodic = .FALSE.
+        this%ldoublecell = .FALSE.
+        this%ltddfpt = .FALSE.
+        this%laddcharges = .FALSE.
+        this%ldielectric = .FALSE.
+        this%lsolvent = .FALSE.
+        this%lelectrostatic = .FALSE.
+        this%lsoftsolvent = .FALSE.
+        this%lsoftelectrolyte = .FALSE.
+        this%lsoftcavity = .FALSE.
+        this%lrigidsolvent = .FALSE.
+        this%lrigidelectrolyte = .FALSE.
+        this%lrigidcavity = .FALSE.
+        this%lcoredensity = .FALSE.
+        this%lsmearedions = .FALSE.
+        this%lboundary = .FALSE.
+        this%lgradient = .FALSE.
+        this%l1da = .FALSE.
+        this%lfft_system = .FALSE.
+        this%lfft_environment = .FALSE.
+        this%need_gradient = .FALSE.
+        this%need_factsqrt = .FALSE.
+        this%need_auxiliary = .FALSE.
+        !
+        NULLIFY (this%environment_cell)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_setup
+    !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
@@ -260,6 +324,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Open Environ ouput file
+        !
+        CALL this%create()
         !
         io%verbosity = verbose ! set internal verbosity from input
         !

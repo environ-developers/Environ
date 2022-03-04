@@ -1,5 +1,5 @@
 
-     Program NEB v.7.0 starts on 15Feb2022 at 10:36:26 
+     Program NEB v.7.0 starts on  4Mar2022 at 14:46:34 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -13,7 +13,7 @@
      Parallel version (MPI), running on     1 processors
 
      MPI processes distributed on     1 nodes
-     23859 MiB available memory on the printing compute node when the environment starts
+     22234 MiB available memory on the printing compute node when the environment starts
  
 
      Parsing file: H2+H.in
@@ -88,25 +88,25 @@
 
      ------------------------------ iteration   1 ------------------------------
 
-     tcpu =      0.0    self-consistency for image   1
+     tcpu =      0.1    self-consistency for image   1
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      0.2    self-consistency for image   2
+     tcpu =      0.7    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      0.4    self-consistency for image   3
+     tcpu =      1.0    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      0.5    self-consistency for image   4
+     tcpu =      1.3    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      0.7    self-consistency for image   5
+     tcpu =      1.7    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      0.8    self-consistency for image   6
+     tcpu =      1.9    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      1.0    self-consistency for image   7
+     tcpu =      2.2    self-consistency for image   7
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -130,19 +130,19 @@
 
      ------------------------------ iteration   2 ------------------------------
 
-     tcpu =      1.1    self-consistency for image   2
+     tcpu =      2.5    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      1.3    self-consistency for image   3
+     tcpu =      2.7    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      1.4    self-consistency for image   4
+     tcpu =      2.9    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      1.5    self-consistency for image   5
+     tcpu =      3.1    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      1.7    self-consistency for image   6
+     tcpu =      3.3    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -166,19 +166,19 @@
 
      ------------------------------ iteration   3 ------------------------------
 
-     tcpu =      1.8    self-consistency for image   2
+     tcpu =      3.5    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      1.9    self-consistency for image   3
+     tcpu =      3.6    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      2.0    self-consistency for image   4
+     tcpu =      3.8    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      2.2    self-consistency for image   5
+     tcpu =      4.0    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      2.3    self-consistency for image   6
+     tcpu =      4.2    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -202,19 +202,19 @@
 
      ------------------------------ iteration   4 ------------------------------
 
-     tcpu =      2.5    self-consistency for image   2
+     tcpu =      4.3    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      2.6    self-consistency for image   3
+     tcpu =      4.5    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      2.7    self-consistency for image   4
+     tcpu =      4.7    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      2.9    self-consistency for image   5
+     tcpu =      4.9    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      3.0    self-consistency for image   6
+     tcpu =      5.1    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -238,19 +238,19 @@
 
      ------------------------------ iteration   5 ------------------------------
 
-     tcpu =      3.2    self-consistency for image   2
+     tcpu =      5.3    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      3.3    self-consistency for image   3
+     tcpu =      5.5    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      3.4    self-consistency for image   4
+     tcpu =      5.6    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      3.5    self-consistency for image   5
+     tcpu =      5.8    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      3.6    self-consistency for image   6
+     tcpu =      6.0    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -274,19 +274,19 @@
 
      ------------------------------ iteration   6 ------------------------------
 
-     tcpu =      3.8    self-consistency for image   2
+     tcpu =      6.2    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      3.9    self-consistency for image   3
+     tcpu =      6.3    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      4.0    self-consistency for image   4
+     tcpu =      6.5    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      4.1    self-consistency for image   5
+     tcpu =      6.7    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      4.2    self-consistency for image   6
+     tcpu =      6.9    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -310,19 +310,19 @@
 
      ------------------------------ iteration   7 ------------------------------
 
-     tcpu =      4.3    self-consistency for image   2
+     tcpu =      7.1    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      4.5    self-consistency for image   3
+     tcpu =      7.2    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      4.6    self-consistency for image   4
+     tcpu =      7.4    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      4.7    self-consistency for image   5
+     tcpu =      7.6    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      4.8    self-consistency for image   6
+     tcpu =      7.8    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -346,19 +346,19 @@
 
      ------------------------------ iteration   8 ------------------------------
 
-     tcpu =      5.0    self-consistency for image   2
+     tcpu =      7.9    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      5.1    self-consistency for image   3
+     tcpu =      8.1    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      5.2    self-consistency for image   4
+     tcpu =      8.3    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      5.3    self-consistency for image   5
+     tcpu =      8.4    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      5.4    self-consistency for image   6
+     tcpu =      8.6    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -382,19 +382,19 @@
 
      ------------------------------ iteration   9 ------------------------------
 
-     tcpu =      5.5    self-consistency for image   2
+     tcpu =      8.7    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      5.6    self-consistency for image   3
+     tcpu =      8.9    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      5.7    self-consistency for image   4
+     tcpu =      9.0    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      5.9    self-consistency for image   5
+     tcpu =      9.2    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      6.0    self-consistency for image   6
+     tcpu =      9.3    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -418,19 +418,19 @@
 
      ------------------------------ iteration  10 ------------------------------
 
-     tcpu =      6.1    self-consistency for image   2
+     tcpu =      9.5    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      6.2    self-consistency for image   3
+     tcpu =      9.6    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      6.3    self-consistency for image   4
+     tcpu =      9.8    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      6.4    self-consistency for image   5
+     tcpu =     10.0    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      6.5    self-consistency for image   6
+     tcpu =     10.1    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -454,19 +454,19 @@
 
      ------------------------------ iteration  11 ------------------------------
 
-     tcpu =      6.6    self-consistency for image   2
+     tcpu =     10.3    self-consistency for image   2
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      6.7    self-consistency for image   3
+     tcpu =     10.4    self-consistency for image   3
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      6.8    self-consistency for image   4
+     tcpu =     10.5    self-consistency for image   4
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      6.9    self-consistency for image   5
+     tcpu =     10.6    self-consistency for image   5
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
-     tcpu =      7.0    self-consistency for image   6
+     tcpu =     10.7    self-consistency for image   6
      Message from routine setup:
      using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
 
@@ -493,10 +493,10 @@
 
      neb: convergence achieved in  11 iterations
  
-     NEB          :      6.79s CPU      7.13s WALL
+     NEB          :     10.29s CPU     10.85s WALL
 
  
-   This run was terminated on:  10:36:33  15Feb2022            
+   This run was terminated on:  14:46:45   4Mar2022            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
