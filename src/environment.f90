@@ -795,6 +795,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! External charges
         !
+        !IF (setup%lmsgcs) THEN 
+        !    setup%lexternals = .TRUE.
+        !    env_external_charges = 1
+        !    extcharge_dim = 2
+        !    extcharge_axis = 3
+        !    extcharge_pos = (0.0 , 0.0, 7.0)
+        !    extcharge_spread = 0.25
+        !    extcharge_charge = 0.0
+        !END IF 
+        
         IF (setup%lexternals) THEN
             !
             CALL this%externals%init(env_external_charges, extcharge_dim, &

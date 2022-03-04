@@ -1352,13 +1352,13 @@ CONTAINS
         !
         REAL( DP ), POINTER :: cion, zion, permittivity_ms, permittivity_gcs
         REAL( DP ), POINTER :: xstern_ms, xstern_gcs, electrode_charge, carrier_density
-        REAL( DP ) :: kbt, invkbt
+        REAL( DP ) :: kbt, invkbt, delta_chg
         !
         TYPE( environ_density ), TARGET :: local
         !
         INTEGER :: i, icount
         REAL( DP ) :: ez, ez_ms,ez_gcs, fact, vms, vstern
-        REAL( DP ) :: arg, const, depletion_length, compress_fact
+        REAL( DP ) :: arg, const, constr, constl, depletion_length, compress_fact
         REAL( DP ) :: dv, vbound, v_cut, v_edge
         REAL( DP ) :: asinh, coth, acoth
         REAL( DP ) :: f1, f2, max_axis
@@ -1428,7 +1428,7 @@ CONTAINS
             const = - pi / 3.D0 * charge / axis_length * e2 - fact *quadrupole(slab_axis)
             vms_gcs = - charge * axis(1,:)**2 + 2.D0 * dipole(slab_axis) *axis(1,:)
             vms_gcs = fact * vms_gcs(:) + const
-            dv = - fact * 4.D0 * dipole(slab_axis) * xstern_gcs
+            !dv = - fact * 4.D0 * dipole(slab_axis) * xstern_gcs
             !
             ! ... Compute the physical properties of the interface
             !
@@ -1438,40 +1438,115 @@ CONTAINS
             IF (semiconductor%slab_charge .EQ. 0.D0) THEN
               ez_gcs = ez
             ELSE
-              ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
+              delta_chg = charge + semiconductor%slab_charge
+              WRITE (io%debug_unit, *)"delta charge: ",delta_chg
+              ez_gcs =  -tpi * e2 * (-electrode_charge ) / area ! / permittivity
             END IF
             WRITE (io%debug_unit, *)"tot charge: ",charge
             WRITE (io%debug_unit, *)"ez: ",ez
             WRITE (io%debug_unit, *)"ez_gcs: ",ez_gcs
-            fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity_gcs )
+            WRITE (io%debug_unit, *)"fpi: ",fpi
+            WRITE (io%debug_unit, *)"cion: ",cion
+            WRITE (io%debug_unit, *)"kbt: ",kbt
+            WRITE (io%debug_unit, *)"e2: ",e2
+            WRITE (io%debug_unit, *)"zion: ",zion
+            fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity_gcs )
             arg = ez_gcs/fact
             asinh = LOG(arg + SQRT( arg**2 + 1 ))
             vstern = 2.D0 * kbt / zion * asinh
-            arg = vstern * 0.25D0 * invkbt * zion
-            coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-            const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern_gcs )
+            dv = 2.D0 * fpi * dipole(slab_axis) / area
+            !arg = vstern * 0.25D0 * invkbt * zion
+            !coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+            !const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern_gcs )
+            arg = (vstern - dv * 0.5D0) * 0.25D0 * invkbt * zion
+            coth = (EXP(2.D0 * arg) + 1.D0) / (EXP(2.D0 * arg) - 1.D0)
+            constl = coth * EXP(zion * fact * invkbt * 0.5D0 * xstern_gcs)
+            arg = (vstern + dv * 0.5D0) * 0.25D0 * invkbt * zion
+            coth = (EXP(2.D0 * arg) + 1.D0) / (EXP(2.D0 * arg) - 1.D0)
+            constr = coth * EXP(zion * fact * invkbt * 0.5D0 * xstern_gcs)
 
 
-            !
-            ! Gathering the potential at the boundary condition
-            vbound = 0.D0
-            icount = 0
+            max_axis = 0.0
             DO i = 1, nnr
                !
-               IF ( ABS(axis(1,i)) .GE. xstern_gcs ) THEN
+               IF ( axis(1,i) > max_axis) THEN
                   !
-                  icount = icount + 1
-                  vbound = vbound + v % of_r(i) + vms_gcs(i) - ez *(ABS(axis(1,i)) - xstern_gcs)
+                  max_axis = axis(1,i)
                   !
                ENDIF
                !
             ENDDO
+
+            v_edge= 0.D0
+            icount = 0
+            DO i = 1, nnr
+               !
+               IF ( axis(1,i) .EQ. max_axis ) THEN
+                  !
+                  icount = icount + 1
+                  v_edge = v_edge + v % of_r(i) + vms_gcs(i) - &
+                             ez * (ABS(axis(1, i)) - xstern_gcs)
+                  !
+               ENDIF
+               !
+            ENDDO
+            !
+            CALL env_mp_sum(icount, comm)
+            !
+            CALL env_mp_sum(v_edge, comm)
+            !
+            v_edge = v_edge / DBLE(icount)
+
+            WRITE (io%debug_unit, *)"vedge: ",v_edge
+            vms_gcs = vms_gcs - v_edge + vstern
+
+
+            vbound = 0.D0
+            icount = 0
+            !
+            DO i = 1, nnr
+                !
+                IF (ABS(axis(1, i)) >= xstern_gcs) THEN
+                    icount = icount + 1
+                    !
+                    vbound = vbound + v%of_r(i) + vms_gcs(i) - &
+                             ez * (ABS(axis(1, i)) - xstern_gcs)
+                    !
+                END IF
+                !
+            END DO
+            !
             CALL env_mp_sum(icount, comm)
             !
             CALL env_mp_sum(vbound, comm)
             !
             vbound = vbound / DBLE(icount)
-            WRITE (io%debug_unit, *)"vbound: ",vbound
+
+
+            !WRITE (io%debug_unit, *)"vstern: ",vstern
+
+
+
+            !
+            ! Gathering the potential at the boundary condition
+            !vbound = 0.D0
+            !icount = 0
+            !DO i = 1, nnr
+            !   !
+            !   IF ( ABS(axis(1,i)) .GE. xstern_gcs ) THEN
+            !      !
+            !      icount = icount + 1
+            !      vbound = vbound + v % of_r(i) + vms_gcs(i) - ez *(ABS(axis(1,i)) - xstern_gcs)
+            !      !
+            !   ENDIF
+            !   !
+            !ENDDO
+            !CALL env_mp_sum(icount, comm)
+            !!
+            !CALL env_mp_sum(vbound, comm)
+            !!
+            !vbound = vbound / DBLE(icount)
+            !WRITE (io%debug_unit, *)"vbound: ",vbound
             !
             ! ... Compute some constants needed for the gcs calculation
             !
@@ -1482,14 +1557,14 @@ CONTAINS
             ! ... adding in gcs effect first, only on the positive side of xstern
             !
             WRITE (io%debug_unit, *)"vstern: ",vstern
-            vms_gcs = vms_gcs - vbound + vstern
+            !vms_gcs = vms_gcs - vbound + vstern
             DO i = 1, nnr
                !
                IF ( axis(1,i) .GE. xstern_gcs ) THEN
                   !
                   ! ... Gouy-Chapmann-Stern analytic solution on the outside
                   !
-                  arg = const * EXP( ABS(axis(1,i)) * f1 )
+                  arg = constr * EXP( ABS(axis(1,i)) * f1 )
                   IF ( ABS(arg) .GT. 1.D0 ) THEN
                      acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
                   ELSE
@@ -1508,7 +1583,9 @@ CONTAINS
                   !
 
                   ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
-                  vms_gcs(i) =  vms_gcs(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
+                  vms_gcs(i) = vtmp - v%of_r(i) !- &
+                             !ez * (ABS(axis(1, i)) - xstern_gcs) !+ v_edge - vbound
+                            ! ez * (ABS(axis(1, i)) - xstern_gcs)!- v % of_r(i)
                   !v(i) =  vtmp - potential % of_r(i)
                   !
                   ! WRITE( environ_unit, *)"v_i: ",v(i)
@@ -1525,11 +1602,12 @@ CONTAINS
             IF (semiconductor%slab_charge .EQ. 0.D0) THEN
               ez_ms = 0.D0
             ELSE
-              ez_ms= -tpi * e2 * (electrode_charge-semiconductor%slab_charge) /area ! / permittivity !in units of Ry/bohr
-            END IF
+              ez_ms= -2*tpi * e2 * (electrode_charge -semiconductor%slab_charge) /area / permittivity_ms !in units of Ry/bohr
+            END IF                               !the 2*tpi * e2 is keeping everything in atomic units
             WRITE( io%debug_unit, * )"bulk sc charge:",(electrode_charge-semiconductor%slab_charge)
             WRITE( io%debug_unit, * )"Mott Schottky electric field: ",ez_ms
-            fact = 1.D0/tpi / e2 /4.D0 /carrier_density !*permittivity
+            WRITE( io%debug_unit, * )"tpi: ",tpi
+            fact = 1.D0/tpi/e2/4.D0 /carrier_density *permittivity_ms
             WRITE( io%debug_unit, *)"MS Prefactor: ",fact
             arg = fact* (ez_ms**2.D0)
             IF (ez_ms < 0) THEN
@@ -1552,12 +1630,13 @@ CONTAINS
                !
                !WRITE (environ_unit, *)"axis : ",ABS(axis(1,i) - xstern_ms)
 
-               IF (( axis(1,i) .LT. 0.D0 ) .AND. ( (ABS(axis(1,i)) - xstern_ms) .LE.0.05D0 )) THEN
+               IF (( axis(1,i) .LT. 0.D0 ) .AND. ( ABS(ABS(axis(1,i)) - xstern_ms) .LE.0.2D0 )) THEN
                   !
                   icount = icount + 1
                   !v_cut = v_cut + potential % of_r(i)  - ez *
                   !(ABS(axis(1,i))-xstern_ms)
-                  v_cut = v_cut + v % of_r(i)
+                  v_cut = v_cut + v % of_r(i) + vms_gcs(i) - &
+                             ez * (ABS(axis(1, i)) - xstern_ms)
                   !
                ENDIF
                !
@@ -1571,24 +1650,15 @@ CONTAINS
             WRITE (io%debug_unit, *)"v_cut: ",v_cut
             WRITE ( io%debug_unit, * )"flatband_fermi:",semiconductor%flatband_fermi
 
-            semiconductor%bulk_sc_fermi = vms+ semiconductor%flatband_fermi ! +v_cut
+            semiconductor%bulk_sc_fermi = vms+ semiconductor%flatband_fermi  +v_cut
             WRITE ( io%debug_unit, * )"bulk semiconductor fermi level:",semiconductor%bulk_sc_fermi
 
 
-            ! Adjust the potential to always be 0 on right side
-            ! First determine max axis point
-            max_axis = 0.0
-            DO i = 1, nnr
-               !
-               IF ( axis(1,i) > max_axis) THEN
-                  !
-                  max_axis = axis(1,i)
-                  !
-               ENDIF
-               !
-            ENDDO
+            compress_fact = -4.D0*fact*vms/((max_axis-xstern_ms)**2)
 
-            compress_fact = (depletion_length/(max_axis-xstern_ms))**2
+
+            WRITE ( io%debug_unit, * )"first term: ", depletion_length**2.D0 /fact/4.D0
+            WRITE ( io%debug_unit, * )"second term: ", ez_ms*(depletion_length) 
 
             DO i = 1, nnr
 
@@ -1597,11 +1667,11 @@ CONTAINS
                   ! side" for flatband pot
                   IF (semiconductor%slab_charge .EQ. 0.D0 ) THEN
 
-                      IF (-axis(1,i) .GE. xstern_ms) THEN
+                      IF (-axis(1,i) .GE. xstern_gcs) THEN
                           !
                           ! ... Gouy-Chapmann-Stern analytic solution on the outside
                           !
-                          arg = const * EXP( ABS(axis(1,i)) * f1 )
+                          arg = constl * EXP( ABS(axis(1,i)) * f1 )
                           IF ( ABS(arg) .GT. 1.D0 ) THEN
                              acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
                           ELSE
@@ -1621,7 +1691,9 @@ CONTAINS
                           !
 
                           ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
-                          vms_gcs(i) =  vms_gcs(i) + vtmp - vstern - ez *(ABS(axis(1,i))-xstern_gcs) 
+                          vms_gcs(i) = vtmp - v % of_r(i) !- &
+                             !ez * (ABS(axis(1, i)) - xstern_gcs) !+ v_edge - vbound
+                             !ez * (ABS(axis(1, i)) - xstern_gcs) !- v%of_r(i) 
                                             !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
                           !v(i) =  vtmp - potential % of_r(i)
                           !
@@ -1639,13 +1711,11 @@ CONTAINS
                          ! ... Mott Schottky analytic solution on the outside
                          !
                          IF (ez_ms < 0.D0) THEN
-                            vtmp = (distance-depletion_length)**2.D0 / fact/4.D0 + ez_ms*(distance) + vms
-                            !vtmp = 0.25*compress_fact*(distance-max_axis)**2.D0 /
-                            !fact/4.D0  + vms + ez_ms*(distance)
+                            vtmp = (distance-depletion_length)**2.D0 / fact/4.D0 + vms !+ v_cut
+                            !vtmp = compress_fact*(ABS(axis(1,i))-max_axis)**2.D0 /fact/4.D0  + vms !+ ez_ms*(distance) + v_cut
                          ELSE IF (ez_ms > 0.D0) THEN
-                            vtmp = -(distance-depletion_length)**2.D0 / fact/4.D0 - ez_ms*(distance) + vms
-                            !vtmp = -0.25*compress_fact*(distance-max_axis)**2.D0 /
-                            !fact/4.D0  + vms - ez_ms*(distance)
+                            vtmp = -(distance-depletion_length)**2.D0 / fact/4.D0 + vms !+ v_cut
+                            !vtmp = compress_fact*(ABS(axis(1,i)) -max_axis)**2.D0 /fact/4.D0  + vms ! - ez_ms*(distance) + v_cut
                          ELSE
                             vtmp = 0.D0
                          END IF
@@ -1658,7 +1728,8 @@ CONTAINS
                       !
                       ! ... Remove source potential (linear) and add analytic one
                       !
-                      vms_gcs(i) =  vms_gcs(i) + vtmp  -ez*distance!-vms ! vtmp - potential %of_r(i)
+                      vms_gcs(i) = vms_gcs(i) +  vtmp - &
+                             ez * (ABS(axis(1, i)) - xstern_ms)! - v%of_r(i)!-vms ! vtmp - potential %of_r(i)
                       !v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential %
                       !of_r(i)
                       !v(i) =  v(i) + vtmp - potential % of_r(i)
@@ -1674,25 +1745,25 @@ CONTAINS
 
 
 
-            v_edge= 0.D0
-            icount = 0
-            DO i = 1, nnr
+            !v_edge= 0.D0
+            !icount = 0
+            !DO i = 1, nnr
                !
-               IF ( axis(1,i) .EQ. max_axis ) THEN
+            !   IF ( axis(1,i) .EQ. max_axis ) THEN
                   !
-                  icount = icount + 1
-                  v_edge = v_edge + v % of_r(i) + vms_gcs(i)
+            !      icount = icount + 1
+            !      v_edge = v_edge + v % of_r(i) + vms_gcs(i)
                   !
-               ENDIF
+            !   ENDIF
                !
-            ENDDO
-            v_edge = v_edge / DBLE(icount)
-            vms_gcs = vms_gcs - v_edge
+            !ENDDO
+            !v_edge = v_edge / DBLE(icount)
+            !vms_gcs = vms_gcs - v_edge
             !
 
 
 
-            v % of_r = v % of_r + vms_gcs
+            v%of_r = v%of_r + vms_gcs
 
             !
             CALL local%destroy()

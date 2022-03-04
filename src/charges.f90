@@ -371,6 +371,7 @@ CONTAINS
         !
         IF (this%include_electrolyte) THEN
             !
+            WRITE (io%debug_unit, *)"calculating electrolyte charges here"
             IF (.NOT. ASSOCIATED(this%electrolyte)) &
                 CALL io%error(sub_name, "Missing expected charge component", 1)
             !
