@@ -1,3 +1,8 @@
+Problems fixed in version 2.0.3:
+  
+  * fixed bug in NEB and added an NEB test with dielectric
+  * loosened the tolerance for difference between expected and integrated electronic charge
+
 Problems fixed in version 2.0.2:
   
   * restored NEB support
