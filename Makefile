@@ -144,7 +144,7 @@ compile: check-Environ-makeinc
 
 compile-QE: check-QE-makeinc
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi; \
-	  if [ "$$prog" = all ]; then prog="pw cp tddfpt xspectra"; fi; \
+	  if [ "$$prog" = all ]; then prog="pw cp tddfpt xspectra neb"; fi; \
 	  if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log; \
 	  (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
@@ -237,12 +237,13 @@ cannibalize-QE:
 
 print_menu:
 	@ printf "\nSelect a package:\n\n"
-	@ printf "%s\n%s\n%s\n%s\n%s\n\n%s" \
+	@ printf "%s\n%s\n%s\n%s\n%s\n%s\n\n%s" \
 			 "   1 - PW" \
 			 "   2 - CP" \
 			 "   3 - TDDFPT" \
 			 "   4 - XSpectra" \
-			 "   5 - ALL" \
+			 "   5 - NEB" \
+			 "   6 - ALL" \
 			 "-> "
 
 install: check-Environ-makeinc check-QE-makeinc
@@ -254,7 +255,8 @@ install: check-Environ-makeinc check-QE-makeinc
 	2) opt=cp; patch=cp;; \
 	3) opt="pw tddfpt"; patch=tddfpt;; \
 	4) opt="pw xspectra"; patch=xspectra;; \
-	5) opt=all;; \
+	5) opt="pw neb"; patch=pw;; \
+	6) opt=all;; \
 	*) exit;; \
 	esac; \
 	\

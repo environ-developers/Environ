@@ -335,8 +335,6 @@ CONTAINS
         !
         IF (PRESENT(use_internal_pbc_corr)) this%use_inter_corr = use_internal_pbc_corr
         !
-        CALL this%set_numerical_base()
-        !
         !--------------------------------------------------------------------------------
         ! Open Environ output file
         !
@@ -444,6 +442,8 @@ CONTAINS
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%set_numerical_base()
         !
         IF (this%lfft_system) &
             CALL this%ref_fft%init(this%system_cell, this%use_inter_corr)
@@ -1405,7 +1405,7 @@ CONTAINS
             WRITE (io%unit, 1021) &
                 TRIM(problem), TRIM(solver), TRIM(auxiliary), TRIM(core)
             !
-            IF (this%need_inner) THEN
+            IF (inner_solver /= 'none') THEN
                 WRITE (io%unit, 1022)
                 WRITE (io%unit, 1023) TRIM(inner_solver), TRIM(inner_core)
             END IF

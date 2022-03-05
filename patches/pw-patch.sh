@@ -6,12 +6,12 @@
 #----------------------------------------------------------------------------------------
 #
 #     This file is part of Environ version 2.0
-#     
+#
 #     Environ 2.0 is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 2 of the License, or
 #     (at your option) any later version.
-#     
+#
 #     Environ 2.0 is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -37,7 +37,7 @@ cd $PW_SRC
 patch_makefile
 
 check_src_patched
-if test "$PATCHED" == 1; then 
+if test "$PATCHED" == 1; then
    return
 else
    message "Patching"
@@ -143,7 +143,11 @@ sed '/Environ CALLS BEGIN/ a\
          ! ones initialized while processing the input:\
          ! this allows NEB simulations\
          !\
-         IF (.NOT. environ%setup%is_tddfpt()) CALL environ%destroy()\
+         IF (lflag) THEN\
+            CALL environ%destroy(1) ! NEB image reading phase\
+         ELSE IF (.NOT. environ%setup%is_tddfpt()) THEN\
+            CALL environ%destroy(2)\
+         END IF\
          !\
       ELSE IF ( prog(1:2) == "TD" ) THEN\
          !\
@@ -153,9 +157,9 @@ sed '/Environ CALLS BEGIN/ a\
          ! fully cleaned (no NEB with TD).\
          !\
          IF (.NOT. lflag) THEN\
-            CALL environ%destroy(1)\
+            CALL environ%destroy(3)\
          ELSE\
-            CALL environ%destroy(2)\
+            CALL environ%destroy(4)\
          END IF\
          !\
       END IF\
