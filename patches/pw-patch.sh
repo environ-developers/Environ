@@ -96,7 +96,6 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
   USE io_global,         ONLY : ionode, ionode_id, stdout\
   USE mp_images,         ONLY : intra_image_comm\
-  USE martyna_tuckerman, ONLY : do_comp_mt\
   USE environ_api,       ONLY : environ\
 !Environ patch
 ' plugin_read_input.f90 >tmp.1
@@ -111,7 +110,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL environ%read_input()\
       !\
-      CALL environ%setup%init(do_comp_mt)\
+      CALL environ%setup%init()\
       !\
       IF (prog == "TD") CALL environ%setup%set_tddfpt(.TRUE.)\
       !\
@@ -191,12 +190,13 @@ mv tmp.2 plugin_summary.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE kinds,       ONLY : DP\
-USE mp_bands,    ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
-USE cell_base,   ONLY : at, alat\
-USE ions_base,   ONLY : nat, nsp, ityp, atm, zv\
-USE gvect,       ONLY : gcutm\
-USE environ_api, ONLY : environ\
+USE kinds,             ONLY : DP\
+USE mp_bands,          ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
+USE cell_base,         ONLY : at, alat\
+USE ions_base,         ONLY : nat, nsp, ityp, atm, zv\
+USE gvect,             ONLY : gcutm\
+USE martyna_tuckerman, ONLY : do_comp_mt\
+USE environ_api,       ONLY : environ\
 !Environ patch
 ' plugin_initbase.f90 >tmp.1
 
@@ -228,7 +228,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       DEALLOCATE (at_scaled)\
       !\
-      CALL environ%setup%init_cores()\
+      CALL environ%setup%init_numerical(do_comp_mt)\
       !\
       CALL environ%main%init(nat, nsp, atm, ityp, zv)\
       !\
