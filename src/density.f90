@@ -128,6 +128,16 @@ CONTAINS
         IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%label = 'density'
+        this%charge = 0.D0
+        this%dipole = 0.D0
+        this%quadrupole = 0.D0
+        !
+        NULLIFY (this%cell)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_density
     !------------------------------------------------------------------------------------
     !>

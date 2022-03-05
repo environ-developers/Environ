@@ -61,6 +61,7 @@ MODULE class_ioncctype
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_ioncctype
         PROCEDURE :: init => init_environ_ioncctype
         PROCEDURE :: destroy => destroy_environ_ioncctype
         !
@@ -76,6 +77,27 @@ CONTAINS
     !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_ioncctype(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_ioncctype), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_ioncctype'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%index = 0
+        this%cbulk = 0.D0
+        this%z = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_ioncctype
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -96,6 +118,8 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_ioncctype'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         this%index = index
         this%z = -z

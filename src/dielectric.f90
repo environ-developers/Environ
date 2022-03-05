@@ -169,6 +169,19 @@ CONTAINS
         IF (ASSOCIATED(this%boundary)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%nregions = 0
+        this%constant = 1.0_DP
+        this%need_gradient = .FALSE.
+        this%need_factsqrt = .FALSE.
+        this%need_gradlog = .FALSE.
+        this%need_auxiliary = .FALSE.
+        this%charge = 0.D0
+        !
+        NULLIFY (this%boundary)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_dielectric
     !------------------------------------------------------------------------------------
     !>

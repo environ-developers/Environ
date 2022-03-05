@@ -64,6 +64,7 @@ MODULE class_electrons
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_electrons
         PROCEDURE :: init => init_environ_electrons
         PROCEDURE :: update => update_environ_electrons
         PROCEDURE :: destroy => destroy_environ_electrons
@@ -86,6 +87,27 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_electrons(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_electrons), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrons'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%number = 0
+        this%charge = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_electrons
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_electrons(this, cell)
         !--------------------------------------------------------------------------------
         !
@@ -96,6 +118,8 @@ CONTAINS
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         CALL this%density%init(cell, 'electrons')
         !
