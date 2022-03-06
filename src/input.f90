@@ -863,6 +863,9 @@ CONTAINS
         !
         IF (softness <= 0.0_DP) CALL io%error(sub_name, "softness out of range", 1)
         !
+        IF (solvent_distance < 0.0_DP) &
+            CALL io%error(sub_name, "solvent_distance out of range", 1)
+        !
         IF (solvent_spread <= 0.0_DP) &
             CALL io%error(sub_name, "solvent_spread out of range", 1)
         !
@@ -1203,6 +1206,10 @@ CONTAINS
             END SELECT
             !
         END SELECT
+        !
+        IF (solvent_mode == 'system' .AND. solvent_distance == 0.0_DP) &
+            CALL io%error(sub_name, &
+                          "solvent_distance must be set (greater than zero) for system interfaces", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_setup

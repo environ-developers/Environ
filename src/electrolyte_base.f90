@@ -105,6 +105,18 @@ CONTAINS
         IF (ALLOCATED(this%ioncctype)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%linearized = .FALSE.
+        this%electrolyte_entropy = ''
+        this%ntyp = 0
+        this%temperature = 0.D0
+        this%k2 = 0.D0
+        this%cionmax = 0.D0
+        this%permittivity = 0.D0
+        this%distance = 0.D0
+        this%spread = 0.D0
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_electrolyte_base
     !------------------------------------------------------------------------------------
     !>

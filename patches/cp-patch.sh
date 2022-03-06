@@ -235,7 +235,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       DEALLOCATE (at_scaled)\
       !\
-      CALL environ%setup%init_cores()\
+      CALL environ%setup%init_numerical()\
       !\
       CALL environ%main%init(nat, ntyp, atom_label, ityp, zv)\
       !\

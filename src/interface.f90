@@ -200,7 +200,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_interface(this, level)
+    RECURSIVE SUBROUTINE destroy_interface(this, level)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -221,33 +221,61 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (PRESENT(level)) THEN
+        ASSOCIATE (clean => this%clean)
             !
-            SELECT CASE (level)
+            IF (PRESENT(level)) THEN
                 !
-            CASE (1)
-                CALL this%clean%first()
+                SELECT CASE (level)
+                    !
+                CASE (1)
+                    !
+                    CALL this%destroy(2)
+                    !
+                    CALL clean%input()
+                    !
+                    CALL clean%debug()
+                    !
+                CASE (2)
+                    !
+                    IF (.NOT. this%main%initialized) RETURN
+                    !
+                    CALL clean%first()
+                    !
+                    CALL clean%second()
+                    !
+                    CALL clean%numerical()
+                    !
+                    RETURN
+                    !
+                CASE (3)
+                    CALL clean%first()
+                    !
+                    RETURN
+                    !
+                CASE (4)
+                    !
+                    CALL clean%second()
+                    !
+                    CALL clean%numerical()
+                    !
+                    CALL this%destroy(1)
+                    !
+                CASE DEFAULT
+                    CALL io%error(sub_name, "Unexpected clean level", 1)
+                    !
+                END SELECT
                 !
-            CASE (2)
-                CALL this%clean%second()
-                !
-                NULLIFY (this%clean%main)
-                NULLIFY (this%calc%main)
-                NULLIFY (this%main%setup)
-                !
-            CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected clean level", 1)
-                !
-            END SELECT
+            ELSE
+                CALL clean%everything()
+            END IF
             !
-        ELSE
-            !
-            CALL this%clean%everything()
-            !
-            NULLIFY (this%clean%main)
-            NULLIFY (this%calc%main)
-            NULLIFY (this%main%setup)
-        END IF
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%clean%main)
+        NULLIFY (this%calc%main)
+        NULLIFY (this%main%setup)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_interface
