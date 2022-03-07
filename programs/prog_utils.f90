@@ -89,7 +89,7 @@ CONTAINS
         !
         CALL environ%read_input(inputfile, SIZE(label))
         !
-        CALL environ%setup%init(use_pbc_corr)
+        CALL environ%setup%init()
         !
         IF (ANY(ABS(nr) == 1)) THEN
             CALL environ%setup%init_cell(io%comm, at)
@@ -97,7 +97,7 @@ CONTAINS
             CALL environ%setup%init_cell(io%comm, at, nr=nr)
         END IF
         !
-        CALL environ%setup%init_cores()
+        CALL environ%setup%init_numerical(use_pbc_corr)
         !
         CALL environ%main%init(nat, ntyp, label, ityp, zv)
         !
