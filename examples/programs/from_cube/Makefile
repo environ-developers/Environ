@@ -36,38 +36,40 @@ include ../../../make.inc
 
 PROC = 4
 
-EXAMPLES = $(subst /,,$(wildcard */))
+EXAMPLES = $(subst .in,,$(wildcard *.in))
 
 CMD = $(TOPDIR)/programs/driver -n from_cube
 
 help:
 	@ echo 
-	@ echo "    Usage: make run[-parallel] example=[name]"
+	@ echo "    usage: make run[-parallel] example=[name]"
 	@ echo
 	@ echo "    available examples = $(EXAMPLES)"
 	@ echo
 
-run: check-dir
-	@ if test $$? = 0; then \
-	    (cd $(example); $(CMD)); \
+run:
+	@ if test $(example); then \
+		if test -f $(example).in; then \
+		  $(CMD) -i $(example).in; \
+		else \
+		  echo; \
+		  echo "    $(example) is not a valid example"; \
+		  echo; \
+		  echo "    available examples: $(EXAMPLES)"; \
+		  echo; \
+		fi; \
 	  else \
-		exit; \
+	  	echo; \
+	    echo "    missing example argument"; \
+	  	echo; \
 	  fi
 
-run-parallel: check-dir
+run-parallel:
 	@ if test $$? = 0; then \
 	    (cd $(example); mpirun -n $(PROC) $(CMD)); \
 	  else \
 		exit; \
 	  fi
 
-check-dir:
-	@ if ! (test $(example) && test -d $(example)) ; then \
-		make help; \
-		exit 1; \
-	  fi
-
 clean:
-	@ for dir in */; do \
-	  	(cd $$dir; /bin/rm -f fort.* environ.debug CRASH); \
-	  done
+	@ /bin/rm -f fort.* environ.debug CRASH

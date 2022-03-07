@@ -79,4 +79,5 @@ clean:
 
 driver.o: cmdline_args.o programs.o
 programs.o: cmdline_args.o prog_utils.o
-prog_utils.o: parsers.o 
+prog_utils.o: cmdline_args.o parsers.o
+parsers.o: cmdline_args.o

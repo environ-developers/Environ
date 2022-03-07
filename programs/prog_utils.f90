@@ -35,6 +35,8 @@ MODULE prog_utils
     !
     USE environ_api, ONLY: environ_interface
     !
+    USE cmdline_args
+    !
     USE parsers
     !
     !------------------------------------------------------------------------------------
@@ -57,15 +59,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_from_cube(environ, cubefile, rho, nelec)
+    SUBROUTINE init_environ_from_cube(environ, nelec, rho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_interface), INTENT(INOUT) :: environ
-        CHARACTER(LEN=*), OPTIONAL, INTENT(OUT) :: cubefile
+        REAL(DP), INTENT(OUT) :: nelec
         REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
-        REAL(DP), OPTIONAL, INTENT(OUT) :: nelec
         !
         INTEGER :: nat
         INTEGER :: ntyp
@@ -81,15 +82,22 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL read_cube(nat, ntyp, ityp, label, zv, nelec, tau, origin, nr, at, rho, &
-                       cubefile)
+        CALL read_cube(nat, ntyp, ityp, label, zv, nelec, tau, origin, nr, at, rho)
         !
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL environ%setup%init_cell(io%comm, at, nr=nr)
+        CALL environ%read_input(inputfile, SIZE(label))
         !
-        CALL environ%setup%init_cores()
+        CALL environ%setup%init()
+        !
+        IF (ANY(ABS(nr) == 1)) THEN
+            CALL environ%setup%init_cell(io%comm, at)
+        ELSE
+            CALL environ%setup%init_cell(io%comm, at, nr=nr)
+        END IF
+        !
+        CALL environ%setup%init_numerical(use_pbc_corr)
         !
         CALL environ%main%init(nat, ntyp, label, ityp, zv)
         !
