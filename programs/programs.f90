@@ -35,6 +35,8 @@ MODULE programs
     !
     USE environ_api, ONLY: environ_interface
     !
+    USE env_write_cube, ONLY: write_cube
+    !
     USE cmdline_args
     !
     USE prog_utils
