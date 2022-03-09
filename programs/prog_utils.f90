@@ -59,13 +59,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_from_cube(environ, nelec, rho)
+    SUBROUTINE init_environ_from_cube(environ, rho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_interface), INTENT(INOUT) :: environ
-        REAL(DP), INTENT(OUT) :: nelec
         REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
         !
         INTEGER :: nat
@@ -82,7 +81,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL read_cube(nat, ntyp, ityp, label, zv, nelec, tau, origin, nr, at, rho)
+        CALL read_cube(nat, ntyp, ityp, label, zv, tau, origin, nr, at, rho)
         !
         !--------------------------------------------------------------------------------
         ! Initialize Environ
