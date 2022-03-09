@@ -106,26 +106,58 @@ $ECHO "  cleaning $TMP_DIR...\c"
 rm -rf $TMP_DIR/*
 $ECHO " done"
 
-$ECHO "  running the relax calculations with field aware"
+$ECHO "  running relax calculations with field aware"
 
-cat > h2o.in << EOF
+for mol in HO H2O H3O; do
+
+  # set pw parameters
+  case $mol in
+    HO)
+      forc_conv='5.d-3'
+      smearing='mv'
+      degauss='0.01'
+      nat='2'
+      charge='-1'
+    ;;
+    H2O)
+      forc_conv='5.d-3'
+      smearing='gaussian'
+      degauss='0.0'
+      nat='3'
+      charge='0'
+    ;;
+    H3O)
+      forc_conv='5.d-2'
+      smearing='mv'
+      degauss='0.01'
+      nat='4'
+      charge='1'
+    ;;
+    *) ;;
+  esac
+
+  # write pw input file
+  cat > $mol.in << EOF
 &CONTROL
    calculation = 'relax'
    restart_mode = 'from_scratch'
    pseudo_dir = '$PSEUDO_DIR'
    outdir = '$TMP_DIR'
-   prefix = 'h2o'
+   prefix = '$mol'
    tprnfor = .TRUE.
    verbosity = 'high'
-   forc_conv_thr = 5.d-3
+   forc_conv_thr = $forc_conv
 /
 &SYSTEM
    ecutrho = $ecutrho
    ecutwfc = $ecutwfc
    ibrav = 1
+   smearing = $smearing
+   degauss = $degauss
    celldm(1) = 20
-   nat = 3
+   nat = $nat
    ntyp = 2
+   tot_charge = $charge
 /
 &ELECTRONS
    electron_maxstep = 200
@@ -142,126 +174,64 @@ ATOMIC_SPECIES
 H   1.008  H.pbe-rrkjus.UPF
 O  15.999  O.pbe-rrkjus.UPF
 ATOMIC_POSITIONS (bohr)
+EOF
+
+  # add atomic positions to pw input file
+  case $mol in
+    HO)
+      cat >> HO.in << EOF
+O   10.00   10.00   10.00
+H   11.84   10.00   10.00
+EOF
+    ;;
+    H2O)
+      cat >> H2O.in << EOF
 O   10.28  10.51  10.00
 H   11.87   9.57  10.00
 H    8.99   9.20  10.00
 EOF
-
-cat > h3o.in << EOF
-&CONTROL
-   calculation = 'relax'
-   restart_mode = 'from_scratch'
-   pseudo_dir = '$PSEUDO_DIR'
-   outdir = '$TMP_DIR'
-   prefix = 'h3o'
-   tprnfor = .TRUE.
-   verbosity = 'high'
-   forc_conv_thr = 5.d-2
-/
-&SYSTEM
-   ecutrho = $ecutrho
-   ecutwfc = $ecutwfc
-   ibrav = 1
-   smearing = "mv"
-   degauss = 0.01
-   celldm(1) = 20
-   nat = 4
-   ntyp = 2
-   tot_charge = 1
-/
-&ELECTRONS
-   electron_maxstep = 200
-   conv_thr = 5.d-9
-/
-&IONS
-   ion_dynamics = 'bfgs'
-/
-&CELL
-/
-K_POINTS (automatic)
-1 1 1 0 0 0
-ATOMIC_SPECIES
-H   1.008  H.pbe-rrkjus.UPF
-O  15.999  O.pbe-rrkjus.UPF
-ATOMIC_POSITIONS (bohr)
+    ;;
+    H3O)
+      cat >> H3O.in << EOF
 H  12.23 11.50 10.00
 H  10.56  8.75 10.00
 H   9.02 11.57 10.00
 O  10.61 10.61 10.00
 EOF
+    ;;
+    *) ;;
+  esac
 
-cat > ho.in << EOF
-&CONTROL
-   calculation = 'relax'
-   restart_mode = 'from_scratch'
-   pseudo_dir = '$PSEUDO_DIR'
-   outdir = '$TMP_DIR'
-   prefix = 'ho'
-   tprnfor = .TRUE.
-   verbosity = 'high'
-   forc_conv_thr = 5.d-3
-/
-&SYSTEM
-   ecutrho = $ecutrho
-   ecutwfc = $ecutwfc
-   ibrav = 1
-   smearing = "mv"
-   degauss = 0.01
-   celldm(1) = 20
-   nat = 2
-   ntyp = 2
-   tot_charge = -1
-/
-&ELECTRONS
-   electron_maxstep = 200
-   conv_thr = 5.d-9
-/
-&IONS
-   ion_dynamics = 'bfgs'
-/
-&CELL
-/
-K_POINTS (automatic)
-1 1 1 0 0 0
-ATOMIC_SPECIES
-H   1.008  H.pbe-rrkjus.UPF
-O  15.999  O.pbe-rrkjus.UPF
-ATOMIC_POSITIONS (bohr)
-O   10.00   10.00   10.00
-H   11.84   10.00   10.00
-EOF
+  $ECHO
 
-cat > vacuum.in << EOF
+  for env in vacuum solution; do
+
+    # set Environ parameters
+    case $env in
+      vacuum)
+        pressure='0.d0'
+        permittivity='1.d0'
+        surface_tension='0.d0'
+        field_aware='.FALSE.'
+        solver='direct'
+      ;;
+      solution)
+        pressure='-3.5d-1'
+        permittivity='7.83d1'
+        surface_tension='5.d1'
+        field_aware='.TRUE.'
+        solver='cg'
+      ;;
+      *) ;;
+    esac
+
+    # write Environ input file
+    cat > $env.in << EOF
 &ENVIRON
   env_electrostatic = .true.
-  env_pressure = 0.d0
-  env_static_permittivity = 1.d0
-  env_surface_tension = 0.d0
-  environ_restart = .false.
-  environ_thr = 1.d-1
-  environ_type = 'input'
-  verbose = $verbose
-/
-&BOUNDARY
-  alpha = 1.12d0
-  solvent_mode = 'ionic'
-  radius_mode = 'muff'
-/
-&ELECTROSTATIC
-  auxiliary = 'none'
-  pbc_correction = 'parabolic'
-  pbc_dim = 0
-  solver = 'direct'
-  tol = $tol
-/
-EOF
-
-cat > solution.in << EOF
-&ENVIRON
-  env_electrostatic = .true.
-  env_pressure = -3.5d-1
-  env_static_permittivity = 7.83d1
-  env_surface_tension = 5.d1
+  env_pressure = $pressure
+  env_static_permittivity = $permittivity
+  env_surface_tension = $surface_tension
   environ_restart = .false.
   environ_thr = 1.d-1
   environ_type = 'input'
@@ -271,40 +241,32 @@ cat > solution.in << EOF
   alpha = 1.12d0
   radius_mode = 'muff'
   solvent_mode = 'ionic'
-  field_aware = .TRUE.
+  field_aware = $field_aware
 /
 &ELECTROSTATIC
   auxiliary = 'none'
   pbc_correction = 'parabolic'
   pbc_dim = 0
-  solver = 'cg'
+  solver = $solver
   tol = $tol
 /
 EOF
 
-# VACUUM
-cp vacuum.in environ.in
-$ECHO "performing calculations in vacuum..."
-for input in ho h2o h3o; do
-    $ECHO "calculating energy for $input"
-    $PW_COMMAND < $input.in > ${input}_vacuum.out
+    # execute calculation
+    cp $env.in environ.in
+    $ECHO "  calculating energy for $mol in $env"
+    $PW_COMMAND < $mol.in > ${mol}_$env.out
     check_failure $?
-done
-cp solution.in environ.in
-$ECHO "performing calculations in solution..."
-for input in ho h2o h3o; do
-    $ECHO "calculating energy for $input"
-    $PW_COMMAND < $input.in > ${input}_solution.out
-    check_failure $?
-done
 
-for input in ho h2o h3o; do
-    evac=$(awk '/^!/ {en=$5}; END {print en}' ${input}_vacuum.out)
-    esol=$(awk '/^!/ {en=$5}; END {print en}' ${input}_solution.out)
-    dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l)
-    $ECHO "  Input                = $input "         >> results.txt
-    $ECHO "  Solvation Energy     = $dgsol Kcal/mol" >> results.txt
-    $ECHO
+  done
+
+  # write results
+  evac=$(awk '/^!/ {en=$5}; END {print en}' ${mol}_vacuum.out)
+  esol=$(awk '/^!/ {en=$5}; END {print en}' ${mol}_solution.out)
+  dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l)
+  $ECHO "  Input                = $mol "         >> results.txt
+  $ECHO "  Solvation Energy     = $dgsol Kcal/mol" >> results.txt
+
 done
 
 $ECHO
