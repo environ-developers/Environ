@@ -109,11 +109,12 @@ CONTAINS
         REAL(DP), ALLOCATABLE :: rho(:)
         !
         REAL(DP), ALLOCATABLE :: env_potential(:)
+        REAL(DP), ALLOCATABLE :: env_force(:, :)
         REAL(DP) :: env_energy
         !
         REAL(DP) :: volume, avg_dvtot, avg_velectrostatic
         !
-        INTEGER :: i, nrmax
+        INTEGER :: i, j, nat
         !
         REAL(DP) :: gcutm, tmp, a1(3), sumat2, est
         !
@@ -135,11 +136,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Compute potential
         !
+        nat = environ%main%system_ions%number
+        !
         ALLOCATE (env_potential(environ%setup%get_nnt()))
+        ALLOCATE (env_force(3, nat))
         !
         CALL environ%calc_potential(.TRUE., env_potential, lgather=.TRUE.)
         !
         CALL environ%calc%energy(env_energy)
+        !
+        CALL environ%calc%force(nat, env_force)
         !
         !--------------------------------------------------------------------------------
         ! Print results
@@ -151,28 +157,39 @@ CONTAINS
             avg_velectrostatic = environ%main%velectrostatic%integrate() / volume
         !
         IF (io%lnode) THEN
+            WRITE (io%unit, 1000), environ%main%system_charges%charge
+            !
+            IF (environ%setup%has_electrostatics()) &
+                WRITE (io%unit, 1001), avg_velectrostatic
+            !
+            WRITE (io%unit, 1002), avg_dvtot
             !
             CALL environ%main%print_energies('PW', .FALSE.)
             !
-            WRITE (io%unit, 1000), env_energy
-            WRITE (io%unit, 1001), environ%main%system_charges%charge
-            WRITE (io%unit, 1002), avg_dvtot
+            WRITE (io%unit, 1003), env_energy
             !
-            IF (environ%setup%has_electrostatics()) &
-                WRITE (io%unit, 1003), avg_velectrostatic
+            WRITE (io%unit, 1004), SUM(env_force)
+            !
+            DO i = 1, nat
+                WRITE (io%unit, 1005) i, (env_force(j, i), j=1, 3)
+            END DO
             !
             WRITE (io%unit, *) ! final blank line
         END IF
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(5X, "total energy              =", F17.8, " Ry")
+1000    FORMAT(5X, "total charge              =", F17.8, " a.u.",/)
+!
+1001    FORMAT(5X, "electrostatic potential   =", F17.8, " Ry")
         !
-1001    FORMAT(/, 5X, "total charge              =", F17.8, " a.u.")
+1002    FORMAT(5X, "total potential           =", F17.8, " Ry",/)
         !
-1002    FORMAT(/, 5X, "average total potential           =", F17.8, " Ry")
-
-1003    FORMAT(5X, "average electrostatic potential   =", F17.8, " Ry")
+1003    FORMAT(5X, "total energy              =", F17.8, " Ry",/)
+!
+1004    FORMAT(5X, "total force               =", F17.8, " Ry/bohr",/)
+        !
+1005    FORMAT(5X, "force on atom ", I4, "        =", 3F17.8)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE run_environ_from_cube
