@@ -87,6 +87,12 @@ CONTAINS
             CASE ('--no-density')
                 no_density = .TRUE.
                 !
+            CASE ('--energy')
+                calc_energy = .TRUE.
+                !
+            CASE ('--force')
+                calc_force = .TRUE.
+                !
             CASE ('-min')
                 CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
                 CALL char2real(arg2,alpha_min)
