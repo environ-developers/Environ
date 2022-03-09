@@ -106,7 +106,6 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        REAL(DP) :: nelec
         REAL(DP), ALLOCATABLE :: rho(:)
         !
         REAL(DP), ALLOCATABLE :: env_potential(:)
@@ -124,12 +123,12 @@ CONTAINS
         ! Initialize Environ
         !
         IF (no_density) THEN
-            CALL init_environ_from_cube(environ, nelec)
+            CALL init_environ_from_cube(environ)
         ELSE
             !
-            CALL init_environ_from_cube(environ, nelec, rho)
+            CALL init_environ_from_cube(environ, rho)
             !
-            CALL environ%update_electrons(rho, nelec=nelec, lscatter=.TRUE.)
+            CALL environ%update_electrons(rho, lscatter=.TRUE.)
             !
         END IF
         !
