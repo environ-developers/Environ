@@ -24,6 +24,8 @@
 !
 !----------------------------------------------------------------------------------------
 MODULE cmdline_args
+    !
+    USE environ_param, ONLY: DP
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -34,6 +36,10 @@ MODULE cmdline_args
     LOGICAL :: use_pbc_corr = .FALSE.
     !
     LOGICAL :: no_density = .FALSE.
+    !
+    REAL(DP) :: alpha_min = -1.D0
+    REAL(DP) :: alpha_max = -1.D0
+    REAL(DP) :: alpha_step = -1.D0
     !
     !------------------------------------------------------------------------------------
 END MODULE cmdline_args

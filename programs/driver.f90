@@ -31,6 +31,8 @@ PROGRAM driver
     !
     USE cmdline_args
     !
+    USE parsers, ONLY: char2real
+    !
     USE programs
     !
     !------------------------------------------------------------------------------------
@@ -60,7 +62,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: arg
+        CHARACTER(LEN=80) :: arg, arg2
         !
         !--------------------------------------------------------------------------------
         !
@@ -85,6 +87,18 @@ CONTAINS
             CASE ('--no-density')
                 no_density = .TRUE.
                 !
+            CASE ('-min')
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
+                CALL char2real(arg2,alpha_min)
+                !
+            CASE ('-max')
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
+                CALL char2real(arg2,alpha_max)
+                !
+            CASE ('-step')
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
+                CALL char2real(arg2,alpha_step)
+                !
             END SELECT
             !
         END DO
@@ -104,6 +118,9 @@ CONTAINS
             !
         CASE ('tester')
             CALL run_tester()
+            !
+        CASE ('desc')
+            CALL run_desc()
             !
         CASE ('from_cube')
             CALL run_environ_from_cube()
