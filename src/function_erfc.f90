@@ -148,6 +148,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
+                IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
                 local(i) = environ_erfc(arg) ! compute error function
@@ -237,6 +238,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
+                IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
                 IF (dist > func_tol) gradlocal(:, i) = -EXP(-arg**2) * r / dist
@@ -315,6 +317,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
+                IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
                 !------------------------------------------------------------------------
@@ -415,6 +418,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
+                IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
                 !------------------------------------------------------------------------
@@ -508,6 +512,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
+                IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
                 IF (dist > func_tol) derivlocal(i) = -EXP(-arg**2)
