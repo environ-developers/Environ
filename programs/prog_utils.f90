@@ -96,7 +96,7 @@ CONTAINS
             CALL environ%setup%init_cell(io%comm, at, nr=nr)
         END IF
         !
-        CALL environ%setup%init_numerical(use_pbc_corr)
+        CALL environ%setup%init_numerical(use_internal_pbc_corr)
         !
         CALL environ%main%init(nat, ntyp, label, ityp, zv)
         !
