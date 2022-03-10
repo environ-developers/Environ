@@ -2316,9 +2316,6 @@ CONTAINS
         ALLOCATE (solvationrad(local_nsx))
         ALLOCATE (corespread(local_nsx))
         !
-        ALLOCATE (cion(local_nsx))
-        ALLOCATE (zion(local_nsx))
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_registers
     !------------------------------------------------------------------------------------

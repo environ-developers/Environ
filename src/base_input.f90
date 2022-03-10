@@ -34,7 +34,7 @@
 MODULE env_base_input
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP
+    USE environ_param, ONLY: DP, nccx
     !
     !------------------------------------------------------------------------------------
     !
@@ -201,10 +201,10 @@ MODULE env_base_input
     !
     ! full = all terms ( Dabo et al. arXiv 0901.0096 )
     !
-    REAL(DP), ALLOCATABLE :: cion(:) ! molar concentration of ionic countercharge (M=mol/L)
+    REAL(DP) :: cion(nccx) ! molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: cionmax = 1.D3 ! maximum molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: rion = 0.D0 ! mean atomic radius of ionic countercharge (a.u.)
-    REAL(DP), ALLOCATABLE :: zion(:) ! valence of ionic countercharge
+    REAL(DP) :: zion(nccx) ! valence of ionic countercharge
     REAL(DP) :: temperature = 300.D0 ! temperature of the solution
     !
     !------------------------------------------------------------------------------------

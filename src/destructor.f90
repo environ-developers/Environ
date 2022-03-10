@@ -276,7 +276,7 @@ CONTAINS
     SUBROUTINE deallocate_input_registers()
         !--------------------------------------------------------------------------------
         !
-        DEALLOCATE (atomicspread, solvationrad, corespread, cion, zion)
+        DEALLOCATE (atomicspread, solvationrad, corespread)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE deallocate_input_registers
