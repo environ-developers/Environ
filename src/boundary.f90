@@ -1336,8 +1336,6 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute soft spheres and generate boundary
             !
-            !ALLOCATE (denloc(nss))
-            !
             scal%of_r = 1.D0
             !
             DO i = 1, nss
