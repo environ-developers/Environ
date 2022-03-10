@@ -31,7 +31,7 @@ MODULE cmdline_args
     CHARACTER(LEN=80) :: inputfile = 'environ.in'
     CHARACTER(LEN=80) :: cubefile = 'density.cube'
     !
-    LOGICAL :: use_pbc_corr = .FALSE.
+    LOGICAL :: use_internal_pbc_corr = .FALSE.
     !
     LOGICAL :: no_density = .FALSE.
     !
