@@ -227,17 +227,6 @@ CONTAINS
         !
         CALL get_atom_labels(species, atom_label)
         !
-        ! PRINT *, ntyp
-        ! PRINT *
-        ! PRINT *, species
-        ! PRINT *
-        ! PRINT *, zv
-        ! PRINT *
-        ! PRINT *, atom_label
-        ! PRINT *
-        ! !
-        ! STOP
-        !
         !--------------------------------------------------------------------------------
         ! Read density
         !
