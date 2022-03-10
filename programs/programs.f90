@@ -222,19 +222,23 @@ CONTAINS
                 !
             END IF
             !
-            IF (alpha_max == -1.D0) CALL io%error('get_desc', 'Missing maximum alpha value', 1)
-            !
-            IF (alpha_step == -1.D0) THEN
+            IF (alpha_max+alpha_min+alpha_step /= -3.D0) THEN
                 !
-                IF (io%lnode) WRITE(io%unit,"(5X,A)") 'No alpha step value given. Using 1.0 as step value.'
-                alpha_step = 1.D0
+                IF (alpha_max == -1.D0) CALL io%error('get_desc', 'Missing maximum alpha value', 1)
                 !
-            END IF
-            !
-            IF (alpha_min == -1.D0) THEN
+                IF (alpha_step == -1.D0) THEN
+                    !
+                    IF (io%lnode) WRITE(io%unit,"(5X,A)") 'No alpha step value given. Using 1.0 as step value.'
+                    alpha_step = 1.D0
+                    !
+                END IF
                 !
-                IF (io%lnode) WRITE(io%unit,"(5X,A)") 'No minimum alpha value given. Using step value as minimum.'
-                alpha_min = alpha_step
+                IF (alpha_min == -1.D0) THEN
+                    !
+                    IF (io%lnode) WRITE(io%unit,"(5X,A)") 'No minimum alpha value given. Using step value as minimum.'
+                    alpha_min = alpha_step
+                    !
+                END IF
                 !
             END IF
             !
@@ -297,6 +301,15 @@ CONTAINS
             volu = environ%main%solvent%volume
             surf = environ%main%solvent%surface
             !
+            IF (io%lnode) THEN
+                !
+                WRITE(io%unit,"(/,5X,A,F17.8)") 'Total Volume of the QM region: ', volu
+                WRITE(io%unit,"(5X,A,F17.8,/)") 'Total Surface of the QM region: ', surf
+                !
+            END IF
+            !
+            IF (alpha_max+alpha_min+alpha_step == -3.D0) RETURN
+            !
             num = environ%main%solvent%soft_spheres%number
             nnr = environ%setup%environment_cell%nnr
             !
@@ -356,9 +369,6 @@ CONTAINS
             END ASSOCIATE
             !
             IF (io%lnode) THEN
-                !
-                WRITE(io%unit,"(/,5X,A,F17.8)") 'Total Volume of the QM region: ', volu
-                WRITE(io%unit,"(5X,A,F17.8,/)") 'Total Surface of the QM region: ', surf
                 !
                 DO i=1,num
                     !
