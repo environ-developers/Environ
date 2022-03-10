@@ -1038,7 +1038,11 @@ CONTAINS
         !
         IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
             !
-            partial%of_r = this%gradloc(index)%of_r
+            IF (this%derivatives_method == 'fft') THEN
+                CALL this%soft_spheres%array(index)%gradient(partial, .TRUE.)
+            ELSE
+                partial%of_r = this%gradloc(index)%of_r
+            END IF
             !
             DO i = 1, number
                 !
