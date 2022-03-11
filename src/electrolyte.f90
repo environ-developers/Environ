@@ -129,8 +129,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%lupdate = .FALSE.
-        this%energy_second_order = .FALSE.
-        this%charge = .FALSE.
+        this%energy_second_order = 0.D0
+        this%charge = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_electrolyte
