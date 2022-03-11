@@ -173,7 +173,7 @@ CONTAINS
             !
             IMPLICIT NONE
             !
-            REAL(DP) :: at(3,3), new_at(3,3), origin(3), nelec
+            REAL(DP) :: at(3,3), new_at(3,3), origin(3)
             INTEGER :: nr(3), ntyp, nat
             REAL(DP), ALLOCATABLE :: zv(:)
             CHARACTER(LEN=2), ALLOCATABLE :: label(:)
@@ -184,7 +184,7 @@ CONTAINS
             !
             io%unit = 6
             !
-            CALL read_cube(nat,ntyp,ityp,label,zv,nelec,tau,origin,nr,at)
+            CALL read_cube(nat, ntyp, ityp, label, zv, tau, origin, nr, at)
             !
             new_at = at
             IF (.NOT. calc_energy) THEN
@@ -206,7 +206,7 @@ CONTAINS
             !
             CALL environ%setup%init_cell(io%comm, new_at)
             !
-            CALL environ%setup%init_cores()
+            CALL environ%setup%init_numerical(use_internal_pbc_corr)
             !
             CALL environ%main%init(nat, ntyp, label, ityp, zv)
             !
