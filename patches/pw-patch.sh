@@ -6,12 +6,12 @@
 #----------------------------------------------------------------------------------------
 #
 #     This file is part of Environ version 2.0
-#     
+#
 #     Environ 2.0 is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 2 of the License, or
 #     (at your option) any later version.
-#     
+#
 #     Environ 2.0 is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -37,7 +37,7 @@ cd $PW_SRC
 patch_makefile
 
 check_src_patched
-if test "$PATCHED" == 1; then 
+if test "$PATCHED" == 1; then
    return
 else
    message "Patching"
@@ -96,7 +96,6 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
   USE io_global,         ONLY : ionode, ionode_id, stdout\
   USE mp_images,         ONLY : intra_image_comm\
-  USE martyna_tuckerman, ONLY : do_comp_mt\
   USE environ_api,       ONLY : environ\
 !Environ patch
 ' plugin_read_input.f90 >tmp.1
@@ -111,7 +110,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL environ%read_input()\
       !\
-      CALL environ%setup%init(do_comp_mt)\
+      CALL environ%setup%init()\
       !\
       IF (prog == "TD") CALL environ%setup%set_tddfpt(.TRUE.)\
       !\
@@ -143,7 +142,11 @@ sed '/Environ CALLS BEGIN/ a\
          ! ones initialized while processing the input:\
          ! this allows NEB simulations\
          !\
-         IF (.NOT. environ%setup%is_tddfpt()) CALL environ%destroy()\
+         IF (lflag) THEN\
+            CALL environ%destroy(1) ! NEB image reading phase\
+         ELSE IF (.NOT. environ%setup%is_tddfpt()) THEN\
+            CALL environ%destroy(2)\
+         END IF\
          !\
       ELSE IF ( prog(1:2) == "TD" ) THEN\
          !\
@@ -153,9 +156,9 @@ sed '/Environ CALLS BEGIN/ a\
          ! fully cleaned (no NEB with TD).\
          !\
          IF (.NOT. lflag) THEN\
-            CALL environ%destroy(1)\
+            CALL environ%destroy(3)\
          ELSE\
-            CALL environ%destroy(2)\
+            CALL environ%destroy(4)\
          END IF\
          !\
       END IF\
@@ -187,12 +190,13 @@ mv tmp.2 plugin_summary.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE kinds,       ONLY : DP\
-USE mp_bands,    ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
-USE cell_base,   ONLY : at, alat\
-USE ions_base,   ONLY : nat, nsp, ityp, atm, zv\
-USE gvect,       ONLY : gcutm\
-USE environ_api, ONLY : environ\
+USE kinds,             ONLY : DP\
+USE mp_bands,          ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
+USE cell_base,         ONLY : at, alat\
+USE ions_base,         ONLY : nat, nsp, ityp, atm, zv\
+USE gvect,             ONLY : gcutm\
+USE martyna_tuckerman, ONLY : do_comp_mt\
+USE environ_api,       ONLY : environ\
 !Environ patch
 ' plugin_initbase.f90 >tmp.1
 
@@ -224,7 +228,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       DEALLOCATE (at_scaled)\
       !\
-      CALL environ%setup%init_cores()\
+      CALL environ%setup%init_numerical(do_comp_mt)\
       !\
       CALL environ%main%init(nat, nsp, atm, ityp, zv)\
       !\

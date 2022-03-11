@@ -114,6 +114,17 @@ CONTAINS
         IF (ASSOCIATED(this%pos)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%f_type = 0
+        this%axis = 0
+        this%dim = 0
+        this%width = 0.D0
+        this%spread = 0.D0
+        this%volume = 0.D0
+        !
+        NULLIFY (this%pos)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_function
     !------------------------------------------------------------------------------------
     !>

@@ -89,6 +89,7 @@ MODULE class_electrolyte
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_electrolyte
         PROCEDURE :: init => init_environ_electrolyte
         PROCEDURE :: update => update_environ_electrolyte
         PROCEDURE :: destroy => destroy_environ_electrolyte
@@ -112,6 +113,27 @@ CONTAINS
     !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_electrolyte(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_electrolyte), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrolyte'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%energy_second_order = 0.D0
+        this%charge = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_electrolyte
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -152,6 +174,8 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         CALL this%base%init(ntyp, const, distance, spread, temperature, cbulk, cionmax, &
                             radius, z, electrolyte_entropy, linearized, cell)

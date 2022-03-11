@@ -152,7 +152,7 @@ check-for-errors:
 
 depend:
 	@ printf "\nUpdating Environ dependencies...\n\n"
-	@ ./install/makedeps.sh
+	@ ./install/makedeps.sh; echo
 
 cannibalize-QE:
 	@ if test -d $(qedir) && test $(version); then \

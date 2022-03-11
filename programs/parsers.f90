@@ -30,12 +30,22 @@ MODULE parsers
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
-    USE env_mp, ONLY: env_mp_bcast
+    USE env_mp, ONLY: env_mp_bcast, env_mp_abort
     USE env_array_ops, ONLY: env_get_index
     !
     USE environ_param, ONLY: DP
     !
     USE environ_api, ONLY: get_atom_labels
+    !
+    USE cmdline_args
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    PRIVATE
+    !
+    PUBLIC :: read_cube
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -43,16 +53,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_cube(nat, ntyp, ityp, atom_label, zv, nelec, tau, origin, nr, at, &
-                         rho, cubefile)
+    SUBROUTINE read_cube(nat, ntyp, ityp, atom_label, zv, tau, origin, nr, at, rho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: cubefile
-        !
         INTEGER, INTENT(OUT) :: nat, ntyp
-        REAL(DP), INTENT(OUT) :: nelec
         INTEGER, ALLOCATABLE, INTENT(OUT) :: ityp(:)
         CHARACTER(LEN=2), ALLOCATABLE, INTENT(OUT) :: atom_label(:)
         REAL(DP), INTENT(OUT) :: origin(3)
@@ -62,37 +68,39 @@ CONTAINS
         REAL(DP), ALLOCATABLE, INTENT(OUT) :: tau(:, :)
         REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
         !
-        INTEGER :: i, j, k, l, count, unit, current, nnt
+        INTEGER :: ios
         LOGICAL :: ext
         !
-        REAL(DP) :: current_charge
+        INTEGER :: i, j, k, l, count, unit, current, nnt
+        !
+        REAL(DP) :: fact ! angstrom to bohr conversion factor
         !
         INTEGER, ALLOCATABLE :: atomic_number(:)
+        INTEGER, ALLOCATABLE :: charge_index(:) ! index of unique charges
         REAL(DP), ALLOCATABLE :: charge(:) ! unprocessed charges
         INTEGER, ALLOCATABLE :: species(:) ! register for checked atomic numbers
         REAL(DP), ALLOCATABLE :: unsorted(:) ! unsorted density read from file
         !
-        CHARACTER(LEN=80) :: filename = 'density.cube'
+        CHARACTER(LEN=14) :: current_combo ! current number/charge
+        CHARACTER(LEN=14), ALLOCATABLE :: combo(:) ! unique set of number/charge
         !
         CHARACTER(LEN=80) :: sub_name = 'read_cube'
         !
         !--------------------------------------------------------------------------------
         ! Open cube file
         !
-        IF (PRESENT(cubefile)) filename = cubefile
-        !
         unit = io%find_free_unit()
-        INQUIRE (file=TRIM(filename), exist=ext)
+        INQUIRE (file=TRIM(cubefile), exist=ext)
         !
-        IF (.NOT. ext) CALL io%error(sub_name, TRIM(filename)//' not found', 1)
+        IF (.NOT. ext) CALL io%error(sub_name, TRIM(cubefile)//' not found', 1)
         !
-        OPEN (unit=unit, file=TRIM(filename), status='old')
+        OPEN (unit=unit, file=TRIM(cubefile), status='old')
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%writer('Reading cube data from '//TRIM(filename))
-        !
         CALL io%writer('') ! blank line
+        !
+        CALL io%writer('Reading cube data from '//TRIM(cubefile))
         !
         !--------------------------------------------------------------------------------
         ! Discard comment lines
@@ -100,7 +108,10 @@ CONTAINS
         IF (io%lnode) THEN
             !
             DO i = 1, 2
-                READ (unit, *)
+                READ (unit, *, iostat=ios)
+                !
+                CALL check_ios(ios)
+                !
             END DO
             !
         END IF
@@ -108,7 +119,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Read number of atoms and origin
         !
-        IF (io%lnode) READ (unit, *) nat, origin
+        IF (io%lnode) THEN
+            READ (unit, *, iostat=ios) nat, origin
+            !
+            CALL check_ios(ios)
+            !
+        END IF
         !
         CALL env_mp_bcast(nat, io%node, io%comm)
         !
@@ -121,7 +137,10 @@ CONTAINS
         IF (io%lnode) THEN
             !
             DO i = 1, 3
-                READ (unit, *) nr(i), at(i, :)
+                READ (unit, *, iostat=ios) nr(i), at(i, :)
+                !
+                CALL check_ios(ios)
+                !
             END DO
             !
         END IF
@@ -130,7 +149,14 @@ CONTAINS
         !
         CALL env_mp_bcast(at, io%node, io%comm)
         !
-        at = at * SPREAD(nr, 1, 3)
+        IF (ANY(nr < 0)) THEN
+            fact = 1.8897259886D0
+            nr = -nr
+        ELSE
+            fact = 1.D0
+        END IF
+        !
+        at = at * SPREAD(nr, 1, 3) * fact
         !
         !--------------------------------------------------------------------------------
         ! Read atomic numbers, charges, and positions
@@ -142,7 +168,10 @@ CONTAINS
         IF (io%lnode) THEN
             !
             DO i = 1, nat
-                READ (unit, *) atomic_number(i), charge(i), tau(:, i)
+                READ (unit, *, iostat=ios) atomic_number(i), charge(i), tau(:, i)
+                !
+                CALL check_ios(ios)
+                !
             END DO
             !
         END IF
@@ -153,42 +182,42 @@ CONTAINS
         !
         CALL env_mp_bcast(tau, io%node, io%comm)
         !
-        nelec = SUM(charge)
+        tau = tau * fact
         !
         !--------------------------------------------------------------------------------
         ! Determine number of species and assign species index per atom
         !
         ALLOCATE (species(nat))
         ALLOCATE (ityp(nat))
+        ALLOCATE (combo(nat))
+        ALLOCATE (charge_index(nat))
         !
         ntyp = 0
         species = 0
+        combo = ''
+        charge_index = 0
         !
         DO i = 1, nat
+            WRITE (current_combo, '(I3, 1X, F10.6)') atomic_number(i), charge(i)
             !
-            IF (.NOT. ANY(species == atomic_number(i))) THEN
+            IF (.NOT. ANY(combo == current_combo)) THEN
                 ntyp = ntyp + 1
-                species(i) = atomic_number(i)
+                species(ntyp) = atomic_number(i)
+                combo(ntyp) = current_combo
+                charge_index(ntyp) = i
             END IF
             !
-            ityp(i) = env_get_index(atomic_number(i), species)
+            ityp(i) = env_get_index(current_combo, combo)
         END DO
         !
         !--------------------------------------------------------------------------------
         ! Reduce charges to unique array
         !
         ALLOCATE (zv(ntyp))
-        current_charge = 0.D0
-        count = 0
+        zv = 0.D0
         !
-        DO i = 1, nat
-            !
-            IF (charge(i) /= current_charge) THEN
-                count = count + 1
-                zv(count) = charge(i)
-                current_charge = charge(i)
-            END IF
-            !
+        DO i = 1, ntyp
+            zv(i) = charge(charge_index(i))
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -207,7 +236,12 @@ CONTAINS
             ALLOCATE (unsorted(nnt))
             ALLOCATE (rho(nnt))
             !
-            IF (io%lnode) READ (unit, *) unsorted ! read unsorted cube density
+            IF (io%lnode) THEN
+                READ (unit, *, iostat=ios) unsorted ! read unsorted cube density
+                !
+                CALL check_ios(ios)
+                !
+            END IF
             !
             CALL env_mp_bcast(unsorted, io%node, io%comm)
             !
@@ -235,6 +269,43 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE read_cube
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                              PRIVATE HELPER ROUTINES
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE check_ios(ios)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: ios
+        !
+        CHARACTER(LEN=80) :: sub_name = 'check_EOF'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ios == 0) THEN
+            RETURN
+        ELSE IF (ios > 0) THEN
+            WRITE (io%unit, 1) "Error encountered while reading. Check input file."
+        ELSE IF (ios < 0) THEN
+            WRITE (io%unit, 1) "End-of-file encountered while reading. Check input file."
+        END IF
+        !
+        CALL env_mp_abort(ios, io%comm)
+        !
+        !--------------------------------------------------------------------------------
+        !
+1       FORMAT(/, 5X, A,/)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE check_ios
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

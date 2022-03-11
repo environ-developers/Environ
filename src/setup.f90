@@ -126,11 +126,6 @@ MODULE class_setup
         LOGICAL :: lgradient = .FALSE.
         !
         !--------------------------------------------------------------------------------
-        ! Correction flags
-        !
-        LOGICAL :: use_inter_corr = .FALSE.
-        !
-        !--------------------------------------------------------------------------------
         ! Core flags
         !
         LOGICAL :: l1da = .FALSE.
@@ -181,16 +176,17 @@ MODULE class_setup
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_setup
         PROCEDURE :: init => init_environ_setup
         !
         PROCEDURE :: init_cell => environ_init_cell
         PROCEDURE :: update_cell => environ_update_cell
         PROCEDURE :: end_cell_update => environ_end_cell_update
         !
-        PROCEDURE :: update_mapping => environ_update_mapping
-        !
-        PROCEDURE :: init_cores => init_environ_numerical_cores
+        PROCEDURE :: init_numerical => init_environ_numerical_base
         PROCEDURE :: update_cores => update_environ_numerical_cores
+        !
+        PROCEDURE :: update_mapping => environ_update_mapping
         !
         PROCEDURE :: set_tddfpt
         PROCEDURE :: set_restart
@@ -204,7 +200,6 @@ MODULE class_setup
         PROCEDURE :: has_electrostatics
         !
         PROCEDURE, PRIVATE :: set_flags => set_environ_flags
-        PROCEDURE, PRIVATE :: set_numerical_base => set_environ_numerical_base
         !
         PROCEDURE, PRIVATE :: set_core_containers => set_environ_core_containers
         PROCEDURE, PRIVATE :: set_electrostatics => set_environ_electrostatic
@@ -213,6 +208,7 @@ MODULE class_setup
         PROCEDURE, PRIVATE :: set_simulation_flags
         PROCEDURE, PRIVATE :: set_environment_flags
         PROCEDURE, PRIVATE :: set_derived_flags
+        PROCEDURE, PRIVATE :: set_numerical_flags
         PROCEDURE, PRIVATE :: set_electrostatic_flags
         !
         PROCEDURE :: print_summary => environ_setup_summary
@@ -247,27 +243,87 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_setup(this, use_internal_pbc_corr)
+    SUBROUTINE create_environ_setup(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_setup'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%environment_cell)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%restart = .FALSE.
+        this%threshold = 0.0_DP
+        this%nskip = 0
+        this%niter = 0
+        this%nrep = 1
+        this%static_permittivity = 0.0_DP
+        this%optical_permittivity = 0.0_DP
+        this%surface_tension = 0.0_DP
+        this%pressure = 0.0_DP
+        this%confine = 0.0_DP
+        this%lstatic = .FALSE.
+        this%loptical = .FALSE.
+        this%lsurface = .FALSE.
+        this%lvolume = .FALSE.
+        this%lconfine = .FALSE.
+        this%lexternals = .FALSE.
+        this%lregions = .FALSE.
+        this%lelectrolyte = .FALSE.
+        this%lsemiconductor = .FALSE.
+        this%lperiodic = .FALSE.
+        this%ldoublecell = .FALSE.
+        this%ltddfpt = .FALSE.
+        this%laddcharges = .FALSE.
+        this%ldielectric = .FALSE.
+        this%lsolvent = .FALSE.
+        this%lelectrostatic = .FALSE.
+        this%lsoftsolvent = .FALSE.
+        this%lsoftelectrolyte = .FALSE.
+        this%lsoftcavity = .FALSE.
+        this%lrigidsolvent = .FALSE.
+        this%lrigidelectrolyte = .FALSE.
+        this%lrigidcavity = .FALSE.
+        this%lcoredensity = .FALSE.
+        this%lsmearedions = .FALSE.
+        this%lboundary = .FALSE.
+        this%lgradient = .FALSE.
+        this%l1da = .FALSE.
+        this%lfft_system = .FALSE.
+        this%lfft_environment = .FALSE.
+        this%need_inner = .FALSE.
+        this%need_gradient = .FALSE.
+        this%need_factsqrt = .FALSE.
+        this%need_auxiliary = .FALSE.
+        !
+        NULLIFY (this%environment_cell)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_setup
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_environ_setup(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
         !
         !--------------------------------------------------------------------------------
-        ! Internal pbc correction applied directly to FFT cores
         !
-        IF (PRESENT(use_internal_pbc_corr)) this%use_inter_corr = use_internal_pbc_corr
-        !
-        !--------------------------------------------------------------------------------
+        CALL this%create()
         !
         CALL this%set_flags()
-        !
-        CALL this%set_numerical_base()
         !
         !--------------------------------------------------------------------------------
         ! Open Environ output file
@@ -312,7 +368,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1003)
+        IF (at(1, 1) < 1.D0) CALL io%warning("strange lattice parameter", 1002)
         !
         !--------------------------------------------------------------------------------
         ! Set G-vector cutoff value
@@ -325,7 +381,7 @@ CONTAINS
             at2 = SUM(at(:, 1)**2)
             local_gcutm = CEILING((nr(1) - 3)**2 * 0.25 / at2 + 0.5 / SQRT(at2) * nr(1))
         ELSE
-            CALL io%error(sub_name, "Missing FFT-grid information", 1004)
+            CALL io%error(sub_name, "Missing FFT-grid information", 1003)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -365,28 +421,37 @@ CONTAINS
     END SUBROUTINE environ_init_cell
     !------------------------------------------------------------------------------------
     !>
-    !! Set up active numerical cores
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_cores(this)
+    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
+        !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        ! Initialize cores
         !
         IF (this%lfft_system) &
-            CALL this%ref_fft%init(this%system_cell, this%use_inter_corr)
+            CALL this%ref_fft%init(this%system_cell, use_internal_pbc_corr)
         !
         IF (this%lfft_environment) &
-            CALL this%env_fft%init(this%environment_cell, this%use_inter_corr)
+            CALL this%env_fft%init(this%environment_cell, use_internal_pbc_corr)
         !
         IF (this%l1da) CALL this%env_1da%init(pbc_dim, pbc_axis, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_numerical_cores
+        ! Initialize core containers and solvers
+        !
+        CALL this%set_core_containers(use_internal_pbc_corr)
+        !
+        CALL this%set_electrostatics()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_environ_numerical_base
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -715,29 +780,10 @@ CONTAINS
         !
         CALL this%set_derived_flags()
         !
+        CALL this%set_numerical_flags()
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environ_flags
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_numerical_base(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_setup), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_numerical_base'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%set_core_containers()
-        !
-        CALL this%set_electrostatics()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environ_numerical_base
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -895,13 +941,42 @@ CONTAINS
     END SUBROUTINE set_derived_flags
     !------------------------------------------------------------------------------------
     !>
-    !! Initialize derivative and electrostatic core containers
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_core_containers(this)
+    SUBROUTINE set_numerical_flags(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'set_numerical_flags'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lfft_system = .TRUE.
+        !
+        IF (this%lboundary .OR. this%lelectrostatic) THEN
+            IF (deriv_core == 'fft') this%lfft_environment = .TRUE.
+        END IF
+        !
+        this%need_inner = inner_solver /= 'none'
+        !
+        IF (this%lperiodic .AND. pbc_core == '1da') this%l1da = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_numerical_flags
+    !------------------------------------------------------------------------------------
+    !>
+    !! Initialize derivative and electrostatic core containers
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_environ_core_containers(this, use_internal_pbc_corr)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
@@ -913,19 +988,17 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference core
         !
-        this%lfft_system = .TRUE.
-        !
         CALL this%reference_container%init('system', &
                                            elect_core=this%ref_fft, &
-                                           inter_corr=this%use_inter_corr)
+                                           inter_corr=use_internal_pbc_corr)
         !
         !--------------------------------------------------------------------------------
         ! Environment core containers
         !
-        CALL this%outer_container%init('environment', inter_corr=this%use_inter_corr)
+        CALL this%outer_container%init('environment', inter_corr=use_internal_pbc_corr)
         !
         IF (this%need_inner) &
-            CALL this%inner_container%init('inner', inter_corr=this%use_inter_corr)
+            CALL this%inner_container%init('inner', inter_corr=use_internal_pbc_corr)
         !
         !--------------------------------------------------------------------------------
         ! Derivatives core
@@ -935,7 +1008,6 @@ CONTAINS
             SELECT CASE (deriv_core)
                 !
             CASE ('fft')
-                this%lfft_environment = .TRUE.
                 local_deriv_core => this%env_fft
                 !
             CASE DEFAULT
@@ -950,8 +1022,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Electrostatic cores
         !
-        this%need_inner = inner_solver /= 'none'
-        !
         IF (this%lelectrostatic) THEN
             !
             !----------------------------------------------------------------------------
@@ -960,7 +1030,6 @@ CONTAINS
             SELECT CASE (core)
                 !
             CASE ('fft')
-                this%lfft_environment = .TRUE.
                 local_outer_core => this%env_fft
                 !
             CASE DEFAULT
@@ -999,7 +1068,6 @@ CONTAINS
             SELECT CASE (pbc_core)
                 !
             CASE ('1da')
-                this%l1da = .TRUE.
                 local_pbc_core => this%env_1da
                 !
             CASE DEFAULT
@@ -1337,7 +1405,7 @@ CONTAINS
             WRITE (io%unit, 1021) &
                 TRIM(problem), TRIM(solver), TRIM(auxiliary), TRIM(core)
             !
-            IF (this%need_inner) THEN
+            IF (inner_solver /= 'none') THEN
                 WRITE (io%unit, 1022)
                 WRITE (io%unit, 1023) TRIM(inner_solver), TRIM(inner_core)
             END IF

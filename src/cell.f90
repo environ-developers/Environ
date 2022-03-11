@@ -163,6 +163,31 @@ CONTAINS
         IF (ALLOCATED(this%gg)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%cubic = .FALSE.
+        this%label = 'system'
+        this%at = 0.D0
+        this%bg = 0.D0
+        this%origin = 0.D0
+        this%corners = 0.D0
+        this%omega = 0.D0
+        this%domega = 0.D0
+        this%nr = 0
+        this%nrx = 0
+        this%nnt = 0
+        this%nntx = 0
+        this%nnr = 0
+        this%ir_end = 0
+        this%j0 = 0
+        this%k0 = 0
+        this%in1 = 0
+        this%in2 = 0
+        this%in3 = 0
+        this%gcutm = 0.D0
+        this%gstart = 2
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_cell
     !------------------------------------------------------------------------------------
     !>
@@ -418,7 +443,7 @@ CONTAINS
         IF (this%omega < 0.0_DP) THEN
             this%omega = ABS(this%omega)
             !
-            CALL io%warning("axis vectors are left-handed", 1005)
+            CALL io%warning("axis vectors are left-handed", 1004)
             !
         END IF
         !

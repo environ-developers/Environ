@@ -106,6 +106,18 @@ CONTAINS
         IF (ASSOCIATED(this%corrections)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%label = ''
+        this%internal_correction = .FALSE.
+        this%has_derivatives = .FALSE.
+        this%has_electrostatics = .FALSE.
+        this%has_corrections = .FALSE.
+        !
+        NULLIFY (this%derivatives)
+        NULLIFY (this%electrostatics)
+        NULLIFY (this%corrections)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_container
     !------------------------------------------------------------------------------------
     !>

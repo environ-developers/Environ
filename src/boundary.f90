@@ -248,6 +248,42 @@ CONTAINS
         IF (ALLOCATED(this%partial_of_ion_field)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%label = ''
+        this%mode = ''
+        this%update_status = 0
+        this%need_electrons = .FALSE.
+        this%need_ions = .FALSE.
+        this%need_system = .FALSE.
+        this%deriv = 0
+        this%derivatives_method = ''
+        this%volume = 0.D0
+        this%surface = 0.D0
+        this%b_type = 0
+        this%rhomax = 0.D0
+        this%rhomin = 0.D0
+        this%fact = 0.D0
+        this%rhozero = 0.D0
+        this%deltarho = 0.D0
+        this%tbeta = 0.D0
+        this%const = 0.D0
+        this%alpha = 0.D0
+        this%softness = 0.D0
+        this%solvent_aware = .FALSE.
+        this%filling_threshold = 0.D0
+        this%filling_spread = 0.D0
+        this%field_aware = .FALSE.
+        this%field_factor = 0.D0
+        this%field_asymmetry = 0.D0
+        this%field_max = 0.D0
+        this%field_min = 0.D0
+        !
+        NULLIFY (this%electrons)
+        NULLIFY (this%ions)
+        NULLIFY (this%system)
+        NULLIFY (this%cores)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_boundary
     !------------------------------------------------------------------------------------
     !>
@@ -810,6 +846,8 @@ CONTAINS
             NULLIFY (this%system)
         END IF
         !
+        NULLIFY (this%cores)
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_boundary
     !------------------------------------------------------------------------------------
@@ -1308,7 +1346,7 @@ CONTAINS
                    scal => this%scaled, &
                    grad => this%gradient, &
                    lapl => this%laplacian, &
-                   dsruf => this%dsurface)
+                   dsurf => this%dsurface)
             !
             !----------------------------------------------------------------------------
             ! Compute soft spheres and generate boundary
@@ -1351,7 +1389,7 @@ CONTAINS
                 !
                 IF (deriv == 2) CALL derivatives%laplacian(scal, lapl)
                 !
-                IF (deriv == 3) CALL this%calc_dsurface(scal, grad, lapl, hess, dsruf)
+                IF (deriv == 3) CALL this%calc_dsurface(scal, grad, lapl, hess, dsurf)
                 !
             CASE ('highmem')
                 !
@@ -1388,7 +1426,7 @@ CONTAINS
                 !
                 IF (deriv == 3) &
                     CALL dsurface_of_boundary(nss, denloc, gradloc, hessloc, grad, &
-                                              lapl, hess, dsruf)
+                                              lapl, hess, dsurf)
                 !
                 DO i = 1, nss
                     !
@@ -1442,7 +1480,7 @@ CONTAINS
                 !
                 IF (deriv == 3) &
                     CALL dsurface_of_boundary(nss, denloc, gradloc, hessloc, grad, &
-                                              lapl, hess, scal, dsruf)
+                                              lapl, hess, scal, dsurf)
                 !
                 DO i = 1, nss
                     !
@@ -1481,7 +1519,7 @@ CONTAINS
                 IF (deriv >= 2) lapl%of_r = -lapl%of_r
                 !
                 IF (deriv == 3) THEN
-                    dsruf%of_r = -dsruf%of_r
+                    dsurf%of_r = -dsurf%of_r
                     !
                     IF (this%solvent_aware) THEN
                         hess%of_r = -hess%of_r

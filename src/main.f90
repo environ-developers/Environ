@@ -174,8 +174,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%setup)) &
-            CALL io%error(sub_name, "Trying to create an existing object", 1)
+        this%initialized = .FALSE.
+        this%evolume = 0.0_DP
+        this%esurface = 0.0_DP
+        this%econfine = 0.0_DP
+        this%deenviron = 0.0_DP
+        this%eelectrolyte = 0.0_DP
+        this%eelectrostatic = 0.0_DP
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_base
@@ -199,6 +204,8 @@ CONTAINS
         CLASS(environ_main), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         CALL this%init_potential()
         !

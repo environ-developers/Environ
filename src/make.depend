@@ -100,9 +100,9 @@ density.o : ../UtilXlib/mp.o
 density.o : cell.o
 density.o : constants.o
 density.o : io.o
+destructor.o : base_input.o
 destructor.o : io.o
 destructor.o : main.o
-destructor.o : setup.o
 dielectric.o : boundary.o
 dielectric.o : cell.o
 dielectric.o : constants.o
