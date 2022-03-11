@@ -339,7 +339,7 @@ CONTAINS
                     !
                     DO i=1,solvent%soft_spheres%number
                         !
-                        ASSOCIATE (cell => solvent%denloc(i)%cell, &
+                        ASSOCIATE (cell => environ%setup%environment_cell, &
                             pos => ss(i)%pos, &
                             spread => ss(i)%spread, &
                             width => ss(i)%width, &

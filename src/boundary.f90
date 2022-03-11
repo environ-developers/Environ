@@ -108,8 +108,9 @@ MODULE class_boundary
         TYPE(environ_hessian) :: hessian
         TYPE(environ_density) :: dsurface
         !
-        TYPE(environ_density), ALLOCATABLE :: denloc(:)
         TYPE(environ_gradient), ALLOCATABLE :: gradloc(:)
+        INTEGER, ALLOCATABLE :: ir_nonzero(:,:)
+        REAL(DP), ALLOCATABLE :: nonzero(:,:)
         !
         TYPE(core_container), POINTER :: cores => NULL()
         !
@@ -426,13 +427,16 @@ CONTAINS
             !
             CALL this%set_soft_spheres()
             !
-            ALLOCATE (this%denloc(this%ions%number))
             ALLOCATE (this%gradloc(this%ions%number))
+            ALLOCATE( this%ir_nonzero(this%ions%number,cell%nnr))
+            ALLOCATE (this%nonzero(this%ions%number,cell%nnr)) !#TODO get a better estimate on number of grid points to store
             !
             DO i=1,this%ions%number
-                CALL this%denloc(i)%init(cell)
                 CALL this%gradloc(i)%init(cell)
             END DO
+            !
+            this%ir_nonzero = -1
+            this%nonzero = 0.D0
             !
         END IF
         !
@@ -836,17 +840,17 @@ CONTAINS
             !
             IF (this%mode == 'ionic') THEN
                 !
-                IF (ALLOCATED(this%denloc)) THEN
+                IF (ALLOCATED(this%gradloc)) THEN
                     !
                     DO i=1,this%soft_spheres%number
                         !
-                        CALL this%denloc(i)%destroy()
                         CALL this%gradloc(i)%destroy()
                         !
                     END DO
                     !
-                    DEALLOCATE(this%denloc)
                     DEALLOCATE(this%gradloc)
+                    DEALLOCATE(this%nonzero)
+                    DEALLOCATE(this%ir_nonzero)
                     !
                 END IF
                 !
@@ -1036,7 +1040,7 @@ CONTAINS
         !
         INTEGER, POINTER :: number
         !
-        INTEGER :: i, j
+        INTEGER :: i, j, idx
         REAL(DP) :: spurious_force
         TYPE(environ_density) :: denlocal
         !
@@ -1082,15 +1086,31 @@ CONTAINS
                 partial%of_r = this%gradloc(index)%of_r
             END IF
             !
+            CALL denlocal%init(partial%cell)
+            !
             DO i = 1, number
                 !
                 IF (i == index) CYCLE
                 !
+                idx = 1
+                denlocal%of_r = 1.D0
+                !
+                DO j=1, partial%cell%nnr
+                    !
+                    IF (.NOT. this%ir_nonzero(i,idx) == j) CYCLE
+                    !
+                    denlocal%of_r(j) = this%nonzero(i,idx)
+                    idx = idx + 1
+                    !
+                END DO
+                !
                 DO j = 1, 3
-                    partial%of_r(j, :) = partial%of_r(j, :) * this%denloc(i)%of_r
+                    partial%of_r(j, :) = partial%of_r(j, :) * denlocal%of_r
                 END DO
                 !
             END DO
+            !
+            CALL denlocal%destroy()
             !
         ELSE IF (this%mode == 'full') THEN
             !
@@ -1355,8 +1375,9 @@ CONTAINS
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER :: i
+        INTEGER :: i, j, count
         !
+        TYPE(environ_density) :: denlocal
         TYPE(environ_density), ALLOCATABLE :: laplloc(:)
         TYPE(environ_hessian), ALLOCATABLE :: hessloc(:)
         TYPE(environ_hessian), POINTER :: hess
@@ -1380,11 +1401,26 @@ CONTAINS
             !
             scal%of_r = 1.D0
             !
+            CALL denlocal%init(cell)
+            !
             DO i = 1, nss
                 !
-                CALL soft_spheres(i)%density(this%denloc(i), .TRUE.)
+                CALL soft_spheres(i)%density(denlocal, .TRUE.)
                 !
-                scal%of_r = scal%of_r * this%denloc(i)%of_r
+                count = 1
+                DO j=1,cell%nnr
+                    !
+                    IF (denlocal%of_r(j) /= 1.D0) THEN
+                        !
+                        this%ir_nonzero(i,count) = j
+                        this%nonzero(i,count) = denlocal%of_r(j)
+                        count = count + 1
+                        !
+                    END IF
+                    !
+                END DO
+                !
+                scal%of_r = scal%of_r * denlocal%of_r
             END DO
             !
             !----------------------------------------------------------------------------
@@ -1438,14 +1474,14 @@ CONTAINS
                 END DO
                 !
                 IF (deriv == 1 .OR. deriv == 2) &
-                    CALL gradient_of_boundary(nss, this%denloc, this%gradloc, grad)
+                    CALL gradient_of_boundary(nss, this%gradloc, grad, this%ir_nonzero, this%nonzero)
                 !
                 IF (deriv == 2) &
-                    CALL laplacian_of_boundary(nss, this%denloc, this%gradloc, laplloc, lapl)
+                    CALL laplacian_of_boundary(nss, this%gradloc, laplloc, lapl, this%ir_nonzero, this%nonzero)
                 !
                 IF (deriv == 3) &
-                    CALL dsurface_of_boundary(nss, this%denloc, this%gradloc, hessloc, grad, &
-                                              lapl, hess, dsurf)
+                    CALL dsurface_of_boundary(nss, this%gradloc, hessloc, grad, &
+                                              lapl, hess, dsurf, this%ir_nonzero, this%nonzero)
                 !
                 DO i = 1, nss
                     !
@@ -1483,15 +1519,15 @@ CONTAINS
                 END DO
                 !
                 IF (deriv >= 1) &
-                    CALL gradient_of_boundary(nss, this%denloc, this%gradloc, scal, grad)
+                    CALL gradient_of_boundary(nss, this%gradloc, scal, grad, this%ir_nonzero, this%nonzero)
                 !
                 IF (deriv == 2) &
-                    CALL laplacian_of_boundary(nss, this%denloc, this%gradloc, laplloc, scal, &
-                                               grad, lapl)
+                    CALL laplacian_of_boundary(nss, this%gradloc, laplloc, scal, &
+                                               grad, lapl, this%ir_nonzero, this%nonzero)
                 !
                 IF (deriv == 3) &
-                    CALL dsurface_of_boundary(nss, this%denloc, this%gradloc, hessloc, grad, &
-                                              lapl, hess, scal, dsurf)
+                    CALL dsurface_of_boundary(nss, this%gradloc, hessloc, grad, &
+                                              lapl, hess, scal, dsurf, this%ir_nonzero, this%nonzero)
                 !
                 DO i = 1, nss
                     !
