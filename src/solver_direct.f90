@@ -66,6 +66,7 @@ MODULE class_solver_direct
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create_solver_direct
         PROCEDURE :: init => init_solver_direct
         PROCEDURE :: destroy => destroy_solver_direct
         !
@@ -91,6 +92,26 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_solver_direct(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_direct), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_solver_direct'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%solver_type = 'direct'
+        this%corrections_method = 'none'
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_solver_direct
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_solver_direct(this, cores, corr_method)
         !--------------------------------------------------------------------------------
         !
@@ -103,7 +124,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%solver_type = 'direct'
+        CALL this%create_solver_direct()
         !
         CALL this%set_cores(cores)
         !

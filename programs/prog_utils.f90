@@ -59,13 +59,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_from_cube(environ, nelec, rho)
+    SUBROUTINE init_environ_from_cube(environ, rho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_interface), INTENT(INOUT) :: environ
-        REAL(DP), INTENT(OUT) :: nelec
         REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
         !
         INTEGER :: nat
@@ -82,14 +81,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL read_cube(nat, ntyp, ityp, label, zv, nelec, tau, origin, nr, at, rho)
+        CALL read_cube(nat, ntyp, ityp, label, zv, tau, origin, nr, at, rho)
         !
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
         CALL environ%read_input(inputfile, SIZE(label))
         !
-        CALL environ%setup%init(use_pbc_corr)
+        CALL environ%setup%init()
         !
         IF (ANY(ABS(nr) == 1)) THEN
             CALL environ%setup%init_cell(io%comm, at)
@@ -97,7 +96,7 @@ CONTAINS
             CALL environ%setup%init_cell(io%comm, at, nr=nr)
         END IF
         !
-        CALL environ%setup%init_cores()
+        CALL environ%setup%init_numerical(use_internal_pbc_corr)
         !
         CALL environ%main%init(nat, ntyp, label, ityp, zv)
         !

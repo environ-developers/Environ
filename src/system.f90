@@ -102,6 +102,17 @@ CONTAINS
         IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%ntyp = 0
+        this%dim = 0
+        this%axis = 0
+        this%width = 0.D0
+        this%com = 0.D0
+        !
+        NULLIFY (this%ions)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_system
     !------------------------------------------------------------------------------------
     !>
@@ -229,6 +240,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%ions)) CALL io%destroy_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
         !
         NULLIFY (this%ions)
         !

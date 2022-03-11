@@ -1,0 +1,51 @@
+in vacuum
+
+     image        energy (eV)        error (eV/A)        frozen
+
+         1        -49.5016205            0.011780            T
+         2        -49.4686369            0.045290            F
+         3        -49.3702618            0.042315            F
+         4        -49.2973507            0.016834            F
+         5        -49.3702672            0.042319            F
+         6        -49.4686386            0.045290            F
+         7        -49.5016205            0.011742            T
+
+     climbing image =  4
+
+     path length          =  5.312 bohr
+     inter-image distance =  0.885 bohr
+
+under pressure
+
+     image        energy (eV)        error (eV/A)        frozen
+
+         1        -47.0222692            0.560379            T
+         2        -47.1776440            0.026139            F
+         3        -47.2893035            0.024293            F
+         4        -47.2883224            0.002446            F
+         5        -47.2893036            0.024292            F
+         6        -47.1776441            0.026139            F
+         7        -47.0222692            0.544496            T
+
+     climbing image =  7
+
+     path length          =  5.415 bohr
+     inter-image distance =  0.903 bohr
+
+in dielectric
+
+     image        energy (eV)        error (eV/A)        frozen
+
+         1        -49.5288751            0.032335            T
+         2        -49.4779130            0.075483            F
+         3        -49.3607553            0.077933            F
+         4        -49.3554220            0.089309            F
+         5        -49.3610030            0.082806            F
+         6        -49.4779184            0.077786            F
+         7        -49.5288747            0.032346            T
+
+     climbing image =  4
+
+     path length          =  5.286 bohr
+     inter-image distance =  0.881 bohr
+

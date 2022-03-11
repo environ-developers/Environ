@@ -129,6 +129,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%core_type = 'fft'
+        this%alpha = 0.D0
+        this%beta = 0.D0
+        !
+        NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_fft
@@ -205,15 +209,11 @@ CONTAINS
         !
         IF (.NOT. ASSOCIATED(this%cell)) RETURN
         !
+        IF (.NOT. ALLOCATED(this%correction)) CALL io%destroy_error(sub_name)
+        !
         !--------------------------------------------------------------------------------
         !
-        IF (this%use_internal_pbc_corr) THEN
-            !
-            IF (.NOT. ALLOCATED(this%correction)) CALL io%destroy_error(sub_name)
-            !
-            DEALLOCATE (this%correction)
-        END IF
-        !
+        DEALLOCATE (this%correction)
         NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------

@@ -38,6 +38,11 @@ MODULE environ_param
     IMPLICIT NONE
     !
     !------------------------------------------------------------------------------------
+    !
+    INTEGER, PARAMETER :: nccx = 10
+    ! maximum number of countercharge species in the electrolyte
+    !
+    !------------------------------------------------------------------------------------
     ! Mathematical constants
     !
     REAL(DP), PARAMETER :: pi = 3.14159265358979323846_DP

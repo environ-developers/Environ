@@ -156,6 +156,24 @@ CONTAINS
         IF (ALLOCATED(this%iontype)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%number = 0
+        this%com = 0.D0
+        this%ntyp = 0
+        this%use_smeared_ions = .FALSE.
+        this%use_core_electrons = .FALSE.
+        this%charge = 0.D0
+        this%dipole = 0.D0
+        this%quadrupole_pc = 0.D0
+        this%quadrupole_gauss = 0.D0
+        this%quadrupole_correction = 0.D0
+        this%selfenergy_correction = 0.D0
+        this%potential_shift = 0.D0
+        !
+        NULLIFY (this%tau)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_ions
     !------------------------------------------------------------------------------------
     !>
@@ -395,6 +413,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. ALLOCATED(this%ityp)) CALL io%destroy_error(sub_name)
+        !
+        IF (.NOT. ALLOCATED(this%iontype)) CALL io%destroy_error(sub_name)
+        !
+        IF (.NOT. ASSOCIATED(this%tau)) CALL io%destroy_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
         IF (this%use_smeared_ions) THEN
             !
             CALL this%density%destroy()
@@ -410,14 +436,6 @@ CONTAINS
             CALL this%core_electrons%destroy()
             !
         END IF
-        !
-        this%charge = 0.D0
-        !
-        IF (.NOT. ALLOCATED(this%ityp)) CALL io%destroy_error(sub_name)
-        !
-        IF (.NOT. ALLOCATED(this%iontype)) CALL io%destroy_error(sub_name)
-        !
-        IF (.NOT. ASSOCIATED(this%tau)) CALL io%destroy_error(sub_name)
         !
         DEALLOCATE (this%ityp)
         DEALLOCATE (this%iontype)

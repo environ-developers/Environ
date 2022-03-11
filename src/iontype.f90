@@ -63,6 +63,7 @@ MODULE class_iontype
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_iontype
         PROCEDURE :: init => init_environ_iontype
         PROCEDURE :: set_defaults => set_iontype_defaults
         !
@@ -161,6 +162,32 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_iontype(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_iontype), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_iontype'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%index = 0
+        this%atmnum = 0
+        this%label = ''
+        this%zv = 0.D0
+        this%weight = 0.D0
+        this%atomicspread = 0.D0
+        this%corespread = 0.D0
+        this%solvationrad = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_iontype
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_iontype(this, index, atom_label, zv, radius_mode, &
                                     atomicspread, corespread, solvationrad, &
                                     lsoftcavity, lsmearedions)
@@ -179,6 +206,8 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_iontype'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         CALL this%set_defaults(index, atom_label, radius_mode)
         !

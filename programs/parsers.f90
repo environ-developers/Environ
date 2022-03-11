@@ -53,14 +53,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_cube(nat, ntyp, ityp, atom_label, zv, nelec, tau, origin, nr, at, &
-                         rho)
+    SUBROUTINE read_cube(nat, ntyp, ityp, atom_label, zv, tau, origin, nr, at, rho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(OUT) :: nat, ntyp
-        REAL(DP), INTENT(OUT) :: nelec
         INTEGER, ALLOCATABLE, INTENT(OUT) :: ityp(:)
         CHARACTER(LEN=2), ALLOCATABLE, INTENT(OUT) :: atom_label(:)
         REAL(DP), INTENT(OUT) :: origin(3)
@@ -186,8 +184,6 @@ CONTAINS
         !
         tau = tau * fact
         !
-        nelec = SUM(charge)
-        !
         !--------------------------------------------------------------------------------
         ! Determine number of species and assign species index per atom
         !
@@ -230,17 +226,6 @@ CONTAINS
         ALLOCATE (atom_label(ntyp))
         !
         CALL get_atom_labels(species, atom_label)
-        !
-        ! PRINT *, ntyp
-        ! PRINT *
-        ! PRINT *, species
-        ! PRINT *
-        ! PRINT *, zv
-        ! PRINT *
-        ! PRINT *, atom_label
-        ! PRINT *
-        ! !
-        ! STOP
         !
         !--------------------------------------------------------------------------------
         ! Read density
