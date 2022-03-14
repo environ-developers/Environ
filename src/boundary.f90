@@ -111,6 +111,7 @@ MODULE class_boundary
         INTEGER, ALLOCATABLE :: ir_nonzero(:,:)
         REAL(DP), ALLOCATABLE :: nonzero(:,:)
         REAL(DP), ALLOCATABLE :: grad_nonzero(:,:,:)
+        INTEGER :: grid_pts
         !
         TYPE(core_container), POINTER :: cores => NULL()
         !
@@ -324,7 +325,11 @@ CONTAINS
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
-        INTEGER :: i
+        INTEGER :: i, maxi
+        !
+        REAL(DP) :: max_rad
+        !
+        TYPE(environ_density) :: denlocal
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary'
         !
@@ -427,9 +432,40 @@ CONTAINS
             !
             CALL this%set_soft_spheres()
             !
-            ALLOCATE( this%ir_nonzero(this%ions%number,cell%nnr))
-            ALLOCATE (this%nonzero(this%ions%number,cell%nnr)) !#TODO get a better estimate on number of grid points to store
-            ALLOCATE (this%grad_nonzero(this%ions%number,cell%nnr,3)) !#TODO get a better estimate on number of grid points to store
+            max_rad = 0.D0
+            !
+            DO i = 1, this%ions%number
+                !
+                IF (max_rad < this%soft_spheres%array(i)%width) THEN
+                    !
+                    max_rad = this%soft_spheres%array(i)%width
+                    maxi = i
+                    !
+                END IF
+                !
+            END DO
+            !
+            CALL denlocal%init(cell)
+            !
+            CALL this%soft_spheres%array(maxi)%density(denlocal, .TRUE.)
+            !
+            this%grid_pts = 1
+            DO i = 1, cell%nnr
+                !
+                IF (denlocal%of_r(i) /= 1.D0) THEN
+                    !
+                    this%grid_pts = this%grid_pts + 1
+                    !
+                END IF
+                !
+            END DO
+            this%grid_pts = this%grid_pts*1.15
+            !
+            CALL denlocal%destroy()
+            !
+            ALLOCATE( this%ir_nonzero(this%ions%number,this%grid_pts))
+            ALLOCATE (this%nonzero(this%ions%number,this%grid_pts))
+            ALLOCATE (this%grad_nonzero(this%ions%number,this%grid_pts,3))
             !
             this%ir_nonzero = -1
             this%nonzero = 0.D0
