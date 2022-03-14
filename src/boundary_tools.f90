@@ -64,7 +64,8 @@ MODULE boundary_tools
     PUBLIC :: sfunct0, dsfunct0, &
               sfunct1, dsfunct1, d2sfunct1, &
               sfunct2, dsfunct2, d2sfunct2, &
-              boundfunct, dboundfunct, d2boundfunct
+              boundfunct, dboundfunct, d2boundfunct, &
+              stored2loc
     !
     !------------------------------------------------------------------------------------
     !
@@ -175,35 +176,16 @@ CONTAINS
         CALL denlocal%init(partial%cell)
         !
         DO j = 1, 3
-            !partial%of_r(j, :) = gradloc(i)%of_r(j, :)
             !
-            idx = 1
-            partial%of_r(j, :) = 0.D0
-            !
-            DO ii = 1, partial%cell%nnr
-                !
-                IF (.NOT. ir_vals(i,idx) == ii) CYCLE
-                !
-                partial%of_r(j, ii) = grad_vals(i,idx,j)
-                idx = idx + 1
-                !
-            END DO
+            CALL stored2loc(ir_vals(i,:), partial%cell%nnr, 0.D0,  &
+            vals=grad_vals(i,:,j) , of_r=partial%of_r(j,:))
             !
             DO k = 1, n
                 !
                 IF (k == i) CYCLE
                 !
-                idx = 1
-                denlocal%of_r = 1.D0
-                !
-                DO ii = 1, partial%cell%nnr
-                    !
-                    IF (.NOT. ir_vals(k,idx) == ii) CYCLE
-                    !
-                    denlocal%of_r(ii) = vals(k,idx)
-                    idx = idx + 1
-                    !
-                END DO
+                CALL stored2loc(ir_vals(k,:), partial%cell%nnr, 1.D0, &
+                vals=vals(k,:), of_r=denlocal%of_r)
                 !
                 partial%of_r(j, :) = partial%of_r(j, :) * denlocal%of_r
             END DO
@@ -288,31 +270,13 @@ CONTAINS
         !
         DO i = 1, n
             !
-            idx = 1
-            gradloc1%of_r = 0.D0
-            !
-            DO ii = 1, cell%nnr
-                !
-                IF (.NOT. ir_vals(i,idx) == ii) CYCLE
-                !
-                gradloc1%of_r(:, ii) = grad_vals(i,idx,:)
-                idx = idx + 1
-                !
-            END DO
+            CALL stored2loc(ir_vals(i,:), cell%nnr, 0.D0, grad_vals=grad_vals(i,:,:), &
+            grad_of_r=gradloc1%of_r)
             !
             DO j = 1, n
                 !
-                idx = 1
-                gradloc2%of_r = 0.D0
-                !
-                DO ii = 1, cell%nnr
-                    !
-                    IF (.NOT. ir_vals(j,idx) == ii) CYCLE
-                    !
-                    gradloc2%of_r(:, ii) = grad_vals(j,idx,:)
-                    idx = idx + 1
-                    !
-                END DO
+                CALL stored2loc(ir_vals(j,:), cell%nnr, 0.D0, grad_vals=grad_vals(j,:,:), &
+                grad_of_r=gradloc2%of_r)
                 !
                 IF (j == i) THEN
                     tmp%of_r = laplloc(i)%of_r
@@ -324,17 +288,8 @@ CONTAINS
                     !
                     IF (k == j .OR. k == i) CYCLE
                     !
-                    idx = 1
-                    tmp2%of_r = 1.D0
-                    !
-                    DO ii = 1, cell%nnr
-                        !
-                        IF (.NOT. ir_vals(k,idx) == ii) CYCLE
-                        !
-                        tmp2%of_r(ii) = vals(k,idx)
-                        idx = idx + 1
-                        !
-                    END DO
+                    CALL stored2loc(ir_vals(k,:), cell%nnr, 1.D0, vals=vals(k,:), &
+                    of_r=tmp2%of_r)
                     !
                     tmp%of_r = tmp%of_r * tmp2%of_r
                 END DO
@@ -396,31 +351,13 @@ CONTAINS
             !
             grad%of_r = grad%of_r + partial%of_r
             !
-            idx = 1
-            grad1%of_r = 0.D0
-            !
-            DO ii = 1, cell%nnr
-                !
-                IF (.NOT. ir_vals(i,idx) == ii) CYCLE
-                !
-                grad1%of_r(:, ii) = grad_vals(i,idx,:)
-                idx = idx + 1
-                !
-            END DO
+            CALL stored2loc(ir_vals(i,:), cell%nnr, 0.D0, grad_vals=grad_vals(i,:,:), &
+            grad_of_r=grad1%of_r)
             !
             DO j = 1, n
                 !
-                idx = 1
-                grad2%of_r = 0.D0
-                !
-                DO ii = 1, cell%nnr
-                    !
-                    IF (.NOT. ir_vals(j,idx) == ii) CYCLE
-                    !
-                    grad2%of_r(:, ii) = grad_vals(j,idx,:)
-                    idx = idx + 1
-                    !
-                END DO
+                CALL stored2loc(ir_vals(j,:), cell%nnr, 0.D0, grad_vals=grad_vals(j,:,:), &
+                grad_of_r=grad2%of_r)
                 !
                 DO k = 1, 3
                     !
@@ -436,17 +373,8 @@ CONTAINS
                             !
                             IF (m == j .OR. m == i) CYCLE
                             !
-                            idx = 1
-                            denlocal%of_r = 1.D0
-                            !
-                            DO ii = 1, cell%nnr
-                                !
-                                IF (.NOT. ir_vals(m,idx) == ii) CYCLE
-                                !
-                                denlocal%of_r(ii) = vals(m,idx)
-                                idx = idx + 1
-                                !
-                            END DO
+                            CALL stored2loc(ir_vals(m,:), cell%nnr, 1.D0, vals=vals(m,:), &
+                            of_r=denlocal%of_r)
                             !
                             dens%of_r = dens%of_r * denlocal%of_r
                         END DO
@@ -1044,6 +972,63 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION d2boundfunct
+    !------------------------------------------------------------------------------------
+    !>
+    !! @brief Creates a temporary of_r grid from the stored values
+    !! 
+    !------------------------------------------------------------------------------------
+    SUBROUTINE stored2loc(ir_vals, nnr, initial, vals, grad_vals, of_r, grad_of_r)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: ir_vals(:), nnr
+        REAL(DP), INTENT(IN) :: initial
+        REAL(DP), INTENT(IN), OPTIONAL :: vals(:), grad_vals(:,:)
+        REAL(DP), INTENT(INOUT), OPTIONAL :: of_r(:), grad_of_r(:,:)
+        !
+        INTEGER :: i, idx
+        !
+        CHARACTER(LEN=80) :: sub_name = 'stored2loc'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        idx = 1
+        !
+        IF (PRESENT(of_r)) THEN
+            of_r = initial
+            !
+            IF (.NOT. PRESENT(vals)) &
+                    CALL io%error(sub_name, 'Gave of_r but no stored values.', 1)
+        ELSE IF (PRESENT(grad_of_r)) THEN
+            grad_of_r = initial
+            !
+            IF (.NOT. PRESENT(grad_vals)) &
+                CALL io%error(sub_name, 'Gave of_r for gradient but no stored values', 1)
+        ELSE
+            CALL io%error(sub_name, 'Missing of_r array.', 1)
+        END IF
+        !
+        DO i = 1, nnr
+            !
+            IF (.NOT. ir_vals(idx) == i) CYCLE
+            !
+            IF (PRESENT(of_r)) THEN
+                !
+                of_r(i) = vals(idx)
+                !
+            ELSE IF (PRESENT(grad_of_r)) THEN
+                !
+                grad_of_r(:,i) = grad_vals(idx,:)
+                !
+            END IF
+            !
+            idx = idx + 1
+            !
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE stored2loc
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
