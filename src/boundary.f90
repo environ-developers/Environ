@@ -108,9 +108,9 @@ MODULE class_boundary
         TYPE(environ_hessian) :: hessian
         TYPE(environ_density) :: dsurface
         !
-        TYPE(environ_gradient), ALLOCATABLE :: gradloc(:)
         INTEGER, ALLOCATABLE :: ir_nonzero(:,:)
         REAL(DP), ALLOCATABLE :: nonzero(:,:)
+        REAL(DP), ALLOCATABLE :: grad_nonzero(:,:,:)
         !
         TYPE(core_container), POINTER :: cores => NULL()
         !
@@ -427,16 +427,13 @@ CONTAINS
             !
             CALL this%set_soft_spheres()
             !
-            ALLOCATE (this%gradloc(this%ions%number))
             ALLOCATE( this%ir_nonzero(this%ions%number,cell%nnr))
             ALLOCATE (this%nonzero(this%ions%number,cell%nnr)) !#TODO get a better estimate on number of grid points to store
-            !
-            DO i=1,this%ions%number
-                CALL this%gradloc(i)%init(cell)
-            END DO
+            ALLOCATE (this%grad_nonzero(this%ions%number,cell%nnr,3)) !#TODO get a better estimate on number of grid points to store
             !
             this%ir_nonzero = -1
             this%nonzero = 0.D0
+            this%grad_nonzero = 0.D0
             !
         END IF
         !
@@ -840,19 +837,9 @@ CONTAINS
             !
             IF (this%mode == 'ionic') THEN
                 !
-                IF (ALLOCATED(this%gradloc)) THEN
-                    !
-                    DO i=1,this%soft_spheres%number
-                        !
-                        CALL this%gradloc(i)%destroy()
-                        !
-                    END DO
-                    !
-                    DEALLOCATE(this%gradloc)
-                    DEALLOCATE(this%nonzero)
-                    DEALLOCATE(this%ir_nonzero)
-                    !
-                END IF
+                DEALLOCATE(this%grad_nonzero)
+                DEALLOCATE(this%nonzero)
+                DEALLOCATE(this%ir_nonzero)
                 !
                 CALL this%soft_spheres%destroy()
                 !
@@ -1083,7 +1070,19 @@ CONTAINS
             IF (this%derivatives_method == 'fft') THEN
                 CALL this%soft_spheres%array(index)%gradient(partial, .TRUE.)
             ELSE
-                partial%of_r = this%gradloc(index)%of_r
+                !
+                idx = 1
+                partial%of_r = 0.D0
+                !
+                DO j=1, partial%cell%nnr
+                    !
+                    IF (.NOT. this%ir_nonzero(index,idx) == j) CYCLE
+                    !
+                    partial%of_r(:,j) = this%grad_nonzero(index,idx,:)
+                    idx = idx + 1
+                    !
+                END DO
+                !
             END IF
             !
             CALL denlocal%init(partial%cell)
@@ -1378,6 +1377,7 @@ CONTAINS
         INTEGER :: i, j, count
         !
         TYPE(environ_density) :: denlocal
+        TYPE(environ_gradient) :: gradlocal
         TYPE(environ_density), ALLOCATABLE :: laplloc(:)
         TYPE(environ_hessian), ALLOCATABLE :: hessloc(:)
         TYPE(environ_hessian), POINTER :: hess
@@ -1423,6 +1423,8 @@ CONTAINS
                 scal%of_r = scal%of_r * denlocal%of_r
             END DO
             !
+            CALL denlocal%destroy()
+            !
             !----------------------------------------------------------------------------
             ! Generate boundary derivatives, if needed
             !
@@ -1452,6 +1454,8 @@ CONTAINS
                 !
             CASE ('highmem')
                 !
+                IF (deriv >= 1) CALL gradlocal%init(cell)
+                !
                 IF (deriv == 2) ALLOCATE (laplloc(nss))
                 !
                 IF (deriv == 3) ALLOCATE (hessloc(nss))
@@ -1465,7 +1469,21 @@ CONTAINS
                     !
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
-                    IF (deriv >= 1) CALL soft_spheres(i)%gradient(this%gradloc(i), .TRUE.)
+                    IF (deriv >= 1) THEN
+                        !
+                        CALL soft_spheres(i)%gradient(gradlocal, .TRUE.)
+                        !
+                        count = 1
+                        DO j=1,cell%nnr
+                            !
+                            IF (.NOT. this%ir_nonzero(i,count) == j) CYCLE
+                            !
+                            this%grad_nonzero(i,count,:) = gradlocal%of_r(:,j)
+                            count = count + 1
+                            !
+                        END DO
+                        !
+                    END IF
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE.)
                     !
@@ -1474,14 +1492,16 @@ CONTAINS
                 END DO
                 !
                 IF (deriv == 1 .OR. deriv == 2) &
-                    CALL gradient_of_boundary(nss, this%gradloc, grad, this%ir_nonzero, this%nonzero)
+                    CALL gradient_of_boundary(nss, grad, this%ir_nonzero, &
+                                              this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 2) &
-                    CALL laplacian_of_boundary(nss, this%gradloc, laplloc, lapl, this%ir_nonzero, this%nonzero)
+                    CALL laplacian_of_boundary(nss, laplloc, lapl, this%ir_nonzero, &
+                                              this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 3) &
-                    CALL dsurface_of_boundary(nss, this%gradloc, hessloc, grad, &
-                                              lapl, hess, dsurf, this%ir_nonzero, this%nonzero)
+                    CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, dsurf, &
+                                              this%ir_nonzero, this%nonzero, this%grad_nonzero)
                 !
                 DO i = 1, nss
                     !
@@ -1491,11 +1511,15 @@ CONTAINS
                     !
                 END DO
                 !
+                IF (deriv >= 1) CALL gradlocal%destroy()
+                !
                 IF (deriv == 2) DEALLOCATE (laplloc)
                 !
                 IF (deriv == 3) DEALLOCATE (hessloc)
                 !
             CASE ('lowmem')
+                !
+                IF (deriv >= 1) CALL gradlocal%init(cell)
                 !
                 IF (deriv == 2) ALLOCATE (laplloc(nss))
                 !
@@ -1510,7 +1534,21 @@ CONTAINS
                     !
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
-                    IF (deriv >= 1) CALL soft_spheres(i)%gradient(this%gradloc(i), .TRUE.)
+                    IF (deriv >= 1) THEN
+                        !
+                        CALL soft_spheres(i)%gradient(gradlocal, .TRUE.)
+                        !
+                        count = 1
+                        DO j=1,cell%nnr
+                            !
+                            IF (.NOT. this%ir_nonzero(i,count) == j) CYCLE
+                            !
+                            this%grad_nonzero(i,count,:) = gradlocal%of_r(:,j)
+                            count = count + 1
+                            !
+                        END DO
+                        !
+                    END IF
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE.)
                     !
@@ -1519,15 +1557,16 @@ CONTAINS
                 END DO
                 !
                 IF (deriv >= 1) &
-                    CALL gradient_of_boundary(nss, this%gradloc, scal, grad, this%ir_nonzero, this%nonzero)
+                    CALL gradient_of_boundary(nss, scal, grad, this%ir_nonzero, &
+                                               this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 2) &
-                    CALL laplacian_of_boundary(nss, this%gradloc, laplloc, scal, &
-                                               grad, lapl, this%ir_nonzero, this%nonzero)
+                    CALL laplacian_of_boundary(nss, laplloc, scal, grad, lapl, &
+                                               this%ir_nonzero, this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 3) &
-                    CALL dsurface_of_boundary(nss, this%gradloc, hessloc, grad, &
-                                              lapl, hess, scal, dsurf, this%ir_nonzero, this%nonzero)
+                    CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, scal, dsurf, &
+                                              this%ir_nonzero, this%nonzero, this%grad_nonzero)
                 !
                 DO i = 1, nss
                     !
@@ -1536,6 +1575,8 @@ CONTAINS
                     IF (deriv == 3) CALL hessloc(i)%destroy()
                     !
                 END DO
+                !
+                IF (deriv >= 1) CALL gradlocal%destroy()
                 !
                 IF (deriv == 2) DEALLOCATE (laplloc)
                 !
