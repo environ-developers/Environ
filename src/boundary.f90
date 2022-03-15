@@ -108,9 +108,9 @@ MODULE class_boundary
         TYPE(environ_hessian) :: hessian
         TYPE(environ_density) :: dsurface
         !
-        INTEGER, ALLOCATABLE :: ir_nonzero(:,:)
-        REAL(DP), ALLOCATABLE :: nonzero(:,:)
-        REAL(DP), ALLOCATABLE :: grad_nonzero(:,:,:)
+        INTEGER, ALLOCATABLE :: ir_nonzero(:, :)
+        REAL(DP), ALLOCATABLE :: nonzero(:, :)
+        REAL(DP), ALLOCATABLE :: grad_nonzero(:, :, :)
         INTEGER :: grid_pts
         !
         TYPE(core_container), POINTER :: cores => NULL()
@@ -459,13 +459,13 @@ CONTAINS
                 END IF
                 !
             END DO
-            this%grid_pts = this%grid_pts*1.15
+            this%grid_pts = this%grid_pts * 1.15
             !
             CALL denlocal%destroy()
             !
-            ALLOCATE( this%ir_nonzero(this%ions%number,this%grid_pts))
-            ALLOCATE (this%nonzero(this%ions%number,this%grid_pts))
-            ALLOCATE (this%grad_nonzero(this%ions%number,this%grid_pts,3))
+            ALLOCATE (this%ir_nonzero(this%ions%number, this%grid_pts))
+            ALLOCATE (this%nonzero(this%ions%number, this%grid_pts))
+            ALLOCATE (this%grad_nonzero(this%ions%number, this%grid_pts, 3))
             !
             this%ir_nonzero = -1
             this%nonzero = 0.D0
@@ -873,9 +873,9 @@ CONTAINS
             !
             IF (this%mode == 'ionic') THEN
                 !
-                DEALLOCATE(this%grad_nonzero)
-                DEALLOCATE(this%nonzero)
-                DEALLOCATE(this%ir_nonzero)
+                DEALLOCATE (this%grad_nonzero)
+                DEALLOCATE (this%nonzero)
+                DEALLOCATE (this%ir_nonzero)
                 !
                 CALL this%soft_spheres%destroy()
                 !
@@ -1110,11 +1110,11 @@ CONTAINS
                 idx = 1
                 partial%of_r = 0.D0
                 !
-                DO j=1, partial%cell%nnr
+                DO j = 1, partial%cell%nnr
                     !
-                    IF (.NOT. this%ir_nonzero(index,idx) == j) CYCLE
+                    IF (.NOT. this%ir_nonzero(index, idx) == j) CYCLE
                     !
-                    partial%of_r(:,j) = this%grad_nonzero(index,idx,:)
+                    partial%of_r(:, j) = this%grad_nonzero(index, idx, :)
                     idx = idx + 1
                     !
                 END DO
@@ -1130,11 +1130,11 @@ CONTAINS
                 idx = 1
                 denlocal%of_r = 1.D0
                 !
-                DO j=1, partial%cell%nnr
+                DO j = 1, partial%cell%nnr
                     !
-                    IF (.NOT. this%ir_nonzero(i,idx) == j) CYCLE
+                    IF (.NOT. this%ir_nonzero(i, idx) == j) CYCLE
                     !
-                    denlocal%of_r(j) = this%nonzero(i,idx)
+                    denlocal%of_r(j) = this%nonzero(i, idx)
                     idx = idx + 1
                     !
                 END DO
@@ -1444,12 +1444,12 @@ CONTAINS
                 CALL soft_spheres(i)%density(denlocal, .TRUE.)
                 !
                 count = 1
-                DO j=1,cell%nnr
+                DO j = 1, cell%nnr
                     !
                     IF (denlocal%of_r(j) /= 1.D0) THEN
                         !
-                        this%ir_nonzero(i,count) = j
-                        this%nonzero(i,count) = denlocal%of_r(j)
+                        this%ir_nonzero(i, count) = j
+                        this%nonzero(i, count) = denlocal%of_r(j)
                         count = count + 1
                         !
                     END IF
@@ -1510,11 +1510,11 @@ CONTAINS
                         CALL soft_spheres(i)%gradient(gradlocal, .TRUE.)
                         !
                         count = 1
-                        DO j=1,cell%nnr
+                        DO j = 1, cell%nnr
                             !
-                            IF (.NOT. this%ir_nonzero(i,count) == j) CYCLE
+                            IF (.NOT. this%ir_nonzero(i, count) == j) CYCLE
                             !
-                            this%grad_nonzero(i,count,:) = gradlocal%of_r(:,j)
+                            this%grad_nonzero(i, count, :) = gradlocal%of_r(:, j)
                             count = count + 1
                             !
                         END DO
@@ -1533,7 +1533,7 @@ CONTAINS
                 !
                 IF (deriv == 2) &
                     CALL laplacian_of_boundary(nss, laplloc, lapl, this%ir_nonzero, &
-                                              this%nonzero, this%grad_nonzero)
+                                               this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 3) &
                     CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, dsurf, &
@@ -1575,11 +1575,11 @@ CONTAINS
                         CALL soft_spheres(i)%gradient(gradlocal, .TRUE.)
                         !
                         count = 1
-                        DO j=1,cell%nnr
+                        DO j = 1, cell%nnr
                             !
-                            IF (.NOT. this%ir_nonzero(i,count) == j) CYCLE
+                            IF (.NOT. this%ir_nonzero(i, count) == j) CYCLE
                             !
-                            this%grad_nonzero(i,count,:) = gradlocal%of_r(:,j)
+                            this%grad_nonzero(i, count, :) = gradlocal%of_r(:, j)
                             count = count + 1
                             !
                         END DO
@@ -1594,7 +1594,7 @@ CONTAINS
                 !
                 IF (deriv >= 1) &
                     CALL gradient_of_boundary(nss, scal, grad, this%ir_nonzero, &
-                                               this%nonzero, this%grad_nonzero)
+                                              this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 2) &
                     CALL laplacian_of_boundary(nss, laplloc, scal, grad, lapl, &

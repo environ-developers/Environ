@@ -157,8 +157,8 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n, i
-        INTEGER, INTENT(IN) :: ir_vals(:,:)
-        REAL(DP), INTENT(IN) :: vals(:,:), grad_vals(:,:,:)
+        INTEGER, INTENT(IN) :: ir_vals(:, :)
+        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: partial
         !
@@ -177,15 +177,15 @@ CONTAINS
         !
         DO j = 1, 3
             !
-            CALL stored2loc(ir_vals(i,:), partial%cell%nnr, 0.D0,  &
-            vals=grad_vals(i,:,j) , of_r=partial%of_r(j,:))
+            CALL stored2loc(ir_vals(i, :), partial%cell%nnr, 0.D0, &
+                            vals=grad_vals(i, :, j), of_r=partial%of_r(j, :))
             !
             DO k = 1, n
                 !
                 IF (k == i) CYCLE
                 !
-                CALL stored2loc(ir_vals(k,:), partial%cell%nnr, 1.D0, &
-                vals=vals(k,:), of_r=denlocal%of_r)
+                CALL stored2loc(ir_vals(k, :), partial%cell%nnr, 1.D0, &
+                                vals=vals(k, :), of_r=denlocal%of_r)
                 !
                 partial%of_r(j, :) = partial%of_r(j, :) * denlocal%of_r
             END DO
@@ -206,8 +206,8 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
-        INTEGER, INTENT(IN) :: ir_vals(:,:)
-        REAL(DP), INTENT(IN) :: vals(:,:), grad_vals(:,:,:)
+        INTEGER, INTENT(IN) :: ir_vals(:, :)
+        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         !
@@ -246,8 +246,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         TYPE(environ_density), INTENT(IN) :: laplloc(n)
-        INTEGER, INTENT(IN) :: ir_vals(:,:)
-        REAL(DP), INTENT(IN) :: vals(:,:), grad_vals(:,:,:)
+        INTEGER, INTENT(IN) :: ir_vals(:, :)
+        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_density), INTENT(INOUT) :: lapl
         !
@@ -270,13 +270,13 @@ CONTAINS
         !
         DO i = 1, n
             !
-            CALL stored2loc(ir_vals(i,:), cell%nnr, 0.D0, grad_vals=grad_vals(i,:,:), &
-            grad_of_r=gradloc1%of_r)
+            CALL stored2loc(ir_vals(i, :), cell%nnr, 0.D0, grad_vals=grad_vals(i, :, :), &
+                            grad_of_r=gradloc1%of_r)
             !
             DO j = 1, n
                 !
-                CALL stored2loc(ir_vals(j,:), cell%nnr, 0.D0, grad_vals=grad_vals(j,:,:), &
-                grad_of_r=gradloc2%of_r)
+                CALL stored2loc(ir_vals(j, :), cell%nnr, 0.D0, grad_vals=grad_vals(j, :, :), &
+                                grad_of_r=gradloc2%of_r)
                 !
                 IF (j == i) THEN
                     tmp%of_r = laplloc(i)%of_r
@@ -288,8 +288,8 @@ CONTAINS
                     !
                     IF (k == j .OR. k == i) CYCLE
                     !
-                    CALL stored2loc(ir_vals(k,:), cell%nnr, 1.D0, vals=vals(k,:), &
-                    of_r=tmp2%of_r)
+                    CALL stored2loc(ir_vals(k, :), cell%nnr, 1.D0, vals=vals(k, :), &
+                                    of_r=tmp2%of_r)
                     !
                     tmp%of_r = tmp%of_r * tmp2%of_r
                 END DO
@@ -316,8 +316,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         TYPE(environ_hessian), INTENT(IN) :: hessloc(n)
-        INTEGER, INTENT(IN) :: ir_vals(:,:)
-        REAL(DP), INTENT(IN) :: vals(:,:), grad_vals(:,:,:)
+        INTEGER, INTENT(IN) :: ir_vals(:, :)
+        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         TYPE(environ_density), INTENT(INOUT) :: lapl, dsurf
@@ -351,13 +351,13 @@ CONTAINS
             !
             grad%of_r = grad%of_r + partial%of_r
             !
-            CALL stored2loc(ir_vals(i,:), cell%nnr, 0.D0, grad_vals=grad_vals(i,:,:), &
-            grad_of_r=grad1%of_r)
+            CALL stored2loc(ir_vals(i, :), cell%nnr, 0.D0, grad_vals=grad_vals(i, :, :), &
+                            grad_of_r=grad1%of_r)
             !
             DO j = 1, n
                 !
-                CALL stored2loc(ir_vals(j,:), cell%nnr, 0.D0, grad_vals=grad_vals(j,:,:), &
-                grad_of_r=grad2%of_r)
+                CALL stored2loc(ir_vals(j, :), cell%nnr, 0.D0, grad_vals=grad_vals(j, :, :), &
+                                grad_of_r=grad2%of_r)
                 !
                 DO k = 1, 3
                     !
@@ -373,8 +373,8 @@ CONTAINS
                             !
                             IF (m == j .OR. m == i) CYCLE
                             !
-                            CALL stored2loc(ir_vals(m,:), cell%nnr, 1.D0, vals=vals(m,:), &
-                            of_r=denlocal%of_r)
+                            CALL stored2loc(ir_vals(m, :), cell%nnr, 1.D0, vals=vals(m, :), &
+                                            of_r=denlocal%of_r)
                             !
                             dens%of_r = dens%of_r * denlocal%of_r
                         END DO
@@ -419,8 +419,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         TYPE(environ_density), INTENT(IN) :: scal ! soft sphere interface function
-        INTEGER, INTENT(IN) :: ir_vals(:,:)
-        REAL(DP), INTENT(IN) :: vals(:,:), grad_vals(:,:,:)
+        INTEGER, INTENT(IN) :: ir_vals(:, :)
+        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         !
@@ -443,9 +443,9 @@ CONTAINS
             !
             DO j = 1, cell%nnr
                 !
-                IF (.NOT. ir_vals(i,idx) == j) CYCLE
-                bound_val = vals(i,idx)
-                g = grad_vals(i,idx,:)
+                IF (.NOT. ir_vals(i, idx) == j) CYCLE
+                bound_val = vals(i, idx)
+                g = grad_vals(i, idx, :)
                 idx = idx + 1
                 !
                 DO k = 1, 3
@@ -476,8 +476,8 @@ CONTAINS
         TYPE(environ_density), INTENT(IN) :: scal ! soft sphere interface function
         TYPE(environ_density), INTENT(IN) :: laploc(n)
         TYPE(environ_gradient), INTENT(IN) :: grad
-        INTEGER, INTENT(IN) :: ir_vals(:,:)
-        REAL(DP), INTENT(IN) :: vals(:,:), grad_vals(:,:,:)
+        INTEGER, INTENT(IN) :: ir_vals(:, :)
+        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_density), INTENT(INOUT) :: lapl
         !
@@ -495,9 +495,9 @@ CONTAINS
             !
             DO j = 1, cell%nnr
                 !
-                IF (.NOT. ir_vals(i,idx) == j) CYCLE
-                bound_val = vals(i,idx)
-                g = grad_vals(i,idx,:)
+                IF (.NOT. ir_vals(i, idx) == j) CYCLE
+                bound_val = vals(i, idx)
+                g = grad_vals(i, idx, :)
                 idx = idx + 1
                 !
                 lapl%of_r(j) = lapl%of_r(j) + &
@@ -535,8 +535,8 @@ CONTAINS
         TYPE(environ_density), INTENT(IN) :: scal
         TYPE(environ_hessian), INTENT(IN) :: hessloc(n)
         TYPE(environ_gradient), INTENT(IN) :: grad
-        INTEGER, INTENT(IN) :: ir_vals(:,:)
-        REAL(DP), INTENT(IN) :: vals(:,:), grad_vals(:,:,:)
+        INTEGER, INTENT(IN) :: ir_vals(:, :)
+        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_density), INTENT(INOUT) :: lapl
         TYPE(environ_density), INTENT(INOUT) :: dsurf
@@ -556,9 +556,9 @@ CONTAINS
             !
             DO j = 1, cell%nnr
                 !
-                IF (.NOT. ir_vals(i,idx) == j) CYCLE
-                bound_val = vals(i,idx)
-                g = grad_vals(i,idx,:)
+                IF (.NOT. ir_vals(i, idx) == j) CYCLE
+                bound_val = vals(i, idx)
+                g = grad_vals(i, idx, :)
                 idx = idx + 1
                 !
                 DO k = 1, 3
@@ -572,7 +572,7 @@ CONTAINS
                         hess%of_r(k, l, j) = &
                             hess%of_r(k, l, j) - &
                             ((g(k) * g(l) / &
-                            bound_val**2) * scal%of_r(j))
+                              bound_val**2) * scal%of_r(j))
                         !
                         hess%of_r(k, l, j) = &
                             hess%of_r(k, l, j) + &
@@ -975,7 +975,7 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !! @brief Creates a temporary of_r grid from the stored values
-    !! 
+    !!
     !------------------------------------------------------------------------------------
     SUBROUTINE stored2loc(ir_vals, nnr, initial, vals, grad_vals, of_r, grad_of_r)
         !--------------------------------------------------------------------------------
@@ -984,8 +984,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: ir_vals(:), nnr
         REAL(DP), INTENT(IN) :: initial
-        REAL(DP), INTENT(IN), OPTIONAL :: vals(:), grad_vals(:,:)
-        REAL(DP), INTENT(INOUT), OPTIONAL :: of_r(:), grad_of_r(:,:)
+        REAL(DP), INTENT(IN), OPTIONAL :: vals(:), grad_vals(:, :)
+        REAL(DP), INTENT(INOUT), OPTIONAL :: of_r(:), grad_of_r(:, :)
         !
         INTEGER :: i, idx
         !
@@ -999,7 +999,7 @@ CONTAINS
             of_r = initial
             !
             IF (.NOT. PRESENT(vals)) &
-                    CALL io%error(sub_name, 'Gave of_r but no stored values.', 1)
+                CALL io%error(sub_name, 'Gave of_r but no stored values.', 1)
         ELSE IF (PRESENT(grad_of_r)) THEN
             grad_of_r = initial
             !
@@ -1019,7 +1019,7 @@ CONTAINS
                 !
             ELSE IF (PRESENT(grad_of_r)) THEN
                 !
-                grad_of_r(:,i) = grad_vals(idx,:)
+                grad_of_r(:, i) = grad_vals(idx, :)
                 !
             END IF
             !

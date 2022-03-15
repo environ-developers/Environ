@@ -156,8 +156,8 @@ CONTAINS
         IF (io%lnode) THEN
             !
             CALL get_time(time1, time2, tlabel)
-            WRITE(io%unit,"(A,F17.8,1X,A7)") 'Total time: ', time2, tlabel
-            FLUSH(io%unit)
+            WRITE (io%unit, "(A,F17.8,1X,A7)") 'Total time: ', time2, tlabel
+            FLUSH (io%unit)
             !
         END IF
         !
@@ -173,7 +173,7 @@ CONTAINS
             !
             IMPLICIT NONE
             !
-            REAL(DP) :: at(3,3), new_at(3,3), origin(3)
+            REAL(DP) :: at(3, 3), new_at(3, 3), origin(3)
             INTEGER :: nr(3), ntyp, nat
             REAL(DP), ALLOCATABLE :: zv(:)
             CHARACTER(LEN=2), ALLOCATABLE :: label(:)
@@ -193,18 +193,20 @@ CONTAINS
                 !
                 IF (io%lnode) THEN
                     !
-                    WRITE(io%unit,"(5X,A)") 'Resizing cell for calculation of descriptors'
-                    FLUSH(io%unit)
+                    WRITE (io%unit, "(5X,A)") 'Resizing cell for calculation of descriptors'
+                    FLUSH (io%unit)
                     !
                 END IF
                 !
             END IF
             !
-            CALL environ%read_input(inputfile,nsx=SIZE(label))
+            CALL environ%read_input(inputfile, nsx=SIZE(label))
             !
             CALL environ%setup%init()
             !
             CALL environ%setup%init_cell(io%comm, new_at)
+            IF (io%lnode) PRINT *, 'Total number of grid points', environ%setup%environment_cell%nnr
+            FLUSH (io%unit)
             !
             CALL environ%setup%init_numerical(use_internal_pbc_corr)
             !
@@ -214,30 +216,31 @@ CONTAINS
             !
             IF (io%lnode) THEN
                 !
-                WRITE(io%unit,"(5X,A)") 'Summary of system information'
+                WRITE (io%unit, "(5X,A)") 'Summary of system information'
                 !
-                WRITE(io%unit,"(10X,A)") 'Values will be printed using ENVIRON internal units, e.g. length is in Bohr'
-                WRITE(io%unit,"(10X,A,3F17.8)") 'Cell parameters: ', new_at(1,1), new_at(2,2), new_at(3,3)
-                WRITE(io%unit,"(10X,A,I4)") 'Number of atoms: ', nat
-                WRITE(io%unit,"(10X,A,I4)") 'Number of atomic types: ', ntyp
-                FLUSH(io%unit)
+                WRITE (io%unit, "(10X,A)") 'Values will be printed using ENVIRON internal units, e.g. length is in Bohr'
+                WRITE (io%unit, "(10X,A,3F17.8)") 'Cell parameters: ', new_at(1, 1), new_at(2, 2), new_at(3, 3)
+                WRITE (io%unit, "(10X,A,I4)") 'Number of atoms: ', nat
+                WRITE (io%unit, "(10X,A,I4)") 'Number of atomic types: ', ntyp
+                WRITE (io%unit, "(10X,A,I10)") 'Number of grid points: ', environ%main%solvent%grid_pts
+                FLUSH (io%unit)
                 !
             END IF
             !
-            IF (alpha_max+alpha_min+alpha_step /= -3.D0) THEN
+            IF (alpha_max + alpha_min + alpha_step /= -3.D0) THEN
                 !
                 IF (alpha_max == -1.D0) CALL io%error('get_desc', 'Missing maximum alpha value', 1)
                 !
                 IF (alpha_step == -1.D0) THEN
                     !
-                    IF (io%lnode) WRITE(io%unit,"(5X,A)") 'No alpha step value given. Using 1.0 as step value.'
+                    IF (io%lnode) WRITE (io%unit, "(5X,A)") 'No alpha step value given. Using 1.0 as step value.'
                     alpha_step = 1.D0
                     !
                 END IF
                 !
                 IF (alpha_min == -1.D0) THEN
                     !
-                    IF (io%lnode) WRITE(io%unit,"(5X,A)") 'No minimum alpha value given. Using step value as minimum.'
+                    IF (io%lnode) WRITE (io%unit, "(5X,A)") 'No minimum alpha value given. Using step value as minimum.'
                     alpha_min = alpha_step
                     !
                 END IF
@@ -249,15 +252,15 @@ CONTAINS
         !>
         !!
         !------------------------------------------------------------------------------------
-        SUBROUTINE get_new_cell( at, tau, nat, new_at )
+        SUBROUTINE get_new_cell(at, tau, nat, new_at)
             !--------------------------------------------------------------------------------
             !
             IMPLICIT NONE
             !
-            REAL(DP), INTENT(IN) :: at(3,3)
-            REAL(DP), INTENT(INOUT) :: tau(:,:)
+            REAL(DP), INTENT(IN) :: at(3, 3)
+            REAL(DP), INTENT(INOUT) :: tau(:, :)
             INTEGER, INTENT(IN) :: nat
-            REAL(DP), INTENT(OUT) :: new_at(3,3)
+            REAL(DP), INTENT(OUT) :: new_at(3, 3)
             !
             REAL(DP), PARAMETER :: fluff = 7.D0
             REAL(DP) :: min_vec(3), max_vec(3), shift(3)
@@ -268,16 +271,16 @@ CONTAINS
             !
             new_at = 0.D0
             !
-            min_vec = MINVAL( tau, DIM=2 ) - fluff
-            max_vec = MAXVAL( tau, DIM=2 ) + fluff
+            min_vec = MINVAL(tau, DIM=2) - fluff
+            max_vec = MAXVAL(tau, DIM=2) + fluff
             shift = max_vec - min_vec
             !
-            DO i=1,nat
-                tau(:,i) = tau(:,i) - min_vec
+            DO i = 1, nat
+                tau(:, i) = tau(:, i) - min_vec
             END DO
             !
-            DO i=1,3
-                new_at(i,i) = shift(i)
+            DO i = 1, 3
+                new_at(i, i) = shift(i)
             END DO
             !
         END SUBROUTINE get_new_cell
@@ -293,7 +296,7 @@ CONTAINS
             REAL(DP) :: volu, surf
             !
             REAL(DP) :: r(3), r2, dist
-            REAL(DP), ALLOCATABLE :: alpha(:), pvolu(:,:), psurf(:,:)
+            REAL(DP), ALLOCATABLE :: alpha(:), pvolu(:, :), psurf(:, :)
             INTEGER :: a_num, num, nnr, i, j, ir
             LOGICAL :: physical
             !
@@ -305,12 +308,12 @@ CONTAINS
             !
             IF (io%lnode) THEN
                 !
-                WRITE(io%unit,"(/,5X,A,F17.8)") 'Total Volume of the QM region: ', volu
-                WRITE(io%unit,"(5X,A,F17.8,/)") 'Total Surface of the QM region: ', surf
+                WRITE (io%unit, "(/,5X,A,F17.8)") 'Total Volume of the QM region: ', volu
+                WRITE (io%unit, "(5X,A,F17.8,/)") 'Total Surface of the QM region: ', surf
                 !
             END IF
             !
-            IF (alpha_max+alpha_min+alpha_step == -3.D0) RETURN
+            IF (alpha_max + alpha_min + alpha_step == -3.D0) RETURN
             !
             num = environ%main%solvent%soft_spheres%number
             nnr = environ%setup%environment_cell%nnr
@@ -318,45 +321,45 @@ CONTAINS
             !--------------------------------------------------------------------------------
             ! Beginning of local surface and volume calculations
             !
-            a_num = NINT(alpha_max/alpha_step)
-            ALLOCATE(alpha(a_num))
-            ALLOCATE(pvolu(num,a_num))
-            ALLOCATE(psurf(num,a_num))
+            a_num = NINT(alpha_max / alpha_step)
+            ALLOCATE (alpha(a_num))
+            ALLOCATE (pvolu(num, a_num))
+            ALLOCATE (psurf(num, a_num))
             !
             pvolu = 0.D0
             psurf = 0.D0
             !
-            DO i=1,a_num
-                alpha(i) = alpha_step*i
+            DO i = 1, a_num
+                alpha(i) = alpha_step * i
             END DO
             !
-            ASSOCIATE(solvent => environ%main%solvent, &
-                ss => environ%main%solvent%soft_spheres%array, &
-                scal => environ%main%solvent%scaled, &
-                mod_grad => environ%main%solvent%gradient%modulus)
+            ASSOCIATE (solvent => environ%main%solvent, &
+                       ss => environ%main%solvent%soft_spheres%array, &
+                       scal => environ%main%solvent%scaled, &
+                       mod_grad => environ%main%solvent%gradient%modulus)
                 !
-                DO ir=1,nnr
+                DO ir = 1, nnr
                     !
-                    DO i=1,solvent%soft_spheres%number
+                    DO i = 1, solvent%soft_spheres%number
                         !
                         ASSOCIATE (cell => environ%setup%environment_cell, &
-                            pos => ss(i)%pos, &
-                            spread => ss(i)%spread, &
-                            width => ss(i)%width, &
-                            dim => ss(i)%dim, &
-                            axis => ss(i)%axis)
+                                   pos => ss(i)%pos, &
+                                   spread => ss(i)%spread, &
+                                   width => ss(i)%width, &
+                                   dim => ss(i)%dim, &
+                                   axis => ss(i)%axis)
                             !
                             CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
                             !
                             IF (.NOT. physical) CYCLE
                             dist = SQRT(r2)
                             !
-                            DO j=1,a_num
+                            DO j = 1, a_num
                                 !
                                 IF (dist <= alpha(j)) THEN
                                     !
-                                    pvolu(i,j) = pvolu(i,j) + scal%of_r(ir)*cell%domega
-                                    psurf(i,j) = psurf(i,j) + mod_grad%of_r(ir)*cell%domega
+                                    pvolu(i, j) = pvolu(i, j) + scal%of_r(ir) * cell%domega
+                                    psurf(i, j) = psurf(i, j) + mod_grad%of_r(ir) * cell%domega
                                     !
                                 END IF
                                 !
@@ -372,25 +375,25 @@ CONTAINS
             !
             IF (io%lnode) THEN
                 !
-                DO i=1,num
+                DO i = 1, num
                     !
-                    WRITE(io%unit,"(5X,A,I4,A,I4,/)") 'Atom number: ', i, &
+                    WRITE (io%unit, "(5X,A,I4,A,I4,/)") 'Atom number: ', i, &
                         '; Atom type: ', environ%main%solvent%ions%ityp(i)
                     !
-                    WRITE(io%unit,"(10X,A,4X,A,5X,A)") 'alpha  |', 'Partial Volume    |', 'Partial Surface'
-                    WRITE(io%unit,"(8X,52('-'))")
+                    WRITE (io%unit, "(10X,A,4X,A,5X,A)") 'alpha  |', 'Partial Volume    |', 'Partial Surface'
+                    WRITE (io%unit, "(8X,52('-'))")
                     !
-                    DO j=1,a_num
+                    DO j = 1, a_num
                         !
-                        WRITE(io%unit,"(10X,F6.3,' |',F17.8,'     |',f17.8)") alpha(j), pvolu(i,j), psurf(i,j)
+                        WRITE (io%unit, "(10X,F6.3,' |',F17.8,'     |',f17.8)") alpha(j), pvolu(i, j), psurf(i, j)
                         !
                     END DO
                     !
-                    WRITE(io%unit,*) ''
+                    WRITE (io%unit, *) ''
                     !
                 END DO
                 !
-                FLUSH(io%unit)
+                FLUSH (io%unit)
                 !
             END IF
             !
@@ -405,50 +408,50 @@ CONTAINS
             !
             IMPLICIT NONE
             !
-            REAL(DP), ALLOCATABLE :: surf_for(:,:), vol_for(:,:)
-            Integer :: k, nat
+            REAL(DP), ALLOCATABLE :: surf_for(:, :), vol_for(:, :)
+            INTEGER :: k, nat
             !
             TYPE(environ_density) :: surf_den, vol_den
             TYPE(environ_gradient) :: grad
             !
             nat = environ%main%environment_ions%number
-            ALLOCATE( surf_for(3,nat), vol_for(3,nat) )
+            ALLOCATE (surf_for(3, nat), vol_for(3, nat))
             surf_for = 0.D0
             vol_for = 0.D0
             !
             !Initialize densities
-            CALL surf_den%init( environ%setup%environment_cell )
-            CALL vol_den%init( environ%setup%environment_cell )
-            CALL grad%init( environ%setup%environment_cell )
+            CALL surf_den%init(environ%setup%environment_cell)
+            CALL vol_den%init(environ%setup%environment_cell)
+            CALL grad%init(environ%setup%environment_cell)
             !
             !Calculate forces
-            CALL environ%main%solvent%desurface_dboundary(1.D0,surf_den)
-            CALL environ%main%solvent%devolume_dboundary(1.D0,vol_den)
+            CALL environ%main%solvent%desurface_dboundary(1.D0, surf_den)
+            CALL environ%main%solvent%devolume_dboundary(1.D0, vol_den)
             !
-            DO k=1,nat
+            DO k = 1, nat
                 !
-                CALL environ%main%solvent%dboundary_dions(k,grad)
+                CALL environ%main%solvent%dboundary_dions(k, grad)
                 !
-                surf_for(:,k) = surf_for(:,k) - grad%scalar_product_density(surf_den)
+                surf_for(:, k) = surf_for(:, k) - grad%scalar_product_density(surf_den)
                 !
-                vol_for(:,k) = vol_for(:,k) - grad%scalar_product_density(vol_den)
+                vol_for(:, k) = vol_for(:, k) - grad%scalar_product_density(vol_den)
                 !
             END DO
             !
             IF (io%lnode) THEN
                 !
-                WRITE(io%unit, '(5X,A3,7X,A9,8X,A9,8X,A9,8X,A9,8X,A9,8X,A9)') 'idx',&
-                    &'S_FORCE_x','S_FORCE_y','S_FORCE_z','V_FORCE_x','V_FORCE_y',&
+                WRITE (io%unit, '(5X,A3,7X,A9,8X,A9,8X,A9,8X,A9,8X,A9,8X,A9)') 'idx',&
+                    &'S_FORCE_x', 'S_FORCE_y', 'S_FORCE_z', 'V_FORCE_x', 'V_FORCE_y',&
                     &'V_FORCE_z'
                 !
-                DO k=1,nat
+                DO k = 1, nat
                     !
-                    WRITE(io%unit, '(5X,I3,3F17.8,3F17.8)') k, surf_for(:,k), vol_for(:,k)
+                    WRITE (io%unit, '(5X,I3,3F17.8,3F17.8)') k, surf_for(:, k), vol_for(:, k)
                     !
                 END DO
                 !
-                WRITE(io%unit,*) ''
-                FLUSH(io%unit)
+                WRITE (io%unit, *) ''
+                FLUSH (io%unit)
                 !
             END IF
             !
@@ -472,7 +475,7 @@ CONTAINS
             !
             !------------------------------------------------------------------------------------
             !
-            ALLOCATE(env_potential(environ%setup%get_nnt()))
+            ALLOCATE (env_potential(environ%setup%get_nnt()))
             !
             CALL environ%calc_potential(.TRUE., env_potential, lgather=.TRUE.)
             !
@@ -484,8 +487,8 @@ CONTAINS
                 !
                 CALL environ%main%print_energies('PW', .FALSE.)
                 !
-                WRITE(io%unit,"(/,5X,A,F17.8,/)") 'total energy ', env_energy
-                FLUSH(io%unit)
+                WRITE (io%unit, "(/,5X,A,F17.8,/)") 'total energy ', env_energy
+                FLUSH (io%unit)
                 !
             END IF
             !
@@ -509,14 +512,14 @@ CONTAINS
             t2 = t2 - t1
             label = 'seconds'
             !
-            IF (t2>60.D0 .AND. t2<3600.D0) THEN
+            IF (t2 > 60.D0 .AND. t2 < 3600.D0) THEN
                 !
-                t2 = t2/60.D0
+                t2 = t2 / 60.D0
                 label = 'minutes'
                 !
-            ELSE IF (t2>3600.D0) THEN
+            ELSE IF (t2 > 3600.D0) THEN
                 !
-                t2 = t2/3600.D0
+                t2 = t2 / 3600.D0
                 label = 'hours'
                 !
             END IF
