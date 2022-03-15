@@ -459,7 +459,16 @@ CONTAINS
                 END IF
                 !
             END DO
+            !
             this%grid_pts = this%grid_pts * 1.15
+            !
+#if defined (__MPI)
+            CALL env_reduce_base_integer(1, this%grid_pts, io%comm, io%node)
+            !
+            CALL env_bcast_integer(this%grid_pts, 1, io%node, io%comm)
+#endif
+            !
+            IF (this%grid_pts > cell%nnr) this%grid_pts = cell%nnr
             !
             CALL denlocal%destroy()
             !
