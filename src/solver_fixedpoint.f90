@@ -363,82 +363,86 @@ CONTAINS
             !
             CALL gradpoisson%init(cell)
             !
-            !----------------------------------------------------------------------------
-            ! Set up auxiliary charge
-            !
-            total = charges%integrate()
-            totpol = total * (1.D0 - dielectric%constant) / dielectric%constant
-            rhozero%of_r = charges%of_r * (1.D0 - eps%of_r) / eps%of_r
-            totzero = rhozero%integrate()
-            totiter = rhoiter%integrate()
-            !
-            !----------------------------------------------------------------------------
-            ! Write output table column headers
-            !
-            IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1001) totiter
-            !
-            IF (io%lnode) THEN
+
+            IF (semiconductor%electrode_charge == 0.D0) THEN
+                !----------------------------------------------------------------------------
+                ! Set up auxiliary charge
                 !
-                IF (io%verbosity >= 3) THEN
-                    WRITE (io%debug_unit, 1002)
-                ELSE IF (io%verbosity >= 1) THEN
-                    WRITE (io%debug_unit, 1003)
-                END IF
-                !
-            END IF
-            !
-            !----------------------------------------------------------------------------
-            ! Start iterative algorithm
-            !
-            DO i = 1, maxiter
-                rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
-                !
-                CALL this%direct%grad_poisson(rhotot, gradpoisson, electrolyte, &
-                                              semiconductor)
-                !
-                CALL dielectric%gradlog%scalar_product(gradpoisson, residual)
-                !
-                residual%of_r = residual%of_r / fpi / e2 - rhoiter%of_r
-                rhoiter%of_r = rhoiter%of_r + this%mix * residual%of_r
-                !
-                delta_en = residual%euclidean_norm()
-                delta_qm = residual%quadratic_mean()
+                total = charges%integrate()
+                totpol = total * (1.D0 - dielectric%constant) / dielectric%constant
+                rhozero%of_r = charges%of_r * (1.D0 - eps%of_r) / eps%of_r
+                totzero = rhozero%integrate()
                 totiter = rhoiter%integrate()
                 !
-                !------------------------------------------------------------------------
-                ! Print iteration results
+                !----------------------------------------------------------------------------
+                ! Write output table column headers
+                !
+                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1001) totiter
                 !
                 IF (io%lnode) THEN
                     !
                     IF (io%verbosity >= 3) THEN
-                        !
-                        WRITE (io%debug_unit, 1004) &
-                            i, delta_qm, delta_en, tolrhoaux, totiter, totzero, &
-                            totpol, total
-                        !
+                        WRITE (io%debug_unit, 1002)
                     ELSE IF (io%verbosity >= 1) THEN
-                        WRITE (io%debug_unit, 1005) i, delta_qm, delta_en, tolrhoaux
+                        WRITE (io%debug_unit, 1003)
                     END IF
                     !
                 END IF
                 !
-                !------------------------------------------------------------------------
-                ! If residual is small enough exit
+                !----------------------------------------------------------------------------
+                ! Start iterative algorithm
                 !
-                IF (delta_en < tolrhoaux .AND. i > 0) THEN
+                DO i = 1, maxiter
+                    rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
                     !
-                    IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1006)
+                    CALL this%direct%grad_poisson(rhotot, gradpoisson, electrolyte, &
+                                                  semiconductor)
                     !
-                    EXIT
+                    CALL dielectric%gradlog%scalar_product(gradpoisson, residual)
                     !
-                ELSE IF (i == maxiter) THEN
-                    IF (io%lnode) WRITE (io%unit, 1007)
-                END IF
+                    residual%of_r = residual%of_r / fpi / e2 - rhoiter%of_r
+                    rhoiter%of_r = rhoiter%of_r + this%mix * residual%of_r
+                    !
+                    delta_en = residual%euclidean_norm()
+                    delta_qm = residual%quadratic_mean()
+                    totiter = rhoiter%integrate()
+                    !
+                    !------------------------------------------------------------------------
+                    ! Print iteration results
+                    !
+                    IF (io%lnode) THEN
+                        !
+                        IF (io%verbosity >= 3) THEN
+                            !
+                            WRITE (io%debug_unit, 1004) &
+                                i, delta_qm, delta_en, tolrhoaux, totiter, totzero, &
+                                totpol, total
+                            !
+                        ELSE IF (io%verbosity >= 1) THEN
+                            WRITE (io%debug_unit, 1005) i, delta_qm, delta_en, tolrhoaux
+                        END IF
+                        !
+                    END IF
+                    !
+                    !------------------------------------------------------------------------
+                    ! If residual is small enough exit
+                    !
+                    IF (delta_en < tolrhoaux .AND. i > 0) THEN
+                        !
+                        IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1006)
+                        !
+                        EXIT
+                        !
+                    ELSE IF (i == maxiter) THEN
+                        IF (io%lnode) WRITE (io%unit, 1007)
+                    END IF
+                    !
+                END DO
                 !
-            END DO
-            !
-            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1008) delta_en, i
-            !
+                IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1008) delta_en, i
+                !
+
+            END IF 
             !----------------------------------------------------------------------------
             ! Compute total electrostatic potential
             !

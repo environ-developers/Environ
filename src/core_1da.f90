@@ -1440,7 +1440,7 @@ CONTAINS
             ELSE
               delta_chg = -charge - semiconductor%slab_charge
               WRITE (io%debug_unit, *)"delta charge: ",delta_chg
-              ez_gcs =  -tpi * e2 * (charge - electrode_charge + semiconductor%slab_charge) / area ! / permittivity
+              ez_gcs =  -tpi * e2 * (-electrode_charge) / area ! / permittivity
               !charge includes explicit as well as polarization charge. Need to
               !then include the extra charge from the bulk semiconductor that's
               !unaccounted for
@@ -1501,7 +1501,7 @@ CONTAINS
             v_edge = v_edge / DBLE(icount)
 
             WRITE (io%debug_unit, *)"vedge: ",v_edge
-            vms_gcs = vms_gcs - v_edge + vstern
+            !vms_gcs = vms_gcs - v_edge + vstern
 
 
             vbound = 0.D0
@@ -1509,7 +1509,7 @@ CONTAINS
             !
             DO i = 1, nnr
                 !
-                IF (ABS(axis(1, i)) >= xstern_gcs) THEN
+                IF ((axis(1, i)) >= xstern_gcs) THEN
                     icount = icount + 1
                     !
                     vbound = vbound + v%of_r(i) + vms_gcs(i) - &
@@ -1526,7 +1526,8 @@ CONTAINS
             vbound = vbound / DBLE(icount)
 
 
-            !WRITE (io%debug_unit, *)"vstern: ",vstern
+            WRITE (io%debug_unit, *)"vbound: ",vbound
+
 
 
 
@@ -1560,7 +1561,7 @@ CONTAINS
             ! ... adding in gcs effect first, only on the positive side of xstern
             !
             WRITE (io%debug_unit, *)"vstern: ",vstern
-            !vms_gcs = vms_gcs - vbound + vstern
+            vms_gcs = vms_gcs - vbound + vstern
             DO i = 1, nnr
                !
                IF ( axis(1,i) .GE. xstern_gcs ) THEN
