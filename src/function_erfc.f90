@@ -188,7 +188,7 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
-        INTEGER :: i
+        INTEGER :: i, imax, ir
         LOGICAL :: physical
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
@@ -219,6 +219,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Set local parameters
             !
+            imax = cell%nnr
+            IF (PRESENT(grid_pts)) imax = grid_pts
+            !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
             !
@@ -231,11 +234,16 @@ CONTAINS
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
             !
-            DO i = 1, grid_pts
+            DO i = 1, imax
                 !
-                IF (ir_vals(i) == -1) CYCLE
+                IF (PRESENT(ir_vals)) THEN
+                    IF (ir_vals(i) == -1) CYCLE
+                    ir = ir_vals(i)
+                ELSE
+                    ir = i
+                END IF
                 !
-                CALL cell%get_min_distance(ir_vals(i), dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -244,7 +252,7 @@ CONTAINS
                 IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) gradlocal(:, ir_vals(i)) = -EXP(-arg**2) * r / dist
+                IF (dist > func_tol) gradlocal(:, ir) = -EXP(-arg**2) * r / dist
                 ! compute gradient of error function
                 !
             END DO
@@ -270,7 +278,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
-        INTEGER :: i
+        INTEGER :: i, imax, ir
         LOGICAL :: physical
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: lapllocal(:)
@@ -301,6 +309,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Set local parameters
             !
+            imax = cell%nnr
+            IF (PRESENT(grid_pts)) imax = grid_pts
+            !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
             !
@@ -313,11 +324,16 @@ CONTAINS
             ALLOCATE (lapllocal(cell%nnr))
             lapllocal = 0.D0
             !
-            DO i = 1, grid_pts
+            DO i = 1, imax
                 !
-                IF (ir_vals(i) == -1) CYCLE
+                IF (PRESENT(ir_vals)) THEN
+                    IF (ir_vals(i) == -1) CYCLE
+                    ir = ir_vals(i)
+                ELSE
+                    ir = i
+                END IF
                 !
-                CALL cell%get_min_distance(ir_vals(i), dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -334,17 +350,17 @@ CONTAINS
                 CASE (0)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(ir_vals(i)) = -EXP(-arg**2) * &
+                        lapllocal(ir) = -EXP(-arg**2) * &
                                        (1.D0 / dist - arg / spread) * 2.D0
                     !
                 CASE (1)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(ir_vals(i)) = -EXP(-arg**2) * &
+                        lapllocal(ir) = -EXP(-arg**2) * &
                                        (1.D0 / dist - 2.D0 * arg / spread)
                     !
                 CASE (2)
-                    lapllocal(ir_vals(i)) = EXP(-arg**2) * arg / spread * 2.D0
+                    lapllocal(ir) = EXP(-arg**2) * arg / spread * 2.D0
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected system dimensions", 1)
@@ -374,7 +390,7 @@ CONTAINS
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
-        INTEGER :: i, j, k
+        INTEGER :: i, j, k, imax, ir
         LOGICAL :: physical
         REAL(DP) :: r(3), r2, scale, dist, arg, tmp, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: hesslocal(:, :, :)
@@ -405,6 +421,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Set local parameters
             !
+            imax = cell%nnr
+            IF (PRESENT(grid_pts)) imax = grid_pts
+            !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
             !
@@ -417,11 +436,16 @@ CONTAINS
             ALLOCATE (hesslocal(3, 3, cell%nnr))
             hesslocal = 0.D0
             !
-            DO i = 1, grid_pts
+            DO i = 1, imax
                 !
-                IF (ir_vals(i) == -1) CYCLE
+                IF (PRESENT(ir_vals)) THEN
+                    IF (ir_vals(i) == -1) CYCLE
+                    ir = ir_vals(i)
+                ELSE
+                    ir = i
+                END IF
                 !
-                CALL cell%get_min_distance(ir_vals(i), dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -442,7 +466,7 @@ CONTAINS
                             !
                             IF (j == k) tmp = tmp + dist
                             !
-                            hesslocal(j, k, ir_vals(i)) = -EXP(-arg**2) * tmp / dist**2
+                            hesslocal(j, k, ir) = -EXP(-arg**2) * tmp / dist**2
                         END DO
                         !
                     END DO
@@ -472,7 +496,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: derivative
         !
-        INTEGER :: i
+        INTEGER :: i, imax, ir
         LOGICAL :: physical
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: derivlocal(:)
@@ -502,6 +526,9 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
+            imax = cell%nnr
+            IF (PRESENT(grid_pts)) imax = grid_pts
+            !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
             !
@@ -515,11 +542,16 @@ CONTAINS
             derivlocal = 0.D0
             integral = 0.D0
             !
-            DO i = 1, grid_pts
+            DO i = 1, imax
                 !
-                IF (ir_vals(i) == -1) CYCLE
+                IF (PRESENT(ir_vals)) THEN
+                    IF (ir_vals(i) == -1) CYCLE
+                    ir = ir_vals(i)
+                ELSE
+                    ir = i
+                END IF
                 !
-                CALL cell%get_min_distance(ir_vals(i), dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
                 !
                 IF (.NOT. physical) CYCLE
                 !
@@ -527,7 +559,7 @@ CONTAINS
                 IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) derivlocal(ir_vals(i)) = -EXP(-arg**2)
+                IF (dist > func_tol) derivlocal(ir) = -EXP(-arg**2)
                 !
                 integral = integral + environ_erfc(arg)
             END DO

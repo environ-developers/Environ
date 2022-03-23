@@ -621,6 +621,16 @@ CONTAINS
             IF (copy%soft_spheres%number /= 0) DEALLOCATE (copy%soft_spheres%array)
         END IF
         !
+        copy%grid_pts = this%grid_pts
+        !
+        ALLOCATE (copy%ir_nonzero(this%ions%number, copy%grid_pts))
+        ALLOCATE (copy%nonzero(this%ions%number, copy%grid_pts))
+        ALLOCATE (copy%grad_nonzero(this%ions%number, copy%grid_pts, 3))
+        !
+        copy%ir_nonzero = -1
+        copy%nonzero = 0.D0
+        copy%grad_nonzero = 0.D0
+        !
         IF (ALLOCATED(this%ion_field)) THEN
             n = SIZE(this%ion_field)
             !
