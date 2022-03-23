@@ -1438,7 +1438,7 @@ CONTAINS
             IF (semiconductor%slab_charge .EQ. 0.D0) THEN
               ez_gcs = ez
             ELSE
-              delta_chg = -charge - semiconductor%slab_charge
+              delta_chg = charge + semiconductor%slab_charge
               WRITE (io%debug_unit, *)"delta charge: ",delta_chg
               ez_gcs =  -tpi * e2 * (-electrode_charge) / area ! / permittivity
               !charge includes explicit as well as polarization charge. Need to
@@ -1606,7 +1606,7 @@ CONTAINS
             IF (semiconductor%slab_charge .EQ. 0.D0) THEN
               ez_ms = 0.D0
             ELSE
-              ez_ms= -tpi * e2 * (electrode_charge -semiconductor%slab_charge) /area !/ permittivity_ms !in units of Ry/bohr
+              ez_ms= -2*tpi * e2 * (electrode_charge -semiconductor%slab_charge) /area / permittivity_ms !in units of Ry/bohr
             END IF                               !the 2*tpi * e2 is keeping everything in atomic units
             WRITE( io%debug_unit, * )"bulk sc charge:",(electrode_charge-semiconductor%slab_charge)
             WRITE( io%debug_unit, * )"Mott Schottky electric field: ",ez_ms

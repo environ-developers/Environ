@@ -629,7 +629,7 @@ chg_step = istep \
 
 ! Set dft charge boundaries \
 IF (chg_step == 1) THEN \
-! this is an option that feels like it s \hould be useful to edit in the future \
+! this is an option that feels like it should be useful to edit in the future \
 
 IF (env%semiconductor%base%electrode_charge > 0.0) THEN \
 dft_chg_max = env%semiconductor%base%electrode_charge \
