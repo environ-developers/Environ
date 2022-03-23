@@ -177,12 +177,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
@@ -230,9 +231,11 @@ CONTAINS
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
             !
-            DO i = 1, cell%ir_end
+            DO i = 1, grid_pts
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
+                IF (ir_vals(i) == -1) CYCLE
+                !
+                CALL cell%get_min_distance(ir_vals(i), dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -241,7 +244,7 @@ CONTAINS
                 IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) gradlocal(:, i) = -EXP(-arg**2) * r / dist
+                IF (dist > func_tol) gradlocal(:, ir_vals(i)) = -EXP(-arg**2) * r / dist
                 ! compute gradient of error function
                 !
             END DO
@@ -256,12 +259,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function(this, laplacian, zero)
+    SUBROUTINE laplacian_of_function(this, laplacian, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
@@ -309,9 +313,11 @@ CONTAINS
             ALLOCATE (lapllocal(cell%nnr))
             lapllocal = 0.D0
             !
-            DO i = 1, cell%ir_end
+            DO i = 1, grid_pts
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
+                IF (ir_vals(i) == -1) CYCLE
+                !
+                CALL cell%get_min_distance(ir_vals(i), dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -328,17 +334,17 @@ CONTAINS
                 CASE (0)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(i) = -EXP(-arg**2) * &
+                        lapllocal(ir_vals(i)) = -EXP(-arg**2) * &
                                        (1.D0 / dist - arg / spread) * 2.D0
                     !
                 CASE (1)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(i) = -EXP(-arg**2) * &
+                        lapllocal(ir_vals(i)) = -EXP(-arg**2) * &
                                        (1.D0 / dist - 2.D0 * arg / spread)
                     !
                 CASE (2)
-                    lapllocal(i) = EXP(-arg**2) * arg / spread * 2.D0
+                    lapllocal(ir_vals(i)) = EXP(-arg**2) * arg / spread * 2.D0
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected system dimensions", 1)
@@ -357,12 +363,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function(this, hessian, zero)
+    SUBROUTINE hessian_of_function(this, hessian, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
@@ -410,9 +417,11 @@ CONTAINS
             ALLOCATE (hesslocal(3, 3, cell%nnr))
             hesslocal = 0.D0
             !
-            DO i = 1, cell%ir_end
+            DO i = 1, grid_pts
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
+                IF (ir_vals(i) == -1) CYCLE
+                !
+                CALL cell%get_min_distance(ir_vals(i), dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -433,7 +442,7 @@ CONTAINS
                             !
                             IF (j == k) tmp = tmp + dist
                             !
-                            hesslocal(j, k, i) = -EXP(-arg**2) * tmp / dist**2
+                            hesslocal(j, k, ir_vals(i)) = -EXP(-arg**2) * tmp / dist**2
                         END DO
                         !
                     END DO
@@ -452,12 +461,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE derivative_of_function(this, derivative, zero)
+    SUBROUTINE derivative_of_function(this, derivative, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: derivative
@@ -505,9 +515,11 @@ CONTAINS
             derivlocal = 0.D0
             integral = 0.D0
             !
-            DO i = 1, cell%ir_end
+            DO i = 1, grid_pts
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
+                IF (ir_vals(i) == -1) CYCLE
+                !
+                CALL cell%get_min_distance(ir_vals(i), dim, axis, pos, r, r2, physical)
                 !
                 IF (.NOT. physical) CYCLE
                 !
@@ -515,7 +527,7 @@ CONTAINS
                 IF (dist>5.D0*spread+width) CYCLE
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) derivlocal(i) = -EXP(-arg**2)
+                IF (dist > func_tol) derivlocal(ir_vals(i)) = -EXP(-arg**2)
                 !
                 integral = integral + environ_erfc(arg)
             END DO

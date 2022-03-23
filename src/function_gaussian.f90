@@ -165,12 +165,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_gaussian), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient

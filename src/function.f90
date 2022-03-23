@@ -239,12 +239,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
@@ -261,12 +262,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function(this, laplacian, zero)
+    SUBROUTINE laplacian_of_function(this, laplacian, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
@@ -283,12 +285,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function(this, hessian, zero)
+    SUBROUTINE hessian_of_function(this, hessian, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
@@ -305,12 +308,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE derivative_of_function(this, derivative, zero)
+    SUBROUTINE derivative_of_function(this, derivative, zero, ir_vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: derivative
