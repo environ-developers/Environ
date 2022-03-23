@@ -447,6 +447,7 @@ CONTAINS
                 bound_val = vals(i, idx)
                 g = grad_vals(i, idx, :)
                 idx = idx + 1
+                IF (ABS(bound_val) <= bound_tol) CYCLE
                 !
                 DO k = 1, 3
                     !
@@ -499,6 +500,7 @@ CONTAINS
                 bound_val = vals(i, idx)
                 g = grad_vals(i, idx, :)
                 idx = idx + 1
+                IF (ABS(bound_val) <= bound_tol) CYCLE
                 !
                 lapl%of_r(j) = lapl%of_r(j) + &
                                (laploc(i)%of_r(j) / bound_val * scal%of_r(j))
@@ -560,6 +562,7 @@ CONTAINS
                 bound_val = vals(i, idx)
                 g = grad_vals(i, idx, :)
                 idx = idx + 1
+                IF (ABS(bound_val) <= bound_tol) CYCLE
                 !
                 DO k = 1, 3
                     !
