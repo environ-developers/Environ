@@ -1,56 +1,35 @@
 &CONTROL
-  calculation='scf',
-  prefix='Si-O',
+  calculation = 'scf',
+  outdir = './tmp',
+  prefix = 'Si',
+  restart_mode = 'from_scratch',
+  verbosity = 'high',
   pseudo_dir='/ascldap/users/qcampbe/Pseudos/pslibrary.1.0.0/pbe/PSEUDOPOTENTIALS',
-  verbosity='high',
-  restart_mode='from_scratch',
-  nstep=200
-  outdir= './tmp',
 /
-
 &SYSTEM
-  ibrav=0,
-  celldm(1)=7.2565749368d0,
-  nat=15,
-  ntyp=2,
-  ecutwfc=50.0d0,
-  ecutrho=200.0d0,
-  occupations='smearing',
-  smearing='mv',
-  degauss=0.03000d0,
+  degauss = 0.0001,
+  ecutwfc = 20,
+  occupations = 'smearing',
+  smearing = 'mv',
+  ibrav = 0,
+  nat = 4,
+  ntyp = 1,
 /
 &ELECTRONS
-  diagonalization='david',
-  conv_thr=1d-7,
-  mixing_mode='local-TF',
-  !mixing_beta=0.500d0,
-  electron_maxstep = 250
-/
-&IONS
-  !ion_dynamics = 'damp'
+  conv_thr = 1d-08,
+  diagonalization = 'david',
+  mixing_mode = 'local-TF',
 /
 ATOMIC_SPECIES
-  Si 28.085500d0 Si.pbe-n-kjpaw_psl.1.0.0.UPF
-  O  15.999000d0 O.pbe-n-kjpaw_psl.1.0.0.UPF
-ATOMIC_POSITIONS {alat}
-Si       0.000000000   0.000000000   1.802073905    0   0   0
-Si       0.500000000   1.060724541   1.802078557    0   0   0
-Si       0.000000000   0.353553391   2.302078557    0   0   0
-Si       0.499909714   0.707106781   2.302060048    0   0   0
-Si       0.000000000   0.000000000   2.802078557    0   0   0
-Si       0.500000000   1.059951789   2.802078557    0   0   0
-Si      -0.000852798   0.353553391   3.302078557    0   0   0
-Si       0.500000000   0.707106781   3.302090970    0   0   0
-Si       0.000000000   0.000000000   3.802078557    0   0   0
-Si       0.500000000   1.060660172   3.802078557    0   0   0
-Si       0.011264507   0.346111979   4.314003460
-Si       0.492983512   0.724485161   4.333979006
-Si       0.127614179  -0.162293223   4.668709662
-Si       0.672109676   0.916491069   4.928620199
-O        0.428409191   1.299131531   4.980203547
-K_POINTS {automatic}
+  Si  28.0855 Si.pbe-n-kjpaw_psl.1.0.0.UPF
+ATOMIC_POSITIONS crystal
+  Si 1.000000 0.500000 0.562500
+  Si 0.500000 0.500000 0.437500
+  Si 0.500000 1.000000 0.479167
+  Si 1.000000 0.000000 0.520833
+K_POINTS automatic
   1 1 1 0 0 0
-CELL_PARAMETERS {alat}
-  1.000000000000d0  0.000000000000d0  0.000000000000d0
-  0.000000000000d0  1.414213562374d0  0.000000000000d0
-  0.000000000000d0  0.000000000000d0  7.624988536903d0
+CELL_PARAMETERS angstrom
+  3.866975 0.000000 0.000000
+  -0.000000 3.866975 0.000000
+  0.000000 0.000000 32.812368

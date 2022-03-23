@@ -560,7 +560,6 @@ USE mp_bands,       ONLY: intra_bgrp_comm \
 USE klist,            ONLY : tot_charge, nelec \
 USE cell_base,        ONLY : omega \
 USE lsda_mod,         ONLY : nspin \
-USE scf,              ONLY : rho \
 USE control_flags,    ONLY : conv_ions, nstep, istep \
 USE ener,             ONLY : ef \
 USE constants,        ONLY : rytoev \
@@ -608,65 +607,82 @@ sed '/Environ CALLS BEGIN/ a\
 !************************************************* \
  \
 gamma_mult = 0.15 \
- \
- \
+
+
 converge = .TRUE. \
+
+! calculating ionic charge \
 ionic_charge = 0._DP \
 DO na = 1, nat \
 ionic_charge = ionic_charge + zv( ityp(na) ) \
 END DO \
- \
- \
+\
+ \ 
  \
 IF (use_environ .AND. setup%lmsgcs) THEN \
 CALL start_clock( "semiconductor" ) \
- \
+
 chg_step = istep \
 !! Initializing the constraints of possible DFT charges \
-! Should probably be initialized at chg_step =1 but that seemed to be \
+! Should probably be initialized at chg_step =1 but that seemed to be \ 
 ! creating some trouble possibly \
+
+! Set dft charge boundaries \
 IF (chg_step == 1) THEN \
-! this is an option that feels like it should be useful to edit in the future \
+! this is an option that feels like it s \hould be useful to edit in the future \
+
 IF (env%semiconductor%base%electrode_charge > 0.0) THEN \
-dft_chg_max = 2.0*env%semiconductor%base%electrode_charge \
+dft_chg_max = env%semiconductor%base%electrode_charge \
 dft_chg_min = 0.0 \
 ELSE \
-dft_chg_min = 2.0*env%semiconductor%base%electrode_charge \
+dft_chg_min = env%semiconductor%base%electrode_charge \
 dft_chg_max = 0.0 \
 END IF \
- \
+\ 
 END IF \
  \
  \
-IF (chg_step == 0) THEN \
-tot_charge = 0.7*env%semiconductor%base%electrode_charge \
+! \ 
+IF (chg_step == 0) THEN \ 
+! After first scf step, extract fermi, set charge \
 env%semiconductor%base%flatband_fermi = ef!*rytoev \
-env%semiconductor%base%slab_charge = tot_charge\
+tot_charge = 0.7*env%semiconductor%base%electrode_charge \
+env%semiconductor%base%slab_charge = tot_charge \
 !env%environment_charges%externals%functions%array(1)%volume = -(env%semiconductor%base%electrode_charge - tot_charge) \
 !env%environment_charges%externals%functions%array(2)%volume = env%semiconductor%base%electrode_charge \
 conv_ions = .FALSE. \
-! CALL qexsd_set_status(255) \
-! CALL punch( "config" ) \
-! CALL add_qexsd_step(istep) \
+! CALL qexsd_set_status(255)  \
+! CALL punch( "config" )  \
+! CALL add_qexsd_step(istep)  \
 istep =  istep + 1 \
-!CALL save_flatband_pot(dfftp%nnr) \
+!CALL save_flatband_pot(dfftp%nnr)  \
 WRITE( stdout, 1001) env%semiconductor%base%flatband_fermi*rytoev,tot_charge \
-! \
-! ... re-initialize atomic position-dependent quantities \
-! \
+!  \
+! ... re-initialize atomic position-dependent quantities  \
+!  \
 nelec = ionic_charge - tot_charge \
 CALL update_pot() \
 CALL hinit1() \
 ELSE \
-cur_fermi = ef!*rytoev \
-! for now, will try to keep everything in Ry, should basically work the same \
+ \
+! Calculate steepest descent for changing charge at each scf step  \
+ \
+cur_fermi = ef!*rytoev  \
+! for now, will try to keep everything in Ry, should basically work the same  \
  \
 !CALL save_current_pot(dfftp%nnr,cur_fermi,cur_dchg,ss_chg,v_cut,chg_step) \
+ \
+! not calling it dfermi because difference is only used as a guide to changing \
+! charge. Calling it dchg to conform with steepest descent model  \
 cur_dchg = env%semiconductor%base%bulk_sc_fermi - cur_fermi \
 bulk_potential = (env%semiconductor%base%bulk_sc_fermi - env%semiconductor%base%flatband_fermi)*rytoev \
+! ss = surface states = dft section \
 ss_chg = tot_charge \
-!IF (ionode) THEN \
-! making sure constraints are updated \
+!IF (ionode) THEN  \
+ \
+! making sure constraints are updated  \
+! 1) if electrode chg positive and dft is negative stop it \
+! 2) if electrode chg negative and dft is positive stop it   \
 IF (env%semiconductor%base%electrode_charge > 0) THEN \
 IF (ss_chg < 0.0) THEN \
 dft_chg_min = tot_charge \
@@ -684,6 +700,8 @@ END IF \
 END IF \
 CALL mp_bcast(dft_chg_min, ionode_id,intra_image_comm) \
 CALL mp_bcast(dft_chg_max, ionode_id,intra_image_comm) \
+ \
+! Updating the steepest descent parameter, gamma_mult \
 IF (chg_step > 1 )THEN \
 gamma_mult = (cur_chg - prev_chg)/(cur_dchg - prev_dchg) \
 END IF \
@@ -692,12 +710,61 @@ WRITE(io%debug_unit,*)"prev_chg: ",prev_chg \
 WRITE(io%debug_unit,*)"cur_dchg: ",cur_dchg \
 WRITE(io%debug_unit,*)"prev_dchg: ",prev_dchg \
 WRITE(io%debug_unit,*)"Using gamma of ",gamma_mult \
+ \
 change_vec = -gamma_mult*cur_dchg \
 prev_chg = tot_charge \
-! This is my way of trying to impose limited constraints with an \
-! unknown constraining function. Theres almost certainly a more \
-! efficient way to do this but I havent thought of it yet \
  \
+! Calculate steepest descent for changing charge at each scf step \
+ \
+cur_fermi = ef!*rytoev  \
+! for now, will try to keep everything in Ry, should basically work the same  \
+ \
+!CALL save_current_pot(dfftp%nnr,cur_fermi,cur_dchg,ss_chg,v_cut,chg_step) \
+ \
+! not calling it dfermi because difference is only used as a guide to changing \
+! charge. Calling it dchg to conform with steepest descent model  \
+cur_dchg = env%semiconductor%base%bulk_sc_fermi - cur_fermi \
+bulk_potential = (env%semiconductor%base%bulk_sc_fermi - env%semiconductor%base%flatband_fermi)*rytoev \
+! ss = surface states = dft section \
+ss_chg = tot_charge \
+!IF (ionode) THEN  \
+ \
+! making sure constraints are updated  \
+! 1) if electrode chg positive and dft is negative stop it \
+! 2) if electrode chg negative and dft is positive stop it   \
+IF (env%semiconductor%base%electrode_charge > 0) THEN \
+IF (ss_chg < 0.0) THEN \
+dft_chg_min = tot_charge \
+converge = .FALSE. \
+ELSE \
+prev_chg2 = tot_charge \
+END IF \
+ELSE \
+IF (ss_chg > 0.0) THEN \
+dft_chg_max = tot_charge \
+converge = .FALSE. \
+ELSE \
+prev_chg2 = tot_charge \
+END IF \
+END IF \
+CALL mp_bcast(dft_chg_min, ionode_id,intra_image_comm) \
+CALL mp_bcast(dft_chg_max, ionode_id,intra_image_comm) \
+ \
+! Updating the steepest descent parameter, gamma_mult \
+IF (chg_step > 1 )THEN \
+gamma_mult = (cur_chg - prev_chg)/(cur_dchg - prev_dchg) \
+END IF \
+WRITE(io%debug_unit,*)"cur_chg: ",cur_chg \
+WRITE(io%debug_unit,*)"prev_chg: ",prev_chg \
+WRITE(io%debug_unit,*)"cur_dchg: ",cur_dchg \
+WRITE(io%debug_unit,*)"prev_dchg: ",prev_dchg \
+WRITE(io%debug_unit,*)"Using gamma of ",gamma_mult \
+ \
+change_vec = -gamma_mult*cur_dchg \
+prev_chg = tot_charge \
+ \
+! Making sure that charge doesnt go above dft_chg_max or below dft_chg_min    \
+! Updating tot_charge \
 IF ((tot_charge + change_vec) > dft_chg_max ) THEN \
 IF (tot_charge >= dft_chg_max) THEN \
 tot_charge = prev_chg2 + 0.7*(dft_chg_max-prev_chg2) \
@@ -713,40 +780,49 @@ END IF \
  \
 ELSE \
 tot_charge = tot_charge + change_vec \
- \
 END IF \
+ \
+ \
 WRITE(io%debug_unit,*)"DFT_min ",dft_chg_min \
 WRITE(io%debug_unit,*)"DFT_max ",dft_chg_max \
 CALL mp_bcast(tot_charge, ionode_id,intra_image_comm) \
-!print *,"DFT_max",dft_chg_max \
+!print *,"DFT_max",dft_chg_max  \
+!updating variables based on new_tot_charge \
 cur_chg = tot_charge \
 prev_step_size = ABS(cur_chg - prev_chg) \
 prev_dchg = cur_dchg \
-!WRITE(io%debug_unit,*)"Convergeable? ",converge \
+!WRITE(io%debug_unit,*)"Convergeable? ",converge  \
 CALL mp_bcast(converge,ionode_id, intra_image_comm) \
 CALL mp_bcast(prev_step_size,ionode_id,intra_image_comm) \
+ \
+! decide if loop has converged based on change in charge \
 IF (((prev_step_size > env%semiconductor%base%charge_threshold) .OR. (.NOT. converge)) & \
 & .AND. (chg_step < nstep-1))  THEN \
+! not converged \
 conv_ions = .FALSE. \
 WRITE( STDOUT, 1002)& \
 &chg_step,cur_fermi*rytoev,ss_chg,prev_step_size,cur_dchg,tot_charge \
-!CALL qexsd_set_status(255) \
-!CALL punch( "config" ) \
-!CALL add_qexsd_step(istep) \
+!CALL qexsd_set_status(255)  \
+!CALL punch( "config" )  \
+!CALL add_qexsd_step(istep)  \
 istep =  istep + 1 \
 nelec = ionic_charge - tot_charge \
-env%semiconductor%base%slab_charge = tot_charge\
+env%semiconductor%base%slab_charge = tot_charge \
 !env%environment_charges%externals%functions%array(1)%volume = env%semiconductor%base%electrode_charge - tot_charge \
 CALL mp_bcast(nelec, ionode_id,intra_image_comm) \
 CALL update_pot() \
 CALL hinit1() \
 ELSE \
+! converged  \
+! case where about to exceed max number of steps \
 IF (chg_step == nstep -1) THEN \
 WRITE(STDOUT,*)NEW_LINE("a")//"   Exceeded Max number steps!"//& \
 &NEW_LINE("a")//"   Results probably out of accurate range"//& \
 &NEW_LINE("a")//"   Smaller chg_thr recommended."//& \
 &NEW_LINE("a")//"   Writing current step to q-v.dat." \
 END IF \
+ \
+!writing output for successful converge \
 WRITE(STDOUT, 1003)chg_step,prev_step_size,ss_chg,cur_dchg,& \
 &bulk_potential \
 OPEN(21,file = "q-v.dat", status = "unknown") \
@@ -760,7 +836,7 @@ chg_per_area = env%semiconductor%base%electrode_charge/surf_area \
 ss_chg_per_area = ss_chg/surf_area \
 ss_potential = -bulk_potential \
 CALL mp_bcast(ss_potential, ionode_id, intra_image_comm) \
-!print *, bulk_potential,ss_potential \
+!print *, bulk_potential,ss_potential  \
 WRITE(21, 1004)total_potential, ss_potential,& \
 &env%semiconductor%base%electrode_charge, ss_chg,& \
 &chg_per_area,ss_chg_per_area \
@@ -769,9 +845,7 @@ END IF \
 END IF \
  \
 CALL stop_clock( "semiconductor" ) \
-END IF \
- \
- \
+END IF  \
  \
 1001 FORMAT(5x,//"***************************************************",//& \
 &"     Flatband potential calculated as ",F14.8,// & \

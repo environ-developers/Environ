@@ -18,9 +18,9 @@
 /
  &BOUNDARY
     sc_spread = 0.01,
-    sc_distance = 25.2, ! in bohr
+    sc_distance = 15.2, ! in bohr
     electrolyte_spread = 0.01,
-    electrolyte_distance = 25.2, ! in bohr
+    electrolyte_distance = 15.2, ! in bohr
     electrolyte_mode = 'system',
 /
  &ELECTROSTATIC
