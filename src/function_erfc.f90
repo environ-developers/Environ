@@ -148,7 +148,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
-                IF (dist>5.D0*spread+width) CYCLE
+                IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
                 local(i) = environ_erfc(arg) ! compute error function
@@ -183,7 +183,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
@@ -249,7 +249,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
-                IF (dist>5.D0*spread+width) CYCLE
+                IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
                 IF (dist > func_tol) gradlocal(:, ir) = -EXP(-arg**2) * r / dist
@@ -273,7 +273,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
@@ -339,7 +339,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
-                IF (dist>5.D0*spread+width) CYCLE
+                IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
                 !------------------------------------------------------------------------
@@ -351,13 +351,13 @@ CONTAINS
                     !
                     IF (dist > func_tol) &
                         lapllocal(ir) = -EXP(-arg**2) * &
-                                       (1.D0 / dist - arg / spread) * 2.D0
+                                        (1.D0 / dist - arg / spread) * 2.D0
                     !
                 CASE (1)
                     !
                     IF (dist > func_tol) &
                         lapllocal(ir) = -EXP(-arg**2) * &
-                                       (1.D0 / dist - 2.D0 * arg / spread)
+                                        (1.D0 / dist - 2.D0 * arg / spread)
                     !
                 CASE (2)
                     lapllocal(ir) = EXP(-arg**2) * arg / spread * 2.D0
@@ -385,7 +385,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
@@ -451,7 +451,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
-                IF (dist>5.D0*spread+width) CYCLE
+                IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
                 !------------------------------------------------------------------------
@@ -491,7 +491,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: derivative
@@ -556,7 +556,7 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
-                IF (dist>5.D0*spread+width) CYCLE
+                IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
                 IF (dist > func_tol) derivlocal(ir) = -EXP(-arg**2)

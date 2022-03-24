@@ -1527,7 +1527,7 @@ CONTAINS
                     IF (deriv >= 1) THEN
                         !
                         CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                                                    this%ir_nonzero(i,:), this%grid_pts)
+                                                      this%ir_nonzero(i, :), this%grid_pts)
                         !
                         count = 1
                         DO j = 1, cell%nnr
@@ -1542,10 +1542,10 @@ CONTAINS
                     END IF
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                                                        this%ir_nonzero(i,:), this%grid_pts)
+                                                                   this%ir_nonzero(i, :), this%grid_pts)
                     !
                     IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                                                        this%ir_nonzero(i,:), this%grid_pts)
+                                                                 this%ir_nonzero(i, :), this%grid_pts)
                     !
                 END DO
                 !
@@ -1595,7 +1595,7 @@ CONTAINS
                     IF (deriv >= 1) THEN
                         !
                         CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                                                    this%ir_nonzero(i,:), this%grid_pts)
+                                                      this%ir_nonzero(i, :), this%grid_pts)
                         !
                         count = 1
                         DO j = 1, cell%nnr
@@ -1610,10 +1610,10 @@ CONTAINS
                     END IF
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                                                        this%ir_nonzero(i,:), this%grid_pts)
+                                                                   this%ir_nonzero(i, :), this%grid_pts)
                     !
                     IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                                                        this%ir_nonzero(i,:), this%grid_pts)
+                                                                 this%ir_nonzero(i, :), this%grid_pts)
                     !
                 END DO
                 !

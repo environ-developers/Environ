@@ -95,15 +95,15 @@ CONTAINS
                 !
             CASE ('-min')
                 CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
-                CALL char2real(arg2,alpha_min)
+                CALL char2real(arg2, alpha_min)
                 !
             CASE ('-max')
                 CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
-                CALL char2real(arg2,alpha_max)
+                CALL char2real(arg2, alpha_max)
                 !
             CASE ('-step')
                 CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
-                CALL char2real(arg2,alpha_step)
+                CALL char2real(arg2, alpha_step)
                 !
             END SELECT
             !
