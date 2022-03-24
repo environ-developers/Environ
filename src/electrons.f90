@@ -64,6 +64,7 @@ MODULE class_electrons
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_electrons
         PROCEDURE :: init => init_environ_electrons
         PROCEDURE :: update => update_environ_electrons
         PROCEDURE :: destroy => destroy_environ_electrons
@@ -86,21 +87,41 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrons(this, nelec, cell)
+    SUBROUTINE create_environ_electrons(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nelec
+        CLASS(environ_electrons), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrons'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%number = 0
+        this%charge = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_electrons
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_environ_electrons(this, cell)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%density%init(cell, 'electrons')
+        CALL this%create()
         !
-        this%number = nelec
+        CALL this%density%init(cell, 'electrons')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrons

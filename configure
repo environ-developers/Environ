@@ -77,13 +77,17 @@ test -e ./install/configure.msg && rm ./install/configure.msg
 # SAFEGUARD: if you run configure without clean everything first there
 #            are chances that something goes wrong. Forcing veryclean then.
 
+make depend
+
 if [[ ($1 =~ "--save") ]]; then
   shift
 elif [[ (-e make.inc) && (-e Makefile) ]]; then
   make -f Makefile veryclean
+  echo
 fi
 
 ./install/configure "$@"
+echo
 
 # copy make.inc in the home dir and final clean up
 #

@@ -89,6 +89,7 @@ MODULE class_electrolyte
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_electrolyte
         PROCEDURE :: init => init_environ_electrolyte
         PROCEDURE :: update => update_environ_electrolyte
         PROCEDURE :: destroy => destroy_environ_electrolyte
@@ -116,12 +117,33 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_electrolyte(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_electrolyte), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrolyte'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%energy_second_order = 0.D0
+        this%charge = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_electrolyte
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_electrolyte(this, ntyp, mode, stype, rhomax, rhomin, &
                                         tbeta, const, alpha, softness, distance, &
                                         spread, solvent_radius, radial_scale, &
                                         radial_spread, filling_threshold, &
-                                        filling_spread, field_awareness, &
-                                        charge_asymmetry, field_max, field_min, &
+                                        filling_spread, field_aware, field_factor, &
+                                        field_asymmetry, field_max, field_min, &
                                         electrons, ions, system, temperature, cbulk, &
                                         cionmax, radius, z, electrolyte_entropy, &
                                         linearized, cores, deriv_method, cell)
@@ -129,14 +151,14 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: linearized
+        LOGICAL, INTENT(IN) :: linearized, field_aware
         INTEGER, INTENT(IN) :: ntyp, stype
         CHARACTER(LEN=*), INTENT(IN) :: mode, electrolyte_entropy, deriv_method
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, &
                                 alpha, softness, temperature, solvent_radius, &
                                 radial_scale, radial_spread, filling_threshold, &
-                                filling_spread, field_awareness, charge_asymmetry, &
+                                filling_spread, field_factor, field_asymmetry, &
                                 field_max, field_min, cionmax, radius
         !
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: cbulk, z
@@ -153,15 +175,18 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         CALL this%base%init(ntyp, const, distance, spread, temperature, cbulk, cionmax, &
                             radius, z, electrolyte_entropy, linearized, cell)
         !
         CALL this%boundary%init(.TRUE., .TRUE., .FALSE., mode, stype, rhomax, &
                                 rhomin, tbeta, const, alpha, softness, distance, &
                                 spread, solvent_radius, radial_scale, radial_spread, &
-                                filling_threshold, filling_spread, field_awareness, &
-                                charge_asymmetry, field_max, field_min, electrons, &
-                                ions, system, cores, deriv_method, cell, 'electrolyte')
+                                filling_threshold, filling_spread, field_aware, &
+                                field_factor, field_asymmetry, field_max, field_min, &
+                                electrons, ions, system, cores, deriv_method, cell, &
+                                'electrolyte')
         !
         !--------------------------------------------------------------------------------
         ! Densities

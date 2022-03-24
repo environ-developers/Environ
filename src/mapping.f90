@@ -34,7 +34,7 @@ MODULE class_mapping
     USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_base_scatter, ONLY: env_scatter_grid, env_gather_grid
+    USE env_scatter_mod, ONLY: env_scatter_grid, env_gather_grid
     !
     USE environ_param, ONLY: DP
     !
@@ -112,6 +112,13 @@ CONTAINS
         IF (ASSOCIATED(this%large)) CALL io%create_error(sub_name)
         !
         IF (ASSOCIATED(this%small)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%nrep = 0
+        !
+        NULLIFY (this%large)
+        NULLIFY (this%small)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_mapping
@@ -308,7 +315,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Copy small cell to corresponding gridpoints in the full large cell
             !
-            ALLOCATE (auxlarge(this%large%ntot))
+            ALLOCATE (auxlarge(this%large%nnt))
             auxlarge = 0.D0
             !
             DO i = 1, this%small%ir_end
@@ -366,7 +373,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Copy small cell to corresponding gridpoints in the full large cell
             !
-            ALLOCATE (auxlarge(this%large%ntot))
+            ALLOCATE (auxlarge(this%large%nnt))
             auxlarge = 0.D0
             !
             DO i = 1, this%small%ir_end
@@ -425,7 +432,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Copy portion of large cell to corresponding gridpoints in the small cell
             !
-            ALLOCATE (auxlarge(this%large%ntot))
+            ALLOCATE (auxlarge(this%large%nnt))
             auxlarge = 0.D0
 #if defined(__MPI)
             CALL env_gather_grid(this%large%dfft, flarge, auxlarge)
@@ -484,7 +491,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Copy portion of large cell to corresponding gridpoints in the small cell
             !
-            ALLOCATE (auxlarge(this%large%ntot))
+            ALLOCATE (auxlarge(this%large%nnt))
             auxlarge = 0.D0
             !
 #if defined(__MPI)

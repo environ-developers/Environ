@@ -41,6 +41,8 @@ MODULE environ_debugging
     USE class_functions
     USE class_gradient
     !
+    USE class_core_container
+    !
     USE class_boundary
     USE class_electrons
     USE class_ions
@@ -229,9 +231,12 @@ CONTAINS
         TYPE(environ_density) :: delta
         TYPE(environ_electrons) :: localelectrons
         !
+        TYPE(core_container), POINTER :: cores
+        !
         !--------------------------------------------------------------------------------
         !
         cell => bound%scaled%cell
+        cores => bound%cores
         !
         !--------------------------------------------------------------------------------
         ! Recompute total charge density and field
@@ -242,7 +247,7 @@ CONTAINS
         !
         CALL field%init(cell)
         !
-        ! CALL gradv_h_of_rho_r(rho%of_r, field%of_r)
+        ! CALL cores%electrostatics%grad_v_h_of_rho_r(rho%of_r, field%of_r)
         !
         !--------------------------------------------------------------------------------
         ! Print out individual and global fluxes
@@ -378,7 +383,7 @@ CONTAINS
                     !
                     rho%of_r = bound%electrons%density%of_r + bound%ions%density%of_r
                     !
-                    ! CALL gradv_h_of_rho_r(rho%of_r, field%of_r)
+                    ! CALL cores%electrostatics%grad_v_h_of_rho_r(rho%of_r, field%of_r)
                     !
                     ! CALL compute_ion_field(bound%ions%number, bound%local_spheres, &
                     !                        bound%ions, bound%electrons, &
@@ -392,7 +397,7 @@ CONTAINS
                     !
                     rho%of_r = bound%electrons%density%of_r + bound%ions%density%of_r
                     !
-                    ! CALL gradv_h_of_rho_r(rho%of_r, field%of_r)
+                    ! CALL cores%electrostatics%grad_v_h_of_rho_r(rho%of_r, field%of_r)
                     !
                     ! CALL compute_ion_field(bound%ions%number, bound%local_spheres, &
                     !                        bound%ions, bound%electrons, &

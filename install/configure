@@ -645,6 +645,7 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 extlib_flags
 topdir
+qedir
 ld_libs
 iflags
 fdflags
@@ -766,7 +767,6 @@ ac_user_opts='
 enable_option_checking
 enable_openmp
 enable_parallel
-enable_environment
 enable_debug
 enable_pedantic
 enable_shared
@@ -786,6 +786,7 @@ with_libbeef_prefix
 with_hdf5
 with_hdf5_libs
 with_hdf5_include
+with_qe
 enable_signals
 '
       ac_precious_vars='build_alias
@@ -1429,7 +1430,6 @@ Optional Features:
                           no)
   --enable-parallel       compile for parallel execution if possible (default:
                           yes)
-  --enable-environment    compile solvent-related stuff (default: no)
   --enable-debug          compile Fortran with debug flags (default: no)
   --enable-pedantic       compile Fortran with pedantic flags (default: no)
   --enable-shared         use shared libraries if available (default: yes)
@@ -1478,6 +1478,7 @@ Optional Packages:
   --with-hdf5-include     Specify full path the HDF5 include folder containing
                           module and headers files. Use it if configure fails
                           to detect the path by itself. (default: no)
+  --with-qe               path to Quantum ESPRESSO root directory
 
 Some influential environment variables:
   EXTLIB_FLAGS
@@ -3341,30 +3342,6 @@ f90 | fc | ftn )
     ;;
 esac
 
-
-
-
-
-# TODO if this refers to ENVIRON, we may need to adjust this block
-# Check environ...
-
-
-	# Check whether --enable-environment was given.
-if test "${enable_environment+set}" = set; then :
-  enableval=$enable_environment; if   test "$enableval" = "yes" ; then
-			enable_environment=1
-		else
-			enable_environment=0
-		fi
-else
-  enable_environment=0
-fi
-
-
-	if test "$enable_environment" -eq 1 ;
-	then
-		try_dflags="$try_dflags -D__ENVIRONMENT"
-	fi
 
 
 
@@ -8031,6 +8008,43 @@ $as_echo "$as_me: WARNING: *** HDF5 version must be 1.8.16 or later" >&2;};
   fi
 
 #    AC_MSG_WARN([HDF5 support is for parallel execution only])
+fi
+
+
+
+
+
+
+# Checking for QE...
+
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for QE" >&5
+$as_echo_n "checking for QE... " >&6; }
+
+
+# Check whether --with-qe was given.
+if test "${with_qe+set}" = set; then :
+  withval=$with_qe;
+			if test "$withval" != yes ;
+		 	then
+		 	 	qedir="$withval"
+		 	else
+				qedir="$topdir/../"
+		 	fi
+
+			if test -d $qedir; then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found at $qedir" >&5
+$as_echo "found at $qedir" >&6; }
+			else
+				echo "$qedir is not a valid path"; exit 1
+			fi
+
+      sed "s|^PREFIX=|PREFIX=$qedir|" examples/qe/environment.in > examples/qe/environment
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not coupled" >&5
+$as_echo "not coupled" >&6; }
+
 fi
 
 

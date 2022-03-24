@@ -41,7 +41,7 @@ MODULE class_iontype
     !
     PRIVATE
     !
-    PUBLIC :: print_environ_iontypes
+    PUBLIC :: print_environ_iontypes, get_element
     !
     !------------------------------------------------------------------------------------
     !>
@@ -54,6 +54,7 @@ MODULE class_iontype
         INTEGER :: atmnum
         CHARACTER(LEN=3) :: label
         REAL(DP) :: zv
+        REAL(DP) :: weight
         REAL(DP) :: atomicspread
         REAL(DP) :: corespread
         REAL(DP) :: solvationrad
@@ -62,6 +63,7 @@ MODULE class_iontype
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_iontype
         PROCEDURE :: init => init_environ_iontype
         PROCEDURE :: set_defaults => set_iontype_defaults
         !
@@ -69,9 +71,13 @@ MODULE class_iontype
     END TYPE environ_iontype
     !------------------------------------------------------------------------------------
     !
+    INTERFACE get_element
+        MODULE PROCEDURE get_element_by_number, get_element_by_weight
+    END INTERFACE get_element
+    !
     !------------------------------------------------------------------------------------
     !
-    CHARACTER(LEN=2) :: elements(92)
+    CHARACTER(LEN=3) :: elements(92)
     !
     REAL(DP), DIMENSION(92) :: pauling_radii, bondi_radii, UFF_diameters, &
                                MUFF_diameters, weights
@@ -156,6 +162,32 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_iontype(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_iontype), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_iontype'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%index = 0
+        this%atmnum = 0
+        this%label = ''
+        this%zv = 0.D0
+        this%weight = 0.D0
+        this%atomicspread = 0.D0
+        this%corespread = 0.D0
+        this%solvationrad = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_iontype
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_iontype(this, index, atom_label, zv, radius_mode, &
                                     atomicspread, corespread, solvationrad, &
                                     lsoftcavity, lsmearedions)
@@ -174,6 +206,8 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_iontype'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         CALL this%set_defaults(index, atom_label, radius_mode)
         !
@@ -238,7 +272,7 @@ CONTAINS
             CALL io%error(sub_name, &
                           'Cannot assign the atom type associated with input label', 1)
         !
-        ! this%weight = weights(this%atmnum) ! #TODO future work
+        this%weight = weights(this%atmnum)
         !
         this%atomicspread = 0.5D0
         this%corespread = 0.5D0
@@ -301,6 +335,79 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_atmnum
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                               PUBLIC HELPER METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    CHARACTER(LEN=3) FUNCTION get_element_by_number(number) RESULT(label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: number
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_element_by_number'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (number > SIZE(elements)) THEN
+            WRITE (io%unit, '(/, 5X, "Atomic number = ", I10)') number
+            !
+            CALL io%error(sub_name, "Atomic number out of bounds", 1)
+            !
+        END IF
+        !
+        label = elements(number)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_element_by_number
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    CHARACTER(LEN=3) FUNCTION get_element_by_weight(weight) RESULT(label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: weight
+        !
+        INTEGER :: i, index
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_element_by_weight'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        index = -1
+        !
+        DO i = 1, SIZE(weights)
+            !
+            IF (ABS(weights(i) - weight) < 1.D-1) THEN
+                index = i
+                !
+                EXIT
+                !
+            END IF
+            !
+        END DO
+        !
+        IF (index < 0) THEN
+            WRITE (io%unit, '(/, 5X, "Atomic weight = ", F9.5)') weight
+            !
+            CALL io%error(sub_name, "Wrong atomic weight", 1)
+            !
+        END IF
+        !
+        label = elements(index)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_element_by_weight
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

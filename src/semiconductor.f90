@@ -80,6 +80,7 @@ MODULE class_semiconductor
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_semiconductor
         PROCEDURE :: init => init_environ_semiconductor
         PROCEDURE :: update => update_environ_semiconductor
         PROCEDURE :: destroy => destroy_environ_semiconductor
@@ -102,6 +103,30 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_semiconductor(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_semiconductor), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_semiconductor'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%charge = 0.D0
+        this%slab_charge = 0.D0
+        this%flatband_fermi = 0.D0
+        this%bulk_sc_fermi = 0.D0
+        this%surf_area_per_sq_cm = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_semiconductor
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_semiconductor(this, temperature, sc_permittivity, &
                                           sc_carrier_density, sc_electrode_chg, &
                                           sc_distance, sc_spread, sc_chg_thr, &
@@ -120,13 +145,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         CALL this%base%init(temperature, sc_permittivity, sc_carrier_density, &
                             sc_electrode_chg, sc_distance, sc_spread, sc_chg_thr)
         !
         CALL this%density%init(cell, 'semiconductor')
         !
         CALL this%simple%init(3, system%axis, system%dim, sc_distance, sc_spread, &
-                              1.D0, system%pos)
+                              1.D0, system%com)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor

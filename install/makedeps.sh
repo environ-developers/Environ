@@ -49,7 +49,7 @@ export LC_ALL
 cd "$(echo "$0" | sed 's/\(.*\)\/.*/\1/')" || exit # extract pathname
 TOPDIR=$(pwd)
 
-dirs="utils FFTs src"
+dirs="UtilXlib FFTXlib src"
 
 for dir in $dirs; do
 
@@ -60,14 +60,14 @@ for dir in $dirs; do
         cd "$TOPDIR"/../"$dir" || exit
 
         case "$dir" in
-        FFTs) DEPENDS="$DEPENDS ../utils" ;;
-        src) DEPENDS="$DEPENDS ../utils ../FFTs" ;;
+        FFTXlib) DEPENDS="$DEPENDS ../UtilXlib" ;;
+        src) DEPENDS="$DEPENDS ../UtilXlib ../FFTXlib" ;;
         esac
 
         "$TOPDIR"/moduledep.sh "$DEPENDS" >make.depend
 
         # list of all system modules
-        sysdeps="iso_c_binding ifcore"
+        sysdeps="iso_c_binding iso_fortran_env ifcore"
 
         # list of all external library modules or include files
         libdeps="mpi omp_lib mkl_dfti mkl_dfti.f90 fftw3.f03 fftw3.f"

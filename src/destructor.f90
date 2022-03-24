@@ -32,7 +32,9 @@ MODULE class_destructor
     !
     USE class_io, ONLY: io
     !
-    USE env_global_objects, ONLY: setup, env
+    USE class_environ
+    !
+    USE env_base_input
     !
     !------------------------------------------------------------------------------------
     !
@@ -47,40 +49,54 @@ MODULE class_destructor
     TYPE, PUBLIC :: environ_destructor
         !--------------------------------------------------------------------------------
         !
+        TYPE(environ_main), POINTER :: main => NULL()
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, NOPASS :: all => environ_clean
-        PROCEDURE, NOPASS :: first => environ_clean_first
-        PROCEDURE, NOPASS :: second => environ_clean_second
+        PROCEDURE :: everything => clean_all
+        !
+        PROCEDURE :: first => clean_physical_first
+        PROCEDURE :: second => clean_physical_second
+        PROCEDURE :: numerical => clean_numerical
+        !
+        PROCEDURE, NOPASS :: input => deallocate_input_registers
+        PROCEDURE, NOPASS :: debug => close_debug_file
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_destructor
     !------------------------------------------------------------------------------------
     !
-    TYPE(environ_destructor), PUBLIC, SAVE :: clean
-    !
     !------------------------------------------------------------------------------------
 CONTAINS
-    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !! Clean up all the Environ related allocated variables, and call
     !! clean up subroutines of specific Environ modules.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean()
+    SUBROUTINE clean_all(this)
         !--------------------------------------------------------------------------------
         !
-        CALL environ_clean_first()
+        IMPLICIT NONE
         !
-        CALL environ_clean_second()
-        !
-        CALL env_deallocate_mp_buffers()
+        CLASS(environ_destructor), INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_clean
+        !
+        CALL this%first()
+        !
+        CALL this%second()
+        !
+        CALL this%numerical()
+        !
+        CALL this%input()
+        !
+        CALL this%debug()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE clean_all
     !------------------------------------------------------------------------------------
     !>
     !! Clean up all the Environ related allocated variables, and call clean up
@@ -89,63 +105,69 @@ CONTAINS
     !! The structure of this subroutine mirrors the one of init_environ subroutines
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean_first()
+    SUBROUTINE clean_physical_first(this)
         !--------------------------------------------------------------------------------
         !
-        !--------------------------------------------------------------------------------
-        ! Deallocate environment variables
+        IMPLICIT NONE
         !
-        IF (ASSOCIATED(env%vzero%cell)) CALL env%vzero%destroy()
-        !
-        IF (ASSOCIATED(env%dvtot%cell)) CALL env%dvtot%destroy()
+        CLASS(environ_destructor), TARGET, INTENT(IN) :: this
         !
         !--------------------------------------------------------------------------------
-        ! base_environ variables
         !
-        IF (setup%lelectrostatic .AND. ASSOCIATED(env%vreference%cell)) &
-            CALL env%vreference%destroy()
-        !
-        IF (setup%lsoftcavity .AND. ASSOCIATED(env%vsoftcavity%cell)) &
-            CALL env%vsoftcavity%destroy()
-        !
-        IF (setup%lconfine .AND. ASSOCIATED(env%vconfine%cell)) &
-            CALL env%vconfine%destroy()
-        !
-        !--------------------------------------------------------------------------------
-        ! Destroy derived types which were allocated in input
-        !
-        IF (setup%lelectrostatic .OR. setup%lconfine) THEN
+        ASSOCIATE (main => this%main, &
+                   setup => this%main%setup)
             !
-            CALL env%system_charges%destroy()
+            !----------------------------------------------------------------------------
             !
-            CALL env%environment_charges%destroy()
+            IF (ASSOCIATED(main%vzero%cell)) CALL main%vzero%destroy()
             !
-        END IF
-        !
-        IF (setup%lexternals) CALL env%externals%destroy()
-        !
-        IF (setup%lstatic) CALL env%static%destroy()
-        !
-        IF (setup%lelectrolyte) CALL env%electrolyte%destroy()
-        !
-        IF (setup%lsemiconductor) CALL env%semiconductor%destroy()
-        !
-        IF (setup%laddcharges) CALL env%additional_charges%destroy()
-        !
-        CALL env%system_electrons%destroy()
-        !
-        CALL env%system_ions%destroy()
-        !
-        CALL env%system_system%destroy()
-        !
-        CALL env%environment_electrons%destroy()
-        !
-        CALL env%environment_ions%destroy()
-        !
-        CALL env%environment_system%destroy()
+            IF (ASSOCIATED(main%dvtot%cell)) CALL main%dvtot%destroy()
+            !
+            !----------------------------------------------------------------------------
+            !
+            IF (setup%lelectrostatic .AND. ASSOCIATED(main%vreference%cell)) &
+                CALL main%vreference%destroy()
+            !
+            IF (setup%lsoftcavity .AND. ASSOCIATED(main%vsoftcavity%cell)) &
+                CALL main%vsoftcavity%destroy()
+            !
+            IF (setup%lconfine .AND. ASSOCIATED(main%vconfine%cell)) &
+                CALL main%vconfine%destroy()
+            !
+            !----------------------------------------------------------------------------
+            !
+            CALL main%system_charges%destroy()
+            !
+            CALL main%environment_charges%destroy()
+            !
+            IF (setup%lexternals) CALL main%externals%destroy()
+            !
+            IF (setup%lstatic) CALL main%static%destroy()
+            !
+            IF (setup%lelectrolyte) CALL main%electrolyte%destroy()
+            !
+            IF (setup%lsemiconductor) CALL main%semiconductor%destroy()
+            !
+            IF (setup%laddcharges) CALL main%additional_charges%destroy()
+            !
+            !----------------------------------------------------------------------------
+            !
+            CALL main%system_electrons%destroy()
+            !
+            CALL main%system_ions%destroy()
+            !
+            CALL main%system_system%destroy()
+            !
+            CALL main%environment_electrons%destroy()
+            !
+            CALL main%environment_ions%destroy()
+            !
+            CALL main%environment_system%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_clean_first
+    END SUBROUTINE clean_physical_first
     !------------------------------------------------------------------------------------
     !>
     !! Clean up all the Environ-related allocated variables and call clean up
@@ -153,7 +175,86 @@ CONTAINS
     !! be needed by TDDFPT, thus may need to be cleaned later
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean_second()
+    SUBROUTINE clean_physical_second(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_destructor), INTENT(IN) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (main => this%main, &
+                   setup => this%main%setup)
+            !
+            !----------------------------------------------------------------------------
+            !
+            IF (ASSOCIATED(main%velectrostatic%cell)) CALL main%velectrostatic%destroy()
+            !
+            !----------------------------------------------------------------------------
+            !
+            IF (setup%loptical) THEN
+                !
+                CALL main%environment_response_charges%destroy()
+                !
+                CALL main%environment_response_electrons%destroy()
+                !
+                CALL main%system_response_charges%destroy()
+                !
+                CALL main%system_response_electrons%destroy()
+                !
+                CALL main%optical%destroy()
+                !
+            END IF
+            !
+            !----------------------------------------------------------------------------
+            !
+            IF (setup%lsolvent) CALL main%solvent%destroy()
+            !
+            !----------------------------------------------------------------------------
+            !
+            main%initialized = .FALSE.
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE clean_physical_second
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE clean_numerical(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_destructor), INTENT(IN) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (setup => this%main%setup)
+            !
+            CALL setup%outer%destroy()
+            !
+            CALL setup%reference%destroy()
+            !
+            CALL setup%system_cell%destroy()
+            !
+            CALL setup%environment_cell%destroy()
+            !
+            CALL setup%mapping%destroy()
+            !
+        END ASSOCIATE
+        !
+        CALL env_deallocate_buffers()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE clean_numerical
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE close_debug_file()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -167,65 +268,18 @@ CONTAINS
         IF (opnd) CLOSE (unit=io%debug_unit)
         !
         !--------------------------------------------------------------------------------
-        ! base_environ variables
-        !
-        IF (setup%lelectrostatic) THEN
-            !
-            IF (ASSOCIATED(env%velectrostatic%cell)) CALL env%velectrostatic%destroy()
-            !
-            CALL electrostatic_clean()
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Destroy derived types which were allocated in input
-        !
-        IF (setup%loptical) THEN
-            !
-            CALL env%environment_response_charges%destroy()
-            !
-            CALL env%environment_response_electrons%destroy()
-            !
-            CALL env%system_response_charges%destroy()
-            !
-            CALL env%system_response_electrons%destroy()
-            !
-            CALL env%optical%destroy()
-            !
-        END IF
-        !
-        IF (setup%lsolvent) CALL env%solvent%destroy()
-        !
-        !--------------------------------------------------------------------------------
-        ! Destroy cells
-        !
-        CALL setup%system_cell%destroy()
-        !
-        CALL setup%environment_cell%destroy()
-        !
-        CALL setup%mapping%destroy()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_clean_second
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                               PRIVATE HELPER METHODS
-    !
-    !------------------------------------------------------------------------------------
+    END SUBROUTINE close_debug_file
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE electrostatic_clean()
+    SUBROUTINE deallocate_input_registers()
         !--------------------------------------------------------------------------------
         !
-        CALL setup%outer%destroy()
-        !
-        CALL setup%reference%destroy()
+        DEALLOCATE (atomicspread, solvationrad, corespread)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE electrostatic_clean
+    END SUBROUTINE deallocate_input_registers
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

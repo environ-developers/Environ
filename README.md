@@ -42,7 +42,7 @@
     - Environ compilation
     - QE patching, dependency updating, and recompilation
 
-    Note that Environ now uses its own FFTs and utils libraries modeled
+    Note that Environ now uses its own FFTXlib and UtilXlib libraries modeled
     respectively after the FFTXlib and UtilXlib libraries of QE 6.7
 
     If there are any problems with the QE compilation step, look for solutions
@@ -69,8 +69,9 @@ From Environ root: (placed in the QE root directory)
 
 1. configure Environ with
 
-   - `./configure`
-   - in most cases, no prefix should be enough
+   - `./configure --with-qe`
+   - the script will attempt to find the necessary libraries/compilers
+     - if it fails, the user may need to manually modify `make.inc`
 
 2. install QE + Environ 2.0 with
 

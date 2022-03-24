@@ -1,18 +1,22 @@
-! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+!----------------------------------------------------------------------------------------
 !
-!    This file is part of Environ version 1.1
+! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
 !
-!    Environ 1.1 is free software: you can redistribute it and/or modify
-!    it under the terms of the GNU General Public License as published by
-!    the Free Software Foundation, either version 2 of the License, or
-!    (at your option) any later version.
+!----------------------------------------------------------------------------------------
 !
-!    Environ 1.1 is distributed in the hope that it will be useful,
-!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more detail, either the file
-!    `License' in the root directory of the present distribution, or
-!    online at <http://www.gnu.org/licenses/>.
+!     This file is part of Environ version 2.0
+!
+!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     it under the terms of the GNU General Public License as published by
+!     the Free Software Foundation, either version 2 of the License, or
+!     (at your option) any later version.
+!
+!     Environ 2.0 is distributed in the hope that it will be useful,
+!     but WITHOUT ANY WARRANTY; without even the implied warranty of
+!     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!     GNU General Public License for more detail, either the file
+!     `License' in the root directory of the present distribution, or
+!     online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
 !
@@ -61,7 +65,7 @@ CONTAINS
     !! and derived routines for cards (external charges and dielectric regions)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_environ_input(nsx, filename)
+    SUBROUTINE read_environ_input(filename, nsx)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -99,7 +103,7 @@ CONTAINS
         !
         CALL environ_read_cards(environ_unit_input)
         !
-        WRITE (io%unit, *) ! blank line after default settings
+        CALL io%writer('') ! blank line after default settings
         !
         CLOSE (environ_unit_input)
         !
@@ -207,8 +211,8 @@ CONTAINS
         !
         INTEGER, OPTIONAL, INTENT(IN) :: unit
         !
-        INTEGER :: local_unit = 5
-        LOGICAL :: tend = .FALSE.
+        INTEGER :: local_unit
+        LOGICAL :: tend
         !
         CHARACTER(LEN=256) :: input_line
         CHARACTER(LEN=80) :: card
@@ -218,7 +222,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set default READ unit if none provided
         !
-        IF (PRESENT(unit)) local_unit = unit
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = 5
+        END IF
         !
         CALL env_read_line(local_unit, input_line, end_of_file=tend)
         !
@@ -263,14 +271,15 @@ CONTAINS
     SUBROUTINE environ_defaults()
         !--------------------------------------------------------------------------------
         !
-        IMPLICIT NONE
-        !
         environ_debug = .FALSE.
         !
         environ_restart = .FALSE.
         verbose = 0
         environ_thr = 1.D-1
         environ_nskip = 1
+        !
+        env_ecut = 0.D0
+        !
         environ_type = 'input'
         !
         system_ntyp = 0
@@ -317,8 +326,6 @@ CONTAINS
     SUBROUTINE boundary_defaults()
         !--------------------------------------------------------------------------------
         !
-        IMPLICIT NONE
-        !
         solvent_mode = 'electronic'
         !
         radius_mode = 'uff'
@@ -342,10 +349,11 @@ CONTAINS
         filling_threshold = 0.825D0
         filling_spread = 0.02D0
         !
-        field_awareness = 0.D0
-        charge_asymmetry = -1.D0
-        field_max = 10.D0
-        field_min = 1.D0
+        field_aware = .FALSE.
+        field_factor = 0.08D0
+        field_asymmetry = -0.32D0
+        field_max = 6.D0
+        field_min = 2.D0
         !
         electrolyte_mode = 'electronic'
         !
@@ -376,8 +384,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE electrostatic_defaults()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
         !
         problem = 'none'
         tol = 1.D-5
@@ -424,8 +430,6 @@ CONTAINS
     SUBROUTINE environ_bcast()
         !--------------------------------------------------------------------------------
         !
-        IMPLICIT NONE
-        !
         CALL env_mp_bcast(environ_debug, io%node, io%comm)
         !
         CALL env_mp_bcast(environ_restart, io%node, io%comm)
@@ -435,6 +439,8 @@ CONTAINS
         CALL env_mp_bcast(environ_thr, io%node, io%comm)
         !
         CALL env_mp_bcast(environ_nskip, io%node, io%comm)
+        !
+        CALL env_mp_bcast(env_ecut, io%node, io%comm)
         !
         CALL env_mp_bcast(environ_type, io%node, io%comm)
         !
@@ -496,8 +502,6 @@ CONTAINS
     SUBROUTINE boundary_bcast()
         !--------------------------------------------------------------------------------
         !
-        IMPLICIT NONE
-        !
         CALL env_mp_bcast(solvent_mode, io%node, io%comm)
         !
         CALL env_mp_bcast(stype, io%node, io%comm)
@@ -532,9 +536,11 @@ CONTAINS
         !
         CALL env_mp_bcast(filling_spread, io%node, io%comm)
         !
-        CALL env_mp_bcast(field_awareness, io%node, io%comm)
+        CALL env_mp_bcast(field_aware, io%node, io%comm)
         !
-        CALL env_mp_bcast(charge_asymmetry, io%node, io%comm)
+        CALL env_mp_bcast(field_factor, io%node, io%comm)
+        !
+        CALL env_mp_bcast(field_asymmetry, io%node, io%comm)
         !
         CALL env_mp_bcast(field_max, io%node, io%comm)
         !
@@ -575,8 +581,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE electrostatic_bcast()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
         !
         CALL env_mp_bcast(problem, io%node, io%comm)
         !
@@ -707,7 +711,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER :: i
-        LOGICAL :: allowed = .FALSE.
+        LOGICAL :: allowed
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_checkin'
         !
@@ -822,7 +826,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER :: i
-        LOGICAL :: allowed = .FALSE.
+        LOGICAL :: allowed
         !
         CHARACTER(LEN=80) :: sub_name = 'boundary_checkin'
         !
@@ -859,6 +863,9 @@ CONTAINS
         !
         IF (softness <= 0.0_DP) CALL io%error(sub_name, "softness out of range", 1)
         !
+        IF (solvent_distance < 0.0_DP) &
+            CALL io%error(sub_name, "solvent_distance out of range", 1)
+        !
         IF (solvent_spread <= 0.0_DP) &
             CALL io%error(sub_name, "solvent_spread out of range", 1)
         !
@@ -877,11 +884,11 @@ CONTAINS
         IF (filling_spread <= 0.0_DP) &
             CALL io%error(sub_name, "filling_spread out of range", 1)
         !
-        IF (field_awareness < 0.0_DP) &
-            CALL io%error(sub_name, "field_awareness out of range", 1)
+        IF (field_factor < 0.0_DP) &
+            CALL io%error(sub_name, "field_factor out of range", 1)
         !
-        IF (ABS(charge_asymmetry) > 1.0_DP) &
-            CALL io%error(sub_name, "charge_asymmetry out of range", 1)
+        IF (ABS(field_asymmetry) > 1.0_DP) &
+            CALL io%error(sub_name, "field_asymmetry out of range", 1)
         !
         IF (field_min < 0.0_DP) CALL io%error(sub_name, "field_min out of range", 1)
         !
@@ -978,7 +985,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER :: i
-        LOGICAL :: allowed = .FALSE.
+        LOGICAL :: allowed
         !
         CHARACTER(LEN=80) :: sub_name = 'electrostatic_checkin'
         !
@@ -1166,7 +1173,7 @@ CONTAINS
         !
         SELECT CASE (TRIM(solvent_mode))
             !
-        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+        CASE ('electronic', 'full', 'system')
             !
             SELECT CASE (TRIM(deriv_method))
                 !
@@ -1182,7 +1189,7 @@ CONTAINS
                 !
             END SELECT
             !
-        CASE ('ionic', 'fa-ionic')
+        CASE ('ionic')
             !
             SELECT CASE (TRIM(deriv_method))
                 !
@@ -1199,6 +1206,10 @@ CONTAINS
             END SELECT
             !
         END SELECT
+        !
+        IF (solvent_mode == 'system' .AND. solvent_distance == 0.0_DP) &
+            CALL io%error(sub_name, &
+                          "solvent_distance must be set (greater than zero) for system interfaces", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_setup
@@ -1273,7 +1284,7 @@ CONTAINS
                 !
             END SELECT
             !
-        ELSE IF (solvent_mode == 'ionic' .OR. solvent_mode == 'fa-ionic') THEN
+        ELSE IF (solvent_mode == 'ionic') THEN
             !
             !----------------------------------------------------------------------------
             ! Soft-sphere continuum solvation
@@ -1367,7 +1378,7 @@ CONTAINS
             !
             SELECT CASE (TRIM(electrolyte_mode))
                 !
-            CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+            CASE ('electronic', 'full', 'system')
                 !
                 SELECT CASE (TRIM(electrolyte_deriv_method))
                     !
@@ -1384,7 +1395,7 @@ CONTAINS
                     !
                 END SELECT
                 !
-            CASE ('ionic', 'fa-ionic')
+            CASE ('ionic')
                 !
                 SELECT CASE (TRIM(electrolyte_deriv_method))
                     !
@@ -1419,8 +1430,7 @@ CONTAINS
                 IF (solver /= 'fixed-point') THEN
                     solver = 'fixed-point'
                     !
-                    CALL io%writer( &
-                        "* setting solver to fixed-point (required for gcs correction)")
+                    CALL io%writer("* setting solver to fixed-point (required for gcs correction)")
                     !
                 END IF
                 !
@@ -1440,6 +1450,24 @@ CONTAINS
         IF (solver == 'fixed-point' .AND. auxiliary == 'none') auxiliary = 'full'
         !
         !--------------------------------------------------------------------------------
+        ! Set inner problem
+        !
+        IF (inner_solver /= 'none') THEN
+            !
+            SELECT CASE (solver)
+                !
+            CASE ('fixed-point')
+                !
+                IF (auxiliary == 'ioncc') inner_problem = 'generalized'
+                !
+            CASE ('newton')
+                inner_problem = 'linpb'
+                !
+            END SELECT
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
         ! Validate use of inner solver
         !
         IF (.NOT. (problem == 'pb' .OR. &
@@ -1451,66 +1479,71 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Validate problem/solver combination and check for PBC correction if needed
         !
-        SELECT CASE (problem)
+        CALL validate_electrostatic_input(problem, solver)
+        !
+        IF (inner_solver /= 'none') &
+            CALL validate_electrostatic_input(inner_problem, inner_solver)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE electrostatics_setup
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE validate_electrostatic_input(problem_in, solver_in)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CHARACTER(LEN=*), INTENT(IN) :: problem_in
+        CHARACTER(LEN=*), INTENT(IN) :: solver_in
+        !
+        CHARACTER(LEN=80) :: sub_name = 'validate_electrostatic_input'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT CASE (problem_in)
+            !
+        CASE ('poisson')
             !
         CASE ('generalized') ! generalized Poisson-Boltzmann
             !
-            IF (solver == 'direct' .OR. inner_solver == 'direct') &
-                CALL io%error(sub_name, &
-                              "Cannot use a direct solver for the Generalized Poisson eq.", 1)
+            IF (solver_in == 'direct') &
+                CALL io%error(sub_name, "Cannot use a direct solver for the Generalized Poisson eq.", 1)
             !
         CASE ('linpb', 'linmodpb') ! linearized Poisson-Boltzmann
             !
-            SELECT CASE (solver)
+            SELECT CASE (solver_in)
                 !
-            CASE ('none', 'cg', 'sd')
-                !
-            CASE DEFAULT
-                CALL io%error(sub_name, &
-                              "Only gradient-based solver for the linearized Poisson-Boltzmann eq.", 1)
-                !
-            END SELECT
-            !
-            SELECT CASE (inner_solver)
-                !
-            CASE ('none', 'cg', 'sd')
+            CASE ('cg', 'sd')
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, &
-                              "Only gradient-based solver for the linearized Poisson-Boltzmann eq.", 1)
+                CALL io%error(sub_name, "Only gradient-based solver for the linearized Poisson-Boltzmann eq.", 1)
                 !
             END SELECT
             !
             IF (pbc_correction /= 'parabolic') &
-                CALL io%error(sub_name, &
-                              "Linearized-PB problem requires parabolic pbc correction", 1)
+                CALL io%error(sub_name, "Linearized-PB problem requires parabolic pbc correction", 1)
             !
         CASE ('pb', 'modpb') ! Poisson-Boltzmann
             !
-            SELECT CASE (solver)
+            SELECT CASE (solver_in)
                 !
             CASE ('direct', 'cg', 'sd')
-                CALL io%error(sub_name, &
-                              "No direct or gradient-based solver for the full Poisson-Boltzmann eq.", 1)
-                !
-            END SELECT
-            !
-            SELECT CASE (inner_solver)
-                !
-            CASE ('direct', 'cg', 'sd')
-                CALL io%error(sub_name, &
-                              "No direct or gradient-based solver for the full Poisson-Boltzmann eq.", 1)
+                CALL io%error(sub_name, "No direct or gradient-based solver for the full Poisson-Boltzmann eq.", 1)
                 !
             END SELECT
             !
             IF (pbc_correction /= 'parabolic') &
-                CALL io%error(sub_name, &
-                              "Linearized-PB problem requires parabolic pbc correction", 1)
+                CALL io%error(sub_name, "Full-PB problem requires parabolic pbc correction", 1)
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected keyword for electrostatic problem", 1)
             !
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE electrostatics_setup
+    END SUBROUTINE validate_electrostatic_input
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -1706,27 +1739,27 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (ALLOCATED(extcharge_charge)) DEALLOCATE (extcharge_charge)
+        !
+        IF (ALLOCATED(extcharge_pos)) DEALLOCATE (extcharge_pos)
+        !
+        IF (ALLOCATED(extcharge_spread)) DEALLOCATE (extcharge_spread)
+        !
         IF (ALLOCATED(extcharge_dim)) DEALLOCATE (extcharge_dim)
         !
         IF (ALLOCATED(extcharge_axis)) DEALLOCATE (extcharge_axis)
         !
-        IF (ALLOCATED(extcharge_charge)) DEALLOCATE (extcharge_charge)
-        !
-        IF (ALLOCATED(extcharge_spread)) DEALLOCATE (extcharge_spread)
-        !
-        IF (ALLOCATED(extcharge_pos)) DEALLOCATE (extcharge_pos)
-        !
+        ALLOCATE (extcharge_charge(external_charges))
+        ALLOCATE (extcharge_pos(3, external_charges))
+        ALLOCATE (extcharge_spread(external_charges))
         ALLOCATE (extcharge_dim(external_charges))
         ALLOCATE (extcharge_axis(external_charges))
-        ALLOCATE (extcharge_charge(external_charges))
-        ALLOCATE (extcharge_spread(external_charges))
-        ALLOCATE (extcharge_pos(3, external_charges))
         !
+        extcharge_charge = 0.0_DP
+        extcharge_pos = 0.0_DP
+        extcharge_spread = 0.5_DP
         extcharge_dim = 0
         extcharge_axis = 3
-        extcharge_charge = 0.0_DP
-        extcharge_spread = 0.5_DP
-        extcharge_pos = 0.0_DP
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_input_extcharge
@@ -1943,31 +1976,31 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(epsregion_dim)) DEALLOCATE (epsregion_dim)
-        !
-        IF (ALLOCATED(epsregion_axis)) DEALLOCATE (epsregion_axis)
-        !
         IF (ALLOCATED(epsregion_eps)) DEALLOCATE (epsregion_eps)
+        !
+        IF (ALLOCATED(epsregion_pos)) DEALLOCATE (epsregion_pos)
         !
         IF (ALLOCATED(epsregion_width)) DEALLOCATE (epsregion_width)
         !
         IF (ALLOCATED(epsregion_spread)) DEALLOCATE (epsregion_spread)
         !
-        IF (ALLOCATED(epsregion_pos)) DEALLOCATE (epsregion_pos)
+        IF (ALLOCATED(epsregion_dim)) DEALLOCATE (epsregion_dim)
         !
+        IF (ALLOCATED(epsregion_axis)) DEALLOCATE (epsregion_axis)
+        !
+        ALLOCATE (epsregion_eps(2, dielectric_regions))
+        ALLOCATE (epsregion_pos(3, dielectric_regions))
+        ALLOCATE (epsregion_spread(dielectric_regions))
+        ALLOCATE (epsregion_width(dielectric_regions))
         ALLOCATE (epsregion_dim(dielectric_regions))
         ALLOCATE (epsregion_axis(dielectric_regions))
-        ALLOCATE (epsregion_eps(2, dielectric_regions))
-        ALLOCATE (epsregion_width(dielectric_regions))
-        ALLOCATE (epsregion_spread(dielectric_regions))
-        ALLOCATE (epsregion_pos(3, dielectric_regions))
         !
+        epsregion_eps = 1.0_DP
+        epsregion_pos = 0.0_DP
+        epsregion_spread = 0.5_DP
+        epsregion_width = 0.0_DP
         epsregion_dim = 0
         epsregion_axis = 3
-        epsregion_eps = 1.0_DP
-        epsregion_width = 0.0_DP
-        epsregion_spread = 0.5_DP
-        epsregion_pos = 0.0_DP
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_input_epsregion
@@ -2027,9 +2060,7 @@ CONTAINS
         LOGICAL, OPTIONAL, INTENT(OUT) :: end_of_file, error
         !
         INTEGER :: ios
-        !
-        LOGICAL :: tend = .FALSE.
-        LOGICAL :: terr = .FALSE.
+        LOGICAL :: tend, terr
         !
         CHARACTER(LEN=80) :: sub_name = 'env_read_line'
         !
@@ -2039,6 +2070,9 @@ CONTAINS
             CALL io%error(sub_name, "Input line too short", MAX(LEN(line), 1))
         !
         !--------------------------------------------------------------------------------
+        !
+        tend = .FALSE.
+        terr = .FALSE.
         !
         IF (io%lnode) THEN
             ios = 0
@@ -2281,9 +2315,6 @@ CONTAINS
         ALLOCATE (atomicspread(local_nsx))
         ALLOCATE (solvationrad(local_nsx))
         ALLOCATE (corespread(local_nsx))
-        !
-        ALLOCATE (cion(local_nsx))
-        ALLOCATE (zion(local_nsx))
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_registers

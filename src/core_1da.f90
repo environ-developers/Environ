@@ -129,6 +129,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%core_type = '1d-analytic'
+        this%nnr = 0
+        this%dim = 0
+        this%pdim = 0
+        this%axis = 0
+        this%size = 0.D0
+        this%origin = 0.D0
+        !
+        NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_1da

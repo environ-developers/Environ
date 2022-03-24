@@ -32,14 +32,13 @@ MODULE class_cell
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
-    USE env_sorting, ONLY: env_hpsort_eps
-    USE env_mp, ONLY: env_mp_sum
+    USE env_mp, ONLY: env_mp_sum, env_mp_rank, env_mp_size
     !
     USE environ_param, ONLY: DP, tpi, eps8
     !
-    USE env_base_stick, ONLY: env_sticks_map, env_sticks_map_deallocate
+    USE env_stick_base, ONLY: env_sticks_map, env_sticks_map_deallocate
     !
-    USE env_types_fft, ONLY: env_fft_type_descriptor, env_fft_type_init, &
+    USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_type_init, &
                              env_fft_stick_index, env_fft_type_deallocate
     !
     USE env_fft_ggen, ONLY: env_fft_set_nl
@@ -83,16 +82,16 @@ MODULE class_cell
         !
         TYPE(env_fft_type_descriptor) :: dfft
         !
-        INTEGER :: ntot ! total number of grid points
+        INTEGER :: nr(3) ! number of grid points along each direction
+        INTEGER :: nrx(3) ! number of grid points along each direction (optimized)
+        INTEGER :: nnt ! total number of grid points
+        INTEGER :: nntx ! total number of grid points (optimized)
         INTEGER :: nnr ! number of grid points allocated in every processor
         INTEGER :: ir_end ! actual number grid points accessed by each processor
         INTEGER :: j0, k0 ! starting indexes of processor-specific boxes of grid points
         REAL(DP) :: in1, in2, in3 ! inverse number of grid points
         !
-        INTEGER :: ngm = 0 ! local number of G vectors (on this processor)
-        ! with gamma tricks, only vectors in G>
-        !
-        REAL(DP) :: gcutm = 0.0_DP ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
+        REAL(DP) :: gcutm = 0.0_DP ! cutoff for |G|^2
         !
         INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
         ! needed in parallel execution:
@@ -164,18 +163,43 @@ CONTAINS
         IF (ALLOCATED(this%gg)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%cubic = .FALSE.
+        this%label = 'system'
+        this%at = 0.D0
+        this%bg = 0.D0
+        this%origin = 0.D0
+        this%corners = 0.D0
+        this%omega = 0.D0
+        this%domega = 0.D0
+        this%nr = 0
+        this%nrx = 0
+        this%nnt = 0
+        this%nntx = 0
+        this%nnr = 0
+        this%ir_end = 0
+        this%j0 = 0
+        this%k0 = 0
+        this%in1 = 0
+        this%in2 = 0
+        this%in3 = 0
+        this%gcutm = 0.D0
+        this%gstart = 2
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_cell
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_cell(this, gcutm, comm, at, nr, label)
+    SUBROUTINE init_environ_cell(this, comm, at, gcutm, nr, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: comm
-        REAL(DP), INTENT(IN) :: gcutm, at(3, 3)
+        REAL(DP), INTENT(IN) :: at(3, 3), gcutm
         INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
@@ -203,28 +227,31 @@ CONTAINS
         !
         CALL this%init_dfft(gcutm, comm, at)
         !
-        this%in1 = 1.D0 / DBLE(this%dfft%nr1)
-        this%in2 = 1.D0 / DBLE(this%dfft%nr2)
-        this%in3 = 1.D0 / DBLE(this%dfft%nr3)
-        !
         !--------------------------------------------------------------------------------
-        ! Real space grid, local dimensions (processor-specific)
+        ! Real-space grid details
+        !
+        this%nr = (/this%dfft%nr1, this%dfft%nr2, this%dfft%nr3/)
+        this%nrx = (/this%dfft%nr1x, this%dfft%nr2x, this%dfft%nr3x/)
+        !
+        this%nnt = PRODUCT(this%nr)
+        this%nntx = PRODUCT(this%nrx)
         !
         this%nnr = this%dfft%nnr
+        !
 #if defined(__MPI)
         this%j0 = this%dfft%my_i0r2p
         this%k0 = this%dfft%my_i0r3p
         !
-        this%ir_end = MIN(this%nnr, &
-                          this%dfft%nr1x * this%dfft%my_nr2p * this%dfft%my_nr3p)
+        this%ir_end = MIN(this%nnr, this%nrx(1) * this%dfft%my_nr2p * this%dfft%my_nr3p)
 #else
         this%j0 = 0
         this%k0 = 0
         this%ir_end = this%nnr
 #endif
         !
-        this%ntot = this%dfft%nr1 * this%dfft%nr2 * this%dfft%nr3
-        ! total number of physical points
+        this%in1 = 1.D0 / DBLE(this%nr(1))
+        this%in2 = 1.D0 / DBLE(this%nr(2))
+        this%in3 = 1.D0 / DBLE(this%nr(3))
         !
         !--------------------------------------------------------------------------------
         ! Set basic cell properties
@@ -233,12 +260,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%ngm = this%dfft%ngm ! #TODO why is this necessary?
-        !
         CALL this%init_gvect(ngm_g, this%dfft%comm)
         !
         CALL env_ggen(this%dfft, this%dfft%comm, this%at, this%bg, this%gcutm, &
-                      ngm_g, this%ngm, this%g, this%gg, this%gstart, .TRUE.)
+                      ngm_g, this%dfft%ngm, this%g, this%gg, this%gstart, .TRUE.)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_cell
@@ -274,7 +299,7 @@ CONTAINS
         CALL recips(this%at(1, 1), this%at(1, 2), this%at(1, 3), &
                     this%bg(1, 1), this%bg(1, 2), this%bg(1, 3))
         !
-        this%domega = this%omega / this%ntot ! set volume element
+        this%domega = this%omega / this%nnt ! set volume element
         !
         !--------------------------------------------------------------------------------
         ! Calculate corners for minimum image convention
@@ -357,8 +382,8 @@ CONTAINS
         CALL recips(at(1, 1), at(1, 2), at(1, 3), bg(1, 1), bg(1, 2), bg(1, 3))
         ! calculate the reciprocal lattice vectors
         !
-        CALL env_fft_type_init(this%dfft, smap, .TRUE., .TRUE., comm, at, bg, gcutm, &
-                               nyfft=1, nmany=1)
+        CALL env_fft_type_init(this%dfft, smap, 'rho', .TRUE., .TRUE., comm, at, bg, &
+                               gcutm, nyfft=1, nmany=1)
         !
         this%dfft%rho_clock_label = 'fft'
         !
@@ -545,15 +570,15 @@ CONTAINS
         ! Convert single ir index to i, j, k
         !
         idx = ir - 1
-        k = idx / (this%dfft%nr1x * this%dfft%my_nr2p)
-        idx = idx - (this%dfft%nr1x * this%dfft%my_nr2p) * k
+        k = idx / (this%nrx(1) * this%dfft%my_nr2p)
+        idx = idx - (this%nrx(1) * this%dfft%my_nr2p) * k
         k = k + this%k0
-        j = idx / this%dfft%nr1x
-        idx = idx - this%dfft%nr1x * j
+        j = idx / this%nrx(1)
+        idx = idx - this%nrx(1) * j
         j = j + this%j0
         i = idx
         !
-        physical = i < this%dfft%nr1 .AND. j < this%dfft%nr2 .AND. k < this%dfft%nr3
+        physical = i < this%nr(1) .AND. j < this%nr(2) .AND. k < this%nr(3)
         ! check if current point was generated for optimization of fft grids
         !
         !--------------------------------------------------------------------------------
@@ -583,7 +608,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        narea = this%ntot / naxis
+        narea = this%nnt / naxis
         !
         IF (reverse) THEN
             f = 0.D0
@@ -894,8 +919,6 @@ CONTAINS
         LOGICAL :: global_sort, is_local
         INTEGER, ALLOCATABLE :: ngmpe(:)
         !
-        INTEGER, EXTERNAL :: env_mp_rank, env_mp_size
-        !
         CHARACTER(LEN=80) :: sub_name = 'env_ggen'
         !
         !--------------------------------------------------------------------------------
@@ -1134,8 +1157,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calculate sum over all processors
         !
-        ngm = this%ngm
-        ngm_g = ngm
+        ngm = this%dfft%ngm ! local
+        ngm_g = ngm ! global
         !
         CALL env_mp_sum(ngm_g, comm)
         !
@@ -1166,6 +1189,133 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_deallocate_gvect
+    !------------------------------------------------------------------------------------
+    !>
+    !! Sort an array ra(1:n) into ascending order using heapsort algorithm,
+    !! and considering two elements being equal if their values differ
+    !! for less than "eps".
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_hpsort_eps(n, ra, ind, eps)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: n
+        REAL(DP), INTENT(IN) :: eps
+        !
+        INTEGER, INTENT(INOUT) :: ind(*)
+        REAL(DP), INTENT(INOUT) :: ra(*)
+        !
+        INTEGER :: i, ir, j, l, iind
+        REAL(DP) :: rra
+        !
+        !--------------------------------------------------------------------------------
+        ! Initialize index array
+        !
+        IF (ind(1) == 0) THEN
+            !
+            DO i = 1, n
+                ind(i) = i
+            END DO
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (n < 2) RETURN ! nothing to order
+        !
+        l = n / 2 + 1
+        ir = n
+        !
+        sorting: DO
+            !
+            IF (l > 1) THEN ! hiring phase
+                !
+                l = l - 1
+                rra = ra(l)
+                iind = ind(l)
+                !
+            ELSE ! retirement-promotion phase
+                !
+                rra = ra(ir)
+                iind = ind(ir)
+                ! clear a space at the end of the array
+                !
+                ra(ir) = ra(1)
+                ind(ir) = ind(1)
+                ! retire the top of the heap into it
+                !
+                ir = ir - 1 ! decrease the size of the corporation
+                !
+                IF (ir == 1) THEN ! done with the last promotion
+                    !
+                    ra(1) = rra
+                    ind(1) = iind
+                    ! the least competent worker
+                    !
+                    EXIT sorting
+                    !
+                END IF
+                !
+            END IF
+            !
+            !----------------------------------------------------------------------------
+            ! Regardless of phase, we prepare to place rra in its proper level
+            !
+            i = l
+            j = l + l
+            !
+            DO WHILE (j <= ir)
+                !
+                IF (j < ir) THEN
+                    !
+                    IF (ABS(ra(j) - ra(j + 1)) >= eps) THEN
+                        !
+                        IF (ra(j) < ra(j + 1)) j = j + 1
+                        ! compare to better underling
+                        !
+                    ELSE ! this means ra(j) == ra(j+1) within tolerance
+                        !
+                        IF (ind(j) < ind(j + 1)) j = j + 1
+                        !
+                    END IF
+                    !
+                END IF
+                !
+                IF (ABS(rra - ra(j)) >= eps) THEN ! demote rra
+                    !
+                    IF (rra < ra(j)) THEN
+                        ra(i) = ra(j)
+                        ind(i) = ind(j)
+                        i = j
+                        j = j + j
+                    ELSE
+                        j = ir + 1 ! set j to terminate do-while loop
+                    END IF
+                    !
+                ELSE ! this means rra == ra(j) within tolerance
+                    !
+                    IF (iind < ind(j)) THEN ! demote rra
+                        ra(i) = ra(j)
+                        ind(i) = ind(j)
+                        i = j
+                        j = j + j
+                    ELSE
+                        j = ir + 1 ! set j to terminate do-while loop
+                    END IF
+                    !
+                END IF
+                !
+            END DO
+            !
+            ra(i) = rra
+            ind(i) = iind
+            !
+        END DO sorting
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_hpsort_eps
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -1243,8 +1393,8 @@ CONTAINS
             !
             IF (local_verbose >= 3) THEN
                 WRITE (local_unit, 1004) this%at
-                WRITE (local_unit, 1005) this%dfft%nr1, this%dfft%nr2, this%dfft%nr3
-                WRITE (local_unit, 1006) this%ntot, this%nnr, this%domega
+                WRITE (local_unit, 1005) this%nr
+                WRITE (local_unit, 1006) this%nnt, this%nnr, this%domega
             END IF
             !
             IF (local_verbose < base_verbose) &
@@ -1288,28 +1438,24 @@ CONTAINS
         INTEGER, INTENT(IN) :: natoms
         !
         INTEGER :: i
-        INTEGER :: nr1, nr2, nr3
-        !
-        REAL(DP), POINTER :: at(:, :), origin(:)
         !
         !--------------------------------------------------------------------------------
         !
-        nr1 = this%dfft%nr1
-        nr2 = this%dfft%nr2
-        nr3 = this%dfft%nr3
-        !
-        at => this%at
-        origin => this%origin
-        !
-        !--------------------------------------------------------------------------------
-        ! Write cube cell data
-        !
-        WRITE (300, *) "CUBE FILE GENERATED BY PW.X"
-        WRITE (300, *) "OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z"
-        WRITE (300, "(i5,3f12.6)") natoms, origin
-        WRITE (300, "(i5,3f12.6)") nr1, (at(i, 1) / DBLE(nr1), i=1, 3)
-        WRITE (300, "(i5,3f12.6)") nr2, (at(i, 2) / DBLE(nr2), i=1, 3)
-        WRITE (300, "(i5,3f12.6)") nr3, (at(i, 3) / DBLE(nr3), i=1, 3)
+        ASSOCIATE (nr => this%nr, &
+                   at => this%at, &
+                   origin => this%origin)
+            !
+            !----------------------------------------------------------------------------
+            ! Write cube cell data
+            !
+            WRITE (300, *) "CUBE FILE GENERATED BY PW.X"
+            WRITE (300, *) "OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z"
+            WRITE (300, "(i5,3f12.6)") natoms, origin
+            WRITE (300, "(i5,3f12.6)") nr(1), (at(i, 1) / DBLE(nr(1)), i=1, 3)
+            WRITE (300, "(i5,3f12.6)") nr(2), (at(i, 2) / DBLE(nr(2)), i=1, 3)
+            WRITE (300, "(i5,3f12.6)") nr(3), (at(i, 3) / DBLE(nr(3)), i=1, 3)
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE write_cube_cell

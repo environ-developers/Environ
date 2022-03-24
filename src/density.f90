@@ -35,8 +35,8 @@ MODULE class_density
     USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_base_scatter, ONLY: env_gather_grid
-    USE env_types_fft, ONLY: env_fft_type_descriptor
+    USE env_scatter_mod, ONLY: env_gather_grid
+    USE env_fft_types, ONLY: env_fft_type_descriptor
     !
     USE environ_param, ONLY: DP
     !
@@ -126,6 +126,16 @@ CONTAINS
         IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
         !
         IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%label = 'density'
+        this%charge = 0.D0
+        this%dipole = 0.D0
+        this%quadrupole = 0.D0
+        !
+        NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_density
@@ -291,7 +301,6 @@ CONTAINS
     END SUBROUTINE multipoles_environ_density
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION dipole_of_origin(this, origin) RESULT(dipole)
@@ -311,7 +320,6 @@ CONTAINS
     END FUNCTION dipole_of_origin
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION quadrupole_of_origin(this, origin) RESULT(quadrupole)
@@ -402,7 +410,7 @@ CONTAINS
         !
         CALL env_mp_sum(quadratic_mean, this%cell%dfft%comm)
         !
-        quadratic_mean = SQRT(quadratic_mean / this%cell%ntot)
+        quadratic_mean = SQRT(quadratic_mean / this%cell%nnt)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION quadratic_mean_environ_density

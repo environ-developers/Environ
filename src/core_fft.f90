@@ -35,7 +35,7 @@ MODULE class_core_fft
     USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_fft_main, ONLY: env_fwfft, env_invfft
+    USE env_fft_interfaces, ONLY: env_fwfft, env_invfft
     !
     USE environ_param, ONLY: DP, pi, tpi, tpi2, fpi, e2
     !
@@ -91,6 +91,7 @@ MODULE class_core_fft
         PROCEDURE :: grad_poisson => grad_poisson_fft
         PROCEDURE :: force => force_fft
         !
+        PROCEDURE :: grad_v_h_of_rho_r
         PROCEDURE :: hess_v_h_of_rho_r
         PROCEDURE :: field_of_grad_rho
         !
@@ -128,6 +129,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%core_type = 'fft'
+        this%alpha = 0.D0
+        this%beta = 0.D0
+        !
+        NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_fft
@@ -156,7 +161,7 @@ CONTAINS
         IF (PRESENT(use_internal_pbc_corr)) &
             this%use_internal_pbc_corr = use_internal_pbc_corr
         !
-        ALLOCATE (this%correction(cell%ngm))
+        ALLOCATE (this%correction(cell%dfft%ngm))
         !
         IF (this%use_internal_pbc_corr) THEN
             CALL this%update_mt_correction()
@@ -204,15 +209,11 @@ CONTAINS
         !
         IF (.NOT. ASSOCIATED(this%cell)) RETURN
         !
+        IF (.NOT. ALLOCATED(this%correction)) CALL io%destroy_error(sub_name)
+        !
         !--------------------------------------------------------------------------------
         !
-        IF (this%use_internal_pbc_corr) THEN
-            !
-            IF (.NOT. ALLOCATED(this%correction)) CALL io%destroy_error(sub_name)
-            !
-            DEALLOCATE (this%correction)
-        END IF
-        !
+        DEALLOCATE (this%correction)
         NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------
@@ -256,7 +257,7 @@ CONTAINS
             !
             aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
             !
-            CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
+            CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
             ! Multiply by (iG) to get (\grad_ipol a)(G)
@@ -270,7 +271,7 @@ CONTAINS
                 IF (dfft%lgamma) &
                     gaux(dfft%nlm) = CMPLX(REAL(gaux(nl)), -AIMAG(gaux(nl)), kind=DP)
                 !
-                CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
+                CALL env_invfft('Rho', gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
                 !
                 grad%of_r(i, :) = tpi * DBLE(gaux)
                 ! add the factor 2\pi/a missing in the definition of G
@@ -308,7 +309,7 @@ CONTAINS
                    nnr => this%cell%dfft%nnr, &
                    nl => this%cell%dfft%nl, &
                    nlm => this%cell%dfft%nlm, &
-                   ngm => this%cell%ngm, &
+                   ngm => this%cell%dfft%ngm, &
                    g => this%cell%g)
             !
             !----------------------------------------------------------------------------
@@ -328,7 +329,7 @@ CONTAINS
                 i = 1
                 aux = CMPLX(grad%of_r(i, :), grad%of_r(i + 1, :), kind=DP)
                 !
-                CALL env_fwfft(aux, dfft) ! bring a(i,r) to G-space, a(G)
+                CALL env_fwfft('Rho', aux, dfft) ! bring a(i,r) to G-space, a(G)
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by iG to get the gradient in G-space
@@ -350,7 +351,7 @@ CONTAINS
                 i = 3
                 aux = CMPLX(grad%of_r(i, :), 0.0_DP, kind=DP)
                 !
-                CALL env_fwfft(aux, dfft) ! bring a(i, r) to G-space, a(G)
+                CALL env_fwfft('Rho', aux, dfft) ! bring a(i, r) to G-space, a(G)
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by iG to get the gradient in G-space
@@ -370,7 +371,7 @@ CONTAINS
                 DO i = 1, 3
                     aux = CMPLX(grad%of_r(i, :), 0.0_DP, kind=DP)
                     !
-                    CALL env_fwfft(aux, dfft) ! bring a(i,r) to G-space, a(G)
+                    CALL env_fwfft('Rho', aux, dfft) ! bring a(i,r) to G-space, a(G)
                     !
                     !--------------------------------------------------------------------
                     ! Multiply by iG to get the gradient in G-space
@@ -388,7 +389,7 @@ CONTAINS
                 !
             END IF
             !
-            CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
+            CALL env_invfft('Rho', gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
             !
             div%of_r = tpi * REAL(gaux)
             ! Add the factor 2\pi/a missing in the definition of G and sum
@@ -429,7 +430,7 @@ CONTAINS
             !
             aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
             !
-            CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
+            CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
             ! Compute the laplacian
@@ -441,7 +442,7 @@ CONTAINS
             IF (dfft%lgamma) &
                 laux(dfft%nlm) = CMPLX(REAL(laux(nl)), -AIMAG(laux(nl)), kind=DP)
             !
-            CALL env_invfft(laux, dfft) ! bring back to R-space, (\lapl a)(r)
+            CALL env_invfft('Rho', laux, dfft) ! bring back to R-space, (\lapl a)(r)
             !
             lapla%of_r = tpi2 * REAL(laux) ! add the missing factor (2\pi)^2 in G
             !
@@ -487,7 +488,7 @@ CONTAINS
             !
             aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
             !
-            CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
+            CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
             ! Multiply by (iG) to get (\grad_ipol a)(G)
@@ -500,7 +501,8 @@ CONTAINS
                 IF (dfft%lgamma) &
                     gaux(nlm) = CMPLX(REAL(gaux(nl)), -AIMAG(gaux(nl)), kind=DP)
                 !
-                CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
+                CALL env_invfft('Rho', gaux, dfft)
+                ! bring back to R-space, (\grad_ipol a)(r)
                 !
                 grad%of_r(i, :) = tpi * REAL(gaux)
                 ! add the factor 2\pi/a missing in the definition of G
@@ -517,7 +519,7 @@ CONTAINS
                     IF (dfft%lgamma) &
                         haux(nlm) = CMPLX(REAL(haux(nl)), -AIMAG(haux(nl)), kind=DP)
                     !
-                    CALL env_invfft(haux, dfft)
+                    CALL env_invfft('Rho', haux, dfft)
                     ! bring back to R-space (\grad_ipol a)(r)
                     !
                     hess%of_r(i, j, :) = tpi2 * REAL(haux)
@@ -561,7 +563,7 @@ CONTAINS
             ALLOCATE (auxr(nnr))
             auxr = CMPLX(f1%of_r, 0.D0, kind=DP)
             !
-            CALL env_fwfft(auxr, dfft)
+            CALL env_fwfft('Rho', auxr, dfft)
             !
             ALLOCATE (auxg(nnr))
             auxg = 0.D0
@@ -570,7 +572,7 @@ CONTAINS
             !
             auxr = CMPLX(f2%of_r, 0.D0, kind=DP)
             !
-            CALL env_fwfft(auxr, dfft)
+            CALL env_fwfft('Rho', auxr, dfft)
             !
             !----------------------------------------------------------------------------
             ! Multiply fa(g)*fb(g)
@@ -585,7 +587,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Brings convolution back to real space
             !
-            CALL env_invfft(auxg, dfft)
+            CALL env_invfft('Rho', auxg, dfft)
             !
             f_out%of_r = REAL(auxg) * this%cell%omega
             !
@@ -639,14 +641,14 @@ CONTAINS
         !     ALLOCATE (auxr(nnr))
         !     auxr = CMPLX(f%of_r, 0.D0, kind=DP)
         !     !
-        !     CALL env_fwfft(auxr, dfft)
+        !     CALL env_fwfft('Rho', auxr, dfft)
         !     !
         !     ALLOCATE (auxg(nnr))
         !     !
         !     DO i = 1, 3
         !         auxg = CMPLX(grad%of_r(i, :), 0.D0, kind=DP)
         !         !
-        !         CALL env_fwfft(auxg, dfft)
+        !         CALL env_fwfft('Rho', auxg, dfft)
         !         !
         !         !------------------------------------------------------------------------
         !         ! Multiply fa(g)*fb(g)
@@ -659,7 +661,7 @@ CONTAINS
         !         !------------------------------------------------------------------------
         !         ! Brings convolution back to real space
         !         !
-        !         CALL env_invfft(auxg, dfft)
+        !         CALL env_invfft('Rho', auxg, dfft)
         !         !
         !         grad_out%of_r(i, :) = REAL(auxg) * this%cell%omega
         !     END DO
@@ -719,7 +721,7 @@ CONTAINS
         !     ALLOCATE (auxr(nnr))
         !     auxr = CMPLX(f%of_r, 0.D0, kind=DP)
         !     !
-        !     CALL env_fwfft(auxr, dfft)
+        !     CALL env_fwfft('Rho', auxr, dfft)
         !     !
         !     ALLOCATE (auxg(nnr))
         !     !
@@ -728,7 +730,7 @@ CONTAINS
         !         DO j = 1, 3
         !             auxg = CMPLX(hess%of_r(i, j, :), 0.D0, kind=DP)
         !             !
-        !             CALL env_fwfft(auxg, dfft)
+        !             CALL env_fwfft('Rho', auxg, dfft)
         !             !
         !             !--------------------------------------------------------------------
         !             ! Multiply fa(g)*fb(g)
@@ -742,7 +744,7 @@ CONTAINS
         !             !--------------------------------------------------------------------
         !             ! Brings convolution back to real space
         !             !
-        !             CALL env_invfft(auxg, dfft)
+        !             CALL env_invfft('Rho', auxg, dfft)
         !             !
         !             hess_out%of_r(i, j, :) = REAL(auxg) * this%cell%omega
         !         END DO
@@ -785,7 +787,7 @@ CONTAINS
         !
         ASSOCIATE (dfft => this%cell%dfft, &
                    nl => this%cell%dfft%nl, &
-                   ngm => this%cell%ngm)
+                   ngm => this%cell%dfft%ngm)
             !
             !----------------------------------------------------------------------------
             ! Bring rho to G space
@@ -793,7 +795,7 @@ CONTAINS
             ALLOCATE (auxr(dfft%nnr))
             auxr = CMPLX(rho%of_r, 0.D0, kind=DP)
             !
-            CALL env_fwfft(auxr, dfft)
+            CALL env_fwfft('Rho', auxr, dfft)
             !
             ALLOCATE (auxg(ngm))
             auxg = auxr(nl)
@@ -816,7 +818,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Transform hartree potential to real space
             !
-            CALL env_invfft(auxr, dfft)
+            CALL env_invfft('Rho', auxr, dfft)
             !
             v%of_r = DBLE(auxr)
             !
@@ -851,7 +853,7 @@ CONTAINS
         !
         ASSOCIATE (dfft => this%cell%dfft, &
                    nl => this%cell%dfft%nl, &
-                   ngm => this%cell%ngm)
+                   ngm => this%cell%dfft%ngm)
             !
             !----------------------------------------------------------------------------
             ! Bring rho to G space
@@ -859,7 +861,7 @@ CONTAINS
             ALLOCATE (auxr(dfft%nnr))
             auxr = CMPLX(rho%of_r, 0.D0, KIND=DP)
             !
-            CALL env_fwfft(auxr, dfft)
+            CALL env_fwfft('Rho', auxr, dfft)
             !
             ALLOCATE (auxg(ngm))
             auxg = auxr(nl)
@@ -894,7 +896,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Bring back to R-space, (\grad_ipol a)(r)
                 !
-                CALL env_invfft(auxr, dfft)
+                CALL env_invfft('Rho', auxr, dfft)
                 !
                 grad_v%of_r(i, :) = REAL(auxr)
             END DO
@@ -950,7 +952,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (dfft => this%cell%dfft, &
-                   ngm => this%cell%ngm, &
+                   ngm => this%cell%dfft%ngm, &
                    G => this%cell%g, &
                    G2 => this%cell%gg)
             !
@@ -961,7 +963,7 @@ CONTAINS
             !
             auxr = CMPLX(rho%of_r, 0.D0, KIND=DP)
             !
-            CALL env_fwfft(auxr, dfft)
+            CALL env_fwfft('Rho', auxr, dfft)
             !
             ALLOCATE (auxg(ngm))
             auxg = auxr(dfft%nl) ! aux now contains n(G)
@@ -1019,9 +1021,87 @@ CONTAINS
     END SUBROUTINE force_fft
     !------------------------------------------------------------------------------------
     !>
+    !!  Gradient of Hartree potential in R space from a total
+    !!  (spinless) density in R space n(r)
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE grad_v_h_of_rho_r(this, nnr, rho, grad_v)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_fft), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: nnr
+        REAL(DP), INTENT(IN) :: rho(nnr)
+        !
+        REAL(DP), INTENT(OUT) :: grad_v(3, nnr)
+        !
+        INTEGER :: i, j
+        LOGICAL :: gamma_only = .TRUE.
+        !
+        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
+        !
+        CHARACTER(LEN=80) :: sub_name = 'grad_v_h_of_rho_r'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nnr /= this%cell%nnr) CALL io%error(sub_name, "Mismatch in FFT domain", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   nl => this%cell%dfft%nl, &
+                   g => this%cell%g, &
+                   gg => this%cell%gg)
+            !
+            !----------------------------------------------------------------------------
+            ! Bring rho to G space
+            !
+            ALLOCATE (auxr(nnr))
+            auxr = CMPLX(rho, 0.D0, KIND=DP)
+            !
+            CALL env_fwfft('Rho', auxr, dfft)
+            !
+            !----------------------------------------------------------------------------
+            ! Compute total potential in G space
+            !
+            ALLOCATE (auxg(nnr))
+            !
+            DO i = 1, 3
+                auxg = (0.0_DP, 0.0_DP)
+                !
+                DO j = this%cell%gstart, dfft%ngm
+                    !
+                    auxg(nl(j)) = &
+                        g(i, j) * (1.D0 / gg(j) + this%correction(j) * tpi2) * &
+                        CMPLX(-AIMAG(auxr(nl(j))), REAL(auxr(nl(j))), kind=DP)
+                    !
+                END DO
+                !
+                auxg = auxg * e2 * fpi / tpi
+                ! add the factor e2*fpi/2\pi coming from the missing prefactor of
+                ! V = e2 * fpi divided by the 2\pi factor missing in G
+                !
+                IF (gamma_only) THEN
+                    !
+                    auxg(dfft%nlm) = &
+                        CMPLX(REAL(auxg(nl)), -AIMAG(auxg(nl)), kind=DP)
+                    !
+                END IF
+                !
+                CALL env_invfft('Rho', auxg, dfft) ! bring back to R-space
+                !
+                grad_v(i, :) = REAL(auxg)
+            END DO
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE grad_v_h_of_rho_r
+    !------------------------------------------------------------------------------------
+    !>
     !! Gradient of Hartree potential in R space from a total
     !! (spinless) density in R space n(r)
-    !! wg_corr_h => calc_vmt
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE hess_v_h_of_rho_r(this, nnr, rho, hess_v)
@@ -1058,7 +1138,7 @@ CONTAINS
             ALLOCATE (auxr(nnr))
             auxr = CMPLX(rho, 0.D0, KIND=DP)
             !
-            CALL env_fwfft(auxr, dfft)
+            CALL env_fwfft('Rho', auxr, dfft)
             !
             !----------------------------------------------------------------------------
             ! Compute total potential in G space
@@ -1070,7 +1150,7 @@ CONTAINS
                 DO j = 1, 3
                     auxg = (0.0_DP, 0.0_DP)
                     !
-                    DO k = this%cell%gstart, this%cell%ngm
+                    DO k = this%cell%gstart, dfft%ngm
                         !
                         auxg(nl(k)) = &
                             g(i, k) * g(j, k) * &
@@ -1079,19 +1159,16 @@ CONTAINS
                         !
                     END DO
                     !
-                    !--------------------------------------------------------------------
-                    ! Add the factor e2*fpi coming from the missing prefactor of
-                    ! V = e2 * fpi
-                    !
                     auxg = auxg * e2 * fpi
+                    ! add the factor e2*fpi coming from the missing prefactor of
+                    ! V = e2 * fpi
                     !
                     IF (gamma_only) &
                         auxg(dfft%nlm) = CMPLX(DBLE(auxg(nl)), -AIMAG(auxg(nl)), kind=DP)
                     !
-                    CALL env_invfft(auxg, dfft) ! bring back to R-space
+                    CALL env_invfft('Rho', auxg, dfft) ! bring back to R-space
                     !
                     hess_v(i, j, :) = REAL(auxg)
-                    !
                 END DO
                 !
             END DO
@@ -1147,12 +1224,12 @@ CONTAINS
             DO i = 1, 3
                 auxg = CMPLX(grad_rho(i, :), 0.D0, KIND=DP)
                 !
-                CALL env_fwfft(auxg, dfft)
+                CALL env_fwfft('Rho', auxg, dfft)
                 !
                 !------------------------------------------------------------------------
                 ! Compute total potential in G space
                 !
-                DO j = this%cell%gstart, this%cell%ngm
+                DO j = this%cell%gstart, dfft%ngm
                     !
                     auxr(nl(j)) = &
                         this%cell%g(i, j) * &
@@ -1168,13 +1245,10 @@ CONTAINS
                 auxe = auxe + auxr
             END DO
             !
-            DEALLOCATE (auxg)
-            DEALLOCATE (auxr)
-            !
             IF (gamma_only) &
                 auxe(dfft%nlm) = CMPLX(REAL(auxe(nl)), -AIMAG(auxe(nl)), kind=DP)
             !
-            CALL env_invfft(auxe, dfft)
+            CALL env_invfft('Rho', auxe, dfft)
             ! bring back to R-space (\grad_ipol a)(r)
             !
             field = REAL(auxe)
@@ -1252,10 +1326,10 @@ CONTAINS
                 !
             END DO
             !
-            CALL env_fwfft(aux, dfft)
+            CALL env_fwfft('Rho', aux, dfft)
             !
 !$omp parallel do
-            DO i = 1, cell%ngm
+            DO i = 1, cell%dfft%ngm
                 !
                 mt_corr(i) = cell%omega * REAL(aux(dfft%nl(i))) - &
                              smooth_coulomb_g(alpha, beta, tpi2 * cell%gg(i))

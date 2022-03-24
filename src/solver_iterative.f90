@@ -98,6 +98,14 @@ CONTAINS
         IF (ASSOCIATED(this%direct)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%auxiliary = ''
+        this%tol = 0.D0
+        this%maxiter = 0
+        !
+        NULLIFY (this%direct)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_solver_iterative
     !------------------------------------------------------------------------------------
     !>

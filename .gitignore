@@ -37,9 +37,14 @@ make.depend
 #*.out
 *.app
 *.x
+tester
+!tester/
+driver
+!driver/
 
-# Directories with results of examples
+# Examples
 results/
+environment
 
 # Emacs temporary backups
 *~

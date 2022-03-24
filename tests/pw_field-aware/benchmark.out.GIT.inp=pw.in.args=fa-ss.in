@@ -1,0 +1,775 @@
+
+     Program PWSCF v.6.8 starts on 17Dec2021 at  8:10: 6 
+
+     This program is part of the open-source Quantum ESPRESSO suite
+     for quantum simulation of materials; please cite
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
+         "P. Giannozzi et al., J. Chem. Phys. 152 154105 (2020);
+          URL http://www.quantum-espresso.org", 
+     in publications or presentations arising from this work. More details at
+     http://www.quantum-espresso.org/quote
+
+     Parallel version (MPI), running on     1 processors
+
+     MPI processes distributed on     1 nodes
+     22992 MiB available memory on the printing compute node when the environment starts
+ 
+     Reading input from pw.in
+
+     Current dimensions of program PWSCF are:
+     Max number of different atomic species (ntypx) = 10
+     Max number of k-points (npk) =  40000
+     Max angular momentum in pseudopotentials (lmaxx) =  4
+ 
+     Reading input from environ.in:
+     * using ionic solvent mode
+     * setting boundary derivatives method to SSCS default
+ 
+     file H.pbe-rrkjus.UPF: wavefunction(s)  1S renormalized
+     file O.pbe-rrkjus.UPF: wavefunction(s)  2S renormalized
+
+     gamma-point specific algorithms are used
+
+     Subspace diagonalization in iterative solution of the eigenvalue problem:
+     a serial algorithm will be used
+
+ 
+     G-vector sticks info
+     --------------------
+     sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+     Sum       14913    5973   1481              1371481   346971   43387
+ 
+     Using Slab Decomposition
+ 
+
+
+     bravais-lattice index     =            1
+     lattice parameter (alat)  =      25.0000  a.u.
+     unit-cell volume          =   15625.0000 (a.u.)^3
+     number of atoms/cell      =            3
+     number of atomic types    =            2
+     number of electrons       =         8.00
+     number of Kohn-Sham states=            4
+     kinetic-energy cutoff     =      30.0000  Ry
+     charge density cutoff     =     300.0000  Ry
+     scf convergence threshold =      5.0E-03
+     mixing beta               =       0.7000
+     number of iterations used =            8  plain     mixing
+     Exchange-correlation= SLA  PW   PBE  PBE
+                           (   1   4   3   4   0   0   0)
+
+     ================================================================================
+ 
+                                  Environ Setup Summary
+
+     ================================================================================
+ 
+     Please cite
+         "O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)"
+     in publications or presentations arising from this work.
+
+     Parameters
+     ==========
+
+     compensation onset threshold      =               0.1000E+03
+     surface tension in input (dyn/cm) =                   100.00
+     surface tension in internal units =               0.1285E-03
+     external pressure in input (GPa)  =                     0.50
+     external pressure in inter. units =               0.3399E-04
+
+     Solvent Boundary
+     ================
+
+     solvent mode                      =                    ionic
+     derivatives method                =                   lowmem
+     numerical core for derivatives    =                      fft
+     switching function adopted        =                     SCCS
+     density limit for vacuum region   =               0.5000E-02
+     density limit for bulk solvent    =               0.1000E-03
+     soft-sphere radius mode           =                      uff
+     soft-sphere softness              =                     0.50
+     alpha                             =                     1.00
+     interface is field aware
+     field aware factor                =                     0.08
+     asymmetry of field-awareness      =                    -0.32
+     field limit for no correction     =                     2.00
+     field limit for full correction   =                     6.00
+
+     Electrostatic Setup
+     ===================
+
+     electrostatic problem to solve    =                  poisson
+     numerical solver adopted          =                   direct
+     type of auxiliary density adopted =                     none
+     numerical core for poisson        =                      fft
+
+     ================================================================================
+ 
+
+     celldm(1)=  25.000000  celldm(2)=   0.000000  celldm(3)=   0.000000
+     celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
+
+     crystal axes: (cart. coord. in units of alat)
+               a(1) = (   1.000000   0.000000   0.000000 )  
+               a(2) = (   0.000000   1.000000   0.000000 )  
+               a(3) = (   0.000000   0.000000   1.000000 )  
+
+     reciprocal axes: (cart. coord. in units 2 pi/alat)
+               b(1) = (  1.000000  0.000000  0.000000 )  
+               b(2) = (  0.000000  1.000000  0.000000 )  
+               b(3) = (  0.000000  0.000000  1.000000 )  
+
+
+     PseudoPot. # 1 for H  read from file:
+     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/H.pbe-rrkjus.UPF
+     MD5 check sum: 2d52a7f45632fd764c17cc6affed14c8
+     Pseudo is Ultrasoft, Zval =  1.0
+     Generated by new atomic code, or converted to UPF format
+     Using radial grid of 1061 points,  2 beta functions with: 
+                l(1) =   0
+                l(2) =   0
+     Q(r) pseudized with 0 coefficients 
+
+
+     PseudoPot. # 2 for O  read from file:
+     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/O.pbe-rrkjus.UPF
+     MD5 check sum: fadcf19ee70a498d3030e2e79cf929a4
+     Pseudo is Ultrasoft, Zval =  6.0
+     Generated by new atomic code, or converted to UPF format
+     Using radial grid of 1269 points,  4 beta functions with: 
+                l(1) =   0
+                l(2) =   0
+                l(3) =   1
+                l(4) =   1
+     Q(r) pseudized with 0 coefficients 
+
+
+     atomic species   valence    mass     pseudopotential
+        H              1.00     1.00000     H ( 1.00)
+        O              6.00    16.00000     O ( 1.00)
+
+     No symmetry found
+
+
+
+   Cartesian axes
+
+     site n.     atom                  positions (alat units)
+         1           O   tau(   1) = (   0.4716000   0.4820000   0.4600000  )
+         2           H   tau(   2) = (   0.5380000   0.4488000   0.4600000  )
+         3           H   tau(   3) = (   0.4224000   0.4264000   0.4600000  )
+
+     number of k points=     1
+                       cart. coord. in units 2pi/alat
+        k(    1) = (   0.0000000   0.0000000   0.0000000), wk =   2.0000000
+
+     Dense  grid:   685741 G-vectors     FFT dimensions: ( 144, 144, 144)
+
+     Smooth grid:   173486 G-vectors     FFT dimensions: (  90,  90,  90)
+
+     Estimated max dynamical RAM per process >    1010.29 MB
+
+     Initial potential from superposition of free atoms
+
+     starting charge    7.80759, renormalised to    8.00000
+
+     negative rho (up, down):  1.409E-03 0.000E+00
+     Starting wfcs are    6 randomized atomic wfcs
+
+     total cpu time spent up to now is       10.9 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-02,  avg # of iterations =  2.0
+
+     negative rho (up, down):  4.920E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       21.0 secs
+
+     total energy              =     -34.04147393 Ry
+     estimated scf accuracy    <       0.67492590 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     cavitation energy         =       0.02097627 Ry
+     PV energy                 =       0.00655709 Ry
+     correction to one-el term =       0.00000000 Ry
+
+     iteration #  2     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  8.44E-03,  avg # of iterations =  2.0
+
+     negative rho (up, down):  6.419E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       32.2 secs
+
+     total energy              =     -34.17390870 Ry
+     estimated scf accuracy    <       0.36578474 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     cavitation energy         =       0.02208276 Ry
+     PV energy                 =       0.00710058 Ry
+     correction to one-el term =      -0.01943470 Ry
+
+     iteration #  3     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  4.57E-03,  avg # of iterations =  2.0
+
+     negative rho (up, down):  9.666E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       43.0 secs
+
+     total energy              =     -34.23704058 Ry
+     estimated scf accuracy    <       0.00827885 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     cavitation energy         =       0.02224969 Ry
+     PV energy                 =       0.00717738 Ry
+     correction to one-el term =      -0.01002248 Ry
+
+     iteration #  4     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.03E-04,  avg # of iterations =  2.0
+
+     negative rho (up, down):  3.562E-04 0.000E+00
+
+     the potential shift due to the Gaussian-smeared nuclei is    -0.0109 ev
+
+     total cpu time spent up to now is       51.2 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 ( 21694 PWs)   bands (ev):
+
+   -25.1710 -13.0078  -9.2164  -7.2153
+
+     highest occupied level (ev):    -7.2153
+
+!    total energy              =     -34.23839033 Ry
+     estimated scf accuracy    <       0.00092453 Ry
+
+     The total energy is the sum of the following terms:
+     one-electron contribution =     -67.46605028 Ry
+     hartree contribution      =      35.24951629 Ry
+     xc contribution           =      -8.41076266 Ry
+     ewald contribution        =       6.36037366 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     cavitation energy         =       0.02230179 Ry
+     PV energy                 =       0.00720145 Ry
+     correction to one-el term =      -0.00097058 Ry
+
+     convergence has been achieved in   4 iterations
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  2   force =     0.00262551   -0.01421481    0.00053716
+     atom    2 type  1   force =    -0.01840785    0.00374301   -0.00026856
+     atom    3 type  1   force =     0.01578234    0.01047180   -0.00026860
+
+     Total force =     0.030348     Total SCF correction =     0.038474
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     Writing output data file /home/simplogic86/Work/QE1/Environ/tests/../..//tempdir/pwscf.save/
+ 
+     init_run     :     10.09s CPU     10.86s WALL (       1 calls)
+     electrons    :     37.67s CPU     40.37s WALL (       1 calls)
+     forces       :     26.13s CPU     27.55s WALL (       1 calls)
+
+     Called by init_run:
+     wfcinit      :      0.06s CPU      0.06s WALL (       1 calls)
+     potinit      :      5.52s CPU      5.97s WALL (       1 calls)
+     hinit0       :      4.03s CPU      4.16s WALL (       1 calls)
+
+     Called by electrons:
+     c_bands      :      0.58s CPU      0.62s WALL (       4 calls)
+     sum_band     :      1.73s CPU      2.05s WALL (       4 calls)
+     v_of_rho     :      3.38s CPU      3.76s WALL (       5 calls)
+     newd         :      1.23s CPU      1.64s WALL (       5 calls)
+     mix_rho      :      0.35s CPU      0.39s WALL (       4 calls)
+
+     Called by c_bands:
+     init_us_2    :      0.03s CPU      0.03s WALL (       9 calls)
+     regterg      :      0.55s CPU      0.59s WALL (       4 calls)
+
+     Called by *egterg:
+     rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
+     h_psi        :      0.56s CPU      0.59s WALL (      13 calls)
+     s_psi        :      0.01s CPU      0.01s WALL (      13 calls)
+     g_psi        :      0.00s CPU      0.00s WALL (       8 calls)
+
+     Called by h_psi:
+     h_psi:calbec :      0.01s CPU      0.01s WALL (      13 calls)
+     vloc_psi     :      0.54s CPU      0.58s WALL (      13 calls)
+     add_vuspsi   :      0.01s CPU      0.01s WALL (      13 calls)
+
+     General routines
+     calbec       :      0.01s CPU      0.01s WALL (      21 calls)
+     fft          :      1.78s CPU      1.88s WALL (      55 calls)
+     ffts         :      0.07s CPU      0.07s WALL (       9 calls)
+     fftw         :      0.47s CPU      0.50s WALL (      62 calls)
+     interpolate  :      0.22s CPU      0.23s WALL (       5 calls)
+ 
+     Parallel routines
+ 
+     Environ routines
+ 
+     PWSCF        :   1m13.94s CPU   1m18.85s WALL
+
+ 
+   This run was terminated on:   8:11:25  17Dec2021            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=
+
+%%%% CELL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ cell label                 = system         
+
+ cell volume                =   15625.000000
+
+%%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total charge               =     -8.0000000
+ center of charge           =     11.8437500    11.7725000    11.5000000
+ dipole                     =      0.0000000     0.0000000     0.0000000
+ quadrupole (pc)            =     -4.2453875    -2.0049500     0.0000000
+ quadrupole (gauss)         =     -5.2453875    -3.0049500    -1.0000000
+
+   i | type | coordinates
+ -----------------------------------------------------------------------
+   1 |    2 |                     11.7900000    12.0500000    11.5000000
+   2 |    1 |                     13.4500000    11.2200000    11.5000000
+   3 |    1 |                     10.5600000    10.6600000    11.5000000
+
+%%%% SYSTEM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ system is built from all present ionic types
+
+ system defined dimension   =              0
+ system defined axis        =              3
+
+ system center              =     11.8437500    11.7725000    11.5000000
+ system width               =      1.6987261
+
+%%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total charge               =     -8.0000000
+ center of charge           =     11.8437500    11.7725000    11.5000000
+ dipole                     =      0.0000000     0.0000000     0.0000000
+ quadrupole (pc)            =     -4.2453875    -2.0049500     0.0000000
+ quadrupole (gauss)         =     -5.2453875    -3.0049500    -1.0000000
+
+   i | type | coordinates
+ -----------------------------------------------------------------------
+   1 |    2 |                     11.7900000    12.0500000    11.5000000
+   2 |    1 |                     13.4500000    11.2200000    11.5000000
+   3 |    1 |                     10.5600000    10.6600000    11.5000000
+
+%%%% SYSTEM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ system is built from all present ionic types
+
+ system defined dimension   =              0
+ system defined axis        =              3
+
+ system center              =     11.8437500    11.7725000    11.5000000
+ system width               =      1.6987261
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =              4
+
+ total charge               =     -8.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =              4
+
+ total charge               =     -8.0000000
+
+%%%% CELL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ cell label                 = system         
+
+ cell volume                =   15625.000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = ionic               
+
+ boundary is built as a type-1 function of a smooth density
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    192.9160915
+
+ surface of the QM region   =    163.2890170
+
+ atom number =   1 atom label = O   solvation radius =   3.3070 field flux =  -7.7261 scaling of field =   0.9630
+
+ atom number =   2 atom label = H   solvation radius =   2.7269 field flux =  -6.6496 scaling of field =   0.9630
+
+ atom number =   3 atom label = H   solvation radius =   2.7269 field flux =  -6.6501 scaling of field =   0.9630
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =    0.000000000    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =    0.000000000    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =    0.000000000    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =    0.000000000    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = ionic               
+
+ boundary is built as a type-1 function of a smooth density
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    208.9061624
+
+ surface of the QM region   =    171.9024932
+
+ atom number =   1 atom label = O   solvation radius =   3.3070 field flux =   0.1958 scaling of field =   1.0000
+
+ atom number =   2 atom label = H   solvation radius =   2.7269 field flux =  -3.6355 scaling of field =   0.9881
+
+ atom number =   3 atom label = H   solvation radius =   2.7269 field flux =  -3.6364 scaling of field =   0.9880
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =   0.1065611600E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =   0.1065611600E-12
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =  -0.1074767457E-15
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =  -0.1074767457E-15
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = ionic               
+
+ boundary is built as a type-1 function of a smooth density
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    211.1658609
+
+ surface of the QM region   =    173.2019323
+
+ atom number =   1 atom label = O   solvation radius =   3.3070 field flux =  -0.1337 scaling of field =   1.0000
+
+ atom number =   2 atom label = H   solvation radius =   2.7269 field flux =  -2.9434 scaling of field =   0.9971
+
+ atom number =   3 atom label = H   solvation radius =   2.7269 field flux =  -2.9442 scaling of field =   0.9971
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =  -0.7406483977E-13
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =  -0.7406483977E-13
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =  -0.1354352235E-15
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =  -0.1354352235E-15
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =      0.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =      0.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = ionic               
+
+ boundary is built as a type-1 function of a smooth density
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    211.8738905
+
+ surface of the QM region   =    173.6074501
+
+ atom number =   1 atom label = O   solvation radius =   3.3070 field flux =   1.4880 scaling of field =   1.0000
+
+ atom number =   2 atom label = H   solvation radius =   2.7269 field flux =  -2.2662 scaling of field =   0.9999
+
+ atom number =   3 atom label = H   solvation radius =   2.7269 field flux =  -2.2667 scaling of field =   0.9999
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =  -0.2146839281E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =  -0.2146839281E-12
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =      0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =   0.3687705063E-16
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =   0.3687705063E-16
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =              8
+
+ total electronic charge    =      8.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =      0.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =      0.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = ionic               
+
+ boundary is built as a type-1 function of a smooth density
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    211.8738905
+
+ surface of the QM region   =    173.6074501
+
+ atom number =   1 atom label = O   solvation radius =   3.3070 field flux =   1.4880 scaling of field =   1.0000
+
+ atom number =   2 atom label = H   solvation radius =   2.7269 field flux =  -2.2662 scaling of field =   0.9999
+
+ atom number =   3 atom label = H   solvation radius =   2.7269 field flux =  -2.2667 scaling of field =   0.9999
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =   0.3687705063E-16
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =  -0.2146839281E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =  -0.2146839281E-12
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             11
+
+ total charge               =      0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =   0.3687705063E-16

@@ -55,9 +55,8 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
 
   sed '/Environ MODULES BEGIN/ a\
       !Environ patch\
-      USE scf,                ONLY : rho\
-      USE env_global_objects, ONLY : env\
-      USE class_calculator,   ONLY : calc\
+      USE scf,         ONLY : rho\
+      USE environ_api, ONLY : environ\
       !Environ patch
       ' plugin_tddfpt_potential.f90 > tmp.1
 
@@ -67,11 +66,11 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
           !\
           IF (.NOT. davidson) WRITE(stdout, 8200)\
           !\
-          IF (env%setup%optical_permittivity == 1.D0) WRITE (stdout, 8201)\
+          IF (environ%setup%optical_permittivity == 1.D0) WRITE (stdout, 8201)\
           !\
-          CALL env%update_response(dfftp%nnr, drho(:,1))\
+          CALL environ%main%update_response(dfftp%nnr, drho(:,1))\
           !\
-          CALL calc%dpotential(env, dfftp%nnr, dv(:,1))\
+          CALL environ%calc%dpotential(dfftp%nnr, dv(:,1))\
           !\
       END IF\
       !\

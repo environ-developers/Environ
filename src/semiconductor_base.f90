@@ -75,6 +75,7 @@ MODULE class_semiconductor_base
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_semiconductor_base
         PROCEDURE :: init => init_environ_semiconductor_base
         !
         !--------------------------------------------------------------------------------
@@ -93,6 +94,31 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_semiconductor_base(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_semiconductor_base), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_semiconductor_base'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%temperature = 0.D0
+        this%permittivity = 0.D0
+        this%carrier_density = 0.D0
+        this%sc_distance = 0.D0
+        this%sc_spread = 0.D0
+        this%electrode_charge = 0.D0
+        this%charge_threshold = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_semiconductor_base
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_semiconductor_base(this, temperature, sc_permittivity, &
                                                sc_carrier_density, sc_electrode_chg, &
                                                sc_distance, sc_spread, sc_chg_thr)
@@ -106,6 +132,8 @@ CONTAINS
         CLASS(environ_semiconductor_base), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         this%temperature = temperature
         this%permittivity = sc_permittivity

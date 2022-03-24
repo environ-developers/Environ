@@ -152,6 +152,26 @@ CONTAINS
         IF (ASSOCIATED(this%additional_charges)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        this%include_ions = .FALSE.
+        this%include_electrons = .FALSE.
+        this%include_externals = .FALSE.
+        this%include_dielectric = .FALSE.
+        this%include_electrolyte = .FALSE.
+        this%include_semiconductor = .FALSE.
+        this%include_additional_charges = .FALSE.
+        this%number = 0
+        this%charge = 0.D0
+        !
+        NULLIFY (this%ions)
+        NULLIFY (this%electrons)
+        NULLIFY (this%externals)
+        NULLIFY (this%dielectric)
+        NULLIFY (this%electrolyte)
+        NULLIFY (this%semiconductor)
+        NULLIFY (this%additional_charges)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_charges
     !------------------------------------------------------------------------------------
     !>

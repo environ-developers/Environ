@@ -79,6 +79,7 @@ MODULE class_function
         PROCEDURE :: gradient => gradient_of_function
         PROCEDURE :: laplacian => laplacian_of_function
         PROCEDURE :: hessian => hessian_of_function
+        PROCEDURE :: derivative => derivative_of_function
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function
@@ -111,6 +112,17 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (ASSOCIATED(this%pos)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%f_type = 0
+        this%axis = 0
+        this%dim = 0
+        this%width = 0.D0
+        this%spread = 0.D0
+        this%volume = 0.D0
+        !
+        NULLIFY (this%pos)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_function
@@ -289,6 +301,28 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE derivative_of_function(this, derivative, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), INTENT(IN) :: this
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        !
+        TYPE(environ_density), INTENT(INOUT) :: derivative
+        !
+        CHARACTER(LEN=80) :: sub_name = 'derivative_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE derivative_of_function
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

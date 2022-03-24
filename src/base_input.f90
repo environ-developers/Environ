@@ -34,13 +34,11 @@
 MODULE env_base_input
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP
+    USE environ_param, ONLY: DP, nccx
     !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
-    !
-    SAVE
     !
     !=---------------------------------------------------------------------------------=!
 !     ENVIRON Cards Parameters
@@ -50,27 +48,27 @@ MODULE env_base_input
     !
     LOGICAL :: taextchg = .FALSE.
     !
+    CHARACTER(LEN=80) :: extcharge_units = 'bohr' ! atomic positions (bohr|angstrom)
+    !
+    REAL(DP), ALLOCATABLE :: extcharge_charge(:) ! total charge of density
+    REAL(DP), ALLOCATABLE :: extcharge_pos(:, :) ! cartesian position of density
+    REAL(DP), ALLOCATABLE :: extcharge_spread(:) ! gaussian density spread (bohr)
     INTEGER, ALLOCATABLE :: extcharge_dim(:) ! point/line/plane of charge
     INTEGER, ALLOCATABLE :: extcharge_axis(:) ! x/y/z direction of line/plane
-    REAL(DP), ALLOCATABLE :: extcharge_charge(:) ! total charge of density
-    REAL(DP), ALLOCATABLE :: extcharge_spread(:) ! gaussian density spread (bohr)
-    REAL(DP), ALLOCATABLE :: extcharge_pos(:, :) ! cartesian position of density
-    !
-    CHARACTER(LEN=80) :: extcharge_units = 'bohr' ! atomic positions (bohr|angstrom)
     !
     !------------------------------------------------------------------------------------
     ! Local parameters of dielectric regions
     !
     LOGICAL :: taepsreg = .FALSE.
     !
-    INTEGER, ALLOCATABLE :: epsregion_dim(:) ! point/line/plane region
-    INTEGER, ALLOCATABLE :: epsregion_axis(:) ! x/y/z direction of line/plane
+    CHARACTER(LEN=80) :: epsregion_units = 'bohr' ! atomic positions (bohr|angstrom)
+    !
     REAL(DP), ALLOCATABLE :: epsregion_eps(:, :) ! permittivity inside region
+    REAL(DP), ALLOCATABLE :: epsregion_pos(:, :) ! cartesian center of region
     REAL(DP), ALLOCATABLE :: epsregion_width(:) ! region size (bohr)
     REAL(DP), ALLOCATABLE :: epsregion_spread(:) ! interface spread (bohr)
-    REAL(DP), ALLOCATABLE :: epsregion_pos(:, :) ! cartesian center of region
-    !
-    CHARACTER(LEN=80) :: epsregion_units = 'bohr' ! atomic positions (bohr|angstrom)
+    INTEGER, ALLOCATABLE :: epsregion_dim(:) ! point/line/plane region
+    INTEGER, ALLOCATABLE :: epsregion_axis(:) ! x/y/z direction of line/plane
     !
     !=---------------------------------------------------------------------------------=!
 !     ENVIRON Namelist Input Parameters
@@ -90,6 +88,12 @@ MODULE env_base_input
     REAL(DP) :: environ_thr = 1.D-1 ! when in scf to start calculating corr. pot.
     !
     INTEGER :: environ_nskip = 1 ! # steps to skip before starting add. pot. computation
+    !
+    !------------------------------------------------------------------------------------
+    ! Energy cutoff used for internal FFT-grid generation
+    !
+    REAL(DP) :: env_ecut = 0.D0
+    ! may be used when coupled with non-FFT calling programs or via the tester program
     !
     !------------------------------------------------------------------------------------
     ! Predefined environ types
@@ -197,10 +201,10 @@ MODULE env_base_input
     !
     ! full = all terms ( Dabo et al. arXiv 0901.0096 )
     !
-    REAL(DP), ALLOCATABLE :: cion(:) ! molar concentration of ionic countercharge (M=mol/L)
+    REAL(DP) :: cion(nccx) ! molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: cionmax = 1.D3 ! maximum molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: rion = 0.D0 ! mean atomic radius of ionic countercharge (a.u.)
-    REAL(DP), ALLOCATABLE :: zion(:) ! valence of ionic countercharge
+    REAL(DP) :: zion(nccx) ! valence of ionic countercharge
     REAL(DP) :: temperature = 300.D0 ! temperature of the solution
     !
     !------------------------------------------------------------------------------------
@@ -232,7 +236,7 @@ MODULE env_base_input
     !------------------------------------------------------------------------------------
     !
     NAMELIST /environ/ &
-        environ_debug, environ_restart, verbose, environ_thr, environ_nskip, &
+        environ_debug, environ_restart, verbose, environ_thr, environ_nskip, env_ecut, &
         environ_type, system_ntyp, system_dim, system_axis, env_nrep, system_pos, &
         env_electrostatic, atomicspread, env_static_permittivity, &
         env_optical_permittivity, env_surface_tension, env_pressure, env_confine, &
@@ -305,12 +309,24 @@ MODULE env_base_input
     ! void should be filled or not
     !
     !------------------------------------------------------------------------------------
-    ! Field-aware boundary parameters #TODO add documentation
+    ! Field-aware boundary parameters
     !
-    REAL(DP) :: field_awareness = 0.D0
-    REAL(DP) :: charge_asymmetry = -1.D0
-    REAL(DP) :: field_max = 10.D0
-    REAL(DP) :: field_min = 1.D0
+    LOGICAL :: field_aware = .FALSE.
+    ! switch to turn on the field-awareness scaling factor
+    ! NOTE: only works with ionic boundary mode
+    !
+    REAL(DP) :: field_factor = 0.08D0
+    ! maximum scaling factor possible by the field-aware model
+    !
+    REAL(DP) :: field_asymmetry = -0.32D0
+    ! charge asymmetry factor. Positive values result in more field-awareness
+    ! for positive charges, and vice versa
+    !
+    REAL(DP) :: field_max = 6.D0
+    ! maximum flux value for switching function
+    !
+    REAL(DP) :: field_min = 2.D0
+    ! minimum flux value for switching function
     !
     !------------------------------------------------------------------------------------
     ! Derivative core's parameters
@@ -346,10 +362,9 @@ MODULE env_base_input
     ! Solvent boundary parameters
     !
     CHARACTER(LEN=80) :: solvent_mode = 'electronic'
-    CHARACTER(LEN=80) :: solvent_mode_allowed(8)
+    CHARACTER(LEN=80) :: solvent_mode_allowed(5)
     !
-    DATA solvent_mode_allowed/'electronic', 'ionic', 'full', 'external', 'system', &
-        'fa-electronic', 'fa-ionic', 'fa-full'/
+    DATA solvent_mode_allowed/'electronic', 'ionic', 'full', 'external', 'system'/
     !
     ! solvent_mode method for calculating the density that sets the dielectric constant
     !
@@ -366,12 +381,6 @@ MODULE env_base_input
     !
     ! system = simplified regular dielectric defined to be outside a distance
     !          solvent_distance from the specified system
-    !
-    ! fa-electrons = similar to electronic, but field-aware
-    !
-    ! fa-ionic = similar to ionic, but field-aware
-    !
-    ! fa-full = similar to full, but field-aware
     !
     !------------------------------------------------------------------------------------
     ! Soft solvent boundary (electronic) parameters
@@ -403,10 +412,10 @@ MODULE env_base_input
     ! Stern boundary parameters
     !
     CHARACTER(LEN=80) :: electrolyte_mode = 'electronic'
-    CHARACTER(LEN=80) :: electrolyte_mode_allowed(8)
+    CHARACTER(LEN=80) :: electrolyte_mode_allowed(5)
     !
     DATA electrolyte_mode_allowed/'electronic', 'ionic', 'full', 'external', &
-        'system', 'fa-electronic', 'fa-ionic', 'fa-full'/
+        'system'/
     !
     ! electrolyte_mode method for calculating the density that sets the onset of
     ! ionic countercharge ( see solvent_mode above )
@@ -474,8 +483,8 @@ MODULE env_base_input
     NAMELIST /boundary/ &
         solvent_mode, radius_mode, alpha, softness, solvationrad, stype, rhomax, &
         rhomin, tbeta, corespread, solvent_distance, solvent_spread, solvent_radius, &
-        radial_scale, radial_spread, filling_threshold, filling_spread, &
-        field_awareness, charge_asymmetry, field_max, field_min, electrolyte_mode, &
+        radial_scale, radial_spread, filling_threshold, filling_spread, field_aware, &
+        field_factor, field_asymmetry, field_max, field_min, electrolyte_mode, &
         electrolyte_distance, electrolyte_spread, electrolyte_rhomax, &
         electrolyte_rhomin, electrolyte_tbeta, electrolyte_alpha, &
         electrolyte_softness, deriv_method, deriv_core, sc_distance, sc_spread
@@ -504,6 +513,14 @@ MODULE env_base_input
     ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
     !
     ! linmodpb    = linearized modified poisson-boltzmann equation
+    !
+    CHARACTER(LEN=80) :: inner_problem = 'none'
+    !
+    ! type of electrostatic problem for inner loop in nested algorithms
+    !
+    ! generalized = generalized poisson equation
+    !
+    ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
     !
     !------------------------------------------------------------------------------------
     !

@@ -66,6 +66,7 @@ MODULE class_solver_newton
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create_solver_newton
         PROCEDURE :: init => init_solver_newton
         !
         PROCEDURE :: pb_nested_charges
@@ -89,6 +90,25 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_solver_newton(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_newton), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_solver_newton'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%solver_type = 'newton'
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_solver_newton
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_solver_newton(this, cores, direct, maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
@@ -104,9 +124,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_iterative(cores, direct, maxiter, tol, auxiliary)
+        CALL this%create_solver_newton()
         !
-        this%solver_type = 'newton'
+        CALL this%init_iterative(cores, direct, maxiter, tol, auxiliary)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solver_newton
@@ -126,7 +146,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(solver_newton), INTENT(IN) :: this
-        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner ! # TODO should it be optional?
+        CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges

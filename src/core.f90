@@ -93,6 +93,7 @@ MODULE class_core
         PROCEDURE :: grad_poisson => calc_grad_poisson
         PROCEDURE :: force => calc_force
         !
+        PROCEDURE :: grad_v_h_of_rho_r
         PROCEDURE :: hess_v_h_of_rho_r
         PROCEDURE :: field_of_grad_rho
         !
@@ -377,6 +378,31 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_force
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE grad_v_h_of_rho_r(this, nnr, rho, grad_v)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_core), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: nnr
+        REAL(DP), INTENT(IN) :: rho(nnr)
+        !
+        REAL(DP), INTENT(OUT) :: grad_v(3, nnr)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'grad_v_h_of_rho_r'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        grad_v = 0.D0
+        !
+        CALL io%error(sub_name, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE grad_v_h_of_rho_r
     !------------------------------------------------------------------------------------
     !>
     !!

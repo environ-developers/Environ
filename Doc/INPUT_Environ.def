@@ -121,6 +121,14 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { REQUIRED }
         }
         
+        var env_ecut -type REAL {
+            default { 0.D0 }
+            info {
+                Cutoff value (Ry) used to derive the G-vector cutoff on Environ's internal FFT-grid.
+            }
+            status { OPTIONAL }
+        }
+
         var env_electrolyte_ntyp -type INTEGER {
             default { 0 }
             info {
@@ -601,6 +609,47 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             info {
             Second parameter of the density-dependent interface function, when stype=0. Used for the
             electrolyte interface.
+            }
+            status { OPTIONAL }
+        }
+
+        var field_aware -type LOGICAL {
+            default { .FALSE. }
+            info {
+            Switch to turn on the field-awareness scaling factor (only works with ionic boundary mode).
+            }
+            status { OPTIONAL }
+        }
+
+        var field_factor -type REAL {
+            default { 0.08D0 }
+            info {
+            Maximum scaling factor possible by the field-aware model.
+            }
+            status { OPTIONAL }
+        }
+
+        var field_asymmetry -type REAL {
+            default { -0.32D0 }
+            info {
+            Charge asymmetry factor. Positive values result in more field-awareness for positive charges,
+            and vice-versa.
+            }
+            status { OPTIONAL }
+        }
+
+        var field_max -type REAL {
+            default { 6.D0 }
+            info {
+            Maximum flux value for switching function.
+            }
+            status { OPTIONAL }
+        }
+
+        var field_min -type REAL {
+            default { 2.D0 }
+            info {
+            Minimum flux value for switching function.
             }
             status { OPTIONAL }
         }
