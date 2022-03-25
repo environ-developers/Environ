@@ -690,10 +690,9 @@ MODULE env_base_input
     !
     ! gcs       = Gouy-Chapman-Stern correction for electrolyte
     !
-    ! ms        = mott-schottky correction for semiconductor
+    ! ms        = Mott-Schottky correction for semiconductor
     !
-    ! ms-gcs    = mott-schottky combined with Gouy-Chapman Stern. Work in
-    ! Progress
+    ! ms-gcs    = Mott-Schottky combined with Gouy-Chapman-Stern
     !
     INTEGER :: pbc_dim = -3 ! dimensionality of the simulation cell
     ! periodic boundary conditions on 3/2/1/0 sides of the cell

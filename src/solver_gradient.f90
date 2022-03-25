@@ -245,10 +245,10 @@ CONTAINS
         CLASS(solver_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         CHARACTER(LEN=80) :: sub_name = 'generalized_density'
         !
@@ -690,9 +690,9 @@ CONTAINS
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_dielectric), INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
@@ -948,9 +948,9 @@ CONTAINS
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_dielectric), INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_en, delta_qm

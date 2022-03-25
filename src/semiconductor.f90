@@ -69,12 +69,6 @@ MODULE class_semiconductor
         TYPE(environ_density) :: density
         !
         REAL(DP) :: charge = 0.D0
-        REAL(DP) :: slab_charge = 0.D0
-        REAL(DP) :: flatband_fermi = 0.D0
-        REAL(DP) :: bulk_sc_fermi = 0.D0
-        REAL(DP) :: surf_area_per_sq_cm = 0.D0
-        REAL(DP) :: electrode_charge = 0.D0
-        REAL(DP) :: charge_threshold  = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -116,10 +110,6 @@ CONTAINS
         !
         this%lupdate = .FALSE.
         this%charge = 0.D0
-        this%slab_charge = 0.D0
-        this%flatband_fermi = 0.D0
-        this%bulk_sc_fermi = 0.D0
-        this%surf_area_per_sq_cm = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_semiconductor
