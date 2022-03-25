@@ -217,12 +217,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function(this, density, zero)
+    SUBROUTINE density_of_function(this, density, zero, ir_vals, vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(OUT) :: ir_vals(:)
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density

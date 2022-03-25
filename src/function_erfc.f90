@@ -85,17 +85,19 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function(this, density, zero)
+    SUBROUTINE density_of_function(this, density, zero, ir_vals, vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(OUT) :: ir_vals(:)
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density
         !
-        INTEGER :: i
+        INTEGER :: i, count
         LOGICAL :: physical
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: local(:)
@@ -139,6 +141,7 @@ CONTAINS
             !
             ALLOCATE (local(cell%nnr))
             local = 0.D0
+            count = 1
             !
             DO i = 1, cell%ir_end
                 !
@@ -152,6 +155,13 @@ CONTAINS
                 arg = (dist - width) / spread
                 !
                 local(i) = environ_erfc(arg) ! compute error function
+                !
+                IF (.NOT. (PRESENT(ir_vals) .AND. PRESENT(vals))) CYCLE
+                !
+                ir_vals(count) = i
+                vals(count) = density%of_r(i) + scale * local(i)
+                count = count + 1
+                !
             END DO
             !
             !----------------------------------------------------------------------------

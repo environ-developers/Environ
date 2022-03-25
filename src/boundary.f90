@@ -1460,20 +1460,8 @@ CONTAINS
             !
             DO i = 1, nss
                 !
-                CALL soft_spheres(i)%density(denlocal, .TRUE.)
-                !
-                count = 1
-                DO j = 1, cell%nnr
-                    !
-                    IF (denlocal%of_r(j) /= 1.D0) THEN
-                        !
-                        this%ir_nonzero(i, count) = j
-                        this%nonzero(i, count) = denlocal%of_r(j)
-                        count = count + 1
-                        !
-                    END IF
-                    !
-                END DO
+                CALL soft_spheres(i)%density(denlocal, .TRUE., this%ir_nonzero(i,:), &
+                                            this%nonzero(i,:))
                 !
                 scal%of_r = scal%of_r * denlocal%of_r
             END DO
