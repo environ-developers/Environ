@@ -35,52 +35,16 @@ DFTI = $(findstring DFTI,$(DFLAGS))
 
 MODFLAGS = $(BASEMOD_FLAGS)
 
-OBJS = $(patsubst %.f90,%.o,$(wildcard *.f90))
+OBJS = $(patsubst %.f90,%.o,$(filter-out mkl_wrapper.f90,$(wildcard *.f90)))
 
-all: libsdir driver
-
-driver:
-	@ if test $(QEDIR) && test $(DFTI); then \
-		  $(MAKE) libfft.a; \
-		  make disable-mkl-include; \
-		  $(MAKE) libfft.a; \
-		  make enable-mkl-include; \
-	  else \
-	      $(MAKE) libfft.a; \
-	  fi
+all: libsdir libfft.a
 
 libfft.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
 	@ /bin/mv libfft.a ../libs
 
-##################################################################
-# The following two targets are used to get around the inclusion 
-# of mkl_dfti.f90 in fft_scalar.DFTI.f90 by both Environ and QE.
-# The targets are called from the root Makefile by compile-fft.
-#
-# To avoid multiple definitions of DFTI items, we enable the 
-# include in Environ for the initial compilation, then disable 
-# it for a subsequent recompilation of the relevant files. This 
-# effectively removes the mkl items from libfft, letting the DFTI
-# items reference QE's definitions. 
-#
-# A better solution is more than welcomed :)
-##################################################################
-
-enable-mkl-include:
-	@ file=fft_scalar.DFTI.f90; \
-	  pattern='^! #include "mkl'; \
-	  if grep -q "$$pattern" $$file; then \
-	  	sed -i.tmp -e "/$$pattern/s/! //" $$file && /bin/rm $$file.tmp; \
-	  fi
-
-disable-mkl-include:
-	@ file=fft_scalar.DFTI.f90; \
-	  pattern='^#include "mkl'; \
-	  sed -i.tmp -e "/$$pattern/s/#/! #/" $$file && /bin/rm $$file.tmp
-	  
-##################################################################
+fft_scalar.DFTI.o: mkl_wrapper.o
 
 libsdir:
 	@ test -d ../libs || mkdir ../libs
