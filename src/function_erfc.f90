@@ -187,13 +187,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, grid_pts)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, vals, grid_pts)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
         INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:,:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
@@ -264,6 +265,12 @@ CONTAINS
                 !
                 IF (dist > func_tol) gradlocal(:, ir) = -EXP(-arg**2) * r / dist
                 ! compute gradient of error function
+                !
+                IF (PRESENT(vals)) THEN
+                    !
+                    vals(i,:) = gradient%of_r(:,ir) + gradlocal(:,ir) * scale
+                    !
+                END IF
                 !
             END DO
             !

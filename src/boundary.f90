@@ -1512,22 +1512,8 @@ CONTAINS
                     !
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
-                    IF (deriv >= 1) THEN
-                        !
-                        CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                                                      this%ir_nonzero(i, :), this%grid_pts)
-                        !
-                        count = 1
-                        DO j = 1, cell%nnr
-                            !
-                            IF (.NOT. this%ir_nonzero(i, count) == j) CYCLE
-                            !
-                            this%grad_nonzero(i, count, :) = gradlocal%of_r(:, j)
-                            count = count + 1
-                            !
-                        END DO
-                        !
-                    END IF
+                    IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
+                        this%ir_nonzero(i, :), this%grad_nonzero(i,:,:), this%grid_pts)
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
                                                                    this%ir_nonzero(i, :), this%grid_pts)
@@ -1580,22 +1566,8 @@ CONTAINS
                     !
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
-                    IF (deriv >= 1) THEN
-                        !
-                        CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                                                      this%ir_nonzero(i, :), this%grid_pts)
-                        !
-                        count = 1
-                        DO j = 1, cell%nnr
-                            !
-                            IF (.NOT. this%ir_nonzero(i, count) == j) CYCLE
-                            !
-                            this%grad_nonzero(i, count, :) = gradlocal%of_r(:, j)
-                            count = count + 1
-                            !
-                        END DO
-                        !
-                    END IF
+                    IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
+                                    this%ir_nonzero(i, :), this%grad_nonzero(i,:,:), this%grid_pts)
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
                                                                    this%ir_nonzero(i, :), this%grid_pts)
