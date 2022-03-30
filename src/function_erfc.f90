@@ -90,7 +90,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), INTENT(IN) :: this
+        CLASS(environ_function_erfc), INTENT(INOUT) :: this
         INTEGER, OPTIONAL, INTENT(OUT) :: ir_vals(:)
         REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
