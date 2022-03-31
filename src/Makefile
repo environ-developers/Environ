@@ -36,12 +36,12 @@ MODFLAGS = $(BASEMOD_FLAGS)
 
 OBJS = $(patsubst %.f90,%.o,$(wildcard *.f90))
 
-all: libsdir libenv.a
+all: libsdir libenvsrc.a
 
-libenv.a: $(OBJS)
+libenvsrc.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
-	@ /bin/mv libenv.a ../libs
+	@ /bin/mv libenvsrc.a ../libs
 
 libsdir:
 	@ test -d ../libs || mkdir ../libs
