@@ -219,18 +219,16 @@ MODULE class_setup
     END TYPE environ_setup
     !------------------------------------------------------------------------------------
     !
-    CHARACTER(LEN=256) :: bibliography(5)
+    CHARACTER(LEN=256) :: bibliography(6)
     !
     DATA bibliography/ &
-        "O. Andreussi, I. Dabo and N. Marzari, &
-        &J. Chem. Phys. 136, 064102 (2012)", &
-        "I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, &
-        &J. Chem. Phys. 142, 034111 (2015)", &
+        "O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)", &
+        "I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)", &
         "O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
         &J. Chem. Theory Comput. 15, 1996 (2019)", &
-        "F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, &
-        &J. Chem. Phys. 150, 041722 (2019)", &
-        "M. Truscott, O. Andreussi, J. Phys. Chem. B, 123, 16, 3513–3524 (2019)"/
+        "F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, J. Chem. Phys. 150, 041722 (2019)", &
+        "M. Truscott, O. Andreussi, J. Phys. Chem. B, 123, 16, 3513–3524 (2019)", &
+        "Q. Campbell and I. Dabo, Phys. Rev. B 95, 205308 (2017)"/
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -1353,6 +1351,8 @@ CONTAINS
         IF (this%lelectrolyte) WRITE (io%unit, 1002) TRIM(bibliography(4))
         !
         IF (field_aware) WRITE (io%unit, 1002) TRIM(bibliography(5))
+        !
+        IF (this%lsemiconductor) WRITE (io%unit, 1002) TRIM(bibliography(6))
         !
         WRITE (io%unit, 1003)
         !
