@@ -53,8 +53,8 @@ MODULE class_function_bspline
     TYPE, PUBLIC :: knot_span
         !--------------------------------------------------------------------------------
         !
-        INTEGER, ALLOCATABLE :: powers(:,:)
-        REAL(DP), ALLOCATABLE :: coeff(:,:)
+        INTEGER, ALLOCATABLE :: powers(:,:,:)
+        REAL(DP), ALLOCATABLE :: coeff(:,:,:)
         !
         !--------------------------------------------------------------------------------
     END TYPE knot_span
@@ -154,13 +154,6 @@ CONTAINS
                 ! Calculate the bspline value at a given point
                 !
                 val = 0.D0
-                DO j = 0, this%degree
-                    !
-                    pow = this%spans(uidx)%powers(this%degree,j)
-                    coef = this%spans(uidx)%coeff(this%degree,j)
-                    val = val + coef*uval**pow
-                    !
-                END DO
                 !
                 print *, i, uval, val
                 !
@@ -245,22 +238,25 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: sub_name = 'setup_of_function'
         !
-        INTEGER :: i, j, k, pows(this%degree), idx
+        INTEGER :: i, j, k, pows(0:this%degree), idx
         REAL(DP) :: cvals(4)
         !
         !--------------------------------------------------------------------------------
         !
         this%span_num = SIZE(this%u) - 1
         ALLOCATE(this%spans(this%span_num))
+        pows = -1
         !
         DO i = 0, this%degree
+            !
+            pows(i) = i
             !
             DO j = 1, this%span_num
                 !
                 IF (i == 0) THEN
                     !
-                    ALLOCATE (this%spans(j)%coeff(0:this%degree,0:this%degree))
-                    ALLOCATE (this%spans(j)%powers(0:this%degree,0:this%degree))
+                    ALLOCATE(this%spans(j)%coeff(this%span_num,0:this%degree,0:this%degree))
+                    ALLOCATE(this%spans(j)%powers(this%span_num,0:this%degree,0:this%degree))
                     !
                     this%spans(j)%coeff = 0.D0
                     this%spans(j)%powers = -1
@@ -268,8 +264,8 @@ CONTAINS
                 !
                 IF (i == 0) THEN
                     !
-                    this%spans(j)%coeff(i,i) = 1.D0
-                    this%spans(j)%powers(i,i) = 0
+                    this%spans(j)%coeff(j,0,0) = 1.D0
+                    this%spans(j)%powers(j,0,0) = 0
                     !
                 ELSE IF (j + i <= this%span_num) THEN
                     !
@@ -278,26 +274,23 @@ CONTAINS
                     cvals(4) = -1.D0 / (this%u(j+i+1) - this%u(j+1))
                     cvals(3) = -this%u(j+i+1) * cvals(4)
                     !
-                    ! Updating variable powers
-                    this%spans(j)%powers(i,:) = this%spans(j)%powers(i-1,:)
-                    this%spans(j)%powers(i,i) = i
-                    this%spans(j+1)%powers(i,:) = this%spans(j+1)%powers(i-1,:)
-                    this%spans(j+1)%powers(i,i) = i
-                    !
-                    ! First term in B-spline equation
-                    this%spans(j)%coeff(i,:) = this%spans(j)%coeff(i,:) + &
-                                                this%spans(j)%coeff(i-1,:) * cvals(2)
-                    this%spans(j)%coeff(i,1:i) = this%spans(j)%coeff(i,1:i) + &
-                                            this%spans(j)%coeff(i-1,0:i-1) * cvals(1)
-                    !
-                    ! Second term in B-spline equation
-                    this%spans(j+1)%coeff(i,:) = this%spans(j+1)%coeff(i-1,:) * cvals(3)
-                    this%spans(j+1)%coeff(i,1:i) = this%spans(j+1)%coeff(i-1,0:i-1) * cvals(4)
-                    !
-                ELSE
-                    !
-                    this%spans(j)%powers(i,:) = this%spans(j)%powers(i-1,:)
-                    this%spans(j)%powers(i,i) = i
+                    DO k = 1, i
+                        !
+                        ! Updating variable powers
+                        this%spans(j)%powers(k,i,:) = pows
+                        this%spans(j)%powers(k+1,i,:) = pows
+                        !
+                        !! First term in B-spline equation
+                        !this%spans(j)%coeff(k,i,:) = this%spans(j)%coeff(k,i,:) + &
+                        !                            this%spans(j)%coeff(k,i-1,:) * cvals(2)
+                        !this%spans(j)%coeff(k,i,1:i) = this%spans(j)%coeff(k,i,1:i) + &
+                        !                        this%spans(j)%coeff(k,i-1,0:i-1) * cvals(1)
+                        !!
+                        !! Second term in B-spline equation
+                        !this%spans(j)%coeff(k+1,i,:) = this%spans(j)%coeff(k+1,i-1,:) * cvals(3)
+                        !this%spans(j)%coeff(k+1,i,1:i) = this%spans(j)%coeff(k+1,i-1,0:i-1) * cvals(4)
+                        !!
+                    END DO
                     !
                 END IF
                 !
@@ -306,12 +299,16 @@ CONTAINS
         END DO
         !
         DO i=0,this%degree
-            print *, 'Degree: ', i
+            WRITE(*,"(A,I4)") 'Degree: ', i
             DO j=1,this%span_num
-                print *, 'Linear Powers: ', this%spans(j)%powers(i,:)
-                print *, 'Coefficients: ', this%spans(j)%coeff(i,:)
+                WRITE(*,"(5X,A,I4)") 'Span: ', j
+                DO k=1,this%span_num
+                    WRITE(*,"(10X,A,10I4)") 'Linear Powers: ', this%spans(j)%powers(k,i,:)
+                    !WRITE(*,"(10X,A,10F17.8)") 'Coefficients: ', this%spans(j)%coeff(k,i,:)
+                END DO
+                WRITE(*,"(/)")
             END DO
-            print*, ''
+            WRITE(*,"(/)")
         END DO
         flush(6)
         !
