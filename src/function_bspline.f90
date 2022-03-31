@@ -66,8 +66,9 @@ MODULE class_function_bspline
         !--------------------------------------------------------------------------------
         !
         TYPE( knot_span ), ALLOCATABLE :: spans(:)
+        REAL(DP), ALLOCATABLE :: u(:)
         !
-        INTEGER :: span_num
+        INTEGER :: span_num, degree
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -114,14 +115,6 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'density_of_function'
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (this%degree < 0) &
-            CALL io%error(sub_name, 'Wrong value for target degree', 1)
-        !
-        IF (this%degree > SIZE(this%u) - 1) &
-            CALL io%error(sub_name, 'Degree cant be larger than number of knot spans', 1)
-        !
-        !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
@@ -130,13 +123,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%setup(this%pos)
+        !
         ASSOCIATE (cell => density%cell, &
                    pos => this%pos, &
                    dim => this%dim, &
                    u => this%u, &
                    axis => this%axis)
-            !
-            CALL this%setup()
             !
             DO i = 1, cell%ir_end
                 !
@@ -155,7 +148,7 @@ CONTAINS
                 !
                 val = this%calc_val(uval, uidx)
                 !
-                !print *, i, uval, val
+                print *, i, uval, val
                 !
             END DO
             !
@@ -278,21 +271,29 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE setup_of_function(this)
+    SUBROUTINE setup_of_function(this, pos)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_bspline), INTENT(INOUT) :: this
+        REAL(DP), INTENT(IN) :: pos(3)
         !
         CHARACTER(LEN=80) :: sub_name = 'setup_of_function'
         !
-        INTEGER :: i, j, k, pows(0:this%degree), idx
+        INTEGER :: i, j, k, idx
+        INTEGER, ALLOCATABLE :: pows(:)
         REAL(DP) :: cvals(4)
         !
         !--------------------------------------------------------------------------------
         !
+        ALLOCATE(this%u(6))
+        this%u = (/0.D0,1.D0,2.D0,3.D0,4.D0,5.D0/)
+        !
         this%span_num = SIZE(this%u) - 1
+        this%degree = this%span_num - 1
+        !
+        ALLOCATE(pows(0:this%degree))
         ALLOCATE(this%spans(this%span_num))
         pows = -1
         !

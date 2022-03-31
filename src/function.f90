@@ -66,9 +66,6 @@ MODULE class_function
         ! environ_functions are not designed to be mobile, thus position
         ! can be included in the definition of the type
         !
-        REAL(DP), POINTER :: u(:) => NULL()
-        INTEGER :: degree
-        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
@@ -134,7 +131,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_function(this, f_type, f_axis, f_dim, f_width, f_spread, &
-                                     f_volume, f_pos, f_u, f_deg)
+                                     f_volume, f_pos)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -142,8 +139,6 @@ CONTAINS
         INTEGER, INTENT(IN) :: f_type, f_dim, f_axis
         REAL(DP), INTENT(IN) :: f_width, f_spread, f_volume
         REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: f_pos(:)
-        REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: f_u(:)
-        INTEGER, OPTIONAL, INTENT(IN) :: f_deg
         !
         CLASS(environ_function), INTENT(INOUT) :: this
         !
@@ -164,9 +159,6 @@ CONTAINS
             ALLOCATE (this%pos(3))
             this%pos = 0.D0
         END IF
-        !
-        IF (PRESENT(f_u)) this%u => f_u
-        IF (PRESENT(f_deg)) this%degree = f_deg
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_function
