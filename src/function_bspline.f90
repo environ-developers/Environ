@@ -142,13 +142,18 @@ CONTAINS
                 IF (r(1)+cell%at(1,1)*0.5D0 == cell%at(1,1) .AND. i /= 1 ) EXIT
                 !
                 uval = r(1) + cell%at(1,1)*0.5D0
-                uidx = this%get_u(uval)
                 !
-                ! Calculate the bspline value at a given point
+                IF (uval > MAXVAL(this%u) .OR. uval < MINVAL(this%u)) THEN
+                    val = 0.D0
+                ELSE
+                    uidx = this%get_u(uval)
+                    !
+                    ! Calculate the bspline value at a given point
+                    !
+                    val = this%calc_val(uval, uidx)
+                END IF
                 !
-                val = this%calc_val(uval, uidx)
-                !
-                print *, i, uval, val
+                !print *, i, uval, val
                 !
             END DO
             !
@@ -214,12 +219,19 @@ CONTAINS
                 IF (r(1)+cell%at(1,1)*0.5D0 == cell%at(1,1) .AND. i /= 1 ) EXIT
                 !
                 uval = r(1) + cell%at(1,1)*0.5D0
-                uidx = this%get_u(uval)
                 !
-                ! Calculate gradient of bspline function at a given point
-                !
-                val = this%calc_val(uval, uidx, this%degree - 1)
-                val = val - this%calc_val(uval, uidx, this%degree - 1, .TRUE.)
+                IF (uval > MAXVAL(this%u) .OR. uval < MINVAL(this%u)) THEN
+                    val = 0.D0
+                ELSE
+                    uidx = this%get_u(uval)
+                    !
+                    !
+                    ! Calculate gradient of bspline function at a given point
+                    !
+                    val = this%calc_val(uval, uidx, this%degree - 1)
+                    val = val - this%calc_val(uval, uidx, this%degree - 1, .TRUE.)
+                    !
+                END IF
                 !
                 print *, i, uval, val
                 !
@@ -283,12 +295,18 @@ CONTAINS
         !
         INTEGER :: i, j, k, idx
         INTEGER, ALLOCATABLE :: pows(:)
-        REAL(DP) :: cvals(4)
+        REAL(DP) :: cvals(4), fluff, dx
         !
         !--------------------------------------------------------------------------------
         !
         ALLOCATE(this%u(6))
-        this%u = (/0.D0,1.D0,2.D0,3.D0,4.D0,5.D0/)
+        fluff = 5.D0 * this%spread + this%width
+        dx = 2.D0 * fluff / 5.D0
+        DO i = 1, 6
+            !
+            this%u(i) = pos(1) - fluff + (i - 1) * dx
+            !
+        END DO
         !
         this%span_num = SIZE(this%u) - 1
         this%degree = this%span_num - 1
