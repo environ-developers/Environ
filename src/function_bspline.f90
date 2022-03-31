@@ -277,16 +277,16 @@ CONTAINS
                     DO k = 1, i
                         !
                         ! Updating variable powers
-                        this%spans(j)%powers(k,i,:) = pows
-                        this%spans(j)%powers(k+1,i,:) = pows
+                        this%spans(j)%powers(k+j-1,i,:) = pows
+                        this%spans(j)%powers(k+j,i,:) = pows
                         !
-                        !! First term in B-spline equation
+                        ! First term in B-spline equation
                         !this%spans(j)%coeff(k,i,:) = this%spans(j)%coeff(k,i,:) + &
                         !                            this%spans(j)%coeff(k,i-1,:) * cvals(2)
                         !this%spans(j)%coeff(k,i,1:i) = this%spans(j)%coeff(k,i,1:i) + &
                         !                        this%spans(j)%coeff(k,i-1,0:i-1) * cvals(1)
-                        !!
-                        !! Second term in B-spline equation
+                        !
+                        ! Second term in B-spline equation
                         !this%spans(j)%coeff(k+1,i,:) = this%spans(j)%coeff(k+1,i-1,:) * cvals(3)
                         !this%spans(j)%coeff(k+1,i,1:i) = this%spans(j)%coeff(k+1,i-1,0:i-1) * cvals(4)
                         !!
