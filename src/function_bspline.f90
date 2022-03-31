@@ -77,7 +77,7 @@ MODULE class_function_bspline
         PROCEDURE :: gradient => gradient_of_function
         PROCEDURE :: setup => setup_of_function
         !
-        PROCEDURE, PRIVATE :: get_u
+        PROCEDURE, PRIVATE :: get_u, calc_val
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_bspline
@@ -153,9 +153,9 @@ CONTAINS
                 !
                 ! Calculate the bspline value at a given point
                 !
-                val = 0.D0
+                val = this%calc_val(uval, uidx)
                 !
-                print *, i, uval, val
+                !print *, i, uval, val
                 !
             END DO
             !
@@ -179,11 +179,60 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
+        INTEGER :: i, uidx
+        LOGICAL :: physical
+        REAL(DP) :: r(3), r2, dist, val, uval
+        !
         CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        IF (.NOT. ALLOCATED(this%spans)) &
+            CALL io%error(sub_name, "Powers and coefficients not calculated", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
+        !
+        IF (PRESENT(zero)) THEN
+            IF (zero) gradient%of_r = 0.D0
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (cell => gradient%cell, &
+                   pos => this%pos, &
+                   dim => this%dim, &
+                   u => this%u, &
+                   axis => this%axis)
+            !
+            !----------------------------------------------------------------------------
+            ! Set local parameters
+            !
+            !----------------------------------------------------------------------------
+            !
+            DO i = 1, cell%ir_end
+                !
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                dist = SQRT(r2)
+                IF (r(1)+cell%at(1,1)*0.5D0 == cell%at(1,1) .AND. i /= 1 ) EXIT
+                !
+                uval = r(1) + cell%at(1,1)*0.5D0
+                uidx = this%get_u(uval)
+                !
+                ! Calculate gradient of bspline function at a given point
+                !
+                val = this%calc_val(uval, uidx, this%degree - 1)
+                val = val - this%calc_val(uval, uidx, this%degree - 1, .TRUE.)
+                !
+                print *, i, uval, val
+                !
+            END DO
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE gradient_of_function
@@ -313,6 +362,47 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE setup_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    REAL(DP) FUNCTION calc_val(this, u_in, idx, deg, next)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function_bspline), INTENT(IN) :: this
+        REAL(DP), INTENT(IN) :: u_in
+        INTEGER, INTENT(IN) :: idx
+        INTEGER, OPTIONAL, INTENT(IN) :: deg
+        LOGICAL, OPTIONAL, INTENT(IN) :: next
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_val'
+        !
+        INTEGER :: i, degree, span
+        REAL(DP) :: p, cons
+        !
+        !--------------------------------------------------------------------------------
+        !
+        degree = this%degree
+        IF (PRESENT(deg)) degree = deg
+        !
+        span = 1
+        IF (PRESENT(next)) THEN
+            IF (next) span = 2
+        END IF
+        !
+        calc_val = 0.D0
+        !
+        ASSOCIATE (pows => this%spans(span)%powers, &
+                   coeffs => this%spans(span)%coeff)
+            !
+            calc_val = SUM( coeffs(idx,degree,:)*u_in**REAL(pows(idx,degree,:),DP))
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION calc_val
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
