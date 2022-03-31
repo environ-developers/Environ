@@ -260,9 +260,6 @@ CONTAINS
                     !
                     this%spans(j)%coeff = 0.D0
                     this%spans(j)%powers = -1
-                END IF
-                !
-                IF (i == 0) THEN
                     !
                     this%spans(j)%coeff(j,0,0) = 1.D0
                     this%spans(j)%powers(j,0,0) = 0
@@ -281,15 +278,17 @@ CONTAINS
                         this%spans(j)%powers(k+j,i,:) = pows
                         !
                         ! First term in B-spline equation
-                        !this%spans(j)%coeff(k,i,:) = this%spans(j)%coeff(k,i,:) + &
-                        !                            this%spans(j)%coeff(k,i-1,:) * cvals(2)
-                        !this%spans(j)%coeff(k,i,1:i) = this%spans(j)%coeff(k,i,1:i) + &
-                        !                        this%spans(j)%coeff(k,i-1,0:i-1) * cvals(1)
+                        this%spans(j)%coeff(k+j-1,i,:) = this%spans(j)%coeff(k+j-1,i,:) + &
+                                                    this%spans(j)%coeff(k+j-1,i-1,:) * cvals(2)
+                        this%spans(j)%coeff(k+j-1,i,1:i) = this%spans(j)%coeff(k+j-1,i,1:i) + &
+                                                this%spans(j)%coeff(k+j-1,i-1,0:i-1) * cvals(1)
                         !
                         ! Second term in B-spline equation
-                        !this%spans(j)%coeff(k+1,i,:) = this%spans(j)%coeff(k+1,i-1,:) * cvals(3)
-                        !this%spans(j)%coeff(k+1,i,1:i) = this%spans(j)%coeff(k+1,i-1,0:i-1) * cvals(4)
-                        !!
+                        this%spans(j)%coeff(k+j,i,:) = this%spans(j)%coeff(k+j,i,:) + &
+                                                    this%spans(j+1)%coeff(k+j,i-1,:) * cvals(3)
+                        this%spans(j)%coeff(k+j,i,1:i) = this%spans(j)%coeff(k+j,i,1:i) + &
+                                                this%spans(j+1)%coeff(k+j,i-1,0:i-1) * cvals(4)
+                        !
                     END DO
                     !
                 END IF
@@ -298,18 +297,18 @@ CONTAINS
             !
         END DO
         !
-        DO i=0,this%degree
-            WRITE(*,"(A,I4)") 'Degree: ', i
-            DO j=1,this%span_num
-                WRITE(*,"(5X,A,I4)") 'Span: ', j
-                DO k=1,this%span_num
-                    WRITE(*,"(10X,A,10I4)") 'Linear Powers: ', this%spans(j)%powers(k,i,:)
-                    !WRITE(*,"(10X,A,10F17.8)") 'Coefficients: ', this%spans(j)%coeff(k,i,:)
-                END DO
-                WRITE(*,"(/)")
-            END DO
-            WRITE(*,"(/)")
-        END DO
+        !DO i=0,this%degree
+        !    WRITE(*,"(A,I4)") 'Degree: ', i
+        !    DO j=1,this%span_num
+        !        WRITE(*,"(5X,A,I4)") 'Span: ', j
+        !        DO k=1,this%span_num
+        !            WRITE(*,"(10X,A,10I4)") 'Linear Powers: ', this%spans(j)%powers(k,i,:)
+        !            WRITE(*,"(10X,A,10F17.8)") 'Coefficients: ', this%spans(j)%coeff(k,i,:)
+        !        END DO
+        !        WRITE(*,"(/)")
+        !    END DO
+        !    WRITE(*,"(/)")
+        !END DO
         flush(6)
         !
         !--------------------------------------------------------------------------------
