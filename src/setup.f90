@@ -220,7 +220,7 @@ MODULE class_setup
     END TYPE environ_setup
     !------------------------------------------------------------------------------------
     !
-    CHARACTER(LEN=256) :: bibliography(6)
+    CHARACTER(LEN=256) :: bibliography(7)
     !
     DATA bibliography/ &
         "O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)", &
@@ -229,7 +229,8 @@ MODULE class_setup
         &J. Chem. Theory Comput. 15, 1996 (2019)", &
         "F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, J. Chem. Phys. 150, 041722 (2019)", &
         "M. Truscott, O. Andreussi, J. Phys. Chem. B, 123, 16, 3513–3524 (2019)", &
-        "Q. Campbell and I. Dabo, Phys. Rev. B 95, 205308 (2017)"/
+        "Q. Campbell and I. Dabo, Phys. Rev. B 95, 205308 (2017)", &
+        "Q. Campbell, D. Fisher and I. Dabo, Phys. Rev. Mat. 3, 015404 (2019)"/
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -1359,6 +1360,8 @@ CONTAINS
         IF (field_aware) WRITE (io%unit, 1002) TRIM(bibliography(5))
         !
         IF (this%lsemiconductor) WRITE (io%unit, 1002) TRIM(bibliography(6))
+        !
+        IF (this%lmsgcs) WRITE (io%unit, 1002) TRIM(bibliography(7))
         !
         WRITE (io%unit, 1003)
         !

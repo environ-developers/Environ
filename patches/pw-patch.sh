@@ -495,21 +495,14 @@ lforce = .TRUE. \
 lbfgs = .FALSE. \
 nstep = 100 \
 tot_charge = 0.0 \
-!WRITE( stdout, 1000) \
-WRITE( stdout, 1002) tot_charge \
+WRITE( stdout, 1000) tot_charge \
 CALL stop_clock( "semiconductor" ) \
  \
 END IF \
  \
 END IF \
  \
-1000 FORMAT(5X,//"*******************************************"//,& \
-&"  Please cite                              "//,& \
-&"  Q. Campbell, D. Fisher and I. Dabo, Phys. Rev. Mat. 3, 015404 (2019)."//,& \
-&"  doi: 10.1103/PhysRevMaterials.3.015404   "//,& \
-&"  In any publications resulting from this work.") \
- \
-1002 FORMAT(5x,//"*******************************************"//, & \
+1000 FORMAT(5x,//"*******************************************"//, & \
 &"     Running initial calculation for flatband."//& \
 &   "     Using charge of: ",F14.8,//& \
 &"*******************************************") \
