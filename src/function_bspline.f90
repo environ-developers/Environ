@@ -65,8 +65,8 @@ MODULE class_function_bspline
     TYPE, EXTENDS(environ_function), PUBLIC :: environ_function_bspline
         !--------------------------------------------------------------------------------
         !
-        TYPE( knot_span ), ALLOCATABLE :: spans(:)
-        REAL(DP), ALLOCATABLE :: u(:)
+        TYPE( knot_span ), ALLOCATABLE :: spans(:,:)
+        REAL(DP), ALLOCATABLE :: u(:,:)
         !
         INTEGER :: span_num, degree
         !
@@ -269,7 +269,7 @@ CONTAINS
         !
         DO i = 1, this%span_num
             !
-            IF (u_in >= this%u(i) .AND. u_in < this%u(i+1)) THEN
+            IF (u_in >= this%u(1,i) .AND. u_in < this%u(1,i+1)) THEN
                 !
                 get_u = i
                 !
@@ -299,20 +299,27 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ALLOCATE(this%u(6))
+        ! #TODO calculate the number of knots to use
+        ALLOCATE(this%u(3,6))
         fluff = 5.D0 * this%spread + this%width
         dx = 2.D0 * fluff / 5.D0
-        DO i = 1, 6
+        !
+        DO i = 1, 3
             !
-            this%u(i) = pos(1) - fluff + (i - 1) * dx
+            DO j = 1, 6
+                !
+                this%u(i,j) = pos(i) - fluff + (j - 1) * dx
+                !
+            END DO
             !
         END DO
         !
-        this%span_num = SIZE(this%u) - 1
+        this%span_num = SIZE(this%u(1,:)) - 1
         this%degree = this%span_num - 1
         !
         ALLOCATE(pows(0:this%degree))
-        ALLOCATE(this%spans(this%span_num))
+        ALLOCATE(this%spans(3,this%span_num))
+        !
         pows = -1
         !
         DO i = 0, this%degree
@@ -323,39 +330,39 @@ CONTAINS
                 !
                 IF (i == 0) THEN
                     !
-                    ALLOCATE(this%spans(j)%coeff(this%span_num,0:this%degree,0:this%degree))
-                    ALLOCATE(this%spans(j)%powers(this%span_num,0:this%degree,0:this%degree))
+                    ALLOCATE(this%spans(1,j)%coeff(this%span_num,0:this%degree,0:this%degree))
+                    ALLOCATE(this%spans(1,j)%powers(this%span_num,0:this%degree,0:this%degree))
                     !
-                    this%spans(j)%coeff = 0.D0
-                    this%spans(j)%powers = -1
+                    this%spans(1,j)%coeff = 0.D0
+                    this%spans(1,j)%powers = -1
                     !
-                    this%spans(j)%coeff(j,0,0) = 1.D0
-                    this%spans(j)%powers(j,0,0) = 0
+                    this%spans(1,j)%coeff(j,0,0) = 1.D0
+                    this%spans(1,j)%powers(j,0,0) = 0
                     !
                 ELSE IF (j + i <= this%span_num) THEN
                     !
-                    cvals(1) = 1.D0 / (this%u(j+i) - this%u(j))
-                    cvals(2) = -this%u(j) * cvals(1)
-                    cvals(4) = -1.D0 / (this%u(j+i+1) - this%u(j+1))
-                    cvals(3) = -this%u(j+i+1) * cvals(4)
+                    cvals(1) = 1.D0 / (this%u(1,j+i) - this%u(1,j))
+                    cvals(2) = -this%u(1,j) * cvals(1)
+                    cvals(4) = -1.D0 / (this%u(1,j+i+1) - this%u(1,j+1))
+                    cvals(3) = -this%u(1,j+i+1) * cvals(4)
                     !
                     DO k = 1, i
                         !
                         ! Updating variable powers
-                        this%spans(j)%powers(k+j-1,i,:) = pows
-                        this%spans(j)%powers(k+j,i,:) = pows
+                        this%spans(1,j)%powers(k+j-1,i,:) = pows
+                        this%spans(1,j)%powers(k+j,i,:) = pows
                         !
                         ! First term in B-spline equation
-                        this%spans(j)%coeff(k+j-1,i,:) = this%spans(j)%coeff(k+j-1,i,:) + &
-                                                    this%spans(j)%coeff(k+j-1,i-1,:) * cvals(2)
-                        this%spans(j)%coeff(k+j-1,i,1:i) = this%spans(j)%coeff(k+j-1,i,1:i) + &
-                                                this%spans(j)%coeff(k+j-1,i-1,0:i-1) * cvals(1)
+                        this%spans(1,j)%coeff(k+j-1,i,:) = this%spans(1,j)%coeff(k+j-1,i,:) + &
+                                                    this%spans(1,j)%coeff(k+j-1,i-1,:) * cvals(2)
+                        this%spans(1,j)%coeff(k+j-1,i,1:i) = this%spans(1,j)%coeff(k+j-1,i,1:i) + &
+                                                this%spans(1,j)%coeff(k+j-1,i-1,0:i-1) * cvals(1)
                         !
                         ! Second term in B-spline equation
-                        this%spans(j)%coeff(k+j,i,:) = this%spans(j)%coeff(k+j,i,:) + &
-                                                    this%spans(j+1)%coeff(k+j,i-1,:) * cvals(3)
-                        this%spans(j)%coeff(k+j,i,1:i) = this%spans(j)%coeff(k+j,i,1:i) + &
-                                                this%spans(j+1)%coeff(k+j,i-1,0:i-1) * cvals(4)
+                        this%spans(1,j)%coeff(k+j,i,:) = this%spans(1,j)%coeff(k+j,i,:) + &
+                                                    this%spans(1,j+1)%coeff(k+j,i-1,:) * cvals(3)
+                        this%spans(1,j)%coeff(k+j,i,1:i) = this%spans(1,j)%coeff(k+j,i,1:i) + &
+                                                this%spans(1,j+1)%coeff(k+j,i-1,0:i-1) * cvals(4)
                         !
                     END DO
                     !
@@ -370,8 +377,8 @@ CONTAINS
         !    DO j=1,this%span_num
         !        WRITE(*,"(5X,A,I4)") 'Span: ', j
         !        DO k=1,this%span_num
-        !            WRITE(*,"(10X,A,10I4)") 'Linear Powers: ', this%spans(j)%powers(k,i,:)
-        !            WRITE(*,"(10X,A,10F17.8)") 'Coefficients: ', this%spans(j)%coeff(k,i,:)
+        !            WRITE(*,"(10X,A,10I4)") 'Linear Powers: ', this%spans(1,j)%powers(k,i,:)
+        !            WRITE(*,"(10X,A,10F17.8)") 'Coefficients: ', this%spans(1,j)%coeff(k,i,:)
         !        END DO
         !        WRITE(*,"(/)")
         !    END DO
@@ -413,8 +420,8 @@ CONTAINS
         !
         calc_val = 0.D0
         !
-        ASSOCIATE (pows => this%spans(span)%powers, &
-                   coeffs => this%spans(span)%coeff)
+        ASSOCIATE (pows => this%spans(1,span)%powers, &
+                   coeffs => this%spans(1,span)%coeff)
             !
             calc_val = SUM( coeffs(idx,degree,:)*u_in**REAL(pows(idx,degree,:),DP))
             !
