@@ -68,7 +68,8 @@ MODULE class_function_bspline
         TYPE( knot_span ), ALLOCATABLE :: spans(:,:)
         REAL(DP), ALLOCATABLE :: u(:,:)
         !
-        INTEGER :: span_num, degree
+        INTEGER :: span_num, degree, knot_num
+        REAL(DP) :: m_spread, norm
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -78,7 +79,7 @@ MODULE class_function_bspline
         PROCEDURE :: gradient => gradient_of_function
         PROCEDURE :: setup => setup_of_function
         !
-        PROCEDURE, PRIVATE :: get_u, calc_val
+        PROCEDURE :: get_u, calc_val, pts_in_span
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_bspline
@@ -108,9 +109,9 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: density
         !
-        INTEGER :: i, a, uidx(3)
+        INTEGER :: i, uidx(3)
         LOGICAL :: physical
-        REAL(DP) :: r(3), r2, val, scale, length
+        REAL(DP) :: r(3), r2, length
         !
         CHARACTER(LEN=80) :: sub_name = 'density_of_function'
         !
@@ -123,13 +124,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%pts_in_span(density%cell%at, density%cell%nr)
         CALL this%setup(this%pos)
         !
         ASSOCIATE (cell => density%cell, &
                    pos => this%pos, &
                    dim => this%dim, &
                    charge => this%volume, &
-                   spread => this%spread, &
                    u => this%u, &
                    axis => this%axis)
             !
@@ -139,15 +140,15 @@ CONTAINS
             SELECT CASE (dim)
                 !
             CASE (0)
-                scale = charge / (sqrtpi * spread)**3
+                this%norm = charge
                 !
             CASE (1)
                 length = ABS(cell%at(axis, axis))
-                scale = charge / length / (sqrtpi * spread)**2
+                this%norm = charge / length
                 !
             CASE (2)
                 length = ABS(cell%at(axis, axis))
-                scale = charge * length / cell%omega / (sqrtpi * spread)
+                this%norm = charge * length / cell%omega
                 !
             CASE DEFAULT
                 CALL io%error(sub_name, "Unexpected system dimensions", 1)
@@ -156,7 +157,6 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            OPEN(unit=400,file='bspline.out',status='unknown')
             DO i = 1, cell%ir_end
                 !
                 CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
@@ -164,24 +164,18 @@ CONTAINS
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                IF (ANY(r > MAXVAL(this%u)) .OR. ANY(r < MINVAL(this%u))) THEN
-                    val = 0.D0
-                ELSE
-                    !
-                    uidx = this%get_u(r)
-                    !
-                    ! Calculate the bspline value at a given point
-                    !
-                    val = this%calc_val(r, uidx)
-                    !
-                END IF
+                uidx = this%get_u(r)
                 !
-                density%of_r(i) = density%of_r(i) + val
+                IF (ANY(uidx >= this%span_num)) CYCLE
                 !
-                WRITE(400,*) i, r, val
+                ! Calculate the bspline value at a given point
+                !
+                density%of_r(i) = density%of_r(i) + this%calc_val(r, uidx)
                 !
             END DO
-            CLOSE(400)
+            !
+            this%norm = this%norm / density%integrate()
+            density%of_r = density%of_r * this%norm
             !
         END ASSOCIATE
         !
@@ -324,28 +318,29 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: sub_name = 'setup_of_function'
         !
-        INTEGER :: i, j, k, a, idx, knot_num
+        INTEGER :: i, j, k, a, idx
         INTEGER, ALLOCATABLE :: pows(:)
         REAL(DP) :: cvals(4), fluff, dx
         !
         !--------------------------------------------------------------------------------
         !
-        ! #TODO calculate the number of knots to use
-        knot_num = 7
-        ALLOCATE(this%u(3,knot_num))
-        dx = 2.D0 * this%width / REAL(knot_num - 1, DP)
+        print *, 'Number of knots: ', this%knot_num
+        ALLOCATE(this%u(3,this%knot_num))
+        dx = this%m_spread * this%spread / REAL(this%knot_num - 1, DP)
         !
         DO i = 1, 3
             !
-            DO j = 1, knot_num
+            DO j = 1, this%knot_num
                 !
-                this%u(i,j) = pos(i) - this%width + (j - 1) * dx
+                this%u(i,j) = pos(i) - this%m_spread * this%spread / 2.D0 + (j - 1) * dx
                 !
             END DO
             !
+            print *, 'Knot values span: ', this%u(i,1), this%u(i,this%knot_num)
+            !
         END DO
         !
-        this%span_num = SIZE(this%u(1,:)) - 1
+        this%span_num = this%knot_num - 1
         this%degree = this%span_num - 1
         !
         ALLOCATE(pows(0:this%degree))
@@ -473,6 +468,39 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION calc_val
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE pts_in_span(this, at, nr)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function_bspline), INTENT(INOUT) :: this
+        REAL(DP), INTENT(IN) :: at(3,3)
+        INTEGER, INTENT(IN) :: nr(3)
+        !
+        INTEGER :: i
+        REAL(DP) :: length, frac
+        !
+        CHARACTER(LEN=80) :: sub_name = 'pts_in_span'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%knot_num = 6
+        this%m_spread = 5.D0
+        !
+        DO i = 1, 3
+            !
+            length = SQRT(SUM(at(i,:)*at(i,:)))
+            frac = this%m_spread * this%spread / length
+            this%knot_num = CEILING( nr(i) * frac ) - 1
+            !
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE pts_in_span
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
