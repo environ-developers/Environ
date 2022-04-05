@@ -228,6 +228,9 @@ CONTAINS
         ASSOCIATE (cell => this%cell, &
                    dim => this%dim)
             !
+            ALLOCATE (cell%r(cell%ir_end,3))
+            ALLOCATE (cell%ir_vals(cell%ir_end))
+            !
             IF (dim == 0) THEN
                 !
                 DO i = 1, cell%ir_end
@@ -235,6 +238,9 @@ CONTAINS
                     CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
                     !
                     IF (.NOT. physical) CYCLE
+                    !
+                    cell%r(i,:) = r
+                    cell%ir_vals(i) = i
                     !
                     this%x(:, i) = r
                 END DO
@@ -248,6 +254,9 @@ CONTAINS
                     CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
                     !
                     IF (.NOT. physical) CYCLE
+                    !
+                    cell%r(i,:) = r
+                    cell%ir_vals(i) = i
                     !
                     this%x(1, i) = r(this%axis)
                 END DO

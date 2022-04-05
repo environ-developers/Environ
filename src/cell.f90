@@ -104,6 +104,9 @@ MODULE class_cell
         REAL(DP), ALLOCATABLE :: g(:, :)
         ! G-vectors cartesian components (in units 2pi/a)
         !
+        REAL(DP), ALLOCATABLE :: r(:, :)
+        INTEGER, ALLOCATABLE :: ir_vals(:)
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------

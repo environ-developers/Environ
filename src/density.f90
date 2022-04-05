@@ -256,7 +256,7 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        INTEGER :: i
+        INTEGER :: i, ir
         LOGICAL :: physical
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
@@ -265,35 +265,42 @@ CONTAINS
         !
         cell => this%cell
         !
-        monopole = 0.D0
+        monopole = this%integrate()
         dipole = 0.D0
         quadrupole = 0.D0
         !
+        !
         DO i = 1, cell%ir_end
             !
-            CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
-            ! compute minimum distance using minimum image convention
+            IF (ALLOCATED(cell%r) .AND. ALLOCATED(cell%ir_vals)) THEN
+                !
+                r = cell%r(i,:)
+                ir = cell%ir_vals(i)
+                !
+            ELSE
+                !
+                CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                ir = i
+                !
+            END IF
             !
-            IF (.NOT. physical) CYCLE
-            !
-            rhoir = this%of_r(i)
+            rhoir = this%of_r(ir)
             !
             !----------------------------------------------------------------------------
             ! Multipoles
             !
-            monopole = monopole + rhoir
             dipole = dipole + rhoir * r
             quadrupole = quadrupole + rhoir * r**2
-            !
         END DO
-        !
-        CALL env_mp_sum(monopole, cell%dfft%comm)
         !
         CALL env_mp_sum(dipole, cell%dfft%comm)
         !
         CALL env_mp_sum(quadrupole, cell%dfft%comm)
         !
-        monopole = monopole * cell%domega
         dipole = dipole * cell%domega
         quadrupole = quadrupole * cell%domega
         !
