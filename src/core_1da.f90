@@ -1373,8 +1373,7 @@ CONTAINS
                    permittivity_ms => semiconductor%permittivity, &
                    carrier_density => semiconductor%carrier_density, &
                    electrode_charge => semiconductor%electrode_charge, &
-                   xstern_ms => semiconductor%sc_distance, & 
-                   flatband_pot => semiconductor%flatband_pot_planar_avg)
+                   xstern_ms => semiconductor%sc_distance )
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -1642,18 +1641,20 @@ CONTAINS
             ! Save flatband planar average of flatband potential
             !
             IF (semiconductor%slab_charge == 0.D0) THEN
-               IF (ALLOCATED(flatband_pot)) DEALLOCATE (flatband_pot)
+               IF (ALLOCATED(semiconductor%flatband_pot_planar_avg)) & 
+                              DEALLOCATE (semiconductor%flatband_pot_planar_avg)
                !
                naxis = v%cell%nr(3)
-               ALLOCATE (flatband_pot(naxis))
+               ALLOCATE (semiconductor%flatband_pot_planar_avg(naxis))
                ! 
                !naxis = 0
                !DO ir = 1, v%cell%ir_end
                !   CALL v%cell%ir2ijk(ir,i,j,k,physical)
                !   IF (k > naxis) naxis = k+1 
                !END DO 
-               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r,flatband_pot)
-               WRITE ( io%debug_unit, * )"Saved planar average"
+               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, & 
+                                            semiconductor%flatband_pot_planar_avg)
+               WRITE ( io%debug_unit, * )"Saved planar average... I think"
             END IF 
             !
             CALL local%destroy()

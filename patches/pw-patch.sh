@@ -625,8 +625,8 @@ IF (chg_step == 0) THEN \
 environ%main%semiconductor%base%flatband_fermi = ef!*rytoev \
 tot_charge = 0.7*environ%main%semiconductor%base%electrode_charge \
 environ%main%semiconductor%base%slab_charge = tot_charge \
-!environ%main%environment_charges%externals%functions%array(1)%volume = -(environ%main%semiconductor%base%electrode_charge - tot_charge) \
-!environ%main%environment_charges%externals%functions%array(2)%volume = environ%main%semiconductor%base%electrode_charge \
+environ%main%environment_charges%externals%functions%array(1)%volume = -(environ%main%semiconductor%base%electrode_charge - tot_charge) \
+environ%main%environment_charges%externals%functions%array(2)%volume = environ%main%semiconductor%base%electrode_charge \
 conv_ions = .FALSE. \
 ! CALL qexsd_set_status(255)  \
 ! CALL punch( "config" )  \
@@ -736,7 +736,7 @@ WRITE( STDOUT, 1002)& \
 istep =  istep + 1 \
 nelec = ionic_charge - tot_charge \
 environ%main%semiconductor%base%slab_charge = tot_charge \
-!environ%main%environment_charges%externals%functions%array(1)%volume = environ%main%semiconductor%base%electrode_charge - tot_charge \
+environ%main%environment_charges%externals%functions%array(1)%volume = environ%main%semiconductor%base%electrode_charge - tot_charge \
 CALL mp_bcast(nelec, ionode_id,intra_image_comm) \
 CALL update_pot() \
 CALL hinit1() \
