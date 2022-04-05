@@ -79,7 +79,7 @@ MODULE class_function_bspline
         PROCEDURE :: gradient => gradient_of_function
         PROCEDURE :: setup => setup_of_function
         !
-        PROCEDURE, PRIVATE :: get_u, calc_val, calc_grad_val
+        PROCEDURE, PRIVATE :: get_u, calc_val, calc_grad_val, bsplinevolume
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_bspline
@@ -139,15 +139,15 @@ CONTAINS
             SELECT CASE (dim)
                 !
             CASE (0)
-                this%norm = charge
+                this%norm = charge / this%bsplinevolume()
                 !
             CASE (1)
                 length = ABS(cell%at(axis, axis))
-                this%norm = charge / length
+                this%norm = charge / length / this%bsplinevolume()
                 !
             CASE (2)
                 length = ABS(cell%at(axis, axis))
-                this%norm = charge * length / cell%omega
+                this%norm = charge * length / cell%omega / this%bsplinevolume()
                 !
             CASE DEFAULT
                 CALL io%error(sub_name, "Unexpected system dimensions", 1)
@@ -171,7 +171,6 @@ CONTAINS
                 !
             END DO
             !
-            this%norm = this%norm / density%integrate()
             density%of_r = density%of_r * this%norm
             !
         END ASSOCIATE
@@ -503,6 +502,48 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION calc_grad_val
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    REAL(DP) FUNCTION bsplinevolume(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function_bspline), INTENT(IN) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'bsplinevolume'
+        !
+        INTEGER :: i, j
+        REAL(DP) :: integrals(3), term1, term2
+        !
+        !--------------------------------------------------------------------------------
+        !
+        bsplinevolume = 1.D0
+        !
+        DO i = 1, 3
+            !
+            DO j = 1, this%span_num
+                !
+                ASSOCIATE (pows => this%spans(i,1)%powers(j,this%degree,:), &
+                           coeffs => this%spans(i,1)%coeff(j,this%degree,:))
+                    !
+                    term1 = SUM(coeffs*this%u(i,j)**REAL(pows+1,DP)/REAL(pows+1,DP))
+                    term2 = SUM(coeffs*this%u(i,j+1)**REAL(pows+1,DP)/REAL(pows+1,DP))
+                    !
+                    integrals(i) = integrals(i) + term2 - term1
+                    !
+                END ASSOCIATE
+                !
+            END DO
+            !
+        END DO
+        !
+        bsplinevolume = integrals(1)*integrals(2)*integrals(3)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION bsplinevolume
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
