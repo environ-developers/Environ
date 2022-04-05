@@ -1524,10 +1524,10 @@ CONTAINS
                         this%r(i,:,:), this%dist(i,:))
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                        this%ir_nonzero(i, :), this%grid_pts)
+                    this%ir_nonzero(i, :), this%grid_pts, this%r(i,:,:), this%dist(i,:))
                     !
                     IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                        this%ir_nonzero(i, :), this%grid_pts)
+                    this%ir_nonzero(i, :), this%grid_pts, this%r(i,:,:), this%dist(i,:))
                     !
                 END DO
                 !
@@ -1579,10 +1579,10 @@ CONTAINS
                         this%r(i,:,:), this%dist(i,:))
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                        this%ir_nonzero(i, :), this%grid_pts)
+                        this%ir_nonzero(i, :), this%grid_pts, this%r(i,:,:), this%dist(i,:))
                     !
                     IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                        this%ir_nonzero(i, :), this%grid_pts)
+                        this%ir_nonzero(i, :), this%grid_pts, this%r(i,:,:), this%dist(i,:))
                     !
                 END DO
                 !

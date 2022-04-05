@@ -301,13 +301,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function(this, laplacian, zero, ir_vals, grid_pts)
+    SUBROUTINE laplacian_of_function(this, laplacian, zero, ir_vals, grid_pts, &
+                                        r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
         INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
@@ -413,13 +415,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function(this, hessian, zero, ir_vals, grid_pts)
+    SUBROUTINE hessian_of_function(this, hessian, zero, ir_vals, grid_pts, &
+                                        r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
         INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
@@ -519,13 +523,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE derivative_of_function(this, derivative, zero, ir_vals, grid_pts)
+    SUBROUTINE derivative_of_function(this, derivative, zero, ir_vals, grid_pts, &
+                                        r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
         INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: derivative
