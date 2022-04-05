@@ -205,7 +205,7 @@ CONTAINS
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
         INTEGER :: i, imax, ir
-        LOGICAL :: physical
+        LOGICAL :: physical, r_dist_stored
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
@@ -238,6 +238,10 @@ CONTAINS
             imax = cell%nnr
             IF (PRESENT(grid_pts)) imax = grid_pts
             !
+            r_dist_stored = .FALSE.
+            IF (PRESENT(grid_pts) .AND. PRESENT(r_vals) .AND. PRESENT(dist_vals)) &
+                     r_dist_stored = .TRUE.
+            !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
             !
@@ -259,12 +263,20 @@ CONTAINS
                     ir = i
                 END IF
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                IF (r_dist_stored) THEN
+                    !
+                    r = r_vals(i,:)
+                    dist = dist_vals(i)
+                    !
+                ELSE
+                    CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                    ! compute minimum distance using minimum image convention
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    dist = SQRT(r2)
+                END IF
                 !
-                IF (.NOT. physical) CYCLE
-                !
-                dist = SQRT(r2)
                 IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
