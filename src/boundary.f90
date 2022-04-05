@@ -109,6 +109,7 @@ MODULE class_boundary
         TYPE(environ_density) :: dsurface
         !
         INTEGER, ALLOCATABLE :: ir_nonzero(:, :)
+        REAL(DP), ALLOCATABLE :: r(:, :, :), dist(:, :)
         REAL(DP), ALLOCATABLE :: nonzero(:, :)
         REAL(DP), ALLOCATABLE :: grad_nonzero(:, :, :)
         INTEGER :: grid_pts
@@ -475,8 +476,12 @@ CONTAINS
             ALLOCATE (this%ir_nonzero(this%ions%number, this%grid_pts))
             ALLOCATE (this%nonzero(this%ions%number, this%grid_pts))
             ALLOCATE (this%grad_nonzero(this%ions%number, this%grid_pts, 3))
+            ALLOCATE (this%r(this%ions%number, this%grid_pts, 3))
+            ALLOCATE (this%dist(this%ions%number, this%grid_pts))
             !
             this%ir_nonzero = -1
+            this%r = 0.D0
+            this%dist = 0.D0
             this%nonzero = 0.D0
             this%grad_nonzero = 0.D0
             !
