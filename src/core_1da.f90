@@ -1321,16 +1321,17 @@ CONTAINS
         !
         REAL(DP), POINTER :: vms_gcs(:)
         !
-        INTEGER :: i, icount, ir, j, k, naxis
+        INTEGER :: i, icount, ir, j, k, naxis, z_cut_idx
         !
         REAL(DP) :: kbt, invkbt, delta_chg
         REAL(DP) :: ez, ez_ms, ez_gcs, fact, vms, vstern
         REAL(DP) :: arg, const, constr, constl, depletion_length, compress_fact
-        REAL(DP) :: dv, vbound, v_cut, v_edge
+        REAL(DP) :: dv, vbound, v_cut, v_edge, z_cut
         REAL(DP) :: asinh, coth, acoth
         REAL(DP) :: f1, f2, max_axis
         REAL(DP) :: area, vtmp, distance
         REAL(DP) :: charge, dipole(3), quadrupole(3)
+        REAL(DP), ALLOCATABLE :: current_pot(:), subtracted_pot(:)
         !
         LOGICAL :: physical
         !
@@ -1404,34 +1405,6 @@ CONTAINS
             vms_gcs = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
             vms_gcs = fact * vms_gcs(:) + const
             !
-            !----------------------------------------------------------------------------
-            ! Compute physical properties - GCS system
-            !
-            ez = -tpi * e2 * charge / area
-            !
-            IF (semiconductor%slab_charge == 0.D0) THEN
-                ez_gcs = ez
-            ELSE
-                delta_chg = charge + semiconductor%slab_charge
-                !
-                ez_gcs = -tpi * e2 * (-electrode_charge) / area
-                ! charge includes explicit as well as polarization charge. Need to
-                ! then include the extra charge from the bulk semiconductor that's
-                ! unaccounted for
-                !
-            END IF
-            !
-            fact = -e2 * SQRT(8.D0 * fpi * cion * kbt / e2 / permittivity_gcs)
-            arg = ez_gcs / fact
-            asinh = LOG(arg + SQRT(arg**2 + 1))
-            vstern = 2.D0 * kbt / zion * asinh
-            dv = 2.D0 * fpi * dipole(slab_axis) / area
-            arg = (vstern - dv * 0.5D0) * 0.25D0 * invkbt * zion
-            coth = (EXP(2.D0 * arg) + 1.D0) / (EXP(2.D0 * arg) - 1.D0)
-            constl = coth * EXP(zion * fact * invkbt * 0.5D0 * xstern_gcs)
-            arg = (vstern + dv * 0.5D0) * 0.25D0 * invkbt * zion
-            coth = (EXP(2.D0 * arg) + 1.D0) / (EXP(2.D0 * arg) - 1.D0)
-            constr = coth * EXP(zion * fact * invkbt * 0.5D0 * xstern_gcs)
             !
             !----------------------------------------------------------------------------
             ! Find the edge of the slab
@@ -1462,71 +1435,57 @@ CONTAINS
             CALL env_mp_sum(v_edge, comm)
             !
             v_edge = v_edge / DBLE(icount)
+            vms_gcs = vms_gcs - v_edge
+            !
             !
             !----------------------------------------------------------------------------
-            ! Find the average potential at distances greater than the GCS boundary
+            ! Save in periodic changes to potential
             !
-            vbound = 0.D0
-            icount = 0
-            !
-            DO i = 1, nnr
-                !
-                IF ((axis(1, i)) >= xstern_gcs) THEN
-                    icount = icount + 1
-                    !
-                    vbound = vbound + v%of_r(i) + vms_gcs(i) - &
-                             ez * (ABS(axis(1, i)) - xstern_gcs)
-                    !
-                END IF
-                !
-            END DO
-            !
-            CALL env_mp_sum(icount, comm)
-            !
-            CALL env_mp_sum(vbound, comm)
-            !
-            vbound = vbound / DBLE(icount)
-            vms_gcs = vms_gcs - vbound + vstern
-            !
-            !----------------------------------------------------------------------------
-            ! Compute the analytic potential and charge, adding in GCS effect first,
-            ! only on the positive side of xstern
-            !
-            f1 = -fact * zion * invkbt * 0.5D0
-            f2 = 4.D0 * kbt / zion
-            !
-            DO i = 1, nnr
-                !
-                IF (axis(1, i) >= xstern_gcs) THEN
-                    !
-                    arg = constr * EXP(ABS(axis(1, i)) * f1)
-                    !
-                    IF (ABS(arg) > 1.D0) THEN
-                        acoth = 0.5D0 * LOG((arg + 1.D0) / (arg - 1.D0))
-                    ELSE
-                        acoth = 0.D0
-                    END IF
-                    !
-                    vtmp = f2 * acoth
-                    !
-                    IF (ISNAN(vtmp)) vtmp = 0.D0
-                    !
-                    vms_gcs(i) = vtmp - v%of_r(i)
-                END IF
-                !
-            END DO
+            v%of_r = v%of_r + vms_gcs
             !
             !----------------------------------------------------------------------------
             ! Compute physical properties - MS system
             !
+            naxis = v%cell%nr(3)
             IF (semiconductor%slab_charge == 0.D0) THEN
-                ez_ms = 0.D0
+               !----------------------------------------------------------------------------
+               ! Save flatband planar average of flatband potential
+               ez_ms = 0.D0
+               IF (ALLOCATED(semiconductor%flatband_pot_planar_avg)) &
+                              DEALLOCATE (semiconductor%flatband_pot_planar_avg)
+               !
+               ALLOCATE (semiconductor%flatband_pot_planar_avg(naxis))
+               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, &
+                                            semiconductor%flatband_pot_planar_avg)
+               WRITE ( io%debug_unit, * )"Saved planar average... I think"
             ELSE
-                !
-                ez_ms = -fpi * e2 * &
-                        (electrode_charge - semiconductor%slab_charge) / &
-                        area / permittivity_ms
-                !
+               !----------------------------------------------------------------------------
+               ! Generate subtracted potential and corresponding ez_ms
+               !
+               IF (ALLOCATED(current_pot) ) DEALLOCATE(current_pot)
+               IF (ALLOCATED(subtracted_pot)) DEALLOCATE(subtracted_pot)
+               !
+               ALLOCATE(current_pot(naxis))
+               ALLOCATE(subtracted_pot(naxis))
+               !
+               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, current_pot)
+               !
+               subtracted_pot = current_pot - semiconductor%flatband_pot_planar_avg
+               !
+               ! need to find the index corresponding to the z_cutoff 
+               ! this is a bit of a choppy way to do this, but I guess it works
+               z_cut = this%origin(3) - xstern_ms
+               z_cut_idx = INT(z_cut /v%cell%at(3,3)  *naxis)
+               !
+               ! currently no smoothing of this derivative which would likely be
+               ! desirable long term. Asssuming that the atoms don't move, it
+               ! shouldn't be a huge deal one would hope
+               v_cut = subtracted_pot(z_cut_idx)
+               ez_ms = (subtracted_pot(z_cut_idx) - subtracted_pot(z_cut_idx+1))/ &
+                          (naxis/v%cell%at(3,3))
+               WRITE ( io%debug_unit, * )"v_cut : ",v_cut
+               WRITE (io%debug_unit, * )"ez_ms : ", ez_ms 
+               !
             END IF
             !
             fact = 1.D0 / tpi / e2 / 4.D0 / carrier_density * permittivity_ms
@@ -1541,121 +1500,9 @@ CONTAINS
             depletion_length = ABS(2.D0 * fact * ez_ms)
             !
             !----------------------------------------------------------------------------
-            ! Find the v cutoff potential
+            ! set bulk fermi
             !
-            v_cut = 0.D0
-            icount = 0
-            !
-            DO i = 1, nnr
-                !
-                IF ((axis(1, i) < 0.D0) .AND. &
-                    (ABS(ABS(axis(1, i)) - xstern_ms) <= 0.2D0)) THEN
-                    !
-                    icount = icount + 1
-                    !
-                    v_cut = v_cut + v%of_r(i) + vms_gcs(i) - &
-                            ez * (ABS(axis(1, i)) - xstern_ms)
-                    !
-                END IF
-                !
-            END DO
-            !
-            CALL env_mp_sum(icount, comm)
-            !
-            CALL env_mp_sum(v_cut, comm)
-            !
-            v_cut = v_cut / DBLE(icount)
             semiconductor%bulk_sc_fermi = vms + semiconductor%flatband_fermi + v_cut
-            compress_fact = -4.D0 * fact * vms / ((max_axis - xstern_ms)**2)
-            !
-            !----------------------------------------------------------------------------
-            ! Applying analytic potential to MS side of slab
-            !
-            DO i = 1, nnr
-                !
-                IF (-axis(1, i) >= xstern_ms) THEN
-                    !
-                    !--------------------------------------------------------------------
-                    ! Apply GCS correction on "semiconductor side" for flatband potential
-                    !
-                    IF (semiconductor%slab_charge == 0.D0) THEN
-                        !
-                        IF (-axis(1, i) >= xstern_gcs) THEN
-                            !
-                            arg = constl * EXP(ABS(axis(1, i)) * f1)
-                            !
-                            IF (ABS(arg) > 1.D0) THEN
-                                acoth = 0.5D0 * LOG((arg + 1.D0) / (arg - 1.D0))
-                            ELSE
-                                acoth = 0.D0
-                            END IF
-                            !
-                            vtmp = f2 * acoth
-                            !
-                            IF (ISNAN(vtmp)) vtmp = 0.D0
-                            !
-                            vms_gcs(i) = vtmp - v%of_r(i)
-                        END IF
-                        !
-                    ELSE
-                        !
-                        !----------------------------------------------------------------
-                        ! Apply MS correction
-                        !
-                        distance = ABS(axis(1, i)) - xstern_ms
-                        ! only apply parabolic equation if still within
-                        ! the depletion width
-                        !
-                        IF (distance <= depletion_length) THEN
-                            !
-                            IF (ez_ms < 0.D0) THEN
-                                !
-                                vtmp = (distance - depletion_length)**2.D0 / &
-                                       fact / 4.D0 + vms
-                                !
-                            ELSE IF (ez_ms > 0.D0) THEN
-                                !
-                                vtmp = -(distance - depletion_length)**2.D0 / &
-                                       fact / 4.D0 + vms
-                                !
-                            ELSE
-                                vtmp = 0.D0
-                            END IF
-                            !
-                        ELSE
-                            vtmp = 0.D0
-                        END IF
-                        !
-                        vms_gcs(i) = vms_gcs(i) + vtmp - &
-                                     ez * (ABS(axis(1, i)) - xstern_ms)
-                        !
-                    END IF
-                    !
-                END IF
-                !
-            END DO
-            !
-            v%of_r = v%of_r + vms_gcs
-            !
-            !----------------------------------------------------------------------------
-            ! Save flatband planar average of flatband potential
-            !
-            IF (semiconductor%slab_charge == 0.D0) THEN
-               IF (ALLOCATED(semiconductor%flatband_pot_planar_avg)) & 
-                              DEALLOCATE (semiconductor%flatband_pot_planar_avg)
-               !
-               naxis = v%cell%nr(3)
-               ALLOCATE (semiconductor%flatband_pot_planar_avg(naxis))
-               ! 
-               !naxis = 0
-               !DO ir = 1, v%cell%ir_end
-               !   CALL v%cell%ir2ijk(ir,i,j,k,physical)
-               !   IF (k > naxis) naxis = k+1 
-               !END DO 
-               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, & 
-                                            semiconductor%flatband_pot_planar_avg)
-               WRITE ( io%debug_unit, * )"Saved planar average... I think"
-            END IF 
             !
             CALL local%destroy()
             !
