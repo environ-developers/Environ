@@ -900,6 +900,8 @@ CONTAINS
                 DEALLOCATE (this%grad_nonzero)
                 DEALLOCATE (this%nonzero)
                 DEALLOCATE (this%ir_nonzero)
+                DEALLOCATE (this%r)
+                DEALLOCATE (this%dist)
                 !
                 CALL this%soft_spheres%destroy()
                 !
