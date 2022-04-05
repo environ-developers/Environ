@@ -79,7 +79,7 @@ MODULE class_function_bspline
         PROCEDURE :: gradient => gradient_of_function
         PROCEDURE :: setup => setup_of_function
         !
-        PROCEDURE :: get_u, calc_val, pts_in_span
+        PROCEDURE, PRIVATE :: get_u, calc_val, calc_grad_val
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_bspline
@@ -124,7 +124,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%pts_in_span(density%cell%at, density%cell%nr)
         CALL this%setup(this%pos)
         !
         ASSOCIATE (cell => density%cell, &
@@ -166,8 +165,6 @@ CONTAINS
                 !
                 uidx = this%get_u(r)
                 !
-                IF (ANY(uidx >= this%span_num)) CYCLE
-                !
                 ! Calculate the bspline value at a given point
                 !
                 density%of_r(i) = density%of_r(i) + this%calc_val(r, uidx)
@@ -197,9 +194,9 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
-        INTEGER :: i, a, uidx(3)
+        INTEGER :: i, uidx(3)
         LOGICAL :: physical
-        REAL(DP) :: r(3), r2, val, uval(3)
+        REAL(DP) :: r(3), r2
         !
         CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
         !
@@ -223,11 +220,6 @@ CONTAINS
                    u => this%u, &
                    axis => this%axis)
             !
-            !----------------------------------------------------------------------------
-            ! Set local parameters
-            !
-            !----------------------------------------------------------------------------
-            !
             DO i = 1, cell%ir_end
                 !
                 CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
@@ -235,25 +227,10 @@ CONTAINS
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                DO a = 1, 3
-                    uval(a) = r(a) + cell%at(a,a)*0.5D0
-                END DO
+                uidx = this%get_u(r)
                 !
-                IF (ANY(uval > MAXVAL(this%u)) .OR. ANY(uval < MINVAL(this%u))) THEN
-                    val = 0.D0
-                ELSE
-                    !
-                    uidx = this%get_u(uval)
-                    !
-                    !
-                    ! Calculate gradient of bspline function at a given point
-                    ! #TODO Need to work on calculating gradient correctly for 3D bspline
-                    val = this%calc_val(uval, uidx, this%degree - 1)
-                    val = val - this%calc_val(uval, uidx, this%degree - 1, .TRUE.)
-                    !
-                END IF
-                !
-                print *, i, uval(1), val
+                ! Calculate gradient of bspline function at a given point
+                gradient%of_r(:,i) = gradient%of_r(:,i) + this%calc_grad_val(r, uidx)
                 !
             END DO
             !
@@ -324,7 +301,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        print *, 'Number of knots: ', this%knot_num
+        this%knot_num = 5
+        this%m_spread = 2.D0
         ALLOCATE(this%u(3,this%knot_num))
         dx = this%m_spread * this%spread / REAL(this%knot_num - 1, DP)
         !
@@ -335,8 +313,6 @@ CONTAINS
                 this%u(i,j) = pos(i) - this%m_spread * this%spread / 2.D0 + (j - 1) * dx
                 !
             END DO
-            !
-            print *, 'Knot values span: ', this%u(i,1), this%u(i,this%knot_num)
             !
         END DO
         !
@@ -402,32 +378,13 @@ CONTAINS
             !
         END DO
         !
-        OPEN(unit=300,file='setup-info',status='unknown')
-        DO a=1,3
-           WRITE(300,"(A,I4)") 'Dimension: ', a
-           DO i=0,this%degree
-               WRITE(300,"(5X,A,I4)") 'Degree: ', i
-               DO j=1,this%span_num
-                   WRITE(300,"(10X,A,I4)") 'Span: ', j
-                   DO k=1,this%span_num
-                       WRITE(300,"(15X,A,10I4)") 'Linear Powers: ', this%spans(a,j)%powers(k,i,:)
-                       WRITE(300,"(15X,A,10F17.8)") 'Coefficients: ', this%spans(a,j)%coeff(k,i,:)
-                   END DO
-                   WRITE(300,"(/)")
-               END DO
-               WRITE(300,"(/)")
-           END DO
-           WRITE(300,"(/)")
-        END DO
-        !flush(6)
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE setup_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    REAL(DP) FUNCTION calc_val(this, u_in, idx, deg, next)
+    REAL(DP) FUNCTION calc_val(this, u_in, idx)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -435,8 +392,6 @@ CONTAINS
         CLASS(environ_function_bspline), INTENT(IN) :: this
         REAL(DP), INTENT(IN) :: u_in(3)
         INTEGER, INTENT(IN) :: idx(3)
-        INTEGER, OPTIONAL, INTENT(IN) :: deg
-        LOGICAL, OPTIONAL, INTENT(IN) :: next
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_val'
         !
@@ -446,21 +401,18 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         degree = this%degree
-        IF (PRESENT(deg)) degree = deg
-        !
         span = 1
-        IF (PRESENT(next)) THEN
-            IF (next) span = 2
-        END IF
         !
         calc_val = 1.D0
         !
         DO i = 1, 3
             !
-            ASSOCIATE (pows => this%spans(i,span)%powers, &
-                       coeffs => this%spans(i,span)%coeff)
+            IF (u_in(i) > MAXVAL(this%u(i,:)) .OR. u_in(i) < MINVAL(this%u(i,:))) calc_val = 0.D0
+            !
+            ASSOCIATE (pows => this%spans(i,span)%powers(idx(i),degree,:), &
+                       coeffs => this%spans(i,span)%coeff(idx(i),degree,:))
                 !
-                calc_val = calc_val * SUM( coeffs(idx(i),degree,:)*u_in(i)**REAL(pows(idx(i),degree,:),DP))
+                calc_val = calc_val * SUM( coeffs*u_in(i)**REAL(pows,DP))
                 !
             END ASSOCIATE
             !
@@ -472,35 +424,84 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE pts_in_span(this, at, nr)
+    FUNCTION calc_grad_val(this, u_in, idx)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_bspline), INTENT(INOUT) :: this
-        REAL(DP), INTENT(IN) :: at(3,3)
-        INTEGER, INTENT(IN) :: nr(3)
+        CLASS(environ_function_bspline), INTENT(IN) :: this
+        REAL(DP), INTENT(IN) :: u_in(3)
+        INTEGER, INTENT(IN) :: idx(3)
+        REAL(DP) :: calc_grad_val(3)
         !
-        INTEGER :: i
-        REAL(DP) :: length, frac
+        CHARACTER(LEN=80) :: sub_name = 'calc_grad_val'
         !
-        CHARACTER(LEN=80) :: sub_name = 'pts_in_span'
+        INTEGER :: i, j, k, degree, span
+        REAL(DP) :: local_vals(3), grad_val
         !
         !--------------------------------------------------------------------------------
         !
-        this%knot_num = 6
-        this%m_spread = 5.D0
+        degree = this%degree
+        span = 1
         !
         DO i = 1, 3
             !
-            length = SQRT(SUM(at(i,:)*at(i,:)))
-            frac = this%m_spread * this%spread / length
-            this%knot_num = CEILING( nr(i) * frac ) - 1
+            IF (u_in(i) > MAXVAL(this%u(i,:)) .OR. u_in(i) < MINVAL(this%u(i,:))) THEN
+                !
+                calc_grad_val = 0.D0
+                RETURN
+                !
+            END IF
             !
         END DO
         !
+        calc_grad_val = 1.D0
+        !
+        DO i = 1, 3
+            !
+            ASSOCIATE (pows => this%spans(i,span)%powers(idx(i),degree,:), &
+                       coeffs => this%spans(i,span)%coeff(idx(i),degree,:))
+                !
+                local_vals(i) = SUM( coeffs*u_in(i)**REAL(pows,DP))
+                !
+            END ASSOCIATE
+            !
+        END DO
+        !
+        DO i = 1, 3
+            !
+            DO j = 1, 3
+                !
+                IF ( i == j) THEN
+                    !
+                    grad_val = 0.D0
+                    DO k = 2, this%degree + 1
+                        !
+                        ASSOCIATE (pows => this%spans(i,span)%powers(idx(i),degree,:), &
+                                   coeffs => this%spans(i,span)%coeff(idx(i),degree,:))
+                            !
+                            grad_val = grad_val + coeffs(k) * pows(k) * u_in(i) ** REAL(pows(k) - 1, DP)
+                            !
+                        END ASSOCIATE
+                        !
+                    END DO
+                    !
+                    calc_grad_val(i) = calc_grad_val(i) * grad_val
+                    !
+                ELSE
+                    !
+                    calc_grad_val(i) = calc_grad_val(i) * local_vals(j)
+                    !
+                END IF
+                !
+            END DO
+            !
+        END DO
+        !
+        calc_grad_val = calc_grad_val * this%norm
+        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE pts_in_span
+    END FUNCTION calc_grad_val
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
