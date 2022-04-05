@@ -160,6 +160,10 @@ CONTAINS
                 !
                 ir_vals(count) = i
                 vals(count) = density%of_r(i) + scale * local(i)
+                !
+                IF (PRESENT(r_vals)) r_vals(count,:) = r
+                IF (PRESENT(dist_vals)) dist_vals(count) = dist
+                !
                 count = count + 1
                 !
             END DO
