@@ -71,6 +71,8 @@ MODULE class_semiconductor_base
         REAL(DP) :: slab_charge = 0.D0
         REAL(DP) :: surf_area_per_sq_cm = 0.D0
         !
+        REAL(DP), ALLOCATABLE :: flatband_pot_planar_avg(:)
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------

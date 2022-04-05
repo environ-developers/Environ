@@ -1321,7 +1321,7 @@ CONTAINS
         !
         REAL(DP), POINTER :: vms_gcs(:)
         !
-        INTEGER :: i, icount
+        INTEGER :: i, icount, ir, j, k, naxis
         !
         REAL(DP) :: kbt, invkbt, delta_chg
         REAL(DP) :: ez, ez_ms, ez_gcs, fact, vms, vstern
@@ -1331,6 +1331,8 @@ CONTAINS
         REAL(DP) :: f1, f2, max_axis
         REAL(DP) :: area, vtmp, distance
         REAL(DP) :: charge, dipole(3), quadrupole(3)
+        !
+        LOGICAL :: physical
         !
         TYPE(environ_density), TARGET :: local
         !
@@ -1371,7 +1373,8 @@ CONTAINS
                    permittivity_ms => semiconductor%permittivity, &
                    carrier_density => semiconductor%carrier_density, &
                    electrode_charge => semiconductor%electrode_charge, &
-                   xstern_ms => semiconductor%sc_distance)
+                   xstern_ms => semiconductor%sc_distance, & 
+                   flatband_pot => semiconductor%flatband_pot_planar_avg)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -1634,6 +1637,24 @@ CONTAINS
             END DO
             !
             v%of_r = v%of_r + vms_gcs
+            !
+            !----------------------------------------------------------------------------
+            ! Save flatband planar average of flatband potential
+            !
+            IF (semiconductor%slab_charge == 0.D0) THEN
+               IF (ALLOCATED(flatband_pot)) DEALLOCATE (flatband_pot)
+               !
+               naxis = v%cell%nr(3)
+               ALLOCATE (flatband_pot(naxis))
+               ! 
+               !naxis = 0
+               !DO ir = 1, v%cell%ir_end
+               !   CALL v%cell%ir2ijk(ir,i,j,k,physical)
+               !   IF (k > naxis) naxis = k+1 
+               !END DO 
+               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r,flatband_pot)
+               WRITE ( io%debug_unit, * )"Saved planar average"
+            END IF 
             !
             CALL local%destroy()
             !
