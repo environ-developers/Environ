@@ -315,7 +315,7 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
         INTEGER :: i, imax, ir
-        LOGICAL :: physical
+        LOGICAL :: physical, r_dist_stored
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: lapllocal(:)
         !
@@ -348,6 +348,10 @@ CONTAINS
             imax = cell%nnr
             IF (PRESENT(grid_pts)) imax = grid_pts
             !
+            r_dist_stored = .FALSE.
+            IF (PRESENT(grid_pts) .AND. PRESENT(r_vals) .AND. PRESENT(dist_vals)) &
+                     r_dist_stored = .TRUE.
+            !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
             !
@@ -369,12 +373,20 @@ CONTAINS
                     ir = i
                 END IF
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                IF (r_dist_stored) THEN
+                    !
+                    r = r_vals(i,:)
+                    dist = dist_vals(i)
+                    !
+                ELSE
+                    CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                    ! compute minimum distance using minimum image convention
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    dist = SQRT(r2)
+                END IF
                 !
-                IF (.NOT. physical) CYCLE
-                !
-                dist = SQRT(r2)
                 IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
@@ -429,7 +441,7 @@ CONTAINS
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
         INTEGER :: i, j, k, imax, ir
-        LOGICAL :: physical
+        LOGICAL :: physical, r_dist_stored
         REAL(DP) :: r(3), r2, scale, dist, arg, tmp, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: hesslocal(:, :, :)
         !
@@ -462,6 +474,10 @@ CONTAINS
             imax = cell%nnr
             IF (PRESENT(grid_pts)) imax = grid_pts
             !
+            r_dist_stored = .FALSE.
+            IF (PRESENT(grid_pts) .AND. PRESENT(r_vals) .AND. PRESENT(dist_vals)) &
+                     r_dist_stored = .TRUE.
+            !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
             !
@@ -483,12 +499,20 @@ CONTAINS
                     ir = i
                 END IF
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                IF (r_dist_stored) THEN
+                    !
+                    r = r_vals(i,:)
+                    dist = dist_vals(i)
+                    !
+                ELSE
+                    CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                    ! compute minimum distance using minimum image convention
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    dist = SQRT(r2)
+                END IF
                 !
-                IF (.NOT. physical) CYCLE
-                !
-                dist = SQRT(r2)
                 IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
@@ -537,7 +561,7 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: derivative
         !
         INTEGER :: i, imax, ir
-        LOGICAL :: physical
+        LOGICAL :: physical, r_dist_stored
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: derivlocal(:)
         !
@@ -569,6 +593,10 @@ CONTAINS
             imax = cell%nnr
             IF (PRESENT(grid_pts)) imax = grid_pts
             !
+            r_dist_stored = .FALSE.
+            IF (PRESENT(grid_pts) .AND. PRESENT(r_vals) .AND. PRESENT(dist_vals)) &
+                     r_dist_stored = .TRUE.
+            !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
             !
@@ -591,11 +619,20 @@ CONTAINS
                     ir = i
                 END IF
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                IF (r_dist_stored) THEN
+                    !
+                    r = r_vals(i,:)
+                    dist = dist_vals(i)
+                    !
+                ELSE
+                    CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                    ! compute minimum distance using minimum image convention
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    dist = SQRT(r2)
+                END IF
                 !
-                IF (.NOT. physical) CYCLE
-                !
-                dist = SQRT(r2)
                 IF (dist > 5.D0 * spread + width) CYCLE
                 arg = (dist - width) / spread
                 !
