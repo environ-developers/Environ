@@ -1466,7 +1466,7 @@ CONTAINS
             DO i = 1, nss
                 !
                 CALL soft_spheres(i)%density(denlocal, .TRUE., this%ir_nonzero(i,:), &
-                                            this%nonzero(i,:))
+                                        this%nonzero(i,:), this%r(i,:,:), this%dist(i,:))
                 !
                 scal%of_r = scal%of_r * denlocal%of_r
             END DO
@@ -1518,7 +1518,8 @@ CONTAINS
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
                     IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                        this%ir_nonzero(i, :), this%grad_nonzero(i,:,:), this%grid_pts)
+                        this%ir_nonzero(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
+                        this%r(i,:,:), this%dist(i,:))
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
                                                                    this%ir_nonzero(i, :), this%grid_pts)

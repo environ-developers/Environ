@@ -241,14 +241,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, vals, grid_pts)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, vals, grid_pts, &
+                                        r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
         INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
-        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:,:)
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:,:), r_vals(:, :), dist_vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
