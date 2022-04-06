@@ -111,7 +111,8 @@ CONTAINS
         !
         INTEGER :: i, uidx(3)
         LOGICAL :: physical
-        REAL(DP) :: r(3), r2, length
+        REAL(DP) :: r(3), length
+        REAL(DP), ALLOCATABLE :: local(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'density_of_function'
         !
@@ -124,8 +125,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%setup(this%pos)
-        !
         ASSOCIATE (cell => density%cell, &
                    pos => this%pos, &
                    dim => this%dim, &
@@ -135,6 +134,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             ! Set local parameters
+            !
+            CALL this%setup(cell%at, cell%nr)
             !
             SELECT CASE (dim)
                 !
@@ -156,10 +157,13 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
+            ALLOCATE (local(cell%nnr))
+            local = 0.D0
+            !
             DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                CALL cell%ir2r(i, r, physical)
+                ! compute r vector
                 !
                 IF (.NOT. physical) CYCLE
                 !
@@ -167,11 +171,12 @@ CONTAINS
                 !
                 ! Calculate the bspline value at a given point
                 !
-                density%of_r(i) = density%of_r(i) + this%calc_val(r, uidx)
+                local(i) = this%calc_val(r, uidx)
                 !
             END DO
             !
-            density%of_r = density%of_r * this%norm
+            density%of_r = density%of_r + local * this%norm
+            DEALLOCATE (local)
             !
         END ASSOCIATE
         !
@@ -196,7 +201,7 @@ CONTAINS
         !
         INTEGER :: i, uidx(3)
         LOGICAL :: physical
-        REAL(DP) :: r(3), r2
+        REAL(DP) :: r(3)
         !
         CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
         !
@@ -222,8 +227,8 @@ CONTAINS
             !
             DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                CALL cell%ir2r(i, r, physical)
+                ! compute r vector
                 !
                 IF (.NOT. physical) CYCLE
                 !
@@ -285,13 +290,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE setup_of_function(this, pos)
+    SUBROUTINE setup_of_function(this, at, nr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_bspline), INTENT(INOUT) :: this
-        REAL(DP), INTENT(IN) :: pos(3)
+        REAL(DP), INTENT(IN) :: at(3,3)
+        INTEGER, INTENT(IN) :: nr(3)
         !
         CHARACTER(LEN=80) :: sub_name = 'setup_of_function'
         !
@@ -302,17 +308,20 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%knot_num = 5
-        this%m_spread = 2.D0
         ALLOCATE(this%u(3,this%knot_num))
-        dx = this%m_spread * this%spread / REAL(this%knot_num - 1, DP)
         !
         DO i = 1, 3
             !
+            dx = at(i, i) / nr(i)
+            !
             DO j = 1, this%knot_num
                 !
-                this%u(i,j) = pos(i) - this%m_spread * this%spread / 2.D0 + (j - 1) * dx
+                this%u(i,j) = this%pos(i) - dx * this%knot_num / 2.D0 + (j - 1) * dx
                 !
             END DO
+            !
+            IF (this%u(i,this%knot_num) - this%u(i,1) > 1.6D0) &
+                CALL io%error(sub_name, 'Spread of Bspline is larger than 1.6 Bohr.', 1)
             !
         END DO
         !
