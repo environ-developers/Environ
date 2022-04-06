@@ -167,6 +167,8 @@ CONTAINS
                 !
                 IF (.NOT. physical) CYCLE
                 !
+                IF (SQRT(SUM((r - this%pos)**2.D0)) > 1.6D0) CYCLE
+                !
                 uidx = this%get_u(r)
                 !
                 ! Calculate the bspline value at a given point
@@ -231,6 +233,8 @@ CONTAINS
                 ! compute r vector
                 !
                 IF (.NOT. physical) CYCLE
+                !
+                IF (SQRT(SUM((r - this%pos)**2.D0)) > 1.6D0) CYCLE
                 !
                 uidx = this%get_u(r)
                 !
