@@ -256,7 +256,7 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        INTEGER :: i, ir
+        INTEGER :: i
         LOGICAL :: physical
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
@@ -272,23 +272,12 @@ CONTAINS
         !
         DO i = 1, cell%ir_end
             !
-            IF (ALLOCATED(cell%r) .AND. ALLOCATED(cell%ir_vals)) THEN
-                !
-                r = cell%r(i,:)
-                ir = cell%ir_vals(i)
-                !
-            ELSE
-                !
-                CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
-                ! compute minimum distance using minimum image convention
-                !
-                IF (.NOT. physical) CYCLE
-                !
-                ir = i
-                !
-            END IF
+            CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            rhoir = this%of_r(ir)
+            IF (.NOT. physical) CYCLE
+            !
+            rhoir = this%of_r(i)
             !
             !----------------------------------------------------------------------------
             ! Multipoles

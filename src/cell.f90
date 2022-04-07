@@ -123,8 +123,8 @@ MODULE class_cell
         PROCEDURE :: get_min_distance
         PROCEDURE :: ir2ijk
         PROCEDURE :: planar_average
+        PROCEDURE :: ir2r
         !
-        PROCEDURE, PRIVATE :: ir2r
         PROCEDURE, PRIVATE :: minimum_image
         PROCEDURE, PRIVATE :: is_cubic
         !
@@ -211,6 +211,10 @@ CONTAINS
         INTEGER :: ngm_g ! global number of G vectors (summed on all procs)
         ! in serial execution, ngm_g = ngm
         !
+        REAL(DP) :: r(3)
+        INTEGER :: i
+        LOGICAL :: physical
+        !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_cell'
         !
         !--------------------------------------------------------------------------------
@@ -267,6 +271,25 @@ CONTAINS
         !
         CALL env_ggen(this%dfft, this%dfft%comm, this%at, this%bg, this%gcutm, &
                       ngm_g, this%dfft%ngm, this%g, this%gg, this%gstart, .TRUE.)
+        !
+        !--------------------------------------------------------------------------------
+        ! Storing r vectors to decrease calculation time
+        !
+        ALLOCATE (this%r(3, this%nnr))
+        ALLOCATE (this%ir_vals(this%nnr))
+        this%r = 0.D0
+        this%ir_vals = 0
+        !
+        DO i = 1, this%nnr
+            !
+            CALL this%ir2r(i, r, physical)
+            !
+            IF (.NOT. physical) CYCLE
+            !
+            this%r(:,i) = r
+            this%ir_vals(i) = i
+            !
+        END DO
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_cell
@@ -538,9 +561,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%ir2r(ir, r, physical) ! position in real space grid
+        physical = .TRUE.
+        IF (this%ir_vals(ir) == 0) THEN
+            !
+            physical = .FALSE.
+            !
+        END IF
         !
-        IF (.NOT. physical) RETURN ! do not include points outside the physical range
+        r = this%r(:,ir)
         !
         CALL displacement(dim, axis, r, origin, r) ! displacement from origin
         !
