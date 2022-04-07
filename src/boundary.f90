@@ -109,7 +109,6 @@ MODULE class_boundary
         TYPE(environ_density) :: dsurface
         !
         INTEGER, ALLOCATABLE :: ir_nonzero(:, :)
-        REAL(DP), ALLOCATABLE :: r(:, :, :), dist(:, :)
         REAL(DP), ALLOCATABLE :: nonzero(:, :)
         REAL(DP), ALLOCATABLE :: grad_nonzero(:, :, :)
         INTEGER :: grid_pts
@@ -476,12 +475,8 @@ CONTAINS
             ALLOCATE (this%ir_nonzero(this%ions%number, this%grid_pts))
             ALLOCATE (this%nonzero(this%ions%number, this%grid_pts))
             ALLOCATE (this%grad_nonzero(this%ions%number, this%grid_pts, 3))
-            ALLOCATE (this%r(this%ions%number, this%grid_pts, 3))
-            ALLOCATE (this%dist(this%ions%number, this%grid_pts))
             !
             this%ir_nonzero = -1
-            this%r = 0.D0
-            this%dist = 0.D0
             this%nonzero = 0.D0
             this%grad_nonzero = 0.D0
             !
@@ -900,8 +895,6 @@ CONTAINS
                 DEALLOCATE (this%grad_nonzero)
                 DEALLOCATE (this%nonzero)
                 DEALLOCATE (this%ir_nonzero)
-                DEALLOCATE (this%r)
-                DEALLOCATE (this%dist)
                 !
                 CALL this%soft_spheres%destroy()
                 !
@@ -1444,6 +1437,8 @@ CONTAINS
         TYPE(environ_hessian), ALLOCATABLE :: hessloc(:)
         TYPE(environ_hessian), POINTER :: hess
         !
+        REAL(DP), ALLOCATABLE :: r(:, :, :), dist(:, :)
+        !
         CHARACTER(LEN=80) :: sub_name = 'boundary_of_functions'
         !
         !--------------------------------------------------------------------------------
@@ -1462,13 +1457,17 @@ CONTAINS
             ! Compute soft spheres and generate boundary
             !
             scal%of_r = 1.D0
+            ALLOCATE (r(this%ions%number, this%grid_pts, 3))
+            ALLOCATE (dist(this%ions%number, this%grid_pts))
+            r = 0.D0
+            dist = 0.D0
             !
             CALL denlocal%init(cell)
             !
             DO i = 1, nss
                 !
                 CALL soft_spheres(i)%density(denlocal, .TRUE., this%ir_nonzero(i,:), &
-                                        this%nonzero(i,:), this%r(i,:,:), this%dist(i,:))
+                                        this%nonzero(i,:), r(i,:,:), dist(i,:))
                 !
                 scal%of_r = scal%of_r * denlocal%of_r
             END DO
@@ -1521,13 +1520,13 @@ CONTAINS
                     !
                     IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
                         this%ir_nonzero(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
-                        this%r(i,:,:), this%dist(i,:))
+                        r(i,:,:), dist(i,:))
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                    this%ir_nonzero(i, :), this%grid_pts, this%r(i,:,:), this%dist(i,:))
+                    this%ir_nonzero(i, :), this%grid_pts, r(i,:,:), dist(i,:))
                     !
                     IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                    this%ir_nonzero(i, :), this%grid_pts, this%r(i,:,:), this%dist(i,:))
+                    this%ir_nonzero(i, :), this%grid_pts, r(i,:,:), dist(i,:))
                     !
                 END DO
                 !
@@ -1576,13 +1575,13 @@ CONTAINS
                     !
                     IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
                         this%ir_nonzero(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
-                        this%r(i,:,:), this%dist(i,:))
+                        r(i,:,:), dist(i,:))
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                        this%ir_nonzero(i, :), this%grid_pts, this%r(i,:,:), this%dist(i,:))
+                        this%ir_nonzero(i, :), this%grid_pts, r(i,:,:), dist(i,:))
                     !
                     IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                        this%ir_nonzero(i, :), this%grid_pts, this%r(i,:,:), this%dist(i,:))
+                        this%ir_nonzero(i, :), this%grid_pts, r(i,:,:), dist(i,:))
                     !
                 END DO
                 !
@@ -1647,6 +1646,9 @@ CONTAINS
                 END IF
                 !
             END IF
+            !
+            DEALLOCATE (r)
+            DEALLOCATE (dist)
             !
         END ASSOCIATE
         !
