@@ -105,7 +105,7 @@ MODULE class_cell
         ! G-vectors cartesian components (in units 2pi/a)
         !
         REAL(DP), ALLOCATABLE :: r(:, :)
-        INTEGER, ALLOCATABLE :: ir_vals(:)
+        INTEGER, ALLOCATABLE :: ir_reduced(:)
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -276,9 +276,9 @@ CONTAINS
         ! Storing r vectors to decrease calculation time
         !
         ALLOCATE (this%r(3, this%nnr))
-        ALLOCATE (this%ir_vals(this%nnr))
+        ALLOCATE (this%ir_reduced(this%nnr))
         this%r = 0.D0
-        this%ir_vals = 0
+        this%ir_reduced = 0
         !
         DO i = 1, this%nnr
             !
@@ -287,7 +287,7 @@ CONTAINS
             IF (.NOT. physical) CYCLE
             !
             this%r(:,i) = r
-            this%ir_vals(i) = i
+            this%ir_reduced(i) = i
             !
         END DO
         !
@@ -373,6 +373,9 @@ CONTAINS
         CALL this%destroy_dfft()
         !
         CALL this%deallocate_gvect()
+        !
+        IF (ALLOCATED(this%r)) DEALLOCATE (this%r)
+        IF (ALLOCATED(this%ir_reduced)) DEALLOCATE (this%ir_reduced)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_cell
@@ -562,9 +565,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         physical = .TRUE.
-        IF (this%ir_vals(ir) == 0) THEN
+        IF (this%ir_reduced(ir) == 0) THEN
             !
             physical = .FALSE.
+            RETURN
             !
         END IF
         !

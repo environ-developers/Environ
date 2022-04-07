@@ -108,7 +108,7 @@ MODULE class_boundary
         TYPE(environ_hessian) :: hessian
         TYPE(environ_density) :: dsurface
         !
-        INTEGER, ALLOCATABLE :: ir_nonzero(:, :)
+        INTEGER, ALLOCATABLE :: ir_reduced(:, :)
         REAL(DP), ALLOCATABLE :: nonzero(:, :)
         REAL(DP), ALLOCATABLE :: grad_nonzero(:, :, :)
         INTEGER :: grid_pts
@@ -472,11 +472,11 @@ CONTAINS
             !
             CALL denlocal%destroy()
             !
-            ALLOCATE (this%ir_nonzero(this%ions%number, this%grid_pts))
+            ALLOCATE (this%ir_reduced(this%ions%number, this%grid_pts))
             ALLOCATE (this%nonzero(this%ions%number, this%grid_pts))
             ALLOCATE (this%grad_nonzero(this%ions%number, this%grid_pts, 3))
             !
-            this%ir_nonzero = -1
+            this%ir_reduced = -1
             this%nonzero = 0.D0
             this%grad_nonzero = 0.D0
             !
@@ -623,11 +623,11 @@ CONTAINS
         !
         copy%grid_pts = this%grid_pts
         !
-        ALLOCATE (copy%ir_nonzero(this%ions%number, copy%grid_pts))
+        ALLOCATE (copy%ir_reduced(this%ions%number, copy%grid_pts))
         ALLOCATE (copy%nonzero(this%ions%number, copy%grid_pts))
         ALLOCATE (copy%grad_nonzero(this%ions%number, copy%grid_pts, 3))
         !
-        copy%ir_nonzero = -1
+        copy%ir_reduced = -1
         copy%nonzero = 0.D0
         copy%grad_nonzero = 0.D0
         !
@@ -894,7 +894,7 @@ CONTAINS
                 !
                 DEALLOCATE (this%grad_nonzero)
                 DEALLOCATE (this%nonzero)
-                DEALLOCATE (this%ir_nonzero)
+                DEALLOCATE (this%ir_reduced)
                 !
                 CALL this%soft_spheres%destroy()
                 !
@@ -1131,7 +1131,7 @@ CONTAINS
                 !
                 DO j = 1, partial%cell%nnr
                     !
-                    IF (.NOT. this%ir_nonzero(index, idx) == j) CYCLE
+                    IF (.NOT. this%ir_reduced(index, idx) == j) CYCLE
                     !
                     partial%of_r(:, j) = this%grad_nonzero(index, idx, :)
                     idx = idx + 1
@@ -1151,7 +1151,7 @@ CONTAINS
                 !
                 DO j = 1, partial%cell%nnr
                     !
-                    IF (.NOT. this%ir_nonzero(i, idx) == j) CYCLE
+                    IF (.NOT. this%ir_reduced(i, idx) == j) CYCLE
                     !
                     denlocal%of_r(j) = this%nonzero(i, idx)
                     idx = idx + 1
@@ -1466,7 +1466,7 @@ CONTAINS
             !
             DO i = 1, nss
                 !
-                CALL soft_spheres(i)%density(denlocal, .TRUE., this%ir_nonzero(i,:), &
+                CALL soft_spheres(i)%density(denlocal, .TRUE., this%ir_reduced(i,:), &
                                         this%nonzero(i,:), r(i,:,:), dist(i,:))
                 !
                 scal%of_r = scal%of_r * denlocal%of_r
@@ -1519,28 +1519,28 @@ CONTAINS
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
                     IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                        this%ir_nonzero(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
+                        this%ir_reduced(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
                         r(i,:,:), dist(i,:))
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                    this%ir_nonzero(i, :), this%grid_pts, r(i,:,:), dist(i,:))
+                    this%ir_reduced(i, :), this%grid_pts, r(i,:,:), dist(i,:))
                     !
                     IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                    this%ir_nonzero(i, :), this%grid_pts, r(i,:,:), dist(i,:))
+                    this%ir_reduced(i, :), this%grid_pts, r(i,:,:), dist(i,:))
                     !
                 END DO
                 !
                 IF (deriv == 1 .OR. deriv == 2) &
-                    CALL gradient_of_boundary(nss, grad, this%ir_nonzero, &
+                    CALL gradient_of_boundary(nss, grad, this%ir_reduced, &
                                               this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 2) &
-                    CALL laplacian_of_boundary(nss, laplloc, lapl, this%ir_nonzero, &
+                    CALL laplacian_of_boundary(nss, laplloc, lapl, this%ir_reduced, &
                                                this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 3) &
                     CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, dsurf, &
-                                              this%ir_nonzero, this%nonzero, this%grad_nonzero)
+                                              this%ir_reduced, this%nonzero, this%grad_nonzero)
                 !
                 DO i = 1, nss
                     !
@@ -1574,28 +1574,28 @@ CONTAINS
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
                     IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                        this%ir_nonzero(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
+                        this%ir_reduced(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
                         r(i,:,:), dist(i,:))
                     !
                     IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                        this%ir_nonzero(i, :), this%grid_pts, r(i,:,:), dist(i,:))
+                        this%ir_reduced(i, :), this%grid_pts, r(i,:,:), dist(i,:))
                     !
                     IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                        this%ir_nonzero(i, :), this%grid_pts, r(i,:,:), dist(i,:))
+                        this%ir_reduced(i, :), this%grid_pts, r(i,:,:), dist(i,:))
                     !
                 END DO
                 !
                 IF (deriv >= 1) &
-                    CALL gradient_of_boundary(nss, scal, grad, this%ir_nonzero, &
+                    CALL gradient_of_boundary(nss, scal, grad, this%ir_reduced, &
                                               this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 2) &
                     CALL laplacian_of_boundary(nss, laplloc, scal, grad, lapl, &
-                                               this%ir_nonzero, this%nonzero, this%grad_nonzero)
+                                               this%ir_reduced, this%nonzero, this%grad_nonzero)
                 !
                 IF (deriv == 3) &
                     CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, scal, dsurf, &
-                                              this%ir_nonzero, this%nonzero, this%grad_nonzero)
+                                              this%ir_reduced, this%nonzero, this%grad_nonzero)
                 !
                 DO i = 1, nss
                     !
