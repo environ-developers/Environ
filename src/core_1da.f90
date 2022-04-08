@@ -1332,6 +1332,7 @@ CONTAINS
         REAL(DP) :: area, vtmp, distance
         REAL(DP) :: charge, dipole(3), quadrupole(3)
         REAL(DP), ALLOCATABLE :: current_pot(:), subtracted_pot(:)
+        REAL(DP), ALLOCATABLE :: avgd_pot(:)
         !
         LOGICAL :: physical
         !
@@ -1455,8 +1456,18 @@ CONTAINS
                               DEALLOCATE (semiconductor%flatband_pot_planar_avg)
                !
                ALLOCATE (semiconductor%flatband_pot_planar_avg(naxis))
+
+
+               IF (ALLOCATED(avgd_pot)) DEALLOCATE (avgd_pot)
+               !
+               ALLOCATE (avgd_pot(naxis))
+
                CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, &
                                             semiconductor%flatband_pot_planar_avg)
+               CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
+                                semiconductor%flatband_pot_planar_avg, avgd_pot)
+
+               semiconductor%flatband_pot_planar_avg = avgd_pot
                WRITE ( io%debug_unit, * )"Saved planar average... I think"
             ELSE
                !----------------------------------------------------------------------------
@@ -1468,8 +1479,16 @@ CONTAINS
                ALLOCATE(current_pot(naxis))
                ALLOCATE(subtracted_pot(naxis))
                !
-               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, current_pot)
+               IF (ALLOCATED(avgd_pot)) DEALLOCATE (avgd_pot)
                !
+               ALLOCATE (avgd_pot(naxis))
+               !
+               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, current_pot)
+
+               CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
+                                          current_pot, avgd_pot )
+               !
+               current_pot = avgd_pot
                subtracted_pot = current_pot - semiconductor%flatband_pot_planar_avg
                !
                ! need to find the index corresponding to the z_cutoff 
@@ -1513,9 +1532,8 @@ CONTAINS
             open(95, file = 'flataband_pot.dat', status='replace')
             DO i=1,naxis
                z_val = i * v%cell%at(3,3)/naxis
-               IF (semiconductor%slab_charge == 0.D0) THEN
-                  WRITE(95,*)z_val, semiconductor%flatband_pot_planar_avg(i)
-               ELSE
+               WRITE(95,*)z_val, semiconductor%flatband_pot_planar_avg(i)
+               IF (semiconductor%slab_charge /= 0.D0) THEN
                   WRITE(93,*)z_val, subtracted_pot(i)
                   WRITE(94,*)z_val, current_pot(i)
                END IF 

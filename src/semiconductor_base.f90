@@ -79,6 +79,7 @@ MODULE class_semiconductor_base
         !
         PROCEDURE, PRIVATE :: create => create_environ_semiconductor_base
         PROCEDURE :: init => init_environ_semiconductor_base
+        PROCEDURE :: running_average
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_semiconductor_base
@@ -155,6 +156,53 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor_base
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  FUNCTION METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE running_average(this,z_length,naxis, pot, averaged_pot)
+
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: naxis 
+        REAL(DP), INTENT(IN) :: pot(naxis)
+        REAL(DP), INTENT(IN) :: z_length
+        REAL(DP), INTENT(INOUT) :: averaged_pot(naxis)
+        !
+        CLASS(environ_semiconductor_base), INTENT(INOUT) :: this
+        !
+        INTEGER :: i, indx_width, start_idx, stop_idx
+        REAL(DP) :: z_width
+        !
+        !--------------------------------------------------------------------------------
+        ! determining the width for averaging
+        z_width = this%sc_spread
+        indx_width = INT(z_width / 2.0 /z_length * naxis)
+        !WRITE ( io%debug_unit, * )"v_cut : ",v_cut
+        !WRITE (io%debug_unit, * )"ez_ms : ", ez_ms
+        !
+        !--------------------------------------------------------------------------------
+        ! averaging bb
+        DO i = 1,naxis 
+           start_idx = i - indx_width
+           stop_idx = i + indx_width
+           IF (start_idx < 1 ) start_idx = 1
+           IF (stop_idx > naxis ) stop_idx = naxis
+           averaged_pot(i) = SUM(pot(start_idx:stop_idx))/FLOAT(stop_idx-start_idx)
+        END DO 
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE running_average
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
