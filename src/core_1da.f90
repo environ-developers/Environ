@@ -1525,23 +1525,25 @@ CONTAINS
             semiconductor%bulk_sc_fermi = vms + semiconductor%flatband_fermi + v_cut
             !
             !----------------------------------------------------------------------------
-            ! write subtracted pot            
+            ! write subtracted pot for high enough verbosity           
             !
-            open(93, file = 'subtracted_pot.dat', status='replace')
-            open(94, file = 'current_pot.dat', status='replace')
-            open(95, file = 'flataband_pot.dat', status='replace')
-            DO i=1,naxis
-               z_val = i * v%cell%at(3,3)/naxis
-               WRITE(95,*)z_val, semiconductor%flatband_pot_planar_avg(i)
-               IF (semiconductor%slab_charge /= 0.D0) THEN
-                  WRITE(93,*)z_val, subtracted_pot(i)
-                  WRITE(94,*)z_val, current_pot(i)
-               END IF 
-               !
-            END DO 
-            CLOSE(93)
-            CLOSE(94)
-            CLOSE(95)
+            IF (io%verbosity > 1 ) THEN 
+               open(93, file = 'subtracted_pot.dat', status='replace')
+               open(94, file = 'current_pot.dat', status='replace')
+               open(95, file = 'flataband_pot.dat', status='replace')
+               DO i=1,naxis
+                  z_val = i * v%cell%at(3,3)/naxis
+                  WRITE(95,*)z_val, semiconductor%flatband_pot_planar_avg(i)
+                  IF (semiconductor%slab_charge /= 0.D0) THEN
+                     WRITE(93,*)z_val, subtracted_pot(i)
+                     WRITE(94,*)z_val, current_pot(i)
+                  END IF 
+                  !
+               END DO 
+               CLOSE(93)
+               CLOSE(94)
+               CLOSE(95)
+            END IF 
             !
             CALL local%destroy()
             !

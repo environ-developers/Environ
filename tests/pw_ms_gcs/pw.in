@@ -2,6 +2,8 @@
   calculation = 'scf',
   prefix = 'Si',
   restart_mode = 'from_scratch',
+  verbosity = 'high',
+  pseudo_dir='/ascldap/users/qcampbe/Pseudos/pslibrary.1.0.0/pbe/PSEUDOPOTENTIALS',
 /
 &SYSTEM
   degauss = 0.0001,
