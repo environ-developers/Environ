@@ -71,6 +71,8 @@ MODULE class_core_1da
         REAL(DP) :: origin(3) = 0.D0
         !
         REAL(DP), ALLOCATABLE :: x(:, :)
+        INTEGER, ALLOCATABLE :: ir_reduced(:)
+        REAL(DP), ALLOCATABLE :: disp_reduced(:,:)
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -216,14 +218,17 @@ CONTAINS
         CLASS(core_1da), INTENT(INOUT) :: this
         !
         LOGICAL :: physical
-        INTEGER :: i
-        REAL(DP) :: r(3), r2
+        INTEGER :: i, ir_tmp(this%cell%ir_end), count
+        REAL(DP) :: r(3), r2, disps(3, this%cell%ir_end)
         !
         CHARACTER(LEN=80) :: sub_name = 'update_core_1da_origin'
         !
         !--------------------------------------------------------------------------------
         !
         this%origin = origin
+        ir_tmp = 0
+        disps = 0.D0
+        count = 1
         !
         ASSOCIATE (cell => this%cell, &
                    dim => this%dim)
@@ -235,6 +240,10 @@ CONTAINS
                     CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
                     !
                     IF (.NOT. physical) CYCLE
+                    !
+                    ir_tmp(count) = i
+                    disps(:,count) = r
+                    count = count + 1
                     !
                     this%x(:, i) = r
                 END DO
@@ -249,12 +258,23 @@ CONTAINS
                     !
                     IF (.NOT. physical) CYCLE
                     !
+                    ir_tmp(count) = i
+                    disps(:,count) = r
+                    count = count + 1
+                    !
                     this%x(1, i) = r(this%axis)
                 END DO
                 !
             END IF
             !
         END ASSOCIATE
+        !
+        IF (ALLOCATED(this%ir_reduced)) DEALLOCATE (this%ir_reduced)
+        IF (ALLOCATED(this%disp_reduced)) DEALLOCATE (this%disp_reduced)
+        ALLOCATE (this%ir_reduced(count-2))
+        ALLOCATE (this%disp_reduced(3,count-2))
+        this%ir_reduced = ir_tmp(:count)
+        this%disp_reduced = disps(:,:count)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_core_1da_origin
@@ -280,6 +300,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         DEALLOCATE (this%x)
+        !
+        DEALLOCATE (this%ir_reduced)
+        !
+        DEALLOCATE (this%disp_reduced)
         !
         NULLIFY (this%cell)
         !
@@ -347,7 +371,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, &
+                                            this%ir_reduced, this%disp_reduced)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -459,7 +484,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, &
+                                            this%ir_reduced, this%disp_reduced)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -557,7 +583,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            CALL local%multipoles(origin, charge, dipole, quadrupole)
+            CALL local%multipoles(origin, charge, dipole, quadrupole, &
+                                            this%ir_reduced, this%disp_reduced)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -691,8 +718,9 @@ CONTAINS
             area = omega / axis_length
             !
             !----------------------------------------------------------------------------
-
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            !
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, &
+                                            this%ir_reduced, this%disp_reduced)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -928,7 +956,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, &
+                                            this%ir_reduced, this%disp_reduced)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -1119,7 +1148,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, &
+                                            this%ir_reduced, this%disp_reduced)
             ! compute multipoles of the system w.r.t the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -1277,7 +1307,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, &
+                                            this%ir_reduced, this%disp_reduced)
             ! compute multipoles of the system w.r.t the chosen origin
             !
             !----------------------------------------------------------------------------

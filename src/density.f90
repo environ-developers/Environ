@@ -243,7 +243,8 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE multipoles_environ_density(this, origin, monopole, dipole, quadrupole)
+    SUBROUTINE multipoles_environ_density(this, origin, monopole, dipole, quadrupole, &
+                                            ir_vals, disps)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -253,10 +254,12 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: monopole
         REAL(DP), DIMENSION(3), INTENT(OUT) :: dipole, quadrupole
+        REAL(DP), DIMENSION(:,:), OPTIONAL :: disps
+        INTEGER, DIMENSION(:), OPTIONAL :: ir_vals
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        INTEGER :: i
+        INTEGER :: i, imax, ir
         LOGICAL :: physical
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
@@ -269,15 +272,29 @@ CONTAINS
         dipole = 0.D0
         quadrupole = 0.D0
         !
+        imax = cell%ir_end
+        IF (PRESENT(ir_vals) .AND. PRESENT(disps)) imax = SIZE(ir_vals)
         !
-        DO i = 1, cell%ir_end
+        DO i = 1, imax
             !
-            CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
-            ! compute minimum distance using minimum image convention
+            IF (PRESENT(ir_vals) .AND. PRESENT(disps)) THEN
+                !
+                ir = ir_vals(i)
+                IF (ir == 0) CYCLE
+                r = disps(:,i)
+                !
+            ELSE
+                !
+                CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                ir = i
+                !
+            END IF
             !
-            IF (.NOT. physical) CYCLE
-            !
-            rhoir = this%of_r(i)
+            rhoir = this%of_r(ir)
             !
             !----------------------------------------------------------------------------
             ! Multipoles
