@@ -736,7 +736,7 @@ WRITE( STDOUT, 1002)& \
 istep =  istep + 1 \
 nelec = ionic_charge - tot_charge \
 environ%main%semiconductor%base%slab_charge = tot_charge \
-environ%main%environment_charges%externals%functions%array(1)%volume = environ%main%semiconductor%base%electrode_charge - tot_charge \
+environ%main%environment_charges%externals%functions%array(1)%volume=-(environ%main%semiconductor%base%electrode_charge - tot_charge) \
 CALL mp_bcast(nelec, ionode_id,intra_image_comm) \
 CALL update_pot() \
 CALL hinit1() \

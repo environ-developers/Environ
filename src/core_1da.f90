@@ -1326,7 +1326,7 @@ CONTAINS
         REAL(DP) :: kbt, invkbt, delta_chg
         REAL(DP) :: ez, ez_ms, ez_gcs, fact, vms, vstern
         REAL(DP) :: arg, const, constr, constl, depletion_length, compress_fact
-        REAL(DP) :: dv, vbound, v_cut, v_edge, z_cut
+        REAL(DP) :: dv, vbound, v_cut, v_edge, z_cut, z_val
         REAL(DP) :: asinh, coth, acoth
         REAL(DP) :: f1, f2, max_axis
         REAL(DP) :: area, vtmp, distance
@@ -1482,7 +1482,7 @@ CONTAINS
                ! shouldn't be a huge deal one would hope
                v_cut = subtracted_pot(z_cut_idx)
                ez_ms = (subtracted_pot(z_cut_idx) - subtracted_pot(z_cut_idx+1))/ &
-                          (naxis/v%cell%at(3,3))
+                          (v%cell%at(3,3)/naxis)
                WRITE ( io%debug_unit, * )"v_cut : ",v_cut
                WRITE (io%debug_unit, * )"ez_ms : ", ez_ms 
                !
@@ -1496,6 +1496,7 @@ CONTAINS
             ELSE
                 vms = arg
             END IF
+            WRITE (io%debug_unit, * )"vms : ", vms
             !
             depletion_length = ABS(2.D0 * fact * ez_ms)
             !
@@ -1503,6 +1504,26 @@ CONTAINS
             ! set bulk fermi
             !
             semiconductor%bulk_sc_fermi = vms + semiconductor%flatband_fermi + v_cut
+            !
+            !----------------------------------------------------------------------------
+            ! write subtracted pot            
+            !
+            open(93, file = 'subtracted_pot.dat', status='replace')
+            open(94, file = 'current_pot.dat', status='replace')
+            open(95, file = 'flataband_pot.dat', status='replace')
+            DO i=1,naxis
+               z_val = i * v%cell%at(3,3)/naxis
+               IF (semiconductor%slab_charge == 0.D0) THEN
+                  WRITE(95,*)z_val, semiconductor%flatband_pot_planar_avg(i)
+               ELSE
+                  WRITE(93,*)z_val, subtracted_pot(i)
+                  WRITE(94,*)z_val, current_pot(i)
+               END IF 
+               !
+            END DO 
+            CLOSE(93)
+            CLOSE(94)
+            CLOSE(95)
             !
             CALL local%destroy()
             !
