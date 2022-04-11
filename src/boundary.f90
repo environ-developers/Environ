@@ -112,6 +112,7 @@ MODULE class_boundary
         REAL(DP), ALLOCATABLE :: nonzero(:, :)
         REAL(DP), ALLOCATABLE :: grad_nonzero(:, :, :)
         INTEGER :: grid_pts
+        LOGICAL :: has_density, has_gradient, has_ir
         !
         TYPE(core_container), POINTER :: cores => NULL()
         !
@@ -479,6 +480,10 @@ CONTAINS
             this%ir_reduced = -1
             this%nonzero = 0.D0
             this%grad_nonzero = 0.D0
+            !
+            this%has_density = .FALSE.
+            this%has_gradient = .FALSE.
+            this%has_ir = .FALSE.
             !
         END IF
         !
@@ -1122,7 +1127,7 @@ CONTAINS
         !
         IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
             !
-            IF (this%derivatives_method == 'fft') THEN
+            IF (this%derivatives_method == 'fft' .OR. (.NOT. this%has_gradient)) THEN
                 CALL this%soft_spheres%array(index)%gradient(partial, .TRUE.)
             ELSE
                 !
@@ -1472,6 +1477,9 @@ CONTAINS
                 scal%of_r = scal%of_r * denlocal%of_r
             END DO
             !
+            this%has_ir = .TRUE.
+            this%has_density = .TRUE.
+            !
             CALL denlocal%destroy()
             !
             !----------------------------------------------------------------------------
@@ -1624,6 +1632,7 @@ CONTAINS
             !
             IF (deriv >= 1) THEN
                 grad%of_r = -grad%of_r
+                this%has_gradient = .TRUE.
                 !
                 CALL grad%update_modulus()
                 !
