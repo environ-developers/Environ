@@ -647,14 +647,13 @@ ELSE \
 cur_fermi = ef!*rytoev  \
 ! for now, will try to keep everything in Ry, should basically work the same  \
  \
-!CALL save_current_pot(dfftp%nnr,cur_fermi,cur_dchg,ss_chg,v_cut,chg_step) \
  \
 ! not calling it dfermi because difference is only used as a guide to changing \
 ! charge. Calling it dchg to conform with steepest descent model  \
 cur_dchg = environ%main%semiconductor%base%bulk_sc_fermi - cur_fermi \
 bulk_potential = (environ%main%semiconductor%base%bulk_sc_fermi - environ%main%semiconductor%base%flatband_fermi)*rytoev \
 ! ss = surface states = dft section \
-ss_chg = tot_charge \
+ss_chg = environ%main%semiconductor%base%ss_chg \
 !IF (ionode) THEN  \
  \
 ! making sure constraints are updated  \
@@ -746,7 +745,7 @@ ELSE \
 IF (chg_step == nstep -1) THEN \
 WRITE(STDOUT,*)NEW_LINE("a")//"   Exceeded Max number steps!"//& \
 &NEW_LINE("a")//"   Results probably out of accurate range"//& \
-&NEW_LINE("a")//"   Smaller chg_thr recommended."//& \
+&NEW_LINE("a")//"   Larger chg_thr recommended."//& \
 &NEW_LINE("a")//"   Writing current step to q-v.dat." \
 END IF \
  \
@@ -762,10 +761,10 @@ WRITE(21, *)"Potential (V-V_fb)  Surface State Potential (V-V_cut)",& \
 surf_area = environ%main%semiconductor%base%surf_area_per_sq_cm \
 chg_per_area = environ%main%semiconductor%base%electrode_charge/surf_area \
 ss_chg_per_area = ss_chg/surf_area \
-ss_potential = -bulk_potential \
+ss_potential = environ%main%semiconductor%base%ss_v_cut \
 CALL mp_bcast(ss_potential, ionode_id, intra_image_comm) \
 !print *, bulk_potential,ss_potential  \
-WRITE(21, 1004)total_potential, ss_potential,& \
+WRITE(21, 1004)-bulk_potential, ss_potential,& \
 &environ%main%semiconductor%base%electrode_charge, ss_chg,& \
 &chg_per_area,ss_chg_per_area \
 CLOSE(21) \

@@ -1484,7 +1484,7 @@ CONTAINS
                ALLOCATE (avgd_pot(naxis))
                !
                CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, current_pot)
-
+               ! smoothing out the potential to avoid atomic fluctuations
                CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
                                           current_pot, avgd_pot )
                !
@@ -1494,16 +1494,24 @@ CONTAINS
                ! need to find the index corresponding to the z_cutoff 
                ! this is a bit of a choppy way to do this, but I guess it works
                z_cut = this%origin(3) - xstern_ms
+               IF (io%verbosity > 1 ) THEN
+                  WRITE ( io%debug_unit, * )"z_cut : ",z_cut
+               END IF
                z_cut_idx = INT(z_cut /v%cell%at(3,3)  *naxis)
                !
-               ! currently no smoothing of this derivative which would likely be
-               ! desirable long term. Asssuming that the atoms don't move, it
-               ! shouldn't be a huge deal one would hope
                v_cut = subtracted_pot(z_cut_idx)
                ez_ms = (subtracted_pot(z_cut_idx) - subtracted_pot(z_cut_idx+1))/ &
                           (v%cell%at(3,3)/naxis)
-               WRITE ( io%debug_unit, * )"v_cut : ",v_cut
-               WRITE (io%debug_unit, * )"ez_ms : ", ez_ms 
+               !
+               !----------------------------------------------------------------------------
+               ! calculate what charge ez_ms corresponds to with Gauss law   
+               semiconductor%ss_v_cut = v_cut
+               semiconductor%ss_chg = -ez_ms * area /tpi /e2
+               ! 
+               IF (io%verbosity > 1 ) THEN
+                  WRITE ( io%debug_unit, * )"v_cut : ",v_cut
+                  WRITE (io%debug_unit, * )"ez_ms : ", ez_ms 
+               END IF
                !
             END IF
             !

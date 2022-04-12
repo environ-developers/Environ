@@ -70,6 +70,8 @@ MODULE class_semiconductor_base
         REAL(DP) :: bulk_sc_fermi = 0.D0
         REAL(DP) :: slab_charge = 0.D0
         REAL(DP) :: surf_area_per_sq_cm = 0.D0
+        REAL(DP) :: ss_chg = 0.D0
+        REAL(DP) :: ss_v_cut = 0.D0
         !
         REAL(DP), ALLOCATABLE :: flatband_pot_planar_avg(:)
         !
@@ -119,6 +121,8 @@ CONTAINS
         this%bulk_sc_fermi = 0.D0
         this%slab_charge = 0.D0
         this%surf_area_per_sq_cm = 0.D0
+        this%ss_chg = 0.D0
+        this%ss_v_cut = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_semiconductor_base
