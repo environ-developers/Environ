@@ -53,8 +53,8 @@ MODULE class_function_bspline
     TYPE, PUBLIC :: knot_span
         !--------------------------------------------------------------------------------
         !
-        INTEGER, ALLOCATABLE :: powers(:,:,:)
-        REAL(DP), ALLOCATABLE :: coeff(:,:,:)
+        INTEGER, ALLOCATABLE :: powers(:, :, :)
+        REAL(DP), ALLOCATABLE :: coeff(:, :, :)
         !
         !--------------------------------------------------------------------------------
     END TYPE knot_span
@@ -65,11 +65,11 @@ MODULE class_function_bspline
     TYPE, EXTENDS(environ_function), PUBLIC :: environ_function_bspline
         !--------------------------------------------------------------------------------
         !
-        TYPE( knot_span ), ALLOCATABLE :: spans(:,:)
-        REAL(DP), ALLOCATABLE :: u(:,:)
+        TYPE(knot_span), ALLOCATABLE :: spans(:, :)
+        REAL(DP), ALLOCATABLE :: u(:, :)
         !
         INTEGER :: span_num, degree, knot_num
-        REAL(DP) :: m_spread, norm
+        REAL(DP) :: m_spread, norm, xyz_norm(3)
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -78,6 +78,7 @@ MODULE class_function_bspline
         PROCEDURE :: density => density_of_function
         PROCEDURE :: gradient => gradient_of_function
         PROCEDURE :: setup => setup_of_function
+        PROCEDURE :: se_quad_corr => self_energy_quadrapole_corrections
         !
         PROCEDURE, PRIVATE :: get_u, calc_val, calc_grad_val, bsplinevolume
         !
@@ -189,7 +190,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, vals, grid_pts, &
-                                        r_vals, dist_vals)
+                                    r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -239,7 +240,7 @@ CONTAINS
                 uidx = this%get_u(r)
                 !
                 ! Calculate gradient of bspline function at a given point
-                gradient%of_r(:,i) = gradient%of_r(:,i) + this%calc_grad_val(r, uidx)
+                gradient%of_r(:, i) = gradient%of_r(:, i) + this%calc_grad_val(r, uidx)
                 !
             END DO
             !
@@ -247,6 +248,60 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE gradient_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    REAL(DP) FUNCTION self_energy_quadrapole_corrections(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function_bspline), INTENT(IN) :: this
+        !
+        REAL(DP) :: term1, term2, x2_vals(3), c1, c2
+        INTEGER :: i, j
+        !
+        CHARACTER(LEN=80) :: sub_name = 'self_energy_quadrapole_corrections'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        x2_vals = 0.D0
+        !
+        DO i = 1, 3
+            !
+            c1 = this%u(i, this%knot_num) + this%u(i, 1)
+            c2 = (c1 / 2.D0)**2.D0
+            !
+            DO j = 1, this%span_num
+                !
+                ASSOCIATE (pows => this%spans(i, 1)%powers(j, this%degree, :), &
+                           coeffs => this%spans(i, 1)%coeff(j, this%degree, :))
+                    !
+                    term1 = SUM(coeffs * this%u(i, j)**(pows + 3) / (pows + 3))
+                    term2 = SUM(coeffs * this%u(i, j + 1)**(pows + 3) / (pows + 3))
+                    !
+                    x2_vals(i) = x2_vals(i) + term2 - term1
+                    !
+                    term1 = SUM(coeffs * this%u(i, j)**(pows + 2) / (pows + 2))
+                    term2 = SUM(coeffs * this%u(i, j + 1)**(pows + 2) / (pows + 2))
+                    !
+                    x2_vals(i) = x2_vals(i) - c1 * (term2 - term1)
+                    !
+                END ASSOCIATE
+                !
+            END DO
+            !
+            x2_vals(i) = x2_vals(i) + c2 * this%xyz_norm(i)
+            !
+            x2_vals(i) = x2_vals(i) * this%volume / this%xyz_norm(i)
+            !
+        END DO
+        !
+        self_energy_quadrapole_corrections = SUM(x2_vals) / 3.D0
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION self_energy_quadrapole_corrections
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -278,7 +333,7 @@ CONTAINS
             !
             DO i = 1, this%span_num
                 !
-                IF (u_in(a) >= this%u(a,i) .AND. u_in(a) < this%u(a,i+1)) THEN
+                IF (u_in(a) >= this%u(a, i) .AND. u_in(a) < this%u(a, i + 1)) THEN
                     !
                     u_out(a) = i
                     !
@@ -300,7 +355,7 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_function_bspline), INTENT(INOUT) :: this
-        REAL(DP), INTENT(IN) :: at(3,3)
+        REAL(DP), INTENT(IN) :: at(3, 3)
         INTEGER, INTENT(IN) :: nr(3)
         !
         CHARACTER(LEN=80) :: sub_name = 'setup_of_function'
@@ -311,8 +366,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%knot_num = 5
-        ALLOCATE(this%u(3,this%knot_num))
+        this%knot_num = 6
+        ALLOCATE (this%u(3, this%knot_num))
         !
         DO i = 1, 3
             !
@@ -320,20 +375,22 @@ CONTAINS
             !
             DO j = 1, this%knot_num
                 !
-                this%u(i,j) = this%pos(i) - dx * this%knot_num / 2.D0 + (j - 1) * dx
+                this%u(i, j) = this%pos(i) - dx * this%knot_num / 2.D0 + (j - 1) * dx
                 !
             END DO
             !
-            IF (this%u(i,this%knot_num) - this%u(i,1) > 1.6D0) &
+            IF (this%u(i, this%knot_num) - this%u(i, 1) > 1.6D0) THEN
+                PRINT *, this%u(i, this%knot_num) - this%u(i, 1)
                 CALL io%error(sub_name, 'Spread of Bspline is larger than 1.6 Bohr.', 1)
+            END IF
             !
         END DO
         !
         this%span_num = this%knot_num - 1
         this%degree = this%span_num - 1
         !
-        ALLOCATE(pows(0:this%degree))
-        ALLOCATE(this%spans(3,this%span_num))
+        ALLOCATE (pows(0:this%degree))
+        ALLOCATE (this%spans(3, this%span_num))
         !
         DO a = 1, 3
             !
@@ -347,39 +404,39 @@ CONTAINS
                     !
                     IF (i == 0) THEN
                         !
-                        ALLOCATE(this%spans(a,j)%coeff(this%span_num,0:this%degree,0:this%degree))
-                        ALLOCATE(this%spans(a,j)%powers(this%span_num,0:this%degree,0:this%degree))
+                        ALLOCATE (this%spans(a, j)%coeff(this%span_num, 0:this%degree, 0:this%degree))
+                        ALLOCATE (this%spans(a, j)%powers(this%span_num, 0:this%degree, 0:this%degree))
                         !
-                        this%spans(a,j)%coeff = 0.D0
-                        this%spans(a,j)%powers = -1
+                        this%spans(a, j)%coeff = 0.D0
+                        this%spans(a, j)%powers = -1
                         !
-                        this%spans(a,j)%coeff(j,0,0) = 1.D0
-                        this%spans(a,j)%powers(j,0,0) = 0
+                        this%spans(a, j)%coeff(j, 0, 0) = 1.D0
+                        this%spans(a, j)%powers(j, 0, 0) = 0
                         !
                     ELSE IF (j + i <= this%span_num) THEN
                         !
-                        cvals(1) = 1.D0 / (this%u(a,j+i) - this%u(a,j))
-                        cvals(2) = -this%u(a,j) * cvals(1)
-                        cvals(4) = -1.D0 / (this%u(a,j+i+1) - this%u(a,j+1))
-                        cvals(3) = -this%u(a,j+i+1) * cvals(4)
+                        cvals(1) = 1.D0 / (this%u(a, j + i) - this%u(a, j))
+                        cvals(2) = -this%u(a, j) * cvals(1)
+                        cvals(4) = -1.D0 / (this%u(a, j + i + 1) - this%u(a, j + 1))
+                        cvals(3) = -this%u(a, j + i + 1) * cvals(4)
                         !
                         DO k = 1, i
                             !
                             ! Updating variable powers
-                            this%spans(a,j)%powers(k+j-1,i,:) = pows
-                            this%spans(a,j)%powers(k+j,i,:) = pows
+                            this%spans(a, j)%powers(k + j - 1, i, :) = pows
+                            this%spans(a, j)%powers(k + j, i, :) = pows
                             !
                             ! First term in B-spline equation
-                            this%spans(a,j)%coeff(k+j-1,i,:) = this%spans(a,j)%coeff(k+j-1,i,:) + &
-                                                        this%spans(a,j)%coeff(k+j-1,i-1,:) * cvals(2)
-                            this%spans(a,j)%coeff(k+j-1,i,1:i) = this%spans(a,j)%coeff(k+j-1,i,1:i) + &
-                                                    this%spans(a,j)%coeff(k+j-1,i-1,0:i-1) * cvals(1)
+                            this%spans(a, j)%coeff(k + j - 1, i, :) = this%spans(a, j)%coeff(k + j - 1, i, :) + &
+                                                                      this%spans(a, j)%coeff(k + j - 1, i - 1, :) * cvals(2)
+                            this%spans(a, j)%coeff(k + j - 1, i, 1:i) = this%spans(a, j)%coeff(k + j - 1, i, 1:i) + &
+                                                                        this%spans(a, j)%coeff(k + j - 1, i - 1, 0:i - 1) * cvals(1)
                             !
                             ! Second term in B-spline equation
-                            this%spans(a,j)%coeff(k+j,i,:) = this%spans(a,j)%coeff(k+j,i,:) + &
-                                                        this%spans(a,j+1)%coeff(k+j,i-1,:) * cvals(3)
-                            this%spans(a,j)%coeff(k+j,i,1:i) = this%spans(a,j)%coeff(k+j,i,1:i) + &
-                                                    this%spans(a,j+1)%coeff(k+j,i-1,0:i-1) * cvals(4)
+                            this%spans(a, j)%coeff(k + j, i, :) = this%spans(a, j)%coeff(k + j, i, :) + &
+                                                                  this%spans(a, j + 1)%coeff(k + j, i - 1, :) * cvals(3)
+                            this%spans(a, j)%coeff(k + j, i, 1:i) = this%spans(a, j)%coeff(k + j, i, 1:i) + &
+                                                                    this%spans(a, j + 1)%coeff(k + j, i - 1, 0:i - 1) * cvals(4)
                             !
                         END DO
                         !
@@ -420,12 +477,12 @@ CONTAINS
         !
         DO i = 1, 3
             !
-            IF (u_in(i) > MAXVAL(this%u(i,:)) .OR. u_in(i) < MINVAL(this%u(i,:))) calc_val = 0.D0
+            IF (u_in(i) > MAXVAL(this%u(i, :)) .OR. u_in(i) < MINVAL(this%u(i, :))) calc_val = 0.D0
             !
-            ASSOCIATE (pows => this%spans(i,span)%powers(idx(i),degree,:), &
-                       coeffs => this%spans(i,span)%coeff(idx(i),degree,:))
+            ASSOCIATE (pows => this%spans(i, span)%powers(idx(i), degree, :), &
+                       coeffs => this%spans(i, span)%coeff(idx(i), degree, :))
                 !
-                calc_val = calc_val * SUM( coeffs*u_in(i)**REAL(pows,DP))
+                calc_val = calc_val * SUM(coeffs * u_in(i)**pows)
                 !
             END ASSOCIATE
             !
@@ -459,7 +516,7 @@ CONTAINS
         !
         DO i = 1, 3
             !
-            IF (u_in(i) > MAXVAL(this%u(i,:)) .OR. u_in(i) < MINVAL(this%u(i,:))) THEN
+            IF (u_in(i) > MAXVAL(this%u(i, :)) .OR. u_in(i) < MINVAL(this%u(i, :))) THEN
                 !
                 calc_grad_val = 0.D0
                 RETURN
@@ -472,10 +529,10 @@ CONTAINS
         !
         DO i = 1, 3
             !
-            ASSOCIATE (pows => this%spans(i,span)%powers(idx(i),degree,:), &
-                       coeffs => this%spans(i,span)%coeff(idx(i),degree,:))
+            ASSOCIATE (pows => this%spans(i, span)%powers(idx(i), degree, :), &
+                       coeffs => this%spans(i, span)%coeff(idx(i), degree, :))
                 !
-                local_vals(i) = SUM( coeffs*u_in(i)**REAL(pows,DP))
+                local_vals(i) = SUM(coeffs * u_in(i)**REAL(pows, DP))
                 !
             END ASSOCIATE
             !
@@ -485,15 +542,15 @@ CONTAINS
             !
             DO j = 1, 3
                 !
-                IF ( i == j) THEN
+                IF (i == j) THEN
                     !
                     grad_val = 0.D0
                     DO k = 2, this%degree + 1
                         !
-                        ASSOCIATE (pows => this%spans(i,span)%powers(idx(i),degree,:), &
-                                   coeffs => this%spans(i,span)%coeff(idx(i),degree,:))
+                        ASSOCIATE (pows => this%spans(i, span)%powers(idx(i), degree, :), &
+                                   coeffs => this%spans(i, span)%coeff(idx(i), degree, :))
                             !
-                            grad_val = grad_val + coeffs(k) * pows(k) * u_in(i) ** REAL(pows(k) - 1, DP)
+                            grad_val = grad_val + coeffs(k) * pows(k) * u_in(i)**REAL(pows(k) - 1, DP)
                             !
                         END ASSOCIATE
                         !
@@ -524,28 +581,29 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_bspline), INTENT(IN) :: this
+        CLASS(environ_function_bspline), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'bsplinevolume'
         !
         INTEGER :: i, j
-        REAL(DP) :: integrals(3), term1, term2
+        REAL(DP) :: term1, term2
         !
         !--------------------------------------------------------------------------------
         !
         bsplinevolume = 1.D0
+        this%xyz_norm = 0.D0
         !
         DO i = 1, 3
             !
             DO j = 1, this%span_num
                 !
-                ASSOCIATE (pows => this%spans(i,1)%powers(j,this%degree,:), &
-                           coeffs => this%spans(i,1)%coeff(j,this%degree,:))
+                ASSOCIATE (pows => this%spans(i, 1)%powers(j, this%degree, :), &
+                           coeffs => this%spans(i, 1)%coeff(j, this%degree, :))
                     !
-                    term1 = SUM(coeffs*this%u(i,j)**REAL(pows+1,DP)/REAL(pows+1,DP))
-                    term2 = SUM(coeffs*this%u(i,j+1)**REAL(pows+1,DP)/REAL(pows+1,DP))
+                    term1 = SUM(coeffs * this%u(i, j)**(pows + 1) / (pows + 1))
+                    term2 = SUM(coeffs * this%u(i, j + 1)**(pows + 1) / (pows + 1))
                     !
-                    integrals(i) = integrals(i) + term2 - term1
+                    this%xyz_norm(i) = this%xyz_norm(i) + term2 - term1
                     !
                 END ASSOCIATE
                 !
@@ -553,7 +611,7 @@ CONTAINS
             !
         END DO
         !
-        bsplinevolume = integrals(1)*integrals(2)*integrals(3)
+        bsplinevolume = this%xyz_norm(1) * this%xyz_norm(2) * this%xyz_norm(3)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION bsplinevolume

@@ -80,6 +80,7 @@ MODULE class_function
         PROCEDURE :: laplacian => laplacian_of_function
         PROCEDURE :: hessian => hessian_of_function
         PROCEDURE :: derivative => derivative_of_function
+        PROCEDURE :: se_quad_corr => self_energy_quadrapole_corrections
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function
@@ -242,14 +243,14 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, vals, grid_pts, &
-                                        r_vals, dist_vals)
+                                    r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
-        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:,:), r_vals(:, :), dist_vals(:)
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:, :), r_vals(:, :), dist_vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
@@ -267,13 +268,13 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE laplacian_of_function(this, laplacian, zero, ir_vals, grid_pts, &
-                                        r_vals, dist_vals)
+                                     r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
         REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
@@ -292,13 +293,13 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE hessian_of_function(this, hessian, zero, ir_vals, grid_pts, &
-                                        r_vals, dist_vals)
+                                   r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
         REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
@@ -317,13 +318,13 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE derivative_of_function(this, derivative, zero, ir_vals, grid_pts, &
-                                        r_vals, dist_vals)
+                                      r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
+        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals(:), grid_pts
         REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
@@ -337,6 +338,25 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE derivative_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    REAL(DP) FUNCTION self_energy_quadrapole_corrections(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), INTENT(IN) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'self_energy_quadrapole_corrections'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION self_energy_quadrapole_corrections
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
