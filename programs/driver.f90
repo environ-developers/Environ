@@ -31,8 +31,6 @@ PROGRAM driver
     !
     USE cmdline_args
     !
-    USE parsers, ONLY: char2real
-    !
     USE programs
     !
     !------------------------------------------------------------------------------------
@@ -62,7 +60,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: arg, arg2
+        CHARACTER(LEN=80) :: arg
         !
         !--------------------------------------------------------------------------------
         !
@@ -94,16 +92,22 @@ CONTAINS
                 calc_force = .TRUE.
                 !
             CASE ('-min')
-                CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
-                CALL char2real(arg2, alpha_min)
+                !
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg)
+                !
+                READ (arg, *) alpha_min
                 !
             CASE ('-max')
-                CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
-                CALL char2real(arg2, alpha_max)
+                !
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg)
+                !
+                READ (arg, *) alpha_max
                 !
             CASE ('-step')
-                CALL GET_COMMAND_ARGUMENT(i + 1, arg2)
-                CALL char2real(arg2, alpha_step)
+                !
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg)
+                !
+                READ (arg, *) alpha_step
                 !
             END SELECT
             !
@@ -125,8 +129,8 @@ CONTAINS
         CASE ('tester')
             CALL run_tester()
             !
-        CASE ('desc')
-            CALL run_desc()
+        CASE ('descriptors')
+            CALL run_descriptors_generator()
             !
         CASE ('from_cube')
             CALL run_environ_from_cube()
