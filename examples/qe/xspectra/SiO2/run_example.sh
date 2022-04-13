@@ -10,7 +10,7 @@ if test "$(echo -e)" = "-e"; then ECHO=echo; else ECHO="echo -e"; fi
 $ECHO
 $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
-$ECHO "This example tests K-edge X-ray absorption spectra calculation with"
+$ECHO "This example tests K-edge X-ray absorption spectra calculation"
 $ECHO
 
 # set the needed environment variables
