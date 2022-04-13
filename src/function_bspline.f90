@@ -375,7 +375,7 @@ CONTAINS
             !
             DO j = 1, this%knot_num
                 !
-                this%u(i, j) = this%pos(i) - dx * this%knot_num / 2.D0 + (j - 1) * dx
+                this%u(i, j) = this%pos(i) - dx * this%knot_num / 2.D0 + (j - 1 + 0.5D0) * dx
                 !
             END DO
             !
