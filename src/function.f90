@@ -80,7 +80,7 @@ MODULE class_function
         PROCEDURE :: laplacian => laplacian_of_function
         PROCEDURE :: hessian => hessian_of_function
         PROCEDURE :: derivative => derivative_of_function
-        PROCEDURE :: se_quad_corr => self_energy_quadrapole_corrections
+        PROCEDURE :: quad_corr => quadrapole_corrections
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function
@@ -342,21 +342,21 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    REAL(DP) FUNCTION self_energy_quadrapole_corrections(this)
+    REAL(DP) FUNCTION quadrapole_corrections(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'self_energy_quadrapole_corrections'
+        CHARACTER(LEN=80) :: sub_name = 'quadrapole_corrections'
         !
         !--------------------------------------------------------------------------------
         !
         CALL io%error(sub_name, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION self_energy_quadrapole_corrections
+    END FUNCTION quadrapole_corrections
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
