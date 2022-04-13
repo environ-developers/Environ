@@ -213,11 +213,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%main%setup)) CALL io%destroy_error(sub_name)
-        !
-        IF (.NOT. ASSOCIATED(this%calc%main)) CALL io%destroy_error(sub_name)
-        !
-        IF (.NOT. ASSOCIATED(this%clean%main)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%main%setup) .OR. &
+            .NOT. ASSOCIATED(this%calc%main) .OR. &
+            .NOT. ASSOCIATED(this%clean%main)) THEN
+            !
+            CALL io%warning("interface not initialized - skipping cleanup", 1006)
+            !
+            RETURN
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         !
@@ -516,7 +520,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         DO i = 1, SIZE(weight)
-               label(i) = get_element(weight(i))
+            label(i) = get_element(weight(i))
         END DO
         !
         !--------------------------------------------------------------------------------

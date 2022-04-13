@@ -49,7 +49,7 @@ MODULE class_io
         !
         INTEGER :: comm ! WE MAY NEED A SECOND COMMUNICATOR FOR IMAGE PARALLELIZATION
         !
-        INTEGER :: unit
+        INTEGER :: unit = 6
         INTEGER :: debug_unit
         !
         INTEGER :: verbosity = 0
@@ -366,7 +366,7 @@ CONTAINS
     END SUBROUTINE env_header
     !------------------------------------------------------------------------------------
     !>
-    !! Writes a message message to output warning the user of a non-terminating issue
+    !! Writes a message to output warning the user of a non-terminating issue
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE env_warning(message, ierr)
