@@ -108,11 +108,16 @@ MODULE class_boundary
         TYPE(environ_hessian) :: hessian
         TYPE(environ_density) :: dsurface
         !
-        INTEGER, ALLOCATABLE :: ir_reduced(:, :)
-        REAL(DP), ALLOCATABLE :: nonzero(:, :)
-        REAL(DP), ALLOCATABLE :: grad_nonzero(:, :, :)
-        INTEGER :: grid_pts
-        LOGICAL :: has_density, has_gradient, has_ir
+        !--------------------------------------------------------------------------------
+        ! Reduced arrays for optimization
+        !
+        INTEGER, ALLOCATABLE :: ir_nz(:, :) ! indices of points of interest
+        REAL(DP), ALLOCATABLE :: den_nz(:, :) ! nonzero density
+        REAL(DP), ALLOCATABLE :: grad_nz(:, :, :) ! nonzero gradient
+        !
+        LOGICAL :: has_stored_gradient ! used in force calculation
+        !
+        !--------------------------------------------------------------------------------
         !
         TYPE(core_container), POINTER :: cores => NULL()
         !
@@ -253,6 +258,12 @@ CONTAINS
         !
         IF (ALLOCATED(this%partial_of_ion_field)) CALL io%create_error(sub_name)
         !
+        IF (ALLOCATED(this%ir_nz)) CALL io%create_error(sub_name)
+        !
+        IF (ALLOCATED(this%den_nz)) CALL io%create_error(sub_name)
+        !
+        IF (ALLOCATED(this%grad_nz)) CALL io%create_error(sub_name)
+        !
         !--------------------------------------------------------------------------------
         !
         this%label = ''
@@ -283,6 +294,7 @@ CONTAINS
         this%field_asymmetry = 0.D0
         this%field_max = 0.D0
         this%field_min = 0.D0
+        this%has_stored_gradient = .FALSE.
         !
         NULLIFY (this%electrons)
         NULLIFY (this%ions)
@@ -324,11 +336,14 @@ CONTAINS
         TYPE(core_container), TARGET, INTENT(IN) :: cores
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
-        CLASS(environ_boundary), INTENT(INOUT) :: this
+        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER :: i, maxi
+        INTEGER :: i, imax
+        INTEGER :: nnr_nz ! nonzero grid points per processor
         !
         REAL(DP) :: max_rad
+        !
+        INTEGER, POINTER :: nat
         !
         TYPE(environ_density) :: denlocal
         !
@@ -356,7 +371,10 @@ CONTAINS
         !
         this%need_ions = mode == 'ionic' .OR. mode == 'full' .OR. field_aware
         !
-        IF (this%need_ions) this%ions => ions
+        IF (this%need_ions) THEN
+            this%ions => ions
+            nat => this%ions%number
+        END IF
         !
         this%need_system = mode == 'system'
         !
@@ -414,16 +432,10 @@ CONTAINS
         this%field_min = field_min
         !
         IF (this%field_aware .AND. this%mode == 'ionic') THEN
-            !
-            ASSOCIATE (n => this%ions%number)
-                !
-                ALLOCATE (this%ion_field(n))
-                ALLOCATE (this%dion_field_drho(n))
-                ALLOCATE (this%partial_of_ion_field(3, n, n))
-                ALLOCATE (environ_function_erfc :: this%unscaled_spheres%array(n))
-                !
-            END ASSOCIATE
-            !
+            ALLOCATE (this%ion_field(nat))
+            ALLOCATE (this%dion_field_drho(nat))
+            ALLOCATE (this%partial_of_ion_field(3, nat, nat))
+            ALLOCATE (environ_function_erfc :: this%unscaled_spheres%array(nat))
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -435,56 +447,54 @@ CONTAINS
             !
             max_rad = 0.D0
             !
-            DO i = 1, this%ions%number
+            !----------------------------------------------------------------------------
+            ! Find maximun radius of soft-spheres
+            !
+            DO i = 1, nat
                 !
                 IF (max_rad < this%soft_spheres%array(i)%width) THEN
-                    !
                     max_rad = this%soft_spheres%array(i)%width
-                    maxi = i
-                    !
+                    imax = i
                 END IF
                 !
             END DO
+            !
+            !----------------------------------------------------------------------------
+            ! Calculate density of largest soft-sphere
             !
             CALL denlocal%init(cell)
             !
-            CALL this%soft_spheres%array(maxi)%density(denlocal, .TRUE.)
+            CALL this%soft_spheres%array(imax)%density(denlocal, .TRUE.)
             !
-            this%grid_pts = 1
+            !----------------------------------------------------------------------------
+            ! Count grid points of interest
+            !
+            nnr_nz = 1
+            !
             DO i = 1, cell%nnr
                 !
                 IF (denlocal%of_r(i) /= 1.D0) THEN
-                    !
-                    this%grid_pts = this%grid_pts + 1
-                    !
+                    nnr_nz = nnr_nz + 1
                 END IF
                 !
             END DO
             !
-            this%grid_pts = this%grid_pts * 1.15
-            !
-#if defined (__MPI)
-            CALL env_reduce_base_integer(1, this%grid_pts, io%comm, io%node)
-            !
-            CALL env_bcast_integer(this%grid_pts, 1, io%node, io%comm)
-#endif
-            !
-            IF (this%grid_pts > cell%nnr) this%grid_pts = cell%nnr
+            nnr_nz = nnr_nz * 1.15 ! buffer room for safety # TODO optimize!
             !
             CALL denlocal%destroy()
             !
-            ALLOCATE (this%ir_reduced(this%ions%number, this%grid_pts))
-            ALLOCATE (this%nonzero(this%ions%number, this%grid_pts))
-            ALLOCATE (this%grad_nonzero(this%ions%number, this%grid_pts, 3))
+            !----------------------------------------------------------------------------
+            ! Allocate reduced-arrays
             !
-            this%ir_reduced = -1
-            this%nonzero = 0.D0
-            this%grad_nonzero = 0.D0
+            ALLOCATE (this%ir_nz(nat, nnr_nz))
+            ALLOCATE (this%den_nz(nat, nnr_nz))
+            ALLOCATE (this%grad_nz(nat, nnr_nz, 3))
             !
-            this%has_density = .FALSE.
-            this%has_gradient = .FALSE.
-            this%has_ir = .FALSE.
+            this%ir_nz = -1
+            this%den_nz = 0.D0
+            this%grad_nz = 0.D0
             !
+            this%has_stored_gradient = .FALSE.
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -526,7 +536,7 @@ CONTAINS
             !
             IF (this%mode == 'ionic') THEN
                 !
-                DO i = 1, this%ions%number
+                DO i = 1, nat
                     CALL this%dion_field_drho(i)%init(cell)
                 END DO
                 !
@@ -547,11 +557,13 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_boundary), INTENT(IN) :: this
+        CLASS(environ_boundary), TARGET, INTENT(IN) :: this
         !
         TYPE(environ_boundary), INTENT(OUT) :: copy
         !
-        INTEGER :: i, n, m
+        INTEGER :: i, nnr_nz
+        !
+        INTEGER, POINTER :: nat
         !
         !--------------------------------------------------------------------------------
         !
@@ -626,40 +638,42 @@ CONTAINS
             IF (copy%soft_spheres%number /= 0) DEALLOCATE (copy%soft_spheres%array)
         END IF
         !
-        copy%grid_pts = this%grid_pts
+        nat => this%ions%number
         !
-        ALLOCATE (copy%ir_reduced(this%ions%number, copy%grid_pts))
-        ALLOCATE (copy%nonzero(this%ions%number, copy%grid_pts))
-        ALLOCATE (copy%grad_nonzero(this%ions%number, copy%grid_pts, 3))
-        !
-        copy%ir_reduced = -1
-        copy%nonzero = 0.D0
-        copy%grad_nonzero = 0.D0
+        IF (this%mode == 'ionic') THEN
+            nnr_nz = SIZE(this%ir_nz)
+            !
+            ALLOCATE (copy%ir_nz(nat, nnr_nz))
+            ALLOCATE (copy%den_nz(nat, nnr_nz))
+            ALLOCATE (copy%grad_nz(nat, nnr_nz, 3))
+            !
+            copy%ir_nz = -1
+            copy%den_nz = 0.D0
+            copy%grad_nz = 0.D0
+        END IF
         !
         IF (ALLOCATED(this%ion_field)) THEN
-            n = SIZE(this%ion_field)
             !
             IF (ALLOCATED(copy%ion_field)) DEALLOCATE (copy%ion_field)
             !
             IF (ALLOCATED(copy%partial_of_ion_field)) &
                 DEALLOCATE (copy%partial_of_ion_field)
             !
-            ALLOCATE (copy%ion_field(n))
-            ALLOCATE (copy%partial_of_ion_field(3, n, n))
+            ALLOCATE (copy%ion_field(nat))
+            ALLOCATE (copy%partial_of_ion_field(3, nat, nat))
             !
             IF (ALLOCATED(copy%dion_field_drho)) THEN
-                m = SIZE(copy%dion_field_drho)
                 !
-                DO i = 1, m
+                DO i = 1, nat
                     CALL copy%dion_field_drho(i)%destroy()
                 END DO
                 !
                 DEALLOCATE (copy%dion_field_drho)
             END IF
             !
-            ALLOCATE (copy%dion_field_drho(n))
+            ALLOCATE (copy%dion_field_drho(nat))
             !
-            DO i = 1, n
+            DO i = 1, nat
                 CALL this%dion_field_drho(i)%copy(copy%dion_field_drho(i))
             END DO
             !
@@ -863,7 +877,7 @@ CONTAINS
         !
         CALL this%scaled%destroy()
         !
-        IF (this%mode == 'electronic' .OR. this%mode == 'full') THEN
+        IF (this%need_electrons) THEN
             !
             CALL this%density%destroy()
             !
@@ -896,10 +910,9 @@ CONTAINS
         IF (this%need_ions) THEN
             !
             IF (this%mode == 'ionic') THEN
-                !
-                DEALLOCATE (this%grad_nonzero)
-                DEALLOCATE (this%nonzero)
-                DEALLOCATE (this%ir_reduced)
+                DEALLOCATE (this%ir_nz)
+                DEALLOCATE (this%den_nz)
+                DEALLOCATE (this%grad_nz)
                 !
                 CALL this%soft_spheres%destroy()
                 !
@@ -956,7 +969,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! The confine potetial is defined as confine * ( 1 - s(r) )
         !
-        vconfine%of_r = 0.D0
         vconfine%of_r = confine * (1.D0 - this%scaled%of_r)
         !
         !--------------------------------------------------------------------------------
@@ -1085,7 +1097,7 @@ CONTAINS
         !
         REAL(DP), PARAMETER :: tolspuriousforce = 1.D-5
         !
-        INTEGER, POINTER :: number
+        INTEGER, POINTER :: nat
         !
         INTEGER :: i, j, idx
         REAL(DP) :: spurious_force
@@ -1099,14 +1111,14 @@ CONTAINS
         ! exit if boundary is only defined on electronic density
         !
         IF (this%need_ions) THEN
-            number => this%ions%number
+            nat => this%ions%number
         ELSE IF (this%need_system) THEN
-            number => this%system%ions%number
+            nat => this%system%ions%number
         ELSE
             CALL io%error(sub_name, "Missing details of ions", 1)
         END IF
         !
-        IF (index > number) &
+        IF (index > nat) &
             CALL io%error(sub_name, "Index greater than number of ions", 1)
         !
         IF (index <= 0) &
@@ -1127,41 +1139,25 @@ CONTAINS
         !
         IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
             !
-            IF (this%derivatives_method == 'fft' .OR. (.NOT. this%has_gradient)) THEN
+            IF (this%derivatives_method == 'fft' .OR. &
+                (.NOT. this%has_stored_gradient)) THEN
                 CALL this%soft_spheres%array(index)%gradient(partial, .TRUE.)
             ELSE
                 !
-                idx = 1
-                partial%of_r = 0.D0
-                !
-                DO j = 1, partial%cell%nnr
-                    !
-                    IF (.NOT. this%ir_reduced(index, idx) == j) CYCLE
-                    !
-                    partial%of_r(:, j) = this%grad_nonzero(index, idx, :)
-                    idx = idx + 1
-                    !
-                END DO
+                CALL reduced2nnr(this%ir_nz(index, :), partial%cell%nnr, 0.D0, &
+                                 grad_vals=this%grad_nz(index, :, :), &
+                                 grad_of_r=partial%of_r)
                 !
             END IF
             !
             CALL denlocal%init(partial%cell)
             !
-            DO i = 1, number
+            DO i = 1, nat
                 !
                 IF (i == index) CYCLE
                 !
-                idx = 1
-                denlocal%of_r = 1.D0
-                !
-                DO j = 1, partial%cell%nnr
-                    !
-                    IF (.NOT. this%ir_reduced(i, idx) == j) CYCLE
-                    !
-                    denlocal%of_r(j) = this%nonzero(i, idx)
-                    idx = idx + 1
-                    !
-                END DO
+                CALL reduced2nnr(this%ir_nz(i, :), denlocal%cell%nnr, 1.D0, &
+                                 den_vals=this%den_nz(i, :), den_of_r=denlocal%of_r)
                 !
                 DO j = 1, 3
                     partial%of_r(j, :) = partial%of_r(j, :) * denlocal%of_r
@@ -1186,7 +1182,7 @@ CONTAINS
             IF (spurious_force > tolspuriousforce .AND. io%lnode) &
                 WRITE (io%unit, 1000) index, spurious_force
             !
-        ELSE IF (this%mode == 'system') THEN
+        ELSE IF (this%need_system) THEN
             !
             ! PROBABLY THERE IS A UNIFORM CONTRIBUTION TO THE FORCES
             ! WHICH SHOULD ONLY AFFECT THE COM OF THE SYSTEM, POSSIBLY NEED TO ADD
@@ -1456,14 +1452,20 @@ CONTAINS
                    scal => this%scaled, &
                    grad => this%gradient, &
                    lapl => this%laplacian, &
-                   dsurf => this%dsurface)
+                   dsurf => this%dsurface, &
+                   nat => this%ions%number, &
+                   ir_nz => this%ir_nz, &
+                   den_nz => this%den_nz, &
+                   grad_nz => this%grad_nz, &
+                   nnr_nz => SIZE(this%ir_nz))
             !
             !----------------------------------------------------------------------------
             ! Compute soft spheres and generate boundary
             !
             scal%of_r = 1.D0
-            ALLOCATE (r(this%ions%number, this%grid_pts, 3))
-            ALLOCATE (dist(this%ions%number, this%grid_pts))
+            !
+            ALLOCATE (r(nat, nnr_nz, 3))
+            ALLOCATE (dist(nat, nnr_nz))
             r = 0.D0
             dist = 0.D0
             !
@@ -1471,14 +1473,11 @@ CONTAINS
             !
             DO i = 1, nss
                 !
-                CALL soft_spheres(i)%density(denlocal, .TRUE., this%ir_reduced(i,:), &
-                                        this%nonzero(i,:), r(i,:,:), dist(i,:))
+                CALL soft_spheres(i)%density(denlocal, .TRUE., ir_nz(i, :), &
+                                             den_nz(i, :), r(i, :, :), dist(i, :))
                 !
                 scal%of_r = scal%of_r * denlocal%of_r
             END DO
-            !
-            this%has_ir = .TRUE.
-            this%has_density = .TRUE.
             !
             CALL denlocal%destroy()
             !
@@ -1526,29 +1525,30 @@ CONTAINS
                     !
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
-                    IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                        this%ir_reduced(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
-                        r(i,:,:), dist(i,:))
+                    IF (deriv >= 1) &
+                        CALL soft_spheres(i)%gradient(gradlocal, .TRUE., ir_nz(i, :), &
+                                                      grad_nz(i, :, :), r(i, :, :), &
+                                                      dist(i, :))
                     !
-                    IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                    this%ir_reduced(i, :), this%grid_pts, r(i,:,:), dist(i,:))
+                    IF (deriv == 2) &
+                        CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., ir_nz(i, :), &
+                                                       r(i, :, :), dist(i, :))
                     !
-                    IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                    this%ir_reduced(i, :), this%grid_pts, r(i,:,:), dist(i,:))
+                    IF (deriv == 3) &
+                        CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., ir_nz(i, :), &
+                                                     r(i, :, :), dist(i, :))
                     !
                 END DO
                 !
                 IF (deriv == 1 .OR. deriv == 2) &
-                    CALL gradient_of_boundary(nss, grad, this%ir_reduced, &
-                                              this%nonzero, this%grad_nonzero)
+                    CALL gradient_of_boundary(nss, grad, ir_nz, den_nz, grad_nz)
                 !
                 IF (deriv == 2) &
-                    CALL laplacian_of_boundary(nss, laplloc, lapl, this%ir_reduced, &
-                                               this%nonzero, this%grad_nonzero)
+                    CALL laplacian_of_boundary(nss, laplloc, lapl, ir_nz, den_nz, grad_nz)
                 !
                 IF (deriv == 3) &
                     CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, dsurf, &
-                                              this%ir_reduced, this%nonzero, this%grad_nonzero)
+                                              ir_nz, den_nz, grad_nz)
                 !
                 DO i = 1, nss
                     !
@@ -1581,29 +1581,32 @@ CONTAINS
                     !
                     IF (deriv == 3) CALL hessloc(i)%init(cell)
                     !
-                    IF (deriv >= 1) CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                        this%ir_reduced(i, :), this%grad_nonzero(i,:,:), this%grid_pts, &
-                        r(i,:,:), dist(i,:))
+                    IF (deriv >= 1) &
+                        CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
+                                                      ir_nz(i, :), grad_nz(i, :, :), &
+                                                      r(i, :, :), dist(i, :))
                     !
-                    IF (deriv == 2) CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                        this%ir_reduced(i, :), this%grid_pts, r(i,:,:), dist(i,:))
+                    IF (deriv == 2) &
+                        CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
+                                                       ir_nz(i, :), r(i, :, :), &
+                                                       dist(i, :))
                     !
-                    IF (deriv == 3) CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                        this%ir_reduced(i, :), this%grid_pts, r(i,:,:), dist(i,:))
+                    IF (deriv == 3) &
+                        CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
+                                                     ir_nz(i, :), r(i, :, :), dist(i, :))
                     !
                 END DO
                 !
                 IF (deriv >= 1) &
-                    CALL gradient_of_boundary(nss, scal, grad, this%ir_reduced, &
-                                              this%nonzero, this%grad_nonzero)
+                    CALL gradient_of_boundary(nss, scal, grad, ir_nz, den_nz, grad_nz)
                 !
                 IF (deriv == 2) &
-                    CALL laplacian_of_boundary(nss, laplloc, scal, grad, lapl, &
-                                               this%ir_reduced, this%nonzero, this%grad_nonzero)
+                    CALL laplacian_of_boundary(nss, laplloc, scal, grad, lapl, ir_nz, &
+                                               den_nz, grad_nz)
                 !
                 IF (deriv == 3) &
-                    CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, scal, dsurf, &
-                                              this%ir_reduced, this%nonzero, this%grad_nonzero)
+                    CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, scal, &
+                                              dsurf, ir_nz, den_nz, grad_nz)
                 !
                 DO i = 1, nss
                     !
@@ -1632,7 +1635,7 @@ CONTAINS
             !
             IF (deriv >= 1) THEN
                 grad%of_r = -grad%of_r
-                this%has_gradient = .TRUE.
+                this%has_stored_gradient = .TRUE.
                 !
                 CALL grad%update_modulus()
                 !

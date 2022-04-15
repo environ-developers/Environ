@@ -75,17 +75,18 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function(this, density, zero, ir_vals, vals, r_vals, dist_vals)
+    SUBROUTINE density_of_function(this, density, zero, ir, vals, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_gaussian), INTENT(INOUT) :: this
-        INTEGER, OPTIONAL, INTENT(OUT) :: ir_vals(:)
-        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:), r_vals(:, :), dist_vals(:)
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
+        CLASS(environ_function_gaussian), INTENT(INOUT) :: this
         TYPE(environ_density), INTENT(INOUT) :: density
+        !
+        INTEGER, OPTIONAL, INTENT(OUT) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:), r_vals(:, :), dist_vals(:)
         !
         INTEGER :: i
         LOGICAL :: physical
@@ -167,18 +168,19 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero, ir_vals, vals, grid_pts, &
-                                        r_vals, dist_vals)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir, vals, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_gaussian), INTENT(IN) :: this
-        INTEGER, OPTIONAL, INTENT(IN) :: ir_vals( : ), grid_pts
-        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:,:), r_vals(:, :), dist_vals(:)
+        !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:, :)
         !
         INTEGER :: i
         LOGICAL :: physical

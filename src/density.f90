@@ -244,25 +244,27 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE multipoles_environ_density(this, origin, monopole, dipole, quadrupole, &
-                                            ir_vals, disps)
+                                          ir, disps)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_density), TARGET, INTENT(IN) :: this
         REAL(DP), INTENT(IN) :: origin(3)
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: disps(:, :)
         !
         REAL(DP), INTENT(OUT) :: monopole
         REAL(DP), DIMENSION(3), INTENT(OUT) :: dipole, quadrupole
-        REAL(DP), DIMENSION(:,:), OPTIONAL :: disps
-        INTEGER, DIMENSION(:), OPTIONAL :: ir_vals
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        INTEGER :: i, imax, ir
-        LOGICAL :: physical
+        INTEGER :: i, imax, irs
+        LOGICAL :: physical, stored
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
+        !
+        CHARACTER(LEN=80) :: sub_name = 'multipoles_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -272,17 +274,28 @@ CONTAINS
         dipole = 0.D0
         quadrupole = 0.D0
         !
-        imax = cell%ir_end
-        IF (PRESENT(ir_vals) .AND. PRESENT(disps)) imax = SIZE(ir_vals)
+        IF (PRESENT(ir)) THEN
+            !
+            IF (.NOT. PRESENT(disps)) &
+                CALL io%error(sub_name, "Missing displacement values", 1)
+            !
+            imax = SIZE(ir)
+            stored = .TRUE.
+        ELSE
+            imax = cell%ir_end
+            stored = .FALSE.
+        END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         DO i = 1, imax
             !
-            IF (PRESENT(ir_vals) .AND. PRESENT(disps)) THEN
+            IF (stored) THEN
+                irs = ir(i)
                 !
-                ir = ir_vals(i)
-                IF (ir == 0) CYCLE
-                r = disps(:,i)
+                IF (irs == 0) CYCLE
                 !
+                r = disps(:, i)
             ELSE
                 !
                 CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
@@ -290,15 +303,10 @@ CONTAINS
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                ir = i
-                !
+                irs = i
             END IF
             !
-            rhoir = this%of_r(ir)
-            !
-            !----------------------------------------------------------------------------
-            ! Multipoles
-            !
+            rhoir = this%of_r(irs)
             dipole = dipole + rhoir * r
             quadrupole = quadrupole + rhoir * r**2
         END DO
@@ -438,7 +446,6 @@ CONTAINS
         !
         CLASS(environ_density), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: density2
-        !
         !
         INTEGER, POINTER :: ir_end
         REAL(DP) :: scalar_product
