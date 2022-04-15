@@ -1321,7 +1321,7 @@ CONTAINS
         !
         REAL(DP), POINTER :: vms_gcs(:)
         !
-        INTEGER :: i, icount, ir, j, k, naxis, z_cut_idx
+        INTEGER :: i, icount, ir, j, k, naxis, z_cut_idx, avg_window
         !
         REAL(DP) :: kbt, invkbt, delta_chg
         REAL(DP) :: ez, ez_ms, ez_gcs, fact, vms, vstern
@@ -1331,8 +1331,8 @@ CONTAINS
         REAL(DP) :: f1, f2, max_axis
         REAL(DP) :: area, vtmp, distance
         REAL(DP) :: charge, dipole(3), quadrupole(3)
-        REAL(DP), ALLOCATABLE :: current_pot(:), subtracted_pot(:)
-        REAL(DP), ALLOCATABLE :: avgd_pot(:)
+        !
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: current_pot, subtracted_pot, avgd_pot
         !
         LOGICAL :: physical
         !
@@ -1375,7 +1375,9 @@ CONTAINS
                    permittivity_ms => semiconductor%permittivity, &
                    carrier_density => semiconductor%carrier_density, &
                    electrode_charge => semiconductor%electrode_charge, &
-                   xstern_ms => semiconductor%sc_distance )
+                   xstern_ms => semiconductor%sc_distance, &
+                   slab_charge => semiconductor%slab_charge, &
+                   flatband_pot => semiconductor%flatband_pot_planar_avg)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -1438,7 +1440,6 @@ CONTAINS
             v_edge = v_edge / DBLE(icount)
             vms_gcs = vms_gcs - v_edge
             !
-            !
             !----------------------------------------------------------------------------
             ! Save in periodic changes to potential
             !
@@ -1448,71 +1449,68 @@ CONTAINS
             ! Compute physical properties - MS system
             !
             naxis = v%cell%nr(3)
-            IF (semiconductor%slab_charge == 0.D0) THEN
-               !----------------------------------------------------------------------------
-               ! Save flatband planar average of flatband potential
-               ez_ms = 0.D0
-               IF (ALLOCATED(semiconductor%flatband_pot_planar_avg)) &
-                              DEALLOCATE (semiconductor%flatband_pot_planar_avg)
-               !
-               ALLOCATE (semiconductor%flatband_pot_planar_avg(naxis))
-
-
-               IF (ALLOCATED(avgd_pot)) DEALLOCATE (avgd_pot)
-               !
-               ALLOCATE (avgd_pot(naxis))
-
-               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, &
-                                            semiconductor%flatband_pot_planar_avg)
-               CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
-                                semiconductor%flatband_pot_planar_avg, avgd_pot)
-
-               semiconductor%flatband_pot_planar_avg = avgd_pot
-               WRITE ( io%debug_unit, * )"Saved planar average... I think"
+            !
+            avg_window = INT(semiconductor%sc_spread / 2.0 / v%cell%at(3, 3) * naxis)
+            !
+            IF (io%verbosity > 1) WRITE (io%debug_unit, 1000)
+            !
+            IF (slab_charge == 0.D0) THEN
+                !
+                !------------------------------------------------------------------------
+                ! Save planar average of flatband potential
+                !
+                ez_ms = 0.D0
+                !
+                IF (.NOT. ALLOCATED(avgd_pot)) ALLOCATE (avgd_pot(naxis))
+                !
+                CALL v%cell%planar_average(nnr, naxis, 3, 0, .FALSE., v%of_r, &
+                                           flatband_pot)
+                !
+                CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
+                                                   flatband_pot, avgd_pot)
+                !
+                flatband_pot = avgd_pot
             ELSE
-               !----------------------------------------------------------------------------
-               ! Generate subtracted potential and corresponding ez_ms
-               !
-               IF (ALLOCATED(current_pot) ) DEALLOCATE(current_pot)
-               IF (ALLOCATED(subtracted_pot)) DEALLOCATE(subtracted_pot)
-               !
-               ALLOCATE(current_pot(naxis))
-               ALLOCATE(subtracted_pot(naxis))
-               !
-               IF (ALLOCATED(avgd_pot)) DEALLOCATE (avgd_pot)
-               !
-               ALLOCATE (avgd_pot(naxis))
-               !
-               CALL v%cell%planar_average(nnr,naxis,3,0,.FALSE.,v%of_r, current_pot)
-               ! smoothing out the potential to avoid atomic fluctuations
-               CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
-                                          current_pot, avgd_pot )
-               !
-               current_pot = avgd_pot
-               subtracted_pot = current_pot - semiconductor%flatband_pot_planar_avg
-               !
-               ! need to find the index corresponding to the z_cutoff 
-               ! this is a bit of a choppy way to do this, but I guess it works
-               z_cut = this%origin(3) - xstern_ms
-               IF (io%verbosity > 1 ) THEN
-                  WRITE ( io%debug_unit, * )"z_cut : ",z_cut
-               END IF
-               z_cut_idx = INT(z_cut /v%cell%at(3,3)  *naxis)
-               !
-               v_cut = subtracted_pot(z_cut_idx)
-               ez_ms = (subtracted_pot(z_cut_idx) - subtracted_pot(z_cut_idx+1))/ &
-                          (v%cell%at(3,3)/naxis)
-               !
-               !----------------------------------------------------------------------------
-               ! calculate what charge ez_ms corresponds to with Gauss law   
-               semiconductor%ss_v_cut = v_cut
-               semiconductor%ss_chg = -ez_ms * area /tpi /e2
-               ! 
-               IF (io%verbosity > 1 ) THEN
-                  WRITE ( io%debug_unit, * )"v_cut : ",v_cut
-                  WRITE (io%debug_unit, * )"ez_ms : ", ez_ms 
-               END IF
-               !
+                !
+                !------------------------------------------------------------------------
+                ! Generate subtracted potential and corresponding ez_ms
+                !
+                IF (.NOT. ALLOCATED(current_pot)) ALLOCATE (current_pot(naxis))
+                !
+                IF (.NOT. ALLOCATED(subtracted_pot)) ALLOCATE (subtracted_pot(naxis))
+                !
+                IF (.NOT. ALLOCATED(avgd_pot)) ALLOCATE (avgd_pot(naxis))
+                !
+                CALL v%cell%planar_average(nnr, naxis, 3, 0, .FALSE., v%of_r, current_pot)
+                !
+                CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
+                                                   current_pot, avgd_pot)
+                !
+                current_pot = avgd_pot
+                subtracted_pot = current_pot - flatband_pot
+                z_cut = this%origin(3) - xstern_ms
+                !
+                IF (io%verbosity > 1) THEN
+                    WRITE (io%debug_unit, 1001) z_cut
+                END IF
+                !
+                z_cut_idx = INT(z_cut / v%cell%at(3, 3) * naxis)
+                !
+                v_cut = subtracted_pot(z_cut_idx)
+                ez_ms = (subtracted_pot(z_cut_idx) - subtracted_pot(z_cut_idx + 1)) / &
+                        (v%cell%at(3, 3) / naxis)
+                !
+                !------------------------------------------------------------------------
+                ! Calculate what charge ez_ms corresponds to with Gauss law
+                !
+                semiconductor%ss_v_cut = v_cut
+                semiconductor%ss_chg = -ez_ms * area / tpi / e2
+                !
+                IF (io%verbosity > 1) THEN
+                    WRITE (io%debug_unit, 1002) v_cut
+                    WRITE (io%debug_unit, 1003) ez_ms
+                END IF
+                !
             END IF
             !
             fact = 1.D0 / tpi / e2 / 4.D0 / carrier_density * permittivity_ms
@@ -1523,41 +1521,60 @@ CONTAINS
             ELSE
                 vms = arg
             END IF
-            WRITE (io%debug_unit, * )"vms : ", vms
+            !
+            IF (io%verbosity > 1) WRITE (io%debug_unit, 1004) vms
             !
             depletion_length = ABS(2.D0 * fact * ez_ms)
             !
             !----------------------------------------------------------------------------
-            ! set bulk fermi
+            ! Set bulk fermi
             !
             semiconductor%bulk_sc_fermi = vms + semiconductor%flatband_fermi + v_cut
             !
             !----------------------------------------------------------------------------
-            ! write subtracted pot for high enough verbosity           
+            ! Write potentials
             !
-            IF (io%verbosity > 1 ) THEN 
-               open(93, file = 'subtracted_pot.dat', status='replace')
-               open(94, file = 'current_pot.dat', status='replace')
-               open(95, file = 'flataband_pot.dat', status='replace')
-               DO i=1,naxis
-                  z_val = i * v%cell%at(3,3)/naxis
-                  WRITE(95,*)z_val, semiconductor%flatband_pot_planar_avg(i)
-                  IF (semiconductor%slab_charge /= 0.D0) THEN
-                     WRITE(93,*)z_val, subtracted_pot(i)
-                     WRITE(94,*)z_val, current_pot(i)
-                  END IF 
-                  !
-               END DO 
-               CLOSE(93)
-               CLOSE(94)
-               CLOSE(95)
-            END IF 
+            IF (io%verbosity > 1) THEN
+                !
+                OPEN (93, file='subtracted_pot.dat', status='replace')
+                OPEN (94, file='current_pot.dat', status='replace')
+                OPEN (95, file='flataband_pot.dat', status='replace')
+                !
+                DO i = 1, naxis
+                    z_val = i * v%cell%at(3, 3) / naxis
+                    WRITE (95, *) z_val, flatband_pot(i)
+                    !
+                    IF (slab_charge /= 0.D0) THEN
+                        WRITE (93, *) z_val, subtracted_pot(i)
+                        WRITE (94, *) z_val, current_pot(i)
+                    END IF
+                    !
+                END DO
+                !
+                CLOSE (93)
+                CLOSE (94)
+                CLOSE (95)
+            END IF
+            !
+            !----------------------------------------------------------------------------
             !
             CALL local%destroy()
             !
         END ASSOCIATE
         !
         CALL env_stop_clock(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(/, 4('%'), " MS-GCS ", 68('%'),/)
+        !
+1001    FORMAT(1X, "MS/DFT cutoff (bohr)       = ", F14.6,/)
+        !
+1002    FORMAT(1X, "Potential at cutoff        = ", G18.10,/)
+        !
+1003    FORMAT(1X, "Electric field at cutoff   = ", G18.10,/)
+        !
+1004    FORMAT(1X, "MS potential               = ", F14.6)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_vms_gcs
@@ -1652,8 +1669,6 @@ CONTAINS
             fact = e2 * fpi / omega
             grad_vms_gcs(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
             grad_vms_gcs = grad_vms_gcs * fact
-            !
-            !
             grad_v%of_r = grad_v%of_r + grad_vms_gcs
             !
             CALL glocal%destroy()

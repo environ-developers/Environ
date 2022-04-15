@@ -805,42 +805,39 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! External charges
         !
-        ! If msgcs calculation, need to add external charges
-        IF (setup%lmsgcs) THEN 
+        IF (setup%lmsgcs) THEN
+            !
+            !----------------------------------------------------------------------------
+            ! If ms-gcs calculation, add helmholtz planes
+            !
             setup%lexternals = .TRUE.
             env_external_charges = 2
-            IF (ALLOCATED(extcharge_dim)) DEALLOCATE (extcharge_dim)
             !
-            IF (ALLOCATED(extcharge_axis)) DEALLOCATE (extcharge_axis)
-            !
-            IF (ALLOCATED(extcharge_charge)) DEALLOCATE (extcharge_charge)
-            !
-            IF (ALLOCATED(extcharge_spread)) DEALLOCATE (extcharge_spread)
-            !
-            IF (ALLOCATED(extcharge_pos)) DEALLOCATE (extcharge_pos)
+            IF (ALLOCATED(extcharge_dim) .OR. &
+                ALLOCATED(extcharge_axis) .OR. &
+                ALLOCATED(extcharge_charge) .OR. &
+                ALLOCATED(extcharge_spread) .OR. &
+                ALLOCATED(extcharge_pos)) &
+                CALL io%error(sub_name, "ms-gcs does not support user-defined external charges", 1)
             !
             ALLOCATE (extcharge_dim(env_external_charges))
             ALLOCATE (extcharge_axis(env_external_charges))
             ALLOCATE (extcharge_charge(env_external_charges))
             ALLOCATE (extcharge_spread(env_external_charges))
-            ALLOCATE (extcharge_pos(3, env_external_charges))            
+            ALLOCATE (extcharge_pos(3, env_external_charges))
             !
             extcharge_dim(1) = 2
             extcharge_axis(1) = 3
-            extcharge_pos(1,1) = 0.0
-            extcharge_pos(2,1) = 0.0
-            extcharge_pos(3,1) = 11.92
+            extcharge_pos(:, 1) = (/0.0, 0.0, 11.92/)
             extcharge_spread(1) = 0.25
             extcharge_charge(1) = 0.0
             !
             extcharge_dim(2) = 2
             extcharge_axis(2) = 3
-            extcharge_pos(1,2) = 0.0
-            extcharge_pos(2,2) = 0.0
-            extcharge_pos(3,2) = 50.0
+            extcharge_pos(:, 2) = (/0.0, 0.0, 50.00/)
             extcharge_spread(2) = 0.25
             extcharge_charge(2) = 0.0
-        END IF 
+        END IF
         !
         IF (setup%lexternals) THEN
             !
@@ -902,7 +899,8 @@ CONTAINS
             CALL this%semiconductor%init(temperature, sc_permittivity, &
                                          sc_carrier_density, sc_electrode_chg, &
                                          sc_distance, sc_spread, sc_chg_thr, &
-                                         this%environment_system, environment_cell)
+                                         setup%lmsgcs, this%environment_system, &
+                                         environment_cell)
             !
             CALL this%environment_charges%add(semiconductor=this%semiconductor)
             !

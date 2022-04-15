@@ -38,11 +38,6 @@ MODULE class_semiconductor_base
     !
     USE environ_param, ONLY: DP
     !
-    USE class_cell
-    USE class_density
-    USE class_function_erfc
-    USE class_functions
-    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -81,6 +76,8 @@ MODULE class_semiconductor_base
         !
         PROCEDURE, PRIVATE :: create => create_environ_semiconductor_base
         PROCEDURE :: init => init_environ_semiconductor_base
+        PROCEDURE :: destroy => destroy_environ_semiconductor_base
+        !
         PROCEDURE :: running_average
         !
         !--------------------------------------------------------------------------------
@@ -110,6 +107,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (ALLOCATED(this%flatband_pot_planar_avg)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
         this%temperature = 0.D0
         this%permittivity = 0.D0
         this%carrier_density = 0.D0
@@ -132,13 +133,17 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_semiconductor_base(this, temperature, sc_permittivity, &
                                                sc_carrier_density, sc_electrode_chg, &
-                                               sc_distance, sc_spread, sc_chg_thr)
+                                               sc_distance, sc_spread, sc_chg_thr, &
+                                               need_flatband, naxis)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: temperature, sc_permittivity, sc_electrode_chg, &
                                 sc_carrier_density, sc_distance, sc_spread, sc_chg_thr
+        !
+        LOGICAL, INTENT(IN) :: need_flatband
+        INTEGER, INTENT(IN) :: naxis
         !
         CLASS(environ_semiconductor_base), INTENT(INOUT) :: this
         !
@@ -158,10 +163,28 @@ CONTAINS
         this%electrode_charge = sc_electrode_chg
         this%charge_threshold = sc_chg_thr
         !
+        IF (need_flatband) ALLOCATE (this%flatband_pot_planar_avg(naxis))
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor_base
     !------------------------------------------------------------------------------------
-    !
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_environ_semiconductor_base(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_semiconductor_base), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ALLOCATED(this%flatband_pot_planar_avg)) &
+            DEALLOCATE (this%flatband_pot_planar_avg)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_environ_semiconductor_base
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -172,38 +195,35 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE running_average(this,z_length,naxis, pot, averaged_pot)
-
+    SUBROUTINE running_average(this, z_length, naxis, pot, averaged_pot)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: naxis 
-        REAL(DP), INTENT(IN) :: pot(naxis)
+        CLASS(environ_semiconductor_base), INTENT(IN) :: this
         REAL(DP), INTENT(IN) :: z_length
-        REAL(DP), INTENT(INOUT) :: averaged_pot(naxis)
+        INTEGER, INTENT(IN) :: naxis
+        REAL(DP), INTENT(IN) :: pot(naxis)
         !
-        CLASS(environ_semiconductor_base), INTENT(INOUT) :: this
+        REAL(DP), INTENT(OUT) :: averaged_pot(naxis)
         !
-        INTEGER :: i, indx_width, start_idx, stop_idx
-        REAL(DP) :: z_width
-        !
-        !--------------------------------------------------------------------------------
-        ! determining the width for averaging
-        z_width = this%sc_spread
-        indx_width = INT(z_width / 2.0 /z_length * naxis)
-        !WRITE ( io%debug_unit, * )"v_cut : ",v_cut
-        !WRITE (io%debug_unit, * )"ez_ms : ", ez_ms
+        INTEGER :: i, idx_width, start_idx, stop_idx
         !
         !--------------------------------------------------------------------------------
-        ! averaging bb
-        DO i = 1,naxis 
-           start_idx = i - indx_width
-           stop_idx = i + indx_width
-           IF (start_idx < 1 ) start_idx = 1
-           IF (stop_idx > naxis ) stop_idx = naxis
-           averaged_pot(i) = SUM(pot(start_idx:stop_idx))/FLOAT(stop_idx-start_idx)
-        END DO 
+        ! Averaging bb
+        !
+        idx_width = INT(this%sc_spread / 2.0 / z_length * naxis)
+        !
+        DO i = 1, naxis
+            start_idx = i - idx_width
+            stop_idx = i + idx_width
+            !
+            IF (start_idx < 1) start_idx = 1
+            !
+            IF (stop_idx > naxis) stop_idx = naxis
+            !
+            averaged_pot(i) = SUM(pot(start_idx:stop_idx)) / FLOAT(stop_idx - start_idx)
+        END DO
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE running_average
