@@ -1466,8 +1466,7 @@ CONTAINS
                 CALL v%cell%planar_average(nnr, naxis, 3, 0, .FALSE., v%of_r, &
                                            flatband_pot)
                 !
-                CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
-                                                   flatband_pot, avgd_pot)
+                CALL v%cell%running_average(naxis, avg_window, flatband_pot, avgd_pot)
                 !
                 flatband_pot = avgd_pot
             ELSE
@@ -1483,8 +1482,7 @@ CONTAINS
                 !
                 CALL v%cell%planar_average(nnr, naxis, 3, 0, .FALSE., v%of_r, current_pot)
                 !
-                CALL semiconductor%running_average(v%cell%at(3,3), naxis, &
-                                                   current_pot, avgd_pot)
+                CALL v%cell%running_average(naxis, avg_window, current_pot, avgd_pot)
                 !
                 current_pot = avgd_pot
                 subtracted_pot = current_pot - flatband_pot

@@ -120,6 +120,7 @@ MODULE class_cell
         PROCEDURE :: get_min_distance
         PROCEDURE :: ir2ijk
         PROCEDURE :: planar_average
+        PROCEDURE :: running_average
         !
         PROCEDURE, PRIVATE :: ir2r
         PROCEDURE, PRIVATE :: minimum_image
@@ -585,7 +586,6 @@ CONTAINS
     END SUBROUTINE ir2ijk
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE planar_average(this, nnr, naxis, axis, shift, reverse, f, f1d)
@@ -663,6 +663,39 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE planar_average
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE running_average(this, naxis, window, pot, averaged_pot)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: naxis, window
+        REAL(DP), INTENT(IN) :: pot(naxis)
+        !
+        REAL(DP), INTENT(OUT) :: averaged_pot(naxis)
+        !
+        INTEGER :: i, start_idx, stop_idx
+        !
+        !--------------------------------------------------------------------------------
+        ! Averaging bb
+        !
+        DO i = 1, naxis
+            start_idx = i - window
+            stop_idx = i + window
+            !
+            IF (start_idx < 1) start_idx = 1
+            !
+            IF (stop_idx > naxis) stop_idx = naxis
+            !
+            averaged_pot(i) = SUM(pot(start_idx:stop_idx)) / FLOAT(stop_idx - start_idx)
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE running_average
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
