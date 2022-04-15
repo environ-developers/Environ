@@ -143,6 +143,14 @@ function.o : density.o
 function.o : gradient.o
 function.o : hessian.o
 function.o : io.o
+function_bspline.o : ../UtilXlib/mp.o
+function_bspline.o : cell.o
+function_bspline.o : constants.o
+function_bspline.o : density.o
+function_bspline.o : function.o
+function_bspline.o : gradient.o
+function_bspline.o : hessian.o
+function_bspline.o : io.o
 function_erfc.o : ../UtilXlib/mp.o
 function_erfc.o : cell.o
 function_erfc.o : constants.o
