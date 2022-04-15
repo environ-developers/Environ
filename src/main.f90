@@ -417,8 +417,8 @@ CONTAINS
             ! Calculate max and min ion position and update externals position
             !
             ext_pos = 0.D0
-            ext_pos(3,1) = MINVAL(this%system_ions%tau(3,:)) - 15.0
-            ext_pos(3,2) = MAXVAL(this%system_ions%tau(3,:)) + 15.0
+            ext_pos(3,1) = MINVAL(this%system_ions%tau(3,:)) - 15.1178 
+            ext_pos(3,2) = MAXVAL(this%system_ions%tau(3,:)) + 15.1178
             CALL this%externals%functions%update(2,ext_pos)
             !
         END IF
