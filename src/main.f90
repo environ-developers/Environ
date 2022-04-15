@@ -836,13 +836,13 @@ CONTAINS
             !
             extcharge_dim(1) = 2
             extcharge_axis(1) = 3
-            extcharge_pos(:, 1) = (/0.0, 0.0, min_ion_pos- 5.669/)
+            extcharge_pos(:, 1) = (/0.0, 0.0, min_ion_pos- 10.0/)
             extcharge_spread(1) = 0.25
             extcharge_charge(1) = 0.0
             !
             extcharge_dim(2) = 2
             extcharge_axis(2) = 3
-            extcharge_pos(:, 2) = (/0.0, 0.0, max_ion_pos + 5.669/)
+            extcharge_pos(:, 2) = (/0.0, 0.0, max_ion_pos + 10.0/)
             extcharge_spread(2) = 0.25
             extcharge_charge(2) = 0.0
         END IF
