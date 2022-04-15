@@ -495,17 +495,11 @@ lforce = .TRUE. \
 lbfgs = .FALSE. \
 nstep = 100 \
 tot_charge = 0.0 \
-WRITE( stdout, 1000) tot_charge \
 CALL stop_clock( "semiconductor" ) \
  \
 END IF \
  \
 END IF \
- \
-1000 FORMAT(5x,//"*******************************************"//, & \
-&"     Running initial calculation for flatband."//& \
-&   "     Using charge of: ",F14.8,//& \
-&"*******************************************") \
  \
 !Environ patch
 ' tmp.1 > tmp.2
@@ -600,7 +594,7 @@ IF (use_environ .AND. environ%setup%lmsgcs) THEN \
 CALL start_clock( "semiconductor" ) \
 \
 chg_step = istep \
-!! Initializing the constraints of possible DFT charges \
+! Initializing the constraints of possible DFT charges \
 ! Should probably be initialized at chg_step =1 but that seemed to be \
 ! creating some trouble possibly \
 \
@@ -628,11 +622,7 @@ environ%main%semiconductor%base%slab_charge = tot_charge \
 environ%main%environment_charges%externals%functions%array(1)%volume = -(environ%main%semiconductor%base%electrode_charge - tot_charge) \
 environ%main%environment_charges%externals%functions%array(2)%volume = environ%main%semiconductor%base%electrode_charge \
 conv_ions = .FALSE. \
-! CALL qexsd_set_status(255)  \
-! CALL punch( "config" )  \
-! CALL add_qexsd_step(istep)  \
 istep =  istep + 1 \
-!CALL save_flatband_pot(dfftp%nnr)  \
 WRITE( stdout, 1001) environ%main%semiconductor%base%flatband_fermi*rytoev,tot_charge \
 !  \
 ! ... re-initialize atomic position-dependent quantities  \
@@ -652,9 +642,7 @@ cur_fermi = ef!*rytoev  \
 ! charge. Calling it dchg to conform with steepest descent model  \
 cur_dchg = environ%main%semiconductor%base%bulk_sc_fermi - cur_fermi \
 bulk_potential = (environ%main%semiconductor%base%bulk_sc_fermi - environ%main%semiconductor%base%flatband_fermi)*rytoev \
-! ss = surface states = dft section \
 ss_chg = environ%main%semiconductor%base%ss_chg \
-!IF (ionode) THEN  \
  \
 ! making sure constraints are updated  \
 ! 1) if electrode chg positive and dft is negative stop it \
@@ -681,11 +669,6 @@ CALL mp_bcast(dft_chg_max, ionode_id,intra_image_comm) \
 IF (chg_step > 1 )THEN \
 gamma_mult = (cur_chg - prev_chg)/(cur_dchg - prev_dchg) \
 END IF \
-WRITE(io%debug_unit,*)"cur_chg: ",cur_chg \
-WRITE(io%debug_unit,*)"prev_chg: ",prev_chg \
-WRITE(io%debug_unit,*)"cur_dchg: ",cur_dchg \
-WRITE(io%debug_unit,*)"prev_dchg: ",prev_dchg \
-WRITE(io%debug_unit,*)"Using gamma of ",gamma_mult \
  \
 change_vec = -gamma_mult*cur_dchg \
 prev_chg = tot_charge \
@@ -710,15 +693,11 @@ tot_charge = tot_charge + change_vec \
 END IF \
  \
  \
-WRITE(io%debug_unit,*)"DFT_min ",dft_chg_min \
-WRITE(io%debug_unit,*)"DFT_max ",dft_chg_max \
 CALL mp_bcast(tot_charge, ionode_id,intra_image_comm) \
-!print *,"DFT_max",dft_chg_max  \
 !updating variables based on new_tot_charge \
 cur_chg = tot_charge \
 prev_step_size = ABS(cur_chg - prev_chg) \
 prev_dchg = cur_dchg \
-!WRITE(io%debug_unit,*)"Convergeable? ",converge  \
 CALL mp_bcast(converge,ionode_id, intra_image_comm) \
 CALL mp_bcast(prev_step_size,ionode_id,intra_image_comm) \
  \
@@ -729,9 +708,6 @@ IF (((prev_step_size > environ%main%semiconductor%base%charge_threshold) .OR. (.
 conv_ions = .FALSE. \
 WRITE( STDOUT, 1002)& \
 &chg_step,cur_fermi*rytoev,ss_chg,prev_step_size,cur_dchg,tot_charge \
-!CALL qexsd_set_status(255)  \
-!CALL punch( "config" )  \
-!CALL add_qexsd_step(istep)  \
 istep =  istep + 1 \
 nelec = ionic_charge - tot_charge \
 environ%main%semiconductor%base%slab_charge = tot_charge \
@@ -763,8 +739,7 @@ chg_per_area = environ%main%semiconductor%base%electrode_charge/surf_area \
 ss_chg_per_area = ss_chg/surf_area \
 ss_potential = environ%main%semiconductor%base%ss_v_cut \
 CALL mp_bcast(ss_potential, ionode_id, intra_image_comm) \
-!print *, bulk_potential,ss_potential  \
-WRITE(21, 1004)-bulk_potential, ss_potential,& \
+WRITE(21, 1004) -bulk_potential, ss_potential,& \
 &environ%main%semiconductor%base%electrode_charge, ss_chg,& \
 &chg_per_area,ss_chg_per_area \
 CLOSE(21) \
@@ -774,28 +749,30 @@ END IF \
 CALL stop_clock( "semiconductor" ) \
 END IF  \
  \
-1001 FORMAT(5x,//"***************************************************",//& \
-&"     Flatband potential calculated as ",F14.8,// & \
-&"     Now using initial charge of:  ",F14.8,// & \
-"***************************************************") \
+1001 FORMAT(/, 5X, 44("*"), //, & \
+               5X, "flatband potential        = ", F16.8, //, & \
+               5X, "initial DFT charge        = ", F16.8, //, & \
+               5X, 44("*"), /) \
 ! \
-1002 FORMAT(5x,//"***************************************************",//& \
-&"     Finished Charge convergence step : ",I3,//& \
-&"     DFT Fermi level calculated as ",F14.8,// & \
-&"     Charge trapped in surface states: ",F14.8," e",//& \
-&"     Charge Accuracy < ",F14.8,// & \
-&"     Difference between bulk and DFT fermi: ",F14.8,//& \
-&"     Now using DFT charge of:  ",F14.8,// & \
-"***************************************************") \
-1003 FORMAT(5x,//"***************************************************",//& \
-&"     Finished charge convergence step : ",I3,//& \
-&"     Convergence of charge with accuracy < ",F14.8," e",// & \
-&"     Charge trapped in surface states: ",F14.8,//& \
-&"     Difference between bulk and DFT fermi: ",F14.8,//& \
-&"     Final Potential: ",F14.8," V", //& \
-&"     Output written to q-v.dat       ",//& \
-"***************************************************") \
-1004 FORMAT(1x,4F14.8,2ES12.5) \
+1002 FORMAT(/, 5X, 44("*"), //, & \
+               5X, "charge convergence step   = ", I16, //, & \
+               5X, "DFT fermi level           = ", F16.8, /, & \
+               5X, "charge in surface states  = ", F16.8, /, & \
+               5X, "charge accuracy           < ", F16.8, /, & \
+               5X, "bulk/DFT fermi difference = ", F16.8, /, & \
+               5X, "DFT charge                = ", F16.8, //, & \
+               5X, 44("*"), /) \
+! \
+1003 FORMAT(/, 5X, 44("*"), //, & \
+               5X, "charge convergence step   = ", I16, //, & \
+               5X, "converged charge accuracy < ", F16.8, /, & \
+               5X, "charge in surface states  = ", F16.8, /, & \
+               5X, "bulk/DFT fermi difference = ", F16.8, /, & \
+               5X, "final potential (V)       = ", F16.8, /, & \
+               5X, "output written to q-v.dat", //, & \
+               5X, 44("*"), /) \
+! \
+1004 FORMAT(1X, 4F14.8, 2ES12.5) \
 !Environ patch
 ' tmp.2 > tmp.1
 
