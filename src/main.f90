@@ -720,6 +720,8 @@ CONTAINS
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
+        REAL(DP)   :: max_ion_pos, min_ion_pos, ion_pos
+        !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_physical'
         !
         !--------------------------------------------------------------------------------
@@ -826,15 +828,21 @@ CONTAINS
             ALLOCATE (extcharge_spread(env_external_charges))
             ALLOCATE (extcharge_pos(3, env_external_charges))
             !
+            !----------------------------------------------------------------------------
+            ! Calculate max and min ion position
+            !
+            max_ion_pos = MAXVAL(this%system_ions%tau(3,:))
+            min_ion_pos = MINVAL(this%system_ions%tau(3,:))
+            !
             extcharge_dim(1) = 2
             extcharge_axis(1) = 3
-            extcharge_pos(:, 1) = (/0.0, 0.0, 11.92/)
+            extcharge_pos(:, 1) = (/0.0, 0.0, min_ion_pos- 5.669/)
             extcharge_spread(1) = 0.25
             extcharge_charge(1) = 0.0
             !
             extcharge_dim(2) = 2
             extcharge_axis(2) = 3
-            extcharge_pos(:, 2) = (/0.0, 0.0, 50.00/)
+            extcharge_pos(:, 2) = (/0.0, 0.0, max_ion_pos + 5.669/)
             extcharge_spread(2) = 0.25
             extcharge_charge(2) = 0.0
         END IF
