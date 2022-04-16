@@ -198,6 +198,7 @@ MODULE class_setup
         PROCEDURE :: get_nskip
         PROCEDURE :: get_nnt
         PROCEDURE :: get_nri
+        PROCEDURE :: get_coords
         PROCEDURE :: is_tddfpt
         PROCEDURE :: is_msgcs
         PROCEDURE :: is_restart
@@ -692,6 +693,26 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_nri
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_coords(this, nnr) RESULT (coords)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: nnr
+        !
+        REAL(DP) :: coords(3, nnr)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        coords = this%system_cell%coords
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_coords
     !------------------------------------------------------------------------------------
     !>
     !!
