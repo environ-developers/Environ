@@ -39,6 +39,7 @@ MODULE class_boundary
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
+    USE env_mp, ONLY: env_mp_bcast, env_mp_sum
     !
     USE environ_param, ONLY: DP, e2, tpi
     !
@@ -479,7 +480,15 @@ CONTAINS
                 !
             END DO
             !
-            nnr_nz = nnr_nz * 1.15 ! buffer room for safety # TODO optimize!
+            nnr_nz = nnr_nz * 1.15
+            !
+#if defined (__MPI)
+            CALL env_mp_sum(nnr_nz, io%comm)
+            !
+            CALL env_mp_bcast(nnr_nz, io%node, io%comm)
+#endif
+            !
+            IF (nnr_nz > cell%nnr) nnr_nz = cell%nnr
             !
             CALL denlocal%destroy()
             !

@@ -1,5 +1,6 @@
 array_ops.o : io.o
 base_input.o : constants.o
+boundary.o : ../UtilXlib/mp.o
 boundary.o : boundary_tools.o
 boundary.o : cell.o
 boundary.o : constants.o
