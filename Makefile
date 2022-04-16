@@ -78,6 +78,10 @@ devs:
 	@ echo
 	@ echo "  - updates dependencies in Environ's UtilXlib, FFTXlib, and src"
 	@ echo
+	@ echo "* cannibalize-QE"
+	@ echo
+	@ echo "  - updates UtilXlib and FFTXlib to currently checked-out QE branch"
+	@ echo
 	@ echo "Cleaning"
 	@ echo "--------"
 	@ echo
