@@ -242,7 +242,7 @@ CONTAINS
         ALLOCATE (disps(3, this%cell%ir_end))
         ir = 0
         disps = 0.D0
-        count = 1
+        count = 0
         !
         ASSOCIATE (cell => this%cell, &
                    dim => this%dim)
@@ -255,9 +255,9 @@ CONTAINS
                     !
                     IF (.NOT. physical) CYCLE
                     !
+                    count = count + 1
                     ir(count) = i
                     disps(:, count) = r
-                    count = count + 1
                     !
                     this%x(:, i) = r
                 END DO
@@ -272,9 +272,9 @@ CONTAINS
                     !
                     IF (.NOT. physical) CYCLE
                     !
+                    count = count + 1
                     ir(count) = i
                     disps(:, count) = r
-                    count = count + 1
                     !
                     this%x(1, i) = r(this%axis)
                 END DO
