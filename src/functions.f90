@@ -296,7 +296,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_functions), INTENT(IN) :: this
+        CLASS(environ_functions), INTENT(INOUT) :: this
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density

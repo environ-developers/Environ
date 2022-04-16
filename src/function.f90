@@ -33,6 +33,16 @@
 !! domain, together with the routines to handle the derived data type and
 !! to generate the functions from their parameters.
 !!
+!! Common method parameters:
+!!
+!! - zero      (LOGICAL) -> zero out register 
+!! - ir       *(INTEGER) -> indices of points of interest
+!! - vals        *(REAL) -> values of points of interest
+!! - r_vals      *(REAL) -> displacements of points of interest
+!! - dist_vals   *(REAL) -> distances of points of interest
+!! 
+!! * OPTIONAL
+!!
 !----------------------------------------------------------------------------------------
 MODULE class_function
     !------------------------------------------------------------------------------------
@@ -80,6 +90,8 @@ MODULE class_function
         PROCEDURE :: laplacian => laplacian_of_function
         PROCEDURE :: hessian => hessian_of_function
         PROCEDURE :: derivative => derivative_of_function
+        !
+        PROCEDURE :: quad_corr => quadrapole_corrections
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function
@@ -217,15 +229,18 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function(this, density, zero)
+    SUBROUTINE density_of_function(this, density, zero, ir, vals, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function), INTENT(IN) :: this
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
+        CLASS(environ_function), INTENT(INOUT) :: this
         TYPE(environ_density), INTENT(INOUT) :: density
+        !
+        INTEGER, OPTIONAL, INTENT(OUT) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:), r_vals(:, :), dist_vals(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'density_of_function'
         !
@@ -239,15 +254,20 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir, vals, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        !
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:, :)
         !
         CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
         !
@@ -261,13 +281,16 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function(this, laplacian, zero)
+    SUBROUTINE laplacian_of_function(this, laplacian, zero, ir, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
@@ -283,13 +306,16 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function(this, hessian, zero)
+    SUBROUTINE hessian_of_function(this, hessian, zero, ir, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
@@ -305,13 +331,16 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE derivative_of_function(this, derivative, zero)
+    SUBROUTINE derivative_of_function(this, derivative, zero, ir, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function), INTENT(IN) :: this
+        !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_density), INTENT(INOUT) :: derivative
         !
@@ -323,6 +352,27 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE derivative_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    REAL(DP) FUNCTION quadrapole_corrections(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), INTENT(IN) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'quadrapole_corrections'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        quadrapole_corrections = 0.D0
+        !
+        CALL io%error(sub_name, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION quadrapole_corrections
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

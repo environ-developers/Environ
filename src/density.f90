@@ -243,57 +243,78 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE multipoles_environ_density(this, origin, monopole, dipole, quadrupole)
+    SUBROUTINE multipoles_environ_density(this, origin, monopole, dipole, quadrupole, &
+                                          ir, disps)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_density), TARGET, INTENT(IN) :: this
         REAL(DP), INTENT(IN) :: origin(3)
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: disps(:, :)
         !
         REAL(DP), INTENT(OUT) :: monopole
         REAL(DP), DIMENSION(3), INTENT(OUT) :: dipole, quadrupole
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        INTEGER :: i
-        LOGICAL :: physical
+        INTEGER :: i, imax, irs
+        LOGICAL :: physical, stored
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
+        !
+        CHARACTER(LEN=80) :: sub_name = 'multipoles_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
         cell => this%cell
         !
-        monopole = 0.D0
+        monopole = this%integrate()
         dipole = 0.D0
         quadrupole = 0.D0
         !
-        DO i = 1, cell%ir_end
+        IF (PRESENT(ir)) THEN
             !
-            CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
-            ! compute minimum distance using minimum image convention
+            IF (.NOT. PRESENT(disps)) &
+                CALL io%error(sub_name, "Missing displacement values", 1)
             !
-            IF (.NOT. physical) CYCLE
+            imax = SIZE(ir)
+            stored = .TRUE.
+        ELSE
+            imax = cell%ir_end
+            stored = .FALSE.
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        DO i = 1, imax
             !
-            rhoir = this%of_r(i)
+            IF (stored) THEN
+                irs = ir(i)
+                !
+                IF (irs == 0) CYCLE
+                !
+                r = disps(:, i)
+            ELSE
+                !
+                CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                irs = i
+            END IF
             !
-            !----------------------------------------------------------------------------
-            ! Multipoles
-            !
-            monopole = monopole + rhoir
+            rhoir = this%of_r(irs)
             dipole = dipole + rhoir * r
             quadrupole = quadrupole + rhoir * r**2
-            !
         END DO
-        !
-        CALL env_mp_sum(monopole, cell%dfft%comm)
         !
         CALL env_mp_sum(dipole, cell%dfft%comm)
         !
         CALL env_mp_sum(quadrupole, cell%dfft%comm)
         !
-        monopole = monopole * cell%domega
         dipole = dipole * cell%domega
         quadrupole = quadrupole * cell%domega
         !
@@ -425,7 +446,6 @@ CONTAINS
         !
         CLASS(environ_density), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: density2
-        !
         !
         INTEGER, POINTER :: ir_end
         REAL(DP) :: scalar_product
