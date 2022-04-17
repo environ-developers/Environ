@@ -457,13 +457,13 @@ CONTAINS
     !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_iontypes(this, ntyp, verbose, debug_verbose, unit)
+    SUBROUTINE print_environ_iontypes(iontype, ntyp, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: ntyp
-        TYPE(environ_iontype), INTENT(IN) :: this(ntyp)
+        TYPE(environ_iontype), INTENT(IN) :: iontype(ntyp)
         INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: i
@@ -520,8 +520,8 @@ CONTAINS
                 DO i = 1, ntyp
                     !
                     WRITE (local_unit, 1003) &
-                        this(i)%index, this(i)%label, &
-                        this(i)%atmnum, this(i)%zv
+                        iontype(i)%index, iontype(i)%label, &
+                        iontype(i)%atmnum, iontype(i)%zv
                     !
                 END DO
                 !
@@ -531,10 +531,10 @@ CONTAINS
                 DO i = 1, ntyp
                     !
                     WRITE (local_unit, 1005) &
-                        this(i)%index, this(i)%label, &
-                        this(i)%atmnum, this(i)%zv, &
-                        this(i)%atomicspread, this(i)%corespread, &
-                        this(i)%solvationrad
+                        iontype(i)%index, iontype(i)%label, &
+                        iontype(i)%atmnum, iontype(i)%zv, &
+                        iontype(i)%atomicspread, iontype(i)%corespread, &
+                        iontype(i)%solvationrad
                     !
                 END DO
                 !
