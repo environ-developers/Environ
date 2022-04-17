@@ -234,7 +234,7 @@ sed '/Environ CALLS BEGIN/ a\
       ! upf%psd (size of nsp) are the atom labels read\
       ! directly from the pseudopotential files\
       !\
-      CALL environ%main%init(nat, nsp, upf%psd, ityp, zv)\
+      CALL environ%main%init(nat, nsp, ityp, zv, label=upf%psd)\
       !\
   END IF\
 !Environ patch
