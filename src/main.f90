@@ -191,7 +191,7 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE init_environ_base(this, nat, ntyp, atom_id, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -199,7 +199,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
+        CLASS(*), INTENT(IN) :: atom_id(:)
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
@@ -209,7 +209,7 @@ CONTAINS
         !
         CALL this%init_potential()
         !
-        CALL this%init_physical(nat, ntyp, atom_label, ityp, zv)
+        CALL this%init_physical(nat, ntyp, atom_id, ityp, zv)
         !
         this%initialized = .TRUE.
         !
@@ -705,7 +705,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_physical(this, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE environ_init_physical(this, nat, ntyp, atom_id, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -713,7 +713,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
+        CLASS(*), INTENT(IN) :: atom_id(:)
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
@@ -753,12 +753,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Ions
         !
-        CALL this%system_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
+        CALL this%system_ions%init(nat, ntyp, atom_id, ityp, zv, atomicspread, &
                                    corespread, solvationrad, radius_mode, &
                                    setup%lsoftcavity, setup%lsmearedions, &
                                    setup%lcoredensity, system_cell)
         !
-        CALL this%environment_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
+        CALL this%environment_ions%init(nat, ntyp, atom_id, ityp, zv, atomicspread, &
                                         corespread, solvationrad, radius_mode, &
                                         setup%lsoftcavity, setup%lsmearedions, &
                                         setup%lcoredensity, environment_cell)

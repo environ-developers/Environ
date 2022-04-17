@@ -65,7 +65,9 @@ MODULE class_iontype
         !
         PROCEDURE, PRIVATE :: create => create_environ_iontype
         PROCEDURE :: init => init_environ_iontype
-        PROCEDURE :: set_defaults => set_iontype_defaults
+        !
+        PROCEDURE, PRIVATE :: set_id => set_iontype_id
+        PROCEDURE, PRIVATE :: set_defaults => set_iontype_defaults
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_iontype
@@ -188,15 +190,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_iontype(this, index, atom_label, zv, radius_mode, &
-                                    atomicspread, corespread, solvationrad, &
-                                    lsoftcavity, lsmearedions)
+    SUBROUTINE init_environ_iontype(this, index, id, zv, radius_mode, atomicspread, &
+                                    corespread, solvationrad, lsoftcavity, &
+                                    lsmearedions)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
-        CHARACTER(LEN=*), INTENT(IN) :: atom_label
+        CLASS(*), INTENT(IN) :: id
         CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         REAL(DP), INTENT(IN) :: zv, atomicspread, corespread, solvationrad
         LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions
@@ -209,7 +211,9 @@ CONTAINS
         !
         CALL this%create()
         !
-        CALL this%set_defaults(index, atom_label, radius_mode)
+        CALL this%set_id(id)
+        !
+        CALL this%set_defaults(index, radius_mode)
         !
         this%zv = -zv
         !
@@ -249,13 +253,51 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_iontype_defaults(this, index, label, radius_mode)
+    SUBROUTINE set_iontype_id(this, id)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(*), INTENT(IN) :: id
+        !
+        CLASS(environ_iontype), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'set_iontype_id'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT TYPE (id)
+            !
+        TYPE IS (CHARACTER(LEN=*)) ! label
+            this%label = id
+            this%atmnum = get_atmnum(id)
+            !
+        TYPE IS (INTEGER) ! number
+            this%label = get_element(id)
+            this%atmnum = id
+            !
+        TYPE IS (REAL(DP)) ! weight
+            this%label = get_element(id)
+            this%atmnum = get_atmnum(this%label)
+            !
+        CLASS DEFAULT
+            !
+        END SELECT
+        !
+        this%weight = weights(this%atmnum)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_iontype_id
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_iontype_defaults(this, index, radius_mode)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
-        CHARACTER(LEN=*), INTENT(IN) :: label
         CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
@@ -265,14 +307,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%index = index
-        this%label = label
-        this%atmnum = get_atmnum(label)
-        !
-        IF (this%atmnum == 0) &
-            CALL io%error(sub_name, &
-                          'Cannot assign the atom type associated with input label', 1)
-        !
-        this%weight = weights(this%atmnum)
         !
         this%atomicspread = 0.5D0
         this%corespread = 0.5D0
@@ -316,6 +350,8 @@ CONTAINS
         INTEGER :: i, get_atmnum
         CHARACTER(LEN=2) :: lowcase_label
         !
+        CHARACTER(LEN=80) :: fun_name = 'get_atmnum'
+        !
         !--------------------------------------------------------------------------------
         !
         lowcase_label = env_lowercase(TRIM(ADJUSTL(label)))
@@ -332,6 +368,10 @@ CONTAINS
             END IF
             !
         END DO
+        !
+        IF (get_atmnum == 0) &
+            CALL io%error(fun_name, &
+                          'Cannot assign the atom type associated with input label', 1)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_atmnum
@@ -356,7 +396,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (number > SIZE(elements)) THEN
+        IF (number < 1 .OR. number > SIZE(elements)) THEN
             WRITE (io%unit, '(/, 5X, "Atomic number = ", I10)') number
             !
             CALL io%error(sub_name, "Atomic number out of bounds", 1)

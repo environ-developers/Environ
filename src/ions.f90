@@ -179,7 +179,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions(this, nat, ntyp, atom_label, ityp, zv, atomicspread, &
+    SUBROUTINE init_environ_ions(this, nat, ntyp, id, ityp, zv, atomicspread, &
                                  corespread, solvationrad, radius_mode, lsoftcavity, &
                                  lsmearedions, lcoredensity, cell)
         !--------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=*), INTENT(IN) :: atom_label(ntyp)
+        CLASS(*), INTENT(IN) :: id(:)
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: atomicspread, corespread, solvationrad
         CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions, lcoredensity
@@ -228,9 +228,9 @@ CONTAINS
         !
         DO i = 1, ntyp
             !
-            CALL this%iontype(i)%init(i, atom_label(i), zv(i), radius_mode, &
-                                      atomicspread(i), corespread(i), solvationrad(i), &
-                                      lsoftcavity, lsmearedions)
+            CALL this%iontype(i)%init(i, id(i), zv(i), radius_mode, atomicspread(i), &
+                                      corespread(i), solvationrad(i), lsoftcavity, &
+                                      lsmearedions)
             !
         END DO
         !
