@@ -1449,7 +1449,7 @@ CONTAINS
             !
             avg_window = INT(semiconductor%sc_spread / 2.0 / v%cell%at(3, 3) * naxis)
             !
-            IF (io%verbosity > 1) WRITE (io%debug_unit, 1000)
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, 1000)
             !
             IF (slab_charge == 0.D0) THEN
                 !
@@ -1485,7 +1485,7 @@ CONTAINS
                 subtracted_pot = current_pot - flatband_pot
                 z_cut = this%origin(3) - xstern_ms
                 !
-                IF (io%verbosity > 1) THEN
+                IF ( io%lnode .AND. io%verbosity > 1) THEN
                     WRITE (io%debug_unit, 1001) z_cut
                 END IF
                 !
@@ -1501,7 +1501,7 @@ CONTAINS
                 semiconductor%ss_v_cut = v_cut
                 semiconductor%ss_chg = -ez_ms * area / tpi / e2
                 !
-                IF (io%verbosity > 1) THEN
+                IF (io%lnode .AND. io%verbosity > 1) THEN
                     WRITE (io%debug_unit, 1002) v_cut
                     WRITE (io%debug_unit, 1003) ez_ms
                 END IF
@@ -1517,7 +1517,7 @@ CONTAINS
                 vms = arg
             END IF
             !
-            IF (io%verbosity > 1) WRITE (io%debug_unit, 1004) vms
+            IF (io%lnode .AND.io%verbosity > 1) WRITE (io%debug_unit, 1004) vms
             !
             depletion_length = ABS(2.D0 * fact * ez_ms)
             !
@@ -1529,7 +1529,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Write potentials
             !
-            IF (io%verbosity > 1) THEN
+            IF (io%lnode .AND. io%verbosity > 1) THEN
                 !
                 OPEN (93, file='subtracted_pot.dat', status='replace')
                 OPEN (94, file='current_pot.dat', status='replace')
