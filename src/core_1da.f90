@@ -1425,10 +1425,7 @@ CONTAINS
                 !
                 IF (axis(1, i) == max_axis) THEN
                     icount = icount + 1
-                    !
-                    v_edge = v_edge + v%of_r(i) + vms_gcs(i) - &
-                             ez * (ABS(axis(1, i)) - xstern_gcs)
-                    !
+                    v_edge = v_edge + v%of_r(i) + vms_gcs(i)
                 END IF
                 !
             END DO
