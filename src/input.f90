@@ -313,6 +313,9 @@ CONTAINS
         sc_permittivity = 1.D0
         sc_carrier_density = 0.D0
         !
+        sc_electrode_chg = 0.D0
+        sc_chg_thr = 1.D-5
+        !
         env_external_charges = 0
         env_dielectric_regions = 0
         !
@@ -487,6 +490,10 @@ CONTAINS
         CALL env_mp_bcast(sc_permittivity, io%node, io%comm)
         !
         CALL env_mp_bcast(sc_carrier_density, io%node, io%comm)
+        !
+        CALL env_mp_bcast(sc_electrode_chg, io%node, io%comm)
+        !
+        CALL env_mp_bcast(sc_chg_thr, io%node, io%comm)
         !
         CALL env_mp_bcast(env_external_charges, io%node, io%comm)
         !
