@@ -1352,9 +1352,9 @@ CONTAINS
         IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
             CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
-        IF (electrolyte%ntyp /= 2) &
-            CALL io%error(sub_name, &
-                          "Unexpected number of counterionic species, different from two", 1)
+        !IF (electrolyte%ntyp /= 2) &
+        !    CALL io%error(sub_name, &
+        !                  "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
@@ -1368,8 +1368,8 @@ CONTAINS
                    slab_axis => this%axis, &
                    axis_length => this%size, &
                    axis => this%x, &
-                   cion => electrolyte%ioncctype(1)%cbulk, &
-                   zion => ABS(electrolyte%ioncctype(1)%z), &
+                   !cion => electrolyte%ioncctype(1)%cbulk, &
+                   !zion => ABS(electrolyte%ioncctype(1)%z), &
                    permittivity_gcs => electrolyte%permittivity, &
                    xstern_gcs => electrolyte%distance, &
                    permittivity_ms => semiconductor%permittivity, &
@@ -1491,15 +1491,33 @@ CONTAINS
                 !
                 z_cut_idx = INT(z_cut / v%cell%at(3, 3) * naxis)
                 !
-                v_cut = subtracted_pot(z_cut_idx)
-                ez_ms = (subtracted_pot(z_cut_idx) - subtracted_pot(z_cut_idx + 1)) / &
-                        (v%cell%at(3, 3) / naxis)
+                v_cut = 0.0
+                ez_ms = 0.0
+                icount = 0
+                ! Averaging the v_cut and ez_ms for stability
+                DO i= 1, naxis
+                   IF (ABS(z_cut_idx - i) < INT(avg_window/2)) THEN
+                      v_cut = v_cut + subtracted_pot(z_cut_idx)
+                      ez_ms = ez_ms + (subtracted_pot(z_cut_idx+1) - &
+                               subtracted_pot(z_cut_idx )) / (v%cell%at(3, 3) / naxis)
+                      icount = icount + 1
+                   END IF
+                END DO
+                !
+                CALL env_mp_sum(icount, comm)
+                !
+                CALL env_mp_sum(v_cut, comm)
+                !
+                CALL env_mp_sum(ez_ms, comm)
+                !
+                v_cut = v_cut/DBLE(icount)
+                ez_ms = ez_ms/DBLE(icount)
                 !
                 !------------------------------------------------------------------------
                 ! Calculate what charge ez_ms corresponds to with Gauss law
                 !
                 semiconductor%ss_v_cut = v_cut
-                semiconductor%ss_chg = -ez_ms * area / tpi / e2
+                semiconductor%ss_chg = ez_ms * area / tpi / e2
                 !
                 IF (io%lnode .AND. io%verbosity > 1) THEN
                     WRITE (io%debug_unit, 1002) v_cut
@@ -1512,9 +1530,9 @@ CONTAINS
             arg = fact * (ez_ms**2.D0)
             !
             IF (ez_ms < 0) THEN
-                vms = -arg
-            ELSE
                 vms = arg
+            ELSE
+                vms = -arg
             END IF
             !
             IF (io%lnode .AND.io%verbosity > 1) WRITE (io%debug_unit, 1004) vms
@@ -1533,7 +1551,7 @@ CONTAINS
                 !
                 OPEN (93, file='subtracted_pot.dat', status='replace')
                 OPEN (94, file='current_pot.dat', status='replace')
-                OPEN (95, file='flataband_pot.dat', status='replace')
+                OPEN (95, file='flatband_pot.dat', status='replace')
                 !
                 DO i = 1, naxis
                     z_val = i * v%cell%at(3, 3) / naxis
@@ -1617,9 +1635,9 @@ CONTAINS
         IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
             CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
-        IF (electrolyte%ntyp /= 2) &
-            CALL io%error(sub_name, &
-                          "Unexpected number of counterionic species, different from two", 1)
+        !IF (electrolyte%ntyp /= 2) &
+        !    CALL io%error(sub_name, &
+        !                  "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
@@ -1631,8 +1649,8 @@ CONTAINS
                    omega => grad_v%cell%omega, &
                    slab_axis => this%axis, &
                    axis => this%x, &
-                   cion => electrolyte%ioncctype(1)%cbulk, &
-                   zion => ABS(electrolyte%ioncctype(1)%z), &
+                   !cion => electrolyte%ioncctype(1)%cbulk, &
+                   !zion => ABS(electrolyte%ioncctype(1)%z), &
                    permittivity_gcs => electrolyte%permittivity, &
                    xstern_gcs => electrolyte%distance, &
                    permittivity_ms => semiconductor%permittivity, &
