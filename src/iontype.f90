@@ -420,7 +420,7 @@ CONTAINS
         !
         DO i = 1, SIZE(weights)
             !
-            IF (ABS(weights(i) - weight) < 1.D-1) THEN
+            IF (ABS(weights(i) - weight) < 1.D-2) THEN
                 index = i
                 !
                 EXIT
