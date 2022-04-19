@@ -42,15 +42,12 @@ MODULE environ_api
     USE class_setup
     !
     USE environ_input, ONLY: read_environ_input
-    USE class_iontype, ONLY: get_element
     !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     PRIVATE
-    !
-    PUBLIC :: get_atom_labels
     !
     !------------------------------------------------------------------------------------
     !>
@@ -87,14 +84,6 @@ MODULE environ_api
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_interface
-    !------------------------------------------------------------------------------------
-    !
-    INTERFACE get_atom_labels
-        MODULE PROCEDURE &
-            get_atom_labels_from_atomic_numbers, &
-            get_atom_labels_from_atomic_weights
-    END INTERFACE get_atom_labels
-    !
     !------------------------------------------------------------------------------------
     !
     TYPE(environ_interface), PUBLIC :: environ
@@ -459,72 +448,6 @@ CONTAINS
 #endif
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_potential
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                             INPUT PROCESSING ROUTINES
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE get_atom_labels_from_atomic_numbers(number, label)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: number(:)
-        !
-        CHARACTER(LEN=*), INTENT(OUT) :: label(:)
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'get_atom_labels_from_atomic_numbers'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (SIZE(label) /= COUNT(number /= 0)) &
-            CALL io%error(sub_name, "Mismatch in array size", 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, SIZE(number)
-            label(i) = get_element(number(i))
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE get_atom_labels_from_atomic_numbers
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE get_atom_labels_from_atomic_weights(weight, label)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: weight(:)
-        !
-        CHARACTER(LEN=*), INTENT(OUT) :: label(:)
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'get_atom_labels_from_atomic_weights'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (SIZE(label) /= COUNT(weight /= 0.D0)) &
-            CALL io%error(sub_name, "Mismatch in array size", 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, SIZE(weight)
-            label(i) = get_element(weight(i))
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE get_atom_labels_from_atomic_weights
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

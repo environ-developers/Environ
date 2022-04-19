@@ -196,7 +196,6 @@ interface.o : constants.o
 interface.o : destructor.o
 interface.o : input.o
 interface.o : io.o
-interface.o : iontype.o
 interface.o : main.o
 interface.o : setup.o
 io.o : char_ops.o
