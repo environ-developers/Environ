@@ -35,8 +35,6 @@ MODULE parsers
     !
     USE environ_param, ONLY: DP
     !
-    USE environ_api, ONLY: get_atom_labels
-    !
     USE cmdline_args
     !
     !------------------------------------------------------------------------------------
@@ -53,14 +51,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_cube(nat, ntyp, ityp, atom_label, zv, tau, origin, nr, at, rho)
+    SUBROUTINE read_cube(nat, ntyp, ityp, species, zv, tau, origin, nr, at, rho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(OUT) :: nat, ntyp
         INTEGER, ALLOCATABLE, INTENT(OUT) :: ityp(:)
-        CHARACTER(LEN=2), ALLOCATABLE, INTENT(OUT) :: atom_label(:)
+        INTEGER, ALLOCATABLE, INTENT(OUT) :: species(:)
         REAL(DP), INTENT(OUT) :: origin(3)
         INTEGER, INTENT(OUT) :: nr(3)
         REAL(DP), INTENT(OUT) :: at(3, 3)
@@ -78,7 +76,6 @@ CONTAINS
         INTEGER, ALLOCATABLE :: atomic_number(:)
         INTEGER, ALLOCATABLE :: charge_index(:) ! index of unique charges
         REAL(DP), ALLOCATABLE :: charge(:) ! unprocessed charges
-        INTEGER, ALLOCATABLE :: species(:) ! register for checked atomic numbers
         REAL(DP), ALLOCATABLE :: unsorted(:) ! unsorted density read from file
         !
         CHARACTER(LEN=14) :: current_combo ! current number/charge
@@ -221,13 +218,6 @@ CONTAINS
         END DO
         !
         !--------------------------------------------------------------------------------
-        ! Convert atomic numbers to atom labels
-        !
-        ALLOCATE (atom_label(ntyp))
-        !
-        CALL get_atom_labels(species, atom_label)
-        !
-        !--------------------------------------------------------------------------------
         ! Read density
         !
         IF (PRESENT(rho)) THEN
@@ -269,7 +259,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE read_cube
-    !------------------------------------------------------------------------------------    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
     !
     !                              PRIVATE HELPER ROUTINES
     !

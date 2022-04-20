@@ -72,7 +72,7 @@ CONTAINS
         INTEGER :: nat
         INTEGER :: ntyp
         INTEGER, ALLOCATABLE :: ityp(:)
-        CHARACTER(LEN=2), ALLOCATABLE :: label(:)
+        INTEGER, ALLOCATABLE :: species(:)
         REAL(DP), ALLOCATABLE :: zv(:)
         REAL(DP), ALLOCATABLE :: tau(:, :)
         REAL(DP) :: origin(3)
@@ -83,12 +83,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL read_cube(nat, ntyp, ityp, label, zv, tau, origin, nr, at, rho)
+        CALL read_cube(nat, ntyp, ityp, species, zv, tau, origin, nr, at, rho)
         !
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL environ%read_input(inputfile, SIZE(label))
+        CALL environ%read_input(inputfile, ntyp)
         !
         CALL environ%setup%init()
         !
@@ -104,7 +104,7 @@ CONTAINS
         !
         CALL environ%setup%init_numerical(use_internal_pbc_corr)
         !
-        CALL environ%main%init(nat, ntyp, label, ityp, zv)
+        CALL environ%main%init(nat, ntyp, ityp, zv, number=species)
         !
         CALL environ%main%update_ions(nat, tau, origin)
         !
