@@ -1323,13 +1323,13 @@ CONTAINS
         !
         INTEGER :: i, icount, ir, j, k, naxis, z_cut_idx, avg_window
         !
-        REAL(DP) :: kbt, invkbt, delta_chg
-        REAL(DP) :: ez, ez_ms, ez_gcs, fact, vms, vstern
-        REAL(DP) :: arg, const, constr, constl, depletion_length, compress_fact
-        REAL(DP) :: dv, vbound, v_cut, v_edge, z_cut, z_val
+        REAL(DP) :: kbt, invkbt 
+        REAL(DP) :: ez_ms, fact, vms
+        REAL(DP) :: arg, const, depletion_length
+        REAL(DP) :: v_cut, v_edge, z_cut, z_val
         REAL(DP) :: asinh, coth, acoth
-        REAL(DP) :: f1, f2, max_axis
-        REAL(DP) :: area, vtmp, distance
+        REAL(DP) :: max_axis
+        REAL(DP) :: area
         REAL(DP) :: charge, dipole(3), quadrupole(3)
         !
         REAL(DP), DIMENSION(:), ALLOCATABLE :: current_pot, subtracted_pot, avgd_pot
@@ -1352,9 +1352,9 @@ CONTAINS
         IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
             CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
-        !IF (electrolyte%ntyp /= 2) &
-        !    CALL io%error(sub_name, &
-        !                  "Unexpected number of counterionic species, different from two", 1)
+        IF (electrolyte%ntyp /= 2) &
+            CALL io%error(sub_name, &
+                          "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
@@ -1368,10 +1368,6 @@ CONTAINS
                    slab_axis => this%axis, &
                    axis_length => this%size, &
                    axis => this%x, &
-                   !cion => electrolyte%ioncctype(1)%cbulk, &
-                   !zion => ABS(electrolyte%ioncctype(1)%z), &
-                   permittivity_gcs => electrolyte%permittivity, &
-                   xstern_gcs => electrolyte%distance, &
                    permittivity_ms => semiconductor%permittivity, &
                    carrier_density => semiconductor%carrier_density, &
                    electrode_charge => semiconductor%electrode_charge, &
@@ -1403,6 +1399,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! First apply parabolic correction
             !
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "charge: ",charge
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "dipole: ",dipole(slab_axis)
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "quadrupole: ",quadrupole(slab_axis)
             fact = e2 * tpi / omega
             const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
             vms_gcs = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
@@ -1435,6 +1434,7 @@ CONTAINS
             CALL env_mp_sum(v_edge, comm)
             !
             v_edge = v_edge / DBLE(icount)
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "v_edge: ",v_edge
             vms_gcs = vms_gcs - v_edge
             !
             !----------------------------------------------------------------------------
@@ -1608,15 +1608,10 @@ CONTAINS
         !
         REAL(DP), POINTER :: grad_vms_gcs(:, :)
         !
-        INTEGER :: i
         !
         REAL(DP) :: kbt, invkbt
-        REAL(DP) :: ez, ez_ms, ez_gcs, fact, vms, vtmp
-        REAL(DP) :: vstern, const
-        REAL(DP) :: lin_k, lin_e, lin_c
-        REAL(DP) :: arg, asinh, coth, acoth
-        REAL(DP) :: f1, f2, depletion_length
-        REAL(DP) :: area, dvtmp_dx, distance
+        REAL(DP) :: fact
+        REAL(DP) :: area
         REAL(DP) :: charge, dipole(0:3), quadrupole(3)
         !
         TYPE(environ_gradient), TARGET :: glocal
@@ -1645,18 +1640,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (nnr => grad_v%cell%nnr, &
+        ASSOCIATE( slab_axis => this%axis, &
                    omega => grad_v%cell%omega, &
-                   slab_axis => this%axis, &
-                   axis => this%x, &
-                   !cion => electrolyte%ioncctype(1)%cbulk, &
-                   !zion => ABS(electrolyte%ioncctype(1)%z), &
-                   permittivity_gcs => electrolyte%permittivity, &
-                   xstern_gcs => electrolyte%distance, &
-                   permittivity_ms => semiconductor%permittivity, &
-                   electrode_charge => semiconductor%electrode_charge, &
-                   carrier_density => semiconductor%carrier_density, &
-                   xstern_ms => semiconductor%sc_distance)
+                   axis => this%x )
             !
             !----------------------------------------------------------------------------
             !
@@ -1669,7 +1655,6 @@ CONTAINS
             CALL glocal%init(grad_v%cell)
             !
             grad_vms_gcs => glocal%of_r
-            area = omega / this%size
             !
             !----------------------------------------------------------------------------
             !
