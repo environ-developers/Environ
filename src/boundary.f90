@@ -133,10 +133,8 @@ MODULE class_boundary
         !--------------------------------------------------------------------------------
         ! Components needed for boundary of density
         !
-        INTEGER :: b_type
         REAL(DP) :: rhomax, rhomin, fact
-        REAL(DP) :: rhozero, deltarho, tbeta
-        REAL(DP) :: const
+        !
         TYPE(environ_density) :: density
         !
         TYPE(environ_density) :: dscaled
@@ -277,14 +275,9 @@ CONTAINS
         this%derivatives_method = ''
         this%volume = 0.D0
         this%surface = 0.D0
-        this%b_type = 0
         this%rhomax = 0.D0
         this%rhomin = 0.D0
         this%fact = 0.D0
-        this%rhozero = 0.D0
-        this%deltarho = 0.D0
-        this%tbeta = 0.D0
-        this%const = 0.D0
         this%alpha = 0.D0
         this%softness = 0.D0
         this%solvent_aware = .FALSE.
@@ -309,7 +302,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_boundary(this, need_gradient, need_laplacian, need_hessian, &
-                                     mode, stype, rhomax, rhomin, tbeta, const, alpha, &
+                                     mode, rhomax, rhomin, alpha, &
                                      softness, system_distance, system_spread, &
                                      solvent_radius, radial_scale, radial_spread, &
                                      filling_threshold, filling_spread, field_aware, &
@@ -320,15 +313,13 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: stype
         CHARACTER(LEN=*), INTENT(IN) :: mode, deriv_method
         LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian, field_aware
         !
-        REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, alpha, softness, &
-                                system_distance, system_spread, solvent_radius, &
-                                radial_scale, radial_spread, filling_threshold, &
-                                filling_spread, field_factor, field_asymmetry, &
-                                field_max, field_min
+        REAL(DP), INTENT(IN) :: rhomax, rhomin, alpha, softness, system_distance, &
+                                system_spread, solvent_radius, radial_scale, &
+                                radial_spread, filling_threshold, filling_spread, &
+                                field_factor, field_asymmetry, field_max, field_min
         !
         TYPE(environ_electrons), TARGET, INTENT(IN) :: electrons
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
@@ -384,18 +375,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%label = label
-        this%b_type = stype
         this%rhomax = rhomax
         this%rhomin = rhomin
         this%fact = LOG(rhomax / rhomin)
-        this%rhozero = (rhomax + rhomin) * 0.5_DP
-        this%tbeta = tbeta
-        this%deltarho = rhomax - rhomin
         !
-        IF (const == 1.D0 .AND. this%need_electrons .AND. stype == 2) &
-            CALL io%error(sub_name, "stype=2 boundary requires dielectric constant > 1", 1)
-        !
-        this%const = const
         this%alpha = alpha
         this%softness = softness
         !
@@ -589,14 +572,9 @@ CONTAINS
         copy%deriv = this%deriv
         copy%volume = this%volume
         copy%surface = this%surface
-        copy%b_type = this%b_type
         copy%rhomax = this%rhomax
         copy%rhomin = this%rhomin
         copy%fact = this%fact
-        copy%rhozero = this%rhozero
-        copy%deltarho = this%deltarho
-        copy%tbeta = this%tbeta
-        copy%const = this%const
         copy%alpha = this%alpha
         copy%softness = this%softness
         copy%solvent_aware = this%solvent_aware
@@ -1273,8 +1251,7 @@ CONTAINS
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER, POINTER :: stype
-        REAL(DP), POINTER :: rhomax, rhomin, tbeta, eps
+        REAL(DP), POINTER :: rhomax, rhomin, fact, eps
         !
         TYPE(environ_density), POINTER :: denloc
         TYPE(environ_hessian), POINTER :: hessloc
@@ -1294,19 +1271,9 @@ CONTAINS
         IF (.NOT. ASSOCIATED(denloc%cell, this%scaled%cell)) &
             CALL io%error(sub_name, "Inconsistent domains", 1)
         !
-        stype => this%b_type
-        !
-        IF (stype == 1 .OR. stype == 2) THEN
-            rhomax => this%rhomax
-            rhomin => this%rhomin
-            tbeta => this%fact
-            eps => this%const
-        ELSE IF (stype == 0) THEN
-            rhomax => this%rhozero
-            rhomin => this%deltarho
-            tbeta => this%tbeta
-            eps => this%const
-        END IF
+        rhomax => this%rhomax
+        rhomin => this%rhomin
+        fact => this%fact
         !
         !--------------------------------------------------------------------------------
         !
@@ -1324,9 +1291,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             !
             DO i = 1, cell%ir_end
-                scal%of_r(i) = boundfunct(rho(i), rhomax, rhomin, tbeta, eps, stype)
-                dscal%of_r(i) = dboundfunct(rho(i), rhomax, rhomin, tbeta, eps, stype)
-                d2scal%of_r(i) = d2boundfunct(rho(i), rhomax, rhomin, tbeta, eps, stype)
+                scal%of_r(i) = 1.D0 - sfunct1(rho(i), rhomax, rhomin, fact)
+                dscal%of_r(i) = -dsfunct1(rho(i), rhomax, rhomin, fact)
+                d2scal%of_r(i) = -d2sfunct1(rho(i), rhomax, rhomin, fact)
             END DO
             !
             !----------------------------------------------------------------------------
@@ -2853,25 +2820,9 @@ CONTAINS
             IF (this%need_electrons) THEN
                 !
                 IF (io%lnode) THEN
-                    WRITE (local_unit, 1102) this%b_type
+                    WRITE (local_unit, 1102) this%rhomax, this%rhomin
                     !
-                    SELECT CASE (this%b_type)
-                        !
-                    CASE (0)
-                        WRITE (local_unit, 1103) this%rhozero, this%tbeta
-                        !
-                    CASE (1)
-                        WRITE (local_unit, 1104) this%rhomax, this%rhomin
-                        !
-                        IF (local_verbose >= 3) WRITE (local_unit, 1105) this%fact
-                        !
-                    CASE (2)
-                        WRITE (local_unit, 1106) this%rhomax, this%rhomin
-                        !
-                    CASE DEFAULT
-                        CALL io%error(sub_name, "Unexpected boundary type", 1)
-                        !
-                    END SELECT
+                    IF (local_verbose >= 3) WRITE (local_unit, 1103) this%fact
                     !
                 END IF
                 !
@@ -2879,7 +2830,7 @@ CONTAINS
                     !
                     CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
                     !
-                    IF (io%lnode .AND. this%need_ions) WRITE (local_unit, 1107)
+                    IF (io%lnode .AND. this%need_ions) WRITE (local_unit, 1104)
                     !
                 END IF
                 !
@@ -2894,7 +2845,7 @@ CONTAINS
                 !
             ELSE IF (this%need_ions) THEN
                 !
-                IF (io%lnode) WRITE (local_unit, 1108) this%alpha, this%softness
+                IF (io%lnode) WRITE (local_unit, 1105) this%alpha, this%softness
                 !
                 IF (local_verbose >= 3) &
                     CALL this%soft_spheres%printout(passed_verbose, debug_verbose, &
@@ -2902,7 +2853,7 @@ CONTAINS
                 !
             ELSE IF (io%lnode .AND. this%need_system) THEN
                 !
-                WRITE (local_unit, 1109) &
+                WRITE (local_unit, 1106) &
                     this%simple%pos, this%simple%width, &
                     this%simple%spread, this%simple%dim, &
                     this%simple%axis
@@ -2910,9 +2861,9 @@ CONTAINS
             END IF
             !
             IF (io%lnode) THEN
-                WRITE (local_unit, 1110) this%volume
+                WRITE (local_unit, 1107) this%volume
                 !
-                IF (this%deriv >= 1) WRITE (local_unit, 1111) this%surface
+                IF (this%deriv >= 1) WRITE (local_unit, 1108) this%surface
                 !
             END IF
             !
@@ -2922,7 +2873,7 @@ CONTAINS
             IF (this%solvent_aware) THEN
                 !
                 IF (io%lnode) &
-                    WRITE (local_unit, 1112) &
+                    WRITE (local_unit, 1109) &
                     this%filling_threshold, this%filling_spread, &
                     this%solvent_probe%width, this%solvent_probe%spread
                 !
@@ -2949,11 +2900,11 @@ CONTAINS
                 !
                 IF (io%lnode .AND. local_verbose >= 1) THEN
                     !
-                    WRITE (local_unit, 1113)
+                    WRITE (local_unit, 1110)
                     !
                     DO i = 1, this%ions%number
                         !
-                        WRITE (local_unit, 1114) i, &
+                        WRITE (local_unit, 1111) i, &
                             this%ions%iontype(this%ions%ityp(i))%label, &
                             this%ions%iontype(this%ions%ityp(i))%solvationrad, &
                             this%ion_field(i), this%scaling_of_field(i)
@@ -2991,50 +2942,40 @@ CONTAINS
 1101    FORMAT(/, " boundary label             = ", A20, /, &
                 " boundary mode              = ", A20)
         !
-1102    FORMAT(/, " boundary is built as a type-", I1, " function of a smooth density")
-        !
-1103    FORMAT(/, " using the Fattebert-Gygi function:", /, &
-                " rhozero                    = ", F14.7, /, &
-                " 2*beta                     = ", F14.7)
-        !
-1104    FORMAT(/, " using the optimal SCCS function:", /, &
+1102    FORMAT(/, " using the optimal SCCS function:", /, &
                 " rhomax                     = ", F14.7, /, &
                 " rhomin                     = ", F14.7)
         !
-1105    FORMAT(" log(rhomax/rhomin)         = ", F14.7)
+1103    FORMAT(" log(rhomax/rhomin)         = ", F14.7)
         !
-1106    FORMAT(/, " using the modified SCCS function:", /, &
-                " rhomax                     = ", F14.7, /, &
-                " rhomin                     = ", F14.7)
+1104    FORMAT(/, " adding fictitious core-electrons")
         !
-1107    FORMAT(/, " adding fictitious core-electrons")
-        !
-1108    FORMAT(/, " boundary is built from soft-spheres centered on ionic positions:", /, &
+1105    FORMAT(/, " boundary is built from soft-spheres centered on ionic positions:", /, &
                 " solvent-dependent scaling  = ", F14.7, /, &
                 " softness parameter         = ", F14.7)
         !
-1109    FORMAT(/, " boundary is built as an analytic function centered on system position:", /, &
+1106    FORMAT(/, " boundary is built as an analytic function centered on system position:", /, &
                 " center of the boundary     = ", 3F14.7, /, &
                 " distance from the center   = ", F14.7, /, &
                 " spread of the interface    = ", F14.7, /, &
                 " dimensionality             = ", I14, /, &
                 " axis                       = ", I14)
         !
-1110    FORMAT(/, " volume of the QM region    = ", F14.7)
+1107    FORMAT(/, " volume of the QM region    = ", F14.7)
         !
-1111    FORMAT(/, " surface of the QM region   = ", F14.7)
+1108    FORMAT(/, " surface of the QM region   = ", F14.7)
         !
-1112    FORMAT(/, " using solvent-aware boundary:", /, &
+1109    FORMAT(/, " using solvent-aware boundary:", /, &
                 " filling threshold          = ", F14.7, /, &
                 " filling spread             = ", F14.7, /, &
                 " solvent radius x rad scale = ", F14.7, /, &
                 " spread of solvent probe    = ", F14.7)
         !
-1113    FORMAT(/, "                solvation                scaling of", /, &
+1110    FORMAT(/, "                solvation                scaling of", /, &
                 "   i | label |     radius | field flux |      field", /, &
                 1X, 50('-'))
         !
-1114    FORMAT(1X, I3, " | ", A5, 3(" | ", F10.4))
+1111    FORMAT(1X, I3, " | ", A5, 3(" | ", F10.4))
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_boundary

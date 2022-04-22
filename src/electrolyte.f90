@@ -138,8 +138,8 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrolyte(this, ntyp, mode, stype, rhomax, rhomin, &
-                                        tbeta, const, alpha, softness, distance, &
+    SUBROUTINE init_environ_electrolyte(this, ntyp, mode, rhomax, rhomin, &
+                                        const, alpha, softness, distance, &
                                         spread, solvent_radius, radial_scale, &
                                         radial_spread, filling_threshold, &
                                         filling_spread, field_aware, field_factor, &
@@ -152,10 +152,10 @@ CONTAINS
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: linearized, field_aware
-        INTEGER, INTENT(IN) :: ntyp, stype
+        INTEGER, INTENT(IN) :: ntyp
         CHARACTER(LEN=*), INTENT(IN) :: mode, electrolyte_entropy, deriv_method
         !
-        REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, &
+        REAL(DP), INTENT(IN) :: rhomax, rhomin, const, distance, spread, &
                                 alpha, softness, temperature, solvent_radius, &
                                 radial_scale, radial_spread, filling_threshold, &
                                 filling_spread, field_factor, field_asymmetry, &
@@ -180,8 +180,8 @@ CONTAINS
         CALL this%base%init(ntyp, const, distance, spread, temperature, cbulk, cionmax, &
                             radius, z, electrolyte_entropy, linearized, cell)
         !
-        CALL this%boundary%init(.TRUE., .TRUE., .FALSE., mode, stype, rhomax, &
-                                rhomin, tbeta, const, alpha, softness, distance, &
+        CALL this%boundary%init(.TRUE., .TRUE., .FALSE., mode, rhomax, &
+                                rhomin, alpha, softness, distance, &
                                 spread, solvent_radius, radial_scale, radial_spread, &
                                 filling_threshold, filling_spread, field_aware, &
                                 field_factor, field_asymmetry, field_max, field_min, &

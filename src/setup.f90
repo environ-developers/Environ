@@ -1390,23 +1390,18 @@ CONTAINS
             !
             WRITE (io%unit, 1014) TRIM(deriv_core)
             !
-            IF (stype == 0) THEN
-                WRITE (io%unit, 1015) 'Fatteber-Gygi'
-                WRITE (io%unit, 1016) (rhomax + rhomin) * 0.5_DP, tbeta
-            ELSE
-                WRITE (io%unit, 1015) 'SCCS'
-                WRITE (io%unit, 1017) rhomax, rhomin
-            END IF
+            WRITE (io%unit, 1015) 'SCCS'
+            WRITE (io%unit, 1016) rhomax, rhomin
             !
             IF (solvent_mode == 'ionic') THEN
-                WRITE (io%unit, 1018) TRIM(radius_mode), softness, alpha
+                WRITE (io%unit, 1017) TRIM(radius_mode), softness, alpha
             END IF
             !
-            IF (solvent_radius > 0.D0) WRITE (io%unit, 1019)
+            IF (solvent_radius > 0.D0) WRITE (io%unit, 1018)
             !
             IF (field_aware) THEN
-                WRITE (io%unit, 1020)
-                WRITE (io%unit, 1021) field_factor, field_asymmetry, field_min, field_max
+                WRITE (io%unit, 1019)
+                WRITE (io%unit, 1020) field_factor, field_asymmetry, field_min, field_max
             END IF
             !
         END IF
@@ -1415,18 +1410,18 @@ CONTAINS
         ! Electrostatic Summary
         !
         IF (this%lelectrostatic) THEN
-            WRITE (io%unit, 1022)
+            WRITE (io%unit, 1021)
             !
-            WRITE (io%unit, 1023) &
+            WRITE (io%unit, 1022) &
                 TRIM(problem), TRIM(solver), TRIM(auxiliary), TRIM(core)
             !
             IF (inner_solver /= 'none') THEN
-                WRITE (io%unit, 1024)
-                WRITE (io%unit, 1025) TRIM(inner_solver), TRIM(inner_core)
+                WRITE (io%unit, 1023)
+                WRITE (io%unit, 1024) TRIM(inner_solver), TRIM(inner_core)
             END IF
             !
             IF (this%lperiodic) &
-                WRITE (io%unit, 1026) TRIM(pbc_correction), TRIM(pbc_core)
+                WRITE (io%unit, 1025) TRIM(pbc_correction), TRIM(pbc_core)
             !
         END IF
         !
@@ -1466,38 +1461,35 @@ CONTAINS
         !
 1015    FORMAT(5X, "switching function adopted        = ", A24)
         !
-1016    FORMAT(5X, "solvation density threshold       = ", E24.4, /, &
-               5X, "smoothness exponent (2 x beta)    = ", F24.2)
-        !
-1017    FORMAT(5X, "density limit for vacuum region   = ", E24.4, /, &
+1016    FORMAT(5X, "density limit for vacuum region   = ", E24.4, /, &
                5X, "density limit for bulk solvent    = ", E24.4)
         !
-1018    FORMAT(5X, "soft-sphere radius mode           = ", A24, /, &
+1017    FORMAT(5X, "soft-sphere radius mode           = ", A24, /, &
                5X, "soft-sphere softness              = ", F24.2, /, &
                5X, "alpha                             = ", F24.2)
         !
-1019    FORMAT(5X, "interface is solvent aware")
+1018    FORMAT(5X, "interface is solvent aware")
         !
-1020    FORMAT(5X, "interface is field aware")
+1019    FORMAT(5X, "interface is field aware")
         !
-1021    FORMAT(5X, "field aware factor                = ", F24.2, /, &
+1020    FORMAT(5X, "field aware factor                = ", F24.2, /, &
                5X, "asymmetry of field-awareness      = ", F24.2, /, &
                5X, "field limit for no correction     = ", F24.2, /, &
                5X, "field limit for full correction   = ", F24.2)
         !
-1022    FORMAT(/, 5X, "Electrostatic Setup", /, 5X, 19('='),/)
+1021    FORMAT(/, 5X, "Electrostatic Setup", /, 5X, 19('='),/)
         !
-1023    FORMAT(5X, "electrostatic problem to solve    = ", A24, /, &
+1022    FORMAT(5X, "electrostatic problem to solve    = ", A24, /, &
                5X, "numerical solver adopted          = ", A24, /, &
                5X, "type of auxiliary density adopted = ", A24, /, &
                5X, "numerical core for poisson        = ", A24)
         !
-1024    FORMAT(5X, "adopting a nested solver scheme")
+1023    FORMAT(5X, "adopting a nested solver scheme")
         !
-1025    FORMAT(5X, "inner solver                      = ", A24, /, &
+1024    FORMAT(5X, "inner solver                      = ", A24, /, &
                5X, "inner core                        = ", A24)
         !
-1026    FORMAT(5X, "type of pbc corrections           = ", A24, /, &
+1025    FORMAT(5X, "type of pbc corrections           = ", A24, /, &
                5X, "numerical core for corrections    = ", A24)
         !
         !--------------------------------------------------------------------------------

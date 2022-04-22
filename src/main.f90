@@ -831,7 +831,7 @@ CONTAINS
             !
             CALL this%solvent%init( &
                 setup%lgradient, setup%need_factsqrt, setup%lsurface, &
-                solvent_mode, stype, rhomax, rhomin, tbeta, env_static_permittivity, &
+                solvent_mode, rhomax, rhomin, &
                 alpha, softness, solvent_distance, solvent_spread, solvent_radius, &
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
                 field_aware, field_factor, field_asymmetry, field_max, field_min, &
@@ -847,8 +847,8 @@ CONTAINS
         IF (setup%lelectrolyte) THEN
             !
             CALL this%electrolyte%init( &
-                env_electrolyte_ntyp, electrolyte_mode, stype, electrolyte_rhomax, &
-                electrolyte_rhomin, electrolyte_tbeta, env_static_permittivity, &
+                env_electrolyte_ntyp, electrolyte_mode, electrolyte_rhomax, &
+                electrolyte_rhomin, env_static_permittivity, &
                 electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
                 filling_threshold, filling_spread, field_aware, field_factor, &

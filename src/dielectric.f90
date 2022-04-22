@@ -463,27 +463,10 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute epsilon(r) and its derivative wrt boundary
             !
-            SELECT CASE (this%boundary%b_type)
+            SELECT CASE (this%boundary%mode)
                 !
-            CASE (0, 2)
-                eps = 1.D0 + (const - 1.D0) * (1.D0 - scal)
-                deps = (1.D0 - const)
-                dlogeps = deps / eps
+            CASE ('electronic', 'full')
                 !
-                IF (this%need_factsqrt) d2eps = 0.D0
-                !
-                IF (this%nregions > 0) THEN
-                    deps_dback = 1.D0 - scal
-                    dlogeps_dback = deps_dback / eps
-                    !
-                    IF (this%need_factsqrt) THEN
-                        d2eps_dback2 = 0.D0
-                        d2eps_dbackdbound = -1.D0
-                    END IF
-                    !
-                END IF
-                !
-            CASE (1)
                 eps = EXP(LOG(const) * (1.D0 - scal))
                 deps = -eps * LOG(const)
                 dlogeps = -LOG(const)
@@ -505,7 +488,23 @@ CONTAINS
                 END IF
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected boundary type", 1)
+                !
+                eps = 1.D0 + (const - 1.D0) * (1.D0 - scal)
+                deps = (1.D0 - const)
+                dlogeps = deps / eps
+                !
+                IF (this%need_factsqrt) d2eps = 0.D0
+                !
+                IF (this%nregions > 0) THEN
+                    deps_dback = 1.D0 - scal
+                    dlogeps_dback = deps_dback / eps
+                    !
+                    IF (this%need_factsqrt) THEN
+                        d2eps_dback2 = 0.D0
+                        d2eps_dbackdbound = -1.D0
+                    END IF
+                    !
+                END IF
                 !
             END SELECT
             !
