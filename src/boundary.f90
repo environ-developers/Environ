@@ -864,7 +864,7 @@ CONTAINS
         !
         CALL this%scaled%destroy()
         !
-        IF (this%need_electrons) THEN
+        IF (this%mode == 'electronic' .OR. this%mode == 'full') THEN
             !
             CALL this%density%destroy()
             !
@@ -1169,7 +1169,7 @@ CONTAINS
             IF (spurious_force > tolspuriousforce .AND. io%lnode) &
                 WRITE (io%unit, 1000) index, spurious_force
             !
-        ELSE IF (this%need_system) THEN
+        ELSE IF (this%mode == 'system') THEN
             !
             ! PROBABLY THERE IS A UNIFORM CONTRIBUTION TO THE FORCES
             ! WHICH SHOULD ONLY AFFECT THE COM OF THE SYSTEM, POSSIBLY NEED TO ADD
