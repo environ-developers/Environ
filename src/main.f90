@@ -46,6 +46,9 @@ MODULE class_environ
     USE class_gradient
     !
     USE class_boundary
+    USE class_boundary_electronic
+    USE class_boundary_ionic
+    USE class_boundary_system
     USE class_charges
     USE class_dielectric
     USE class_electrolyte
@@ -87,7 +90,7 @@ MODULE class_environ
         !--------------------------------------------------------------------------------
         ! Details of the continuum interface
         !
-        TYPE(environ_boundary) :: solvent
+        CLASS(environ_boundary), ALLOCATABLE :: solvent
         !
         !--------------------------------------------------------------------------------
         ! Response properties
@@ -829,15 +832,62 @@ CONTAINS
         !
         IF (setup%lsolvent) THEN
             !
-            CALL this%solvent%init( &
-                setup%lgradient, setup%need_factsqrt, setup%lsurface, &
-                solvent_mode, rhomax, rhomin, &
-                alpha, softness, solvent_distance, solvent_spread, solvent_radius, &
-                radial_scale, radial_spread, filling_threshold, filling_spread, &
-                field_aware, field_factor, field_asymmetry, field_max, field_min, &
-                this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%outer_container, deriv_method, &
-                environment_cell, 'solvent')
+            !----------------------------------------------------------------------------
+            ! Casting and general setup
+            !
+            SELECT CASE (solvent_mode)
+                !
+            CASE ('electronic', 'full')
+                ALLOCATE (environ_boundary_electronic :: this%solvent)
+                !
+            CASE ('ionic')
+                ALLOCATE (environ_boundary_ionic :: this%solvent)
+                !
+            CASE ('system')
+                ALLOCATE (environ_boundary_system :: this%solvent)
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+                !
+            END SELECT
+            !
+            CALL this%solvent%pre_init( &
+                solvent_mode, setup%lgradient, setup%need_factsqrt, setup%lsurface, &
+                setup%outer_container, deriv_method, environment_cell, 'solvent')
+            !
+            !----------------------------------------------------------------------------
+            ! Specific setup
+            !
+            SELECT TYPE (solvent => this%solvent)
+                !
+            TYPE IS (environ_boundary_electronic)
+                !
+                CALL solvent%init(rhomax, rhomin, this%environment_electrons, &
+                                  this%environment_ions)
+                !
+            TYPE IS (environ_boundary_ionic)
+                !
+                CALL solvent%init(alpha, softness, field_aware, field_factor, &
+                                  field_asymmetry, field_max, field_min, &
+                                  this%environment_ions, this%environment_electrons)
+                !
+            TYPE IS (environ_boundary_system)
+                !
+                CALL solvent%init(solvent_distance, solvent_spread, &
+                                  this%environment_system)
+                !
+            CLASS DEFAULT
+                CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+                !
+            END SELECT
+            !
+            !----------------------------------------------------------------------------
+            ! Solvent aware
+            !
+            IF (solvent_radius > 0.D0) &
+                CALL this%solvent%init_solvent_aware(solvent_radius, radial_scale, &
+                                                     radial_spread, filling_threshold, &
+                                                     filling_spread)
             !
         END IF
         !

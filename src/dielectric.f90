@@ -55,6 +55,7 @@ MODULE class_dielectric
     USE class_gradient
     !
     USE class_boundary
+    USE class_boundary_electronic
     !
     !------------------------------------------------------------------------------------
     !
@@ -84,7 +85,7 @@ MODULE class_dielectric
         !
         !--------------------------------------------------------------------------------
         !
-        TYPE(environ_boundary), POINTER :: boundary => NULL()
+        CLASS(environ_boundary), POINTER :: boundary => NULL()
         ! boundary is the pointer to the object controlling the interface
         ! between the QM and the continuum region
         !
@@ -194,7 +195,7 @@ CONTAINS
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: need_gradient, need_factsqrt, need_auxiliary
-        TYPE(environ_boundary), TARGET, INTENT(IN) :: boundary
+        CLASS(environ_boundary), TARGET, INTENT(IN) :: boundary
         INTEGER, INTENT(IN) :: nregions
         TYPE(environ_cell), INTENT(IN) :: cell
         !
@@ -463,9 +464,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute epsilon(r) and its derivative wrt boundary
             !
-            SELECT CASE (this%boundary%mode)
+            SELECT TYPE (boundary => this%boundary)
                 !
-            CASE ('electronic', 'full')
+            TYPE IS (environ_boundary_electronic)
                 !
                 eps = EXP(LOG(const) * (1.D0 - scal))
                 deps = -eps * LOG(const)
@@ -487,7 +488,7 @@ CONTAINS
                     !
                 END IF
                 !
-            CASE DEFAULT
+            CLASS DEFAULT
                 !
                 eps = 1.D0 + (const - 1.D0) * (1.D0 - scal)
                 deps = (1.D0 - const)

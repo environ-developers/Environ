@@ -47,6 +47,9 @@ MODULE class_electrolyte
     USE class_core_container
     !
     USE class_boundary
+    USE class_boundary_electronic
+    USE class_boundary_ionic
+    USE class_boundary_system
     USE class_electrons
     USE class_electrolyte_base
     USE class_ions
@@ -71,7 +74,7 @@ MODULE class_electrolyte
         !
         !--------------------------------------------------------------------------------
         !
-        TYPE(environ_boundary) :: boundary
+        CLASS(environ_boundary), ALLOCATABLE :: boundary
         TYPE(environ_density) :: density
         !
         !--------------------------------------------------------------------------------
@@ -180,13 +183,56 @@ CONTAINS
         CALL this%base%init(ntyp, const, distance, spread, temperature, cbulk, cionmax, &
                             radius, z, electrolyte_entropy, linearized, cell)
         !
-        CALL this%boundary%init(.TRUE., .TRUE., .FALSE., mode, rhomax, &
-                                rhomin, alpha, softness, distance, &
-                                spread, solvent_radius, radial_scale, radial_spread, &
-                                filling_threshold, filling_spread, field_aware, &
-                                field_factor, field_asymmetry, field_max, field_min, &
-                                electrons, ions, system, cores, deriv_method, cell, &
-                                'electrolyte')
+        !--------------------------------------------------------------------------------
+        ! Casting and general setup
+        !
+        SELECT CASE (mode)
+            !
+        CASE ('electronic', 'full')
+            ALLOCATE (environ_boundary_electronic :: this%boundary)
+            !
+        CASE ('ionic')
+            ALLOCATE (environ_boundary_ionic :: this%boundary)
+            !
+        CASE ('system')
+            ALLOCATE (environ_boundary_system :: this%boundary)
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+            !
+        END SELECT
+        !
+        CALL this%boundary%pre_init(mode, .TRUE., .TRUE., .FALSE., cores, deriv_method, &
+                                    cell, 'electrolyte')
+        !
+        !--------------------------------------------------------------------------------
+        ! Specific setup
+        !
+        SELECT TYPE (boundary => this%boundary)
+            !
+        TYPE IS (environ_boundary_electronic)
+            CALL boundary%init(rhomax, rhomin, electrons, ions)
+            !
+        TYPE IS (environ_boundary_ionic)
+            !
+            CALL boundary%init(alpha, softness, field_aware, field_factor, &
+                               field_asymmetry, field_max, field_min, ions, electrons)
+            !
+        TYPE IS (environ_boundary_system)
+            CALL boundary%init(distance, spread, system)
+            !
+        CLASS DEFAULT
+            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+            !
+        END SELECT
+        !
+        !--------------------------------------------------------------------------------
+        ! Solvent aware
+        !
+        IF (solvent_radius > 0.D0) &
+            CALL this%boundary%init_solvent_aware(solvent_radius, radial_scale, &
+                                                  radial_spread, filling_threshold, &
+                                                  filling_spread)
         !
         !--------------------------------------------------------------------------------
         ! Densities
