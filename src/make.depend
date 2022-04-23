@@ -84,17 +84,6 @@ core_fft.o : tools_math.o
 cube.o : density.o
 cube.o : io.o
 cube.o : ions.o
-debugging.o : boundary.o
-debugging.o : cell.o
-debugging.o : constants.o
-debugging.o : core_container.o
-debugging.o : density.o
-debugging.o : electrons.o
-debugging.o : function_gaussian.o
-debugging.o : functions.o
-debugging.o : gradient.o
-debugging.o : io.o
-debugging.o : ions.o
 density.o : ../FFTXlib/fft_types.o
 density.o : ../FFTXlib/scatter_mod.o
 density.o : ../UtilXlib/mp.o
