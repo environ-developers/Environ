@@ -169,7 +169,7 @@ MODULE class_boundary
         LOGICAL :: field_aware = .FALSE.
         REAL(DP) :: field_factor, field_asymmetry, field_max, field_min
         !
-        TYPE(environ_functions) :: unscaled_spheres
+        TYPE(environ_functions), ALLOCATABLE :: unscaled_spheres
         !
         REAL(DP), ALLOCATABLE :: ion_field(:)
         TYPE(environ_density), ALLOCATABLE :: dion_field_drho(:)
@@ -181,7 +181,6 @@ MODULE class_boundary
         !
         PROCEDURE, PRIVATE :: create => create_environ_boundary
         PROCEDURE :: init => init_environ_boundary
-        PROCEDURE :: copy => copy_environ_boundary
         PROCEDURE :: update => update_environ_boundary
         PROCEDURE :: destroy => destroy_environ_boundary
         !
@@ -419,7 +418,6 @@ CONTAINS
             ALLOCATE (this%ion_field(nat))
             ALLOCATE (this%dion_field_drho(nat))
             ALLOCATE (this%partial_of_ion_field(3, nat, nat))
-            ALLOCATE (environ_function_erfc :: this%unscaled_spheres%array(nat))
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -540,143 +538,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_boundary
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_boundary(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_boundary), TARGET, INTENT(IN) :: this
-        !
-        TYPE(environ_boundary), INTENT(OUT) :: copy
-        !
-        INTEGER :: i, nnr_nz
-        !
-        INTEGER, POINTER :: nat
-        !
-        !--------------------------------------------------------------------------------
-        !
-        copy%electrons => this%electrons
-        copy%ions => this%ions
-        copy%system => this%system
-        copy%cores => this%cores
-        !
-        copy%mode = this%mode
-        copy%update_status = this%update_status
-        copy%need_electrons = this%need_electrons
-        copy%need_ions = this%need_ions
-        copy%need_system = this%need_system
-        copy%deriv = this%deriv
-        copy%volume = this%volume
-        copy%surface = this%surface
-        copy%rhomax = this%rhomax
-        copy%rhomin = this%rhomin
-        copy%fact = this%fact
-        copy%alpha = this%alpha
-        copy%softness = this%softness
-        copy%solvent_aware = this%solvent_aware
-        copy%filling_threshold = this%filling_threshold
-        copy%filling_spread = this%filling_spread
-        !
-        copy%field_aware = this%field_aware
-        copy%field_factor = this%field_factor
-        copy%field_asymmetry = this%field_asymmetry
-        copy%field_max = this%field_max
-        copy%field_min = this%field_min
-        !
-        IF (ASSOCIATED(this%scaled%cell)) CALL this%scaled%copy(copy%scaled)
-        !
-        IF (ASSOCIATED(this%gradient%cell)) CALL this%gradient%copy(copy%gradient)
-        !
-        IF (ASSOCIATED(this%laplacian%cell)) CALL this%laplacian%copy(copy%laplacian)
-        !
-        IF (ASSOCIATED(this%dsurface%cell)) CALL this%dsurface%copy(copy%dsurface)
-        !
-        IF (ASSOCIATED(this%hessian%cell)) CALL this%hessian%copy(copy%hessian)
-        !
-        IF (ASSOCIATED(this%density%cell)) CALL this%density%copy(copy%density)
-        !
-        IF (ASSOCIATED(this%dscaled%cell)) CALL this%dscaled%copy(copy%dscaled)
-        !
-        IF (ASSOCIATED(this%d2scaled%cell)) CALL this%d2scaled%copy(copy%d2scaled)
-        !
-        IF (this%need_system) CALL this%simple%copy(copy%simple)
-        !
-        IF (this%solvent_aware) CALL this%solvent_probe%copy(copy%solvent_probe)
-        !
-        IF (ASSOCIATED(this%local%cell)) CALL this%local%copy(copy%local)
-        !
-        IF (ASSOCIATED(this%probe%cell)) CALL this%probe%copy(copy%probe)
-        !
-        IF (ASSOCIATED(this%filling%cell)) CALL this%filling%copy(copy%filling)
-        !
-        IF (ASSOCIATED(this%dfilling%cell)) CALL this%dfilling%copy(copy%dfilling)
-        !
-        IF (this%soft_spheres%number /= 0) THEN
-            !
-            IF (copy%soft_spheres%number /= 0) CALL copy%soft_spheres%destroy()
-            !
-            CALL this%soft_spheres%copy(copy%soft_spheres)
-            !
-        ELSE
-            IF (copy%soft_spheres%number /= 0) DEALLOCATE (copy%soft_spheres%array)
-        END IF
-        !
-        nat => this%ions%number
-        !
-        IF (this%mode == 'ionic') THEN
-            nnr_nz = SIZE(this%ir_nz)
-            !
-            ALLOCATE (copy%ir_nz(nat, nnr_nz))
-            ALLOCATE (copy%den_nz(nat, nnr_nz))
-            ALLOCATE (copy%grad_nz(nat, nnr_nz, 3))
-            !
-            copy%ir_nz = -1
-            copy%den_nz = 0.D0
-            copy%grad_nz = 0.D0
-        END IF
-        !
-        IF (ALLOCATED(this%ion_field)) THEN
-            !
-            IF (ALLOCATED(copy%ion_field)) DEALLOCATE (copy%ion_field)
-            !
-            IF (ALLOCATED(copy%partial_of_ion_field)) &
-                DEALLOCATE (copy%partial_of_ion_field)
-            !
-            ALLOCATE (copy%ion_field(nat))
-            ALLOCATE (copy%partial_of_ion_field(3, nat, nat))
-            !
-            IF (ALLOCATED(copy%dion_field_drho)) THEN
-                !
-                DO i = 1, nat
-                    CALL copy%dion_field_drho(i)%destroy()
-                END DO
-                !
-                DEALLOCATE (copy%dion_field_drho)
-            END IF
-            !
-            ALLOCATE (copy%dion_field_drho(nat))
-            !
-            DO i = 1, nat
-                CALL this%dion_field_drho(i)%copy(copy%dion_field_drho(i))
-            END DO
-            !
-        ELSE
-            !
-            IF (ALLOCATED(copy%ion_field)) DEALLOCATE (copy%ion_field)
-            !
-            IF (ALLOCATED(copy%partial_of_ion_field)) &
-                DEALLOCATE (copy%partial_of_ion_field)
-            !
-            IF (ALLOCATED(copy%dion_field_drho)) DEALLOCATE (copy%dion_field_drho)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_boundary
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -904,12 +765,10 @@ CONTAINS
                 CALL this%soft_spheres%destroy()
                 !
                 IF (this%field_aware) THEN
-                    !
-                    CALL this%unscaled_spheres%destroy()
-                    !
                     DEALLOCATE (this%ion_field)
                     DEALLOCATE (this%dion_field_drho)
                     DEALLOCATE (this%partial_of_ion_field)
+                    DEALLOCATE (this%unscaled_spheres)
                 END IF
                 !
             END IF
@@ -2643,7 +2502,7 @@ CONTAINS
         CALL this%soft_spheres%init(this%ions%number, 4, axes, dims, radii, spreads, &
                                     volumes, this%ions%tau)
         !
-        IF (this%field_aware) CALL this%soft_spheres%copy(this%unscaled_spheres)
+        IF (this%field_aware) ALLOCATE (this%unscaled_spheres, source=this%soft_spheres)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_soft_spheres

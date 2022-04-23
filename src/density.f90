@@ -79,7 +79,6 @@ MODULE class_density
         !
         PROCEDURE, PRIVATE :: create => create_environ_density
         PROCEDURE :: init => init_environ_density
-        PROCEDURE :: copy => copy_environ_density
         PROCEDURE :: destroy => destroy_environ_density
         !
         PROCEDURE :: multipoles => multipoles_environ_density
@@ -168,44 +167,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_density
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_density(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_density), INTENT(IN) :: this
-        !
-        TYPE(environ_density), INTENT(OUT) :: copy
-        !
-        CHARACTER(LEN=80) :: sub_name = 'copy_environ_density'
-        !
-        INTEGER :: n
-        !
-        !--------------------------------------------------------------------------------
-        !
-        copy%cell => this%cell
-        !
-        copy%lupdate = this%lupdate
-        copy%label = this%label
-        copy%charge = this%charge
-        copy%dipole = this%dipole
-        copy%quadrupole = this%quadrupole
-        !
-        IF (ALLOCATED(this%of_r)) THEN
-            n = SIZE(this%of_r)
-            !
-            IF (ALLOCATED(copy%of_r)) DEALLOCATE (copy%of_r)
-            !
-            ALLOCATE (copy%of_r(n))
-            copy%of_r = this%of_r
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_density
     !------------------------------------------------------------------------------------
     !>
     !!

@@ -72,7 +72,6 @@ MODULE class_gradient
         !
         PROCEDURE, PRIVATE :: create => create_environ_gradient
         PROCEDURE :: init => init_environ_gradient
-        PROCEDURE :: copy => copy_environ_gradient
         PROCEDURE :: update_modulus => update_gradient_modulus
         PROCEDURE :: destroy => destroy_environ_gradient
         !
@@ -157,43 +156,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_gradient
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_gradient(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_gradient), INTENT(IN) :: this
-        !
-        TYPE(environ_gradient), INTENT(OUT) :: copy
-        !
-        INTEGER :: n
-        !
-        CHARACTER(LEN=80) :: sub_name = 'copy_environ_gradient'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        copy%cell => this%cell
-        !
-        copy%lupdate = this%lupdate
-        copy%label = this%label
-        !
-        IF (ALLOCATED(this%of_r)) THEN
-            n = SIZE(this%of_r, 2)
-            !
-            IF (ALLOCATED(copy%of_r)) DEALLOCATE (copy%of_r)
-            !
-            ALLOCATE (copy%of_r(3, n))
-            copy%of_r = this%of_r
-        END IF
-        !
-        CALL this%modulus%copy(copy%modulus)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_gradient
     !------------------------------------------------------------------------------------
     !>
     !!

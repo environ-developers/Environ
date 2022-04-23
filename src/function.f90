@@ -82,7 +82,6 @@ MODULE class_function
         !
         PROCEDURE, PRIVATE :: create => create_environ_function
         PROCEDURE :: init => init_environ_function
-        PROCEDURE :: copy => copy_environ_function
         PROCEDURE :: destroy => destroy_environ_function
         !
         PROCEDURE :: density => density_of_function
@@ -174,28 +173,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_function
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_function(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_function), INTENT(IN) :: this
-        !
-        CLASS(environ_function), INTENT(OUT) :: copy
-        !
-        CHARACTER(LEN=80) :: sub_name = 'copy_environ_function'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL copy%init(this%f_type, this%axis, this%dim, this%width, this%spread, &
-                       this%volume, this%pos)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_function
     !------------------------------------------------------------------------------------
     !>
     !!
