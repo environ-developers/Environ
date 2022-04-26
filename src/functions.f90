@@ -72,7 +72,6 @@ MODULE class_functions
         !
         PROCEDURE, PRIVATE :: create => create_environ_functions
         PROCEDURE :: init => init_environ_functions
-        PROCEDURE :: update => update_environ_functions
         PROCEDURE :: destroy => destroy_environ_functions
         !
         PROCEDURE :: density => density_of_functions
@@ -175,36 +174,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_functions
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_functions(this, n, pos)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: n
-        REAL(DP), INTENT(IN) :: pos(3, n)
-        !
-        CLASS(environ_functions), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_functions'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (n /= this%number) CALL io%error(sub_name, "Wrong number of functions", 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, this%number
-            this%array(i)%pos = pos(:, i)
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE update_environ_functions
     !------------------------------------------------------------------------------------
     !>
     !!

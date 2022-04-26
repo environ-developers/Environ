@@ -356,8 +356,6 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Only ions are needed, fully update the boundary
             !
-            CALL this%soft_spheres%update(this%ions%number, this%ions%tau)
-            !
             CALL this%build()
             !
             this%update_status = 2 ! boundary has changed and is ready
