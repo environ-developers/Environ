@@ -122,31 +122,6 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Print summary
-        !
-        IF (io%lnode) THEN
-            WRITE (io%unit, 1000)
-            WRITE (io%unit, 1001)
-            WRITE (io%unit, 1002) at(1, 1), at(2, 2), at(3, 3)
-            WRITE (io%unit, 1003) nat
-            WRITE (io%unit, 1004) ntyp
-        END IF
-        !
-        FLUSH (io%unit)
-        !
-        !--------------------------------------------------------------------------------
-        !
-1000    FORMAT(5X, "Summary of system information")
-        !
-1001    FORMAT(10X, "Values will be printed using ENVIRON internal units, e.g. length is in Bohr")
-        !
-1002    FORMAT(10X, "Cell parameters: ", 3F17.8)
-        !
-1003    FORMAT(10X, "Number of atoms: ", I4)
-        !
-1004    FORMAT(10X, "Number of atomic types: ", I10)
-        !
-        !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_from_cube
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
