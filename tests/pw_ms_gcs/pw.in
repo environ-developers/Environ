@@ -2,6 +2,7 @@
   calculation = 'scf',
   prefix = 'Si',
   restart_mode = 'from_scratch',
+  pseudo_dir='/ascldap/users/qcampbe/Pseudos/pslibrary.1.0.0/pbe/PSEUDOPOTENTIALS',
 /
 &SYSTEM
   degauss = 0.0001,
@@ -13,9 +14,8 @@
   ntyp = 1,
 /
 &ELECTRONS
-  conv_thr = 1d-08,
+  conv_thr = 1d-12,
   diagonalization = 'david',
-  mixing_mode = 'local-TF',
 /
 ATOMIC_SPECIES
   Si  28.0855 Si.pbe-n-kjpaw_psl.1.0.0.UPF

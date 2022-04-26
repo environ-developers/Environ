@@ -1333,6 +1333,7 @@ CONTAINS
         REAL(DP) :: charge, dipole(3), quadrupole(3)
         !
         REAL(DP), DIMENSION(:), ALLOCATABLE :: current_pot, subtracted_pot, avgd_pot
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: flatband_pot
         !
         LOGICAL :: physical
         !
@@ -1372,8 +1373,7 @@ CONTAINS
                    carrier_density => semiconductor%carrier_density, &
                    electrode_charge => semiconductor%electrode_charge, &
                    xstern_ms => semiconductor%sc_distance, &
-                   slab_charge => semiconductor%slab_charge, &
-                   flatband_pot => semiconductor%flatband_pot_planar_avg)
+                   slab_charge => semiconductor%slab_charge)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -1422,7 +1422,7 @@ CONTAINS
             !
             DO i = 1, nnr
                 !
-                IF (axis(1, i) == max_axis) THEN
+                IF (max_axis - axis(1, i) <= 0.1) THEN
                     icount = icount + 1
                     v_edge = v_edge + v%of_r(i) + vms_gcs(i)
                 END IF
@@ -1449,7 +1449,7 @@ CONTAINS
             !
             avg_window = INT(semiconductor%sc_spread / 2.0 / v%cell%at(3, 3) * naxis)
             !
-            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, 1000)
+            IF ( io%lnode .AND. io%verbosity >= 1) WRITE (io%debug_unit, 1000)
             !
             IF (slab_charge == 0.D0) THEN
                 !
@@ -1460,12 +1460,14 @@ CONTAINS
                 !
                 IF (.NOT. ALLOCATED(avgd_pot)) ALLOCATE (avgd_pot(naxis))
                 !
+                IF (.NOT. ALLOCATED(flatband_pot)) ALLOCATE (flatband_pot(naxis))
+                !
                 CALL v%cell%planar_average(nnr, naxis, 3, 0, .FALSE., v%of_r, &
                                            flatband_pot)
                 !
                 CALL v%cell%running_average(naxis, avg_window, flatband_pot, avgd_pot)
                 !
-                flatband_pot = avgd_pot
+                semiconductor%flatband_pot_planar_avg = avgd_pot
             ELSE
                 !
                 !------------------------------------------------------------------------
@@ -1482,7 +1484,7 @@ CONTAINS
                 CALL v%cell%running_average(naxis, avg_window, current_pot, avgd_pot)
                 !
                 current_pot = avgd_pot
-                subtracted_pot = current_pot - flatband_pot
+                subtracted_pot = current_pot - semiconductor%flatband_pot_planar_avg
                 z_cut = this%origin(3) - xstern_ms
                 !
                 IF ( io%lnode .AND. io%verbosity > 1) THEN
@@ -1526,7 +1528,7 @@ CONTAINS
                 !
             END IF
             !
-            fact = 1.D0 / tpi / e2 / 4.D0 / carrier_density * permittivity_ms
+            fact = 1.D0 / carrier_density * permittivity_ms
             arg = fact * (ez_ms**2.D0)
             !
             IF (ez_ms < 0) THEN
@@ -1535,7 +1537,7 @@ CONTAINS
                 vms = -arg
             END IF
             !
-            IF (io%lnode .AND.io%verbosity > 1) WRITE (io%debug_unit, 1004) vms
+            IF (io%lnode .AND.io%verbosity >= 1) WRITE (io%debug_unit, 1004) vms
             !
             depletion_length = ABS(2.D0 * fact * ez_ms)
             !
@@ -1555,7 +1557,7 @@ CONTAINS
                 !
                 DO i = 1, naxis
                     z_val = i * v%cell%at(3, 3) / naxis
-                    WRITE (95, *) z_val, flatband_pot(i)
+                    WRITE (95, *) z_val, semiconductor%flatband_pot_planar_avg(i)
                     !
                     IF (slab_charge /= 0.D0) THEN
                         WRITE (93, *) z_val, subtracted_pot(i)
@@ -1611,7 +1613,6 @@ CONTAINS
         !
         REAL(DP) :: kbt, invkbt
         REAL(DP) :: fact
-        REAL(DP) :: area
         REAL(DP) :: charge, dipole(0:3), quadrupole(3)
         !
         TYPE(environ_gradient), TARGET :: glocal
@@ -1630,9 +1631,9 @@ CONTAINS
         IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
             CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
         !
-        !IF (electrolyte%ntyp /= 2) &
-        !    CALL io%error(sub_name, &
-        !                  "Unexpected number of counterionic species, different from two", 1)
+        IF (electrolyte%ntyp /= 2) &
+            CALL io%error(sub_name, &
+                        "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
