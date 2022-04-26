@@ -141,7 +141,7 @@ MODULE env_base_input
     ! the environment cell is (2*nrep+1) times the system cell along the three axis
     !
     REAL(DP) :: system_pos(3) = 0.D0 ! specified for finite-difference debugging
-    ! if not specified, system is fixed on center of charge
+    ! if not specified, system is fixed on center of mass
     !
     !------------------------------------------------------------------------------------
     ! Modification of electrostatic embedding (e.g. PBC correction)

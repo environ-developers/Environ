@@ -716,7 +716,7 @@ CONTAINS
 1000    FORMAT(/, 4('%'), " IONS ", 70('%'))
         !
 1001    FORMAT(/, " total charge               = ", F14.7, /, &
-                " center of charge           = ", 3F14.7, /, &
+                " center of mass             = ", 3F14.7, /, &
                 " dipole                     = ", 3F14.7, /, &
                 " quadrupole (pc)            = ", 3F14.7)
         !
