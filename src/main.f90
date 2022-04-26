@@ -140,8 +140,8 @@ MODULE class_environ
         PROCEDURE :: update_potential => environ_update_potential
         PROCEDURE :: update_response => environ_update_response
         PROCEDURE :: update_cell_dependent_quantities
+        PROCEDURE :: init_physical => environ_init_physical
         !
-        PROCEDURE, PRIVATE :: init_physical => environ_init_physical
         PROCEDURE, PRIVATE :: init_potential => environ_init_potential
         !
         PROCEDURE :: print_energies => print_environ_energies
