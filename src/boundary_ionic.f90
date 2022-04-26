@@ -344,7 +344,7 @@ CONTAINS
                 !
                 CALL this%calc_ion_field()
                 !
-                CALL this%update_soft_spheres(this%field_aware)
+                CALL this%update_soft_spheres()
                 !
                 CALL this%build()
                 !
@@ -353,7 +353,7 @@ CONTAINS
             !
         ELSE IF (this%ions%lupdate) THEN
             !
-            !------------------------------------------------------------------------
+            !----------------------------------------------------------------------------
             ! Only ions are needed, fully update the boundary
             !
             CALL this%soft_spheres%update(this%ions%number, this%ions%tau)
@@ -1048,12 +1048,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_soft_spheres(this, field_scaling)
+    SUBROUTINE update_soft_spheres(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: field_scaling
         !
         CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
         !
@@ -1072,13 +1070,8 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! field-aware scaling of soft-sphere radii
                 !
-                IF (PRESENT(field_scaling)) THEN
-                    !
-                    IF (field_scaling) THEN
-                        field_scale = this%scaling_of_field(i)
-                    ELSE
-                        field_scale = 1.D0
-                    END IF
+                IF (this%field_aware) THEN
+                    field_scale = this%scaling_of_field(i)
                 ELSE
                     field_scale = 1.D0
                 END IF
