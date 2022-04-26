@@ -853,8 +853,19 @@ CONTAINS
             !
             CALL this%solvent%pre_init( &
                 solvent_mode, setup%lgradient, setup%need_factsqrt, setup%lsurface, &
-                field_aware, field_factor, field_asymmetry, field_max, field_min, &
                 setup%outer_container, deriv_method, environment_cell, 'solvent')
+            !
+            !----------------------------------------------------------------------------
+            ! Boundary awareness
+            !
+            IF (solvent_radius > 0.D0) &
+                CALL this%solvent%init_solvent_aware(solvent_radius, radial_scale, &
+                                                     radial_spread, filling_threshold, &
+                                                     filling_spread)
+            !
+            IF (field_aware) &
+                CALL this%solvent%init_field_aware(field_factor, field_asymmetry, &
+                                                   field_max, field_min)
             !
             !----------------------------------------------------------------------------
             ! Specific setup
@@ -880,14 +891,6 @@ CONTAINS
                 CALL io%error(sub_name, "Unrecognized boundary mode", 1)
                 !
             END SELECT
-            !
-            !----------------------------------------------------------------------------
-            ! Solvent aware
-            !
-            IF (solvent_radius > 0.D0) &
-                CALL this%solvent%init_solvent_aware(solvent_radius, radial_scale, &
-                                                     radial_spread, filling_threshold, &
-                                                     filling_spread)
             !
         END IF
         !

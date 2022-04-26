@@ -202,9 +202,20 @@ CONTAINS
             !
         END SELECT
         !
-        CALL this%boundary%pre_init(mode, .TRUE., .TRUE., .FALSE., field_aware, &
-                                    field_factor, field_asymmetry, field_max, field_min, &
-                                    cores, deriv_method, cell, 'electrolyte')
+        CALL this%boundary%pre_init(mode, .TRUE., .TRUE., .FALSE., cores, deriv_method, &
+                                    cell, 'electrolyte')
+        !
+        !--------------------------------------------------------------------------------
+        ! Boundary awareness
+        !
+        IF (solvent_radius > 0.D0) &
+            CALL this%boundary%init_solvent_aware(solvent_radius, radial_scale, &
+                                                  radial_spread, filling_threshold, &
+                                                  filling_spread)
+        !
+        IF (field_aware) &
+            CALL this%boundary%init_field_aware(field_factor, field_asymmetry, &
+                                                field_max, field_min)
         !
         !--------------------------------------------------------------------------------
         ! Specific setup
@@ -224,14 +235,6 @@ CONTAINS
             CALL io%error(sub_name, "Unrecognized boundary mode", 1)
             !
         END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Solvent aware
-        !
-        IF (solvent_radius > 0.D0) &
-            CALL this%boundary%init_solvent_aware(solvent_radius, radial_scale, &
-                                                  radial_spread, filling_threshold, &
-                                                  filling_spread)
         !
         !--------------------------------------------------------------------------------
         ! Densities

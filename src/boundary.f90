@@ -131,6 +131,7 @@ MODULE class_boundary
         PROCEDURE, PRIVATE :: pre_create => pre_create_environ_boundary
         PROCEDURE :: pre_init => pre_init_environ_boundary
         PROCEDURE :: init_solvent_aware
+        PROCEDURE :: init_field_aware
         PROCEDURE :: update_solvent_aware
         PROCEDURE :: pre_destroy => pre_destroy_environ_boundary
         !
@@ -232,11 +233,17 @@ CONTAINS
         this%label = ''
         this%mode = ''
         this%update_status = 0
+        !
         this%deriv = 0
         this%derivatives_method = ''
+        !
         this%volume = 0.D0
         this%surface = 0.D0
+        !
         this%solvent_aware = .FALSE.
+        this%filling_threshold = 0.D0
+        this%filling_spread = 0.D0
+        !
         this%field_aware = .FALSE.
         this%field_factor = 0.D0
         this%field_asymmetry = 0.D0
@@ -254,9 +261,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE pre_init_environ_boundary(this, mode, need_gradient, need_laplacian, &
-                                         need_hessian, field_aware, field_factor, &
-                                         field_asymmetry, field_max, field_min, &
-                                         cores, deriv_method, cell, label)
+                                         need_hessian, cores, deriv_method, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -266,12 +271,6 @@ CONTAINS
         LOGICAL, INTENT(IN) :: need_gradient
         LOGICAL, INTENT(IN) :: need_laplacian
         LOGICAL, INTENT(IN) :: need_hessian
-        !
-        LOGICAL, INTENT(IN) :: field_aware
-        REAL(DP), INTENT(IN) :: field_factor
-        REAL(DP), INTENT(IN) :: field_asymmetry
-        REAL(DP), INTENT(IN) :: field_max
-        REAL(DP), INTENT(IN) :: field_min
         !
         CHARACTER(LEN=*), INTENT(IN) :: deriv_method
         !
@@ -313,17 +312,6 @@ CONTAINS
         IF (this%deriv >= 3) CALL this%dsurface%init(cell, 'dsurface_'//this%label)
         !
         !--------------------------------------------------------------------------------
-        ! Field awareness
-        !
-        IF (field_aware) THEN
-            this%field_aware = field_aware
-            this%field_factor = field_factor
-            this%field_asymmetry = field_asymmetry
-            this%field_max = field_max
-            this%field_min = field_min
-        END IF
-        !
-        !--------------------------------------------------------------------------------
     END SUBROUTINE pre_init_environ_boundary
     !------------------------------------------------------------------------------------
     !>
@@ -348,12 +336,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%solvent_aware = .TRUE.
+        this%filling_threshold = filling_threshold
+        this%filling_spread = filling_spread
         !
         CALL this%solvent_probe%init(2, 1, 0, solvent_radius * radial_scale, &
                                      radial_spread, 1.D0)
-        !
-        this%filling_threshold = filling_threshold
-        this%filling_spread = filling_spread
         !
         CALL this%local%init(this%cell, 'local_'//this%label)
         !
@@ -368,6 +355,35 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solvent_aware
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_field_aware(this, field_factor, field_asymmetry, field_max, &
+                                field_min)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: field_factor
+        REAL(DP), INTENT(IN) :: field_asymmetry
+        REAL(DP), INTENT(IN) :: field_max
+        REAL(DP), INTENT(IN) :: field_min
+        !
+        CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_field_aware'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%field_aware = .TRUE.
+        this%field_factor = field_factor
+        this%field_asymmetry = field_asymmetry
+        this%field_max = field_max
+        this%field_min = field_min
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_field_aware
     !------------------------------------------------------------------------------------
     !>
     !!
