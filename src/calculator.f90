@@ -443,13 +443,7 @@ CONTAINS
                 IF (main%solvent%solvent_aware) &
                     CALL main%solvent%sa_de_dboundary(de_dboundary)
                 !
-                SELECT TYPE (solvent => main%solvent)
-                    !
-                TYPE IS (environ_boundary_ionic)
-                    !
-                    IF (solvent%field_aware) CALL solvent%ion_field_partial()
-                    !
-                END SELECT
+                IF (main%solvent%field_aware) CALL main%solvent%ion_field_partial()
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
@@ -458,14 +452,8 @@ CONTAINS
                     !
                     CALL main%solvent%dboundary_dions(i, partial)
                     !
-                    SELECT TYPE (solvent => main%solvent)
-                        !
-                    TYPE IS (environ_boundary_ionic)
-                        !
-                        IF (solvent%field_aware) &
-                            CALL solvent%fa_dboundary_dions(i, partial)
-                        !
-                    END SELECT
+                    IF (main%solvent%field_aware) &
+                        CALL main%solvent%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)
@@ -484,13 +472,8 @@ CONTAINS
                 IF (main%electrolyte%boundary%solvent_aware) &
                     CALL main%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
-                SELECT TYPE (boundary => main%electrolyte%boundary)
-                    !
-                TYPE IS (environ_boundary_ionic)
-                    !
-                    IF (boundary%field_aware) CALL boundary%ion_field_partial()
-                    !
-                END SELECT
+                IF (main%electrolyte%boundary%field_aware) &
+                    CALL main%electrolyte%boundary%ion_field_partial()
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
@@ -499,14 +482,8 @@ CONTAINS
                     !
                     CALL main%electrolyte%boundary%dboundary_dions(i, partial)
                     !
-                    SELECT TYPE (boundary => main%electrolyte%boundary)
-                        !
-                    TYPE IS (environ_boundary_ionic)
-                        !
-                        IF (boundary%field_aware) &
-                            CALL boundary%fa_dboundary_dions(i, partial)
-                        !
-                    END SELECT
+                    IF (main%electrolyte%boundary%field_aware) &
+                        CALL main%electrolyte%boundary%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)

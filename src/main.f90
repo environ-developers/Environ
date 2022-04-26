@@ -853,6 +853,7 @@ CONTAINS
             !
             CALL this%solvent%pre_init( &
                 solvent_mode, setup%lgradient, setup%need_factsqrt, setup%lsurface, &
+                field_aware, field_factor, field_asymmetry, field_max, field_min, &
                 setup%outer_container, deriv_method, environment_cell, 'solvent')
             !
             !----------------------------------------------------------------------------
@@ -867,9 +868,8 @@ CONTAINS
                 !
             TYPE IS (environ_boundary_ionic)
                 !
-                CALL solvent%init(alpha, softness, field_aware, field_factor, &
-                                  field_asymmetry, field_max, field_min, &
-                                  this%environment_ions, this%environment_electrons)
+                CALL solvent%init(alpha, softness, this%environment_ions, &
+                                  this%environment_electrons)
                 !
             TYPE IS (environ_boundary_system)
                 !

@@ -79,11 +79,7 @@ MODULE class_boundary_ionic
         !--------------------------------------------------------------------------------
         ! Field aware
         !
-        LOGICAL :: field_aware = .FALSE.
-        !
         TYPE(environ_electrons), POINTER :: electrons => NULL()
-        !
-        REAL(DP) :: field_factor, field_asymmetry, field_max, field_min
         !
         TYPE(environ_functions), ALLOCATABLE :: unscaled_spheres
         !
@@ -177,12 +173,6 @@ CONTAINS
         !
         this%has_stored_gradient = .FALSE.
         !
-        this%field_aware = .FALSE.
-        this%field_factor = 0.D0
-        this%field_asymmetry = 0.D0
-        this%field_max = 0.D0
-        this%field_min = 0.D0
-        !
         NULLIFY (this%ions)
         NULLIFY (this%electrons)
         !
@@ -192,21 +182,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_boundary(this, alpha, softness, field_aware, field_factor, &
-                                     field_asymmetry, field_max, field_min, ions, &
-                                     electrons)
+    SUBROUTINE init_environ_boundary(this, alpha, softness, ions, electrons)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: alpha
         REAL(DP), INTENT(IN) :: softness
-        !
-        LOGICAL, INTENT(IN) :: field_aware
-        REAL(DP), INTENT(IN) :: field_factor
-        REAL(DP), INTENT(IN) :: field_asymmetry
-        REAL(DP), INTENT(IN) :: field_max
-        REAL(DP), INTENT(IN) :: field_min
         !
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
         TYPE(environ_electrons), OPTIONAL, TARGET, INTENT(IN) :: electrons
@@ -237,17 +219,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Field aware
         !
-        IF (field_aware) THEN
+        IF (this%field_aware) THEN
             !
             IF (.NOT. PRESENT(electrons)) CALL io%error(sub_name, "Missing electrons", 1)
             !
             this%electrons => electrons
-            !
-            this%field_aware = field_aware
-            this%field_factor = field_factor
-            this%field_asymmetry = field_asymmetry
-            this%field_max = field_max
-            this%field_min = field_min
             !
             ALLOCATE (this%ion_field(nat))
             ALLOCATE (this%dion_field_drho(nat))
@@ -771,195 +747,92 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
     !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                               PRIVATE HELPER METHODS
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
     !>
+    !! Computes the functional derivative of the boundary w.r.t the ionic positions
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_soft_spheres(this)
+    SUBROUTINE calc_field_aware_dboundary_dions(this, index, partial)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
-        !
-        INTEGER, DIMENSION(this%ions%number) :: axes, dims
-        REAL(DP), DIMENSION(this%ions%number) :: spreads, volumes
-        !
-        REAL(DP), ALLOCATABLE :: radii(:)
-        !
-        CHARACTER(LEN=20) :: local_item = 'solvationrad'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        axes = 1
-        dims = 0
-        spreads = this%softness
-        volumes = 1.D0
-        !
-        CALL this%ions%get_iontype_array(radii, local_item)
-        !
-        radii = radii * this%alpha
-        !
-        CALL this%soft_spheres%init(this%ions%number, 4, axes, dims, radii, spreads, &
-                                    volumes, this%ions%tau)
-        !
-        IF (this%field_aware) ALLOCATE (this%unscaled_spheres, source=this%soft_spheres)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_soft_spheres
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                                   FIELD-AWARE METHODS
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE update_soft_spheres(this, field_scaling)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: field_scaling
+        INTEGER, INTENT(IN) :: index
         !
         CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: partial
         !
-        INTEGER :: i
-        REAL(DP) :: field_scale
+        INTEGER :: i, j, k
+        REAL(DP) :: df
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_soft_spheres'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, this%ions%number
-            !
-            ASSOCIATE (soft_sphere => this%soft_spheres%array(i), &
-                       solvationrad => this%ions%iontype(this%ions%ityp(i))%solvationrad)
-                !
-                !------------------------------------------------------------------------
-                ! field-aware scaling of soft-sphere radii
-                !
-                IF (PRESENT(field_scaling)) THEN
-                    !
-                    IF (field_scaling) THEN
-                        field_scale = this%scaling_of_field(i)
-                    ELSE
-                        field_scale = 1.D0
-                    END IF
-                ELSE
-                    field_scale = 1.D0
-                END IF
-                !
-                soft_sphere%pos = this%ions%tau(:, i)
-                soft_sphere%width = solvationrad * this%alpha * field_scale
-                !
-            END ASSOCIATE
-            !
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE update_soft_spheres
-    !------------------------------------------------------------------------------------
-    !>
-    !! Computes the flux due to the ions
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_ion_field(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
-        !
-        INTEGER :: i, j
+        TYPE(environ_density) :: aux
+        TYPE(environ_gradient) :: auxg
         !
         TYPE(environ_density), ALLOCATABLE :: local(:)
         !
-        TYPE(environ_density) :: aux, prod
-        TYPE(environ_gradient) :: auxg, field
+        REAL(DP), POINTER :: solvationrad
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_ion_field'
+        CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_dboundary_dions'
         !
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => this%scaled%cell, &
-                   n => this%ions%number, &
-                   electrostatics => this%cores%electrostatics)
+                   n => this%ions%number)
             !
             !----------------------------------------------------------------------------
             !
             ALLOCATE (local(n))
             !
-            !----------------------------------------------------------------------------
-            !
             DO i = 1, n
                 !
                 CALL local(i)%init(cell)
                 !
-                CALL this%unscaled_spheres%array(i)%density(local(i), .FALSE.)
+                CALL this%soft_spheres%array(i)%density(local(i), .FALSE.)
                 !
             END DO
             !
-            !----------------------------------------------------------------------------
-            ! Compute field
-            !
             CALL aux%init(cell)
-            !
-            aux%of_r = this%electrons%density%of_r + this%ions%density%of_r
-            !
-            CALL field%init(cell)
-            !
-            CALL electrostatics%grad_v_h_of_rho_r(cell%nnr, aux%of_r, field%of_r)
-            !
-            !----------------------------------------------------------------------------
-            ! Compute ion flux
-            !
-            this%ion_field = 0.D0
-            !
-            CALL prod%init(cell)
             !
             CALL auxg%init(cell)
             !
             DO i = 1, n
-                prod%of_r = 1.D0
+                solvationrad => this%ions%iontype(this%ions%ityp(i))%solvationrad
+                !
+                CALL this%soft_spheres%array(i)%derivative(aux, .TRUE.)
                 !
                 DO j = 1, n
                     !
                     IF (i == j) CYCLE
+                    aux%of_r = aux%of_r + local(j)%of_r
                     !
-                    prod%of_r = prod%of_r * local(j)%of_r
                 END DO
                 !
-                !------------------------------------------------------------------------
-                ! Compute field flux through soft-sphere interface
+                df = this%dscaling_of_field(i) * solvationrad * this%alpha
+                aux%of_r = aux%of_r * df
                 !
-                CALL this%unscaled_spheres%array(i)%gradient(auxg, .TRUE.)
+                DO k = 1, 3
+                    !
+                    auxg%of_r(k, :) = &
+                        auxg%of_r(k, :) + &
+                        aux%of_r * this%partial_of_ion_field(k, i, index)
+                    !
+                END DO
                 !
-                CALL field%scalar_product(auxg, aux)
-                !
-                aux%of_r = -aux%of_r * prod%of_r
-                this%ion_field(i) = aux%integrate()
             END DO
+            !
+            partial%of_r = partial%of_r * auxg%of_r
+            !
+            CALL aux%destroy()
             !
             CALL auxg%destroy()
             !
-            CALL prod%destroy()
-            !
-            CALL field%destroy()
-            !
-            CALL aux%destroy()
+            DO i = 1, n
+                CALL local(i)%destroy()
+            END DO
             !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_ion_field
+    END SUBROUTINE calc_field_aware_dboundary_dions
     !------------------------------------------------------------------------------------
     !>
     !! Computes the derivative of the flux due to the ions w.r.t ionic position
@@ -1130,6 +1003,190 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_ion_field_partial
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                               PRIVATE HELPER METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_soft_spheres(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
+        !
+        INTEGER, DIMENSION(this%ions%number) :: axes, dims
+        REAL(DP), DIMENSION(this%ions%number) :: spreads, volumes
+        !
+        REAL(DP), ALLOCATABLE :: radii(:)
+        !
+        CHARACTER(LEN=20) :: local_item = 'solvationrad'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        axes = 1
+        dims = 0
+        spreads = this%softness
+        volumes = 1.D0
+        !
+        CALL this%ions%get_iontype_array(radii, local_item)
+        !
+        radii = radii * this%alpha
+        !
+        CALL this%soft_spheres%init(this%ions%number, 4, axes, dims, radii, spreads, &
+                                    volumes, this%ions%tau)
+        !
+        IF (this%field_aware) ALLOCATE (this%unscaled_spheres, source=this%soft_spheres)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_soft_spheres
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE update_soft_spheres(this, field_scaling)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, INTENT(IN), OPTIONAL :: field_scaling
+        !
+        CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
+        !
+        INTEGER :: i
+        REAL(DP) :: field_scale
+        !
+        CHARACTER(LEN=80) :: sub_name = 'update_soft_spheres'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        DO i = 1, this%ions%number
+            !
+            ASSOCIATE (soft_sphere => this%soft_spheres%array(i), &
+                       solvationrad => this%ions%iontype(this%ions%ityp(i))%solvationrad)
+                !
+                !------------------------------------------------------------------------
+                ! field-aware scaling of soft-sphere radii
+                !
+                IF (PRESENT(field_scaling)) THEN
+                    !
+                    IF (field_scaling) THEN
+                        field_scale = this%scaling_of_field(i)
+                    ELSE
+                        field_scale = 1.D0
+                    END IF
+                ELSE
+                    field_scale = 1.D0
+                END IF
+                !
+                soft_sphere%pos = this%ions%tau(:, i)
+                soft_sphere%width = solvationrad * this%alpha * field_scale
+                !
+            END ASSOCIATE
+            !
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE update_soft_spheres
+    !------------------------------------------------------------------------------------
+    !>
+    !! Computes the flux due to the ions
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_ion_field(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
+        !
+        INTEGER :: i, j
+        !
+        TYPE(environ_density), ALLOCATABLE :: local(:)
+        !
+        TYPE(environ_density) :: aux, prod
+        TYPE(environ_gradient) :: auxg, field
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_ion_field'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (cell => this%scaled%cell, &
+                   n => this%ions%number, &
+                   electrostatics => this%cores%electrostatics)
+            !
+            !----------------------------------------------------------------------------
+            !
+            ALLOCATE (local(n))
+            !
+            !----------------------------------------------------------------------------
+            !
+            DO i = 1, n
+                !
+                CALL local(i)%init(cell)
+                !
+                CALL this%unscaled_spheres%array(i)%density(local(i), .FALSE.)
+                !
+            END DO
+            !
+            !----------------------------------------------------------------------------
+            ! Compute field
+            !
+            CALL aux%init(cell)
+            !
+            aux%of_r = this%electrons%density%of_r + this%ions%density%of_r
+            !
+            CALL field%init(cell)
+            !
+            CALL electrostatics%grad_v_h_of_rho_r(cell%nnr, aux%of_r, field%of_r)
+            !
+            !----------------------------------------------------------------------------
+            ! Compute ion flux
+            !
+            this%ion_field = 0.D0
+            !
+            CALL prod%init(cell)
+            !
+            CALL auxg%init(cell)
+            !
+            DO i = 1, n
+                prod%of_r = 1.D0
+                !
+                DO j = 1, n
+                    !
+                    IF (i == j) CYCLE
+                    !
+                    prod%of_r = prod%of_r * local(j)%of_r
+                END DO
+                !
+                !------------------------------------------------------------------------
+                ! Compute field flux through soft-sphere interface
+                !
+                CALL this%unscaled_spheres%array(i)%gradient(auxg, .TRUE.)
+                !
+                CALL field%scalar_product(auxg, aux)
+                !
+                aux%of_r = -aux%of_r * prod%of_r
+                this%ion_field(i) = aux%integrate()
+            END DO
+            !
+            CALL auxg%destroy()
+            !
+            CALL prod%destroy()
+            !
+            CALL field%destroy()
+            !
+            CALL aux%destroy()
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_ion_field
+    !------------------------------------------------------------------------------------
     !>
     !! Computes the functional derivative of the flux due to the ions w.r.t the
     !! electronic density
@@ -1216,93 +1273,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dion_field_drho
-    !------------------------------------------------------------------------------------
-    !>
-    !! Computes the functional derivative of the boundary w.r.t the ionic positions
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_field_aware_dboundary_dions(this, index, partial)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: index
-        !
-        CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: partial
-        !
-        INTEGER :: i, j, k
-        REAL(DP) :: df
-        !
-        TYPE(environ_density) :: aux
-        TYPE(environ_gradient) :: auxg
-        !
-        TYPE(environ_density), ALLOCATABLE :: local(:)
-        !
-        REAL(DP), POINTER :: solvationrad
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_dboundary_dions'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        ASSOCIATE (cell => this%scaled%cell, &
-                   n => this%ions%number)
-            !
-            !----------------------------------------------------------------------------
-            !
-            ALLOCATE (local(n))
-            !
-            DO i = 1, n
-                !
-                CALL local(i)%init(cell)
-                !
-                CALL this%soft_spheres%array(i)%density(local(i), .FALSE.)
-                !
-            END DO
-            !
-            CALL aux%init(cell)
-            !
-            CALL auxg%init(cell)
-            !
-            DO i = 1, n
-                solvationrad => this%ions%iontype(this%ions%ityp(i))%solvationrad
-                !
-                CALL this%soft_spheres%array(i)%derivative(aux, .TRUE.)
-                !
-                DO j = 1, n
-                    !
-                    IF (i == j) CYCLE
-                    aux%of_r = aux%of_r + local(j)%of_r
-                    !
-                END DO
-                !
-                df = this%dscaling_of_field(i) * solvationrad * this%alpha
-                aux%of_r = aux%of_r * df
-                !
-                DO k = 1, 3
-                    !
-                    auxg%of_r(k, :) = &
-                        auxg%of_r(k, :) + &
-                        aux%of_r * this%partial_of_ion_field(k, i, index)
-                    !
-                END DO
-                !
-            END DO
-            !
-            partial%of_r = partial%of_r * auxg%of_r
-            !
-            CALL aux%destroy()
-            !
-            CALL auxg%destroy()
-            !
-            DO i = 1, n
-                CALL local(i)%destroy()
-            END DO
-            !
-        END ASSOCIATE
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_field_aware_dboundary_dions
     !------------------------------------------------------------------------------------
     !>
     !! Returns field-aware scaling function with given ion_field and field aware

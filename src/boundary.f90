@@ -114,6 +114,16 @@ MODULE class_boundary
         TYPE(environ_density) :: dfilling
         !
         !--------------------------------------------------------------------------------
+        ! Components needed for field-aware boundary
+        !
+        LOGICAL :: field_aware = .FALSE.
+        !
+        REAL(DP) :: field_factor
+        REAL(DP) :: field_asymmetry
+        REAL(DP) :: field_max
+        REAL(DP) :: field_min
+        !
+        !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         ! Admin
@@ -135,12 +145,14 @@ MODULE class_boundary
         PROCEDURE :: vconfine => calc_vconfine
         PROCEDURE :: evolume => calc_evolume
         PROCEDURE :: esurface => calc_esurface
+        !
         PROCEDURE, NOPASS :: deconfine_dboundary => calc_deconfine_dboundary
         PROCEDURE, NOPASS :: devolume_dboundary => calc_devolume_dboundary
         PROCEDURE :: desurface_dboundary => calc_desurface_dboundary
         PROCEDURE :: sa_de_dboundary => calc_solvent_aware_de_dboundary
-        !
         PROCEDURE :: dboundary_dions => calc_dboundary_dions
+        PROCEDURE :: fa_dboundary_dions => calc_field_aware_dboundary_dions
+        PROCEDURE :: ion_field_partial => calc_ion_field_partial
         !
         !--------------------------------------------------------------------------------
         ! Solvent aware
@@ -224,6 +236,12 @@ CONTAINS
         this%derivatives_method = ''
         this%volume = 0.D0
         this%surface = 0.D0
+        this%solvent_aware = .FALSE.
+        this%field_aware = .FALSE.
+        this%field_factor = 0.D0
+        this%field_asymmetry = 0.D0
+        this%field_max = 0.D0
+        this%field_min = 0.D0
         !
         NULLIFY (this%cell)
         !
@@ -236,7 +254,9 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE pre_init_environ_boundary(this, mode, need_gradient, need_laplacian, &
-                                         need_hessian, cores, deriv_method, cell, label)
+                                         need_hessian, field_aware, field_factor, &
+                                         field_asymmetry, field_max, field_min, &
+                                         cores, deriv_method, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -246,6 +266,12 @@ CONTAINS
         LOGICAL, INTENT(IN) :: need_gradient
         LOGICAL, INTENT(IN) :: need_laplacian
         LOGICAL, INTENT(IN) :: need_hessian
+        !
+        LOGICAL, INTENT(IN) :: field_aware
+        REAL(DP), INTENT(IN) :: field_factor
+        REAL(DP), INTENT(IN) :: field_asymmetry
+        REAL(DP), INTENT(IN) :: field_max
+        REAL(DP), INTENT(IN) :: field_min
         !
         CHARACTER(LEN=*), INTENT(IN) :: deriv_method
         !
@@ -285,6 +311,17 @@ CONTAINS
         IF (this%deriv >= 2) CALL this%laplacian%init(cell, 'laplboundary_'//this%label)
         !
         IF (this%deriv >= 3) CALL this%dsurface%init(cell, 'dsurface_'//this%label)
+        !
+        !--------------------------------------------------------------------------------
+        ! Field awareness
+        !
+        IF (field_aware) THEN
+            this%field_aware = field_aware
+            this%field_factor = field_factor
+            this%field_asymmetry = field_asymmetry
+            this%field_max = field_max
+            this%field_min = field_min
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pre_init_environ_boundary
@@ -595,6 +632,49 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
+    !------------------------------------------------------------------------------------
+    !>
+    !! Computes the functional derivative of the boundary w.r.t the ionic positions
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_field_aware_dboundary_dions(this, index, partial)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: index
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: partial
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_dboundary_dions'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_field_aware_dboundary_dions
+    !------------------------------------------------------------------------------------
+    !>
+    !! Computes the derivative of the flux due to the ions w.r.t ionic position
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_ion_field_partial(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_ion_field_partial'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_ion_field_partial
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

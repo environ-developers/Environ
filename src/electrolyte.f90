@@ -202,8 +202,9 @@ CONTAINS
             !
         END SELECT
         !
-        CALL this%boundary%pre_init(mode, .TRUE., .TRUE., .FALSE., cores, deriv_method, &
-                                    cell, 'electrolyte')
+        CALL this%boundary%pre_init(mode, .TRUE., .TRUE., .FALSE., field_aware, &
+                                    field_factor, field_asymmetry, field_max, field_min, &
+                                    cores, deriv_method, cell, 'electrolyte')
         !
         !--------------------------------------------------------------------------------
         ! Specific setup
@@ -214,9 +215,7 @@ CONTAINS
             CALL boundary%init(rhomax, rhomin, electrons, ions)
             !
         TYPE IS (environ_boundary_ionic)
-            !
-            CALL boundary%init(alpha, softness, field_aware, field_factor, &
-                               field_asymmetry, field_max, field_min, ions, electrons)
+            CALL boundary%init(alpha, softness, ions, electrons)
             !
         TYPE IS (environ_boundary_system)
             CALL boundary%init(distance, spread, system)
