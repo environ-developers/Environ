@@ -27,7 +27,7 @@ MODULE programs
     !------------------------------------------------------------------------------------
     !
     USE env_parallel_include
-    USE env_mp, ONLY: env_mp_rank, env_mp_stop
+    USE env_mp, ONLY: env_mp_rank, env_mp_stop, env_mp_sum
     !
     USE env_mytime, ONLY: env_f_wall
     !
@@ -358,6 +358,12 @@ CONTAINS
                     !
                 END DO
                 !
+#if defined (__MPI)
+                CALL env_mp_sum(pvol, io%comm)
+                !
+                CALL env_mp_sum(psurf, io%comm)
+#endif
+                !
                 IF (io%lnode) THEN
                     !
                     DO i = 1, num
@@ -386,7 +392,7 @@ CONTAINS
             !
 2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I4,/)
             !
-2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface", 8X, 52('-'))
+2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface", /, 9X, 52('-'))
             !
 2004        FORMAT(10X, F6.3, ' |', F17.8, '     |', f17.8)
             !
