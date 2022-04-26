@@ -112,7 +112,6 @@ MODULE class_boundary_ionic
         !
         PROCEDURE :: dboundary_dions => calc_dboundary_dions
         !
-        PROCEDURE :: fa_de_drho => calc_field_aware_de_drho
         PROCEDURE :: fa_dboundary_dions => calc_field_aware_dboundary_dions
         PROCEDURE :: ion_field_partial => calc_ion_field_partial
         !
@@ -1217,79 +1216,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dion_field_drho
-    !------------------------------------------------------------------------------------
-    !>
-    !! Computes the functional derivative of the energy w.r.t the electronic density
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_field_aware_de_drho(this, de_dboundary, de_drho)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_density), INTENT(IN) :: de_dboundary
-        !
-        CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: de_drho
-        !
-        INTEGER :: i, j
-        REAL(DP) :: df
-        !
-        TYPE(environ_density) :: aux
-        !
-        TYPE(environ_density), ALLOCATABLE :: local(:)
-        !
-        REAL(DP), POINTER :: solvationrad
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_de_drho'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        ASSOCIATE (cell => this%scaled%cell, &
-                   n => this%ions%number)
-            !
-            !----------------------------------------------------------------------------
-            !
-            ALLOCATE (local(n))
-            !
-            DO i = 1, n
-                !
-                CALL local(i)%init(cell)
-                !
-                CALL this%soft_spheres%array(i)%density(local(i), .FALSE.)
-                !
-            END DO
-            !
-            CALL aux%init(cell)
-            !
-            DO i = 1, n
-                solvationrad => this%ions%iontype(this%ions%ityp(i))%solvationrad
-                !
-                CALL this%soft_spheres%array(i)%derivative(aux, .TRUE.)
-                !
-                DO j = 1, n
-                    !
-                    IF (i == j) CYCLE
-                    !
-                    aux%of_r = aux%of_r * local(j)%of_r
-                END DO
-                !
-                df = this%dscaling_of_field(i) * solvationrad * this%alpha * &
-                     aux%scalar_product(de_dboundary)
-                !
-                de_drho%of_r = de_drho%of_r + this%dion_field_drho(i)%of_r * df
-            END DO
-            !
-            CALL aux%destroy()
-            !
-            DO i = 1, n
-                CALL local(i)%destroy()
-            END DO
-            !
-        END ASSOCIATE
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_field_aware_de_drho
     !------------------------------------------------------------------------------------
     !>
     !! Computes the functional derivative of the boundary w.r.t the ionic positions
