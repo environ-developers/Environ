@@ -38,6 +38,12 @@ mott_schottky: pw.x
     slab embedded in a semiconducting region with different defect
     densities.
 
+ms_gcs: pw.x
+    
+    Use of ms-gcs correction to model extended semiconductor-solution
+    interfaces. Outputs the voltage compared to the flatband potential
+    for a given electrode charge. 
+
 solvent_aware: pw.x
 
     Use of the solvent-aware interface to prevent the dielectric to

@@ -1,5 +1,6 @@
+MPI startup(): PMI server not found. Please set I_MPI_PMI_LIBRARY variable if it is not a singleton case.
 
-     Program PWSCF v.7.0 starts on 26Apr2022 at 12:40:26 
+     Program PWSCF v.7.0 starts on 27Apr2022 at 15: 3:39 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -13,9 +14,10 @@
      Parallel version (MPI), running on     1 processors
 
      MPI processes distributed on     1 nodes
-     61754 MiB available memory on the printing compute node when the environment starts
+     60937 MiB available memory on the printing compute node when the environment starts
  
-     Reading input from pw.in
+     Waiting for input...
+     Reading input from standard input
 
      Current dimensions of program PWSCF are:
      Max number of different atomic species (ntypx) = 10
@@ -121,7 +123,7 @@
 
 
      PseudoPot. # 1 for Si read from file:
-     /ascldap/users/qcampbe/Pseudos/pslibrary.1.0.0/pbe/PSEUDOPOTENTIALS/Si.pbe-n-kjpaw_psl.1.0.0.UPF
+     /ascldap/users/qcampbe/Codes/espresso/skybridge/qe-7.0/Environ/..//pseudo/Si.pbe-n-kjpaw_psl.1.0.0.UPF
      MD5 check sum: f6fdc0b5ea41c4765647ac85391047bf
      Pseudo is Projector augmented-wave + core cor, Zval =  4.0
      Generated using &quot;atomic&quot; code by A. Dal Corso  v.6.4.1
@@ -172,7 +174,7 @@ Environ Warning (1005): wrong integral of erfc function
      Starting wfcs are   16 randomized atomic wfcs
      Checking if some PAW data can be deallocated... 
 
-     total cpu time spent up to now is        2.4 secs
+     total cpu time spent up to now is        2.1 secs
 
      Self-consistent Calculation
 
@@ -182,7 +184,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      negative rho (up, down):  2.963E-03 0.000E+00
 
-     total cpu time spent up to now is        3.6 secs
+     total cpu time spent up to now is        3.3 secs
 
      total energy              =    -186.03427197 Ry
      estimated scf accuracy    <       0.26721769 Ry
@@ -198,7 +200,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        5.2 secs
+     total cpu time spent up to now is        4.9 secs
 
      total energy              =    -186.03881042 Ry
      estimated scf accuracy    <       0.09730357 Ry
@@ -214,7 +216,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        6.7 secs
+     total cpu time spent up to now is        6.4 secs
 
      total energy              =    -186.06843354 Ry
      estimated scf accuracy    <       0.06577064 Ry
@@ -230,7 +232,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        8.1 secs
+     total cpu time spent up to now is        7.8 secs
 
      total energy              =    -186.07946965 Ry
      estimated scf accuracy    <       0.00228494 Ry
@@ -247,7 +249,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        9.7 secs
+     total cpu time spent up to now is        9.4 secs
 
      total energy              =    -186.08063040 Ry
      estimated scf accuracy    <       0.00248431 Ry
@@ -263,7 +265,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       11.2 secs
+     total cpu time spent up to now is       10.9 secs
 
      total energy              =    -186.08148314 Ry
      estimated scf accuracy    <       0.00009721 Ry
@@ -279,7 +281,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       12.7 secs
+     total cpu time spent up to now is       12.3 secs
 
      total energy              =    -186.08149932 Ry
      estimated scf accuracy    <       0.00007298 Ry
@@ -295,7 +297,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       14.1 secs
+     total cpu time spent up to now is       13.8 secs
 
      total energy              =    -186.08154833 Ry
      estimated scf accuracy    <       0.00001764 Ry
@@ -311,7 +313,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       15.6 secs
+     total cpu time spent up to now is       15.2 secs
 
      total energy              =    -186.08154368 Ry
      estimated scf accuracy    <       0.00002440 Ry
@@ -327,7 +329,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       17.1 secs
+     total cpu time spent up to now is       16.8 secs
 
      total energy              =    -186.08159406 Ry
      estimated scf accuracy    <       0.00000359 Ry
@@ -343,7 +345,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       18.5 secs
+     total cpu time spent up to now is       18.2 secs
 
      total energy              =    -186.08160850 Ry
      estimated scf accuracy    <       0.00000441 Ry
@@ -359,7 +361,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       20.2 secs
+     total cpu time spent up to now is       19.9 secs
 
      total energy              =    -186.08161335 Ry
      estimated scf accuracy    <       0.00000651 Ry
@@ -375,7 +377,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       21.9 secs
+     total cpu time spent up to now is       21.6 secs
 
      total energy              =    -186.08144742 Ry
      estimated scf accuracy    <       0.00019951 Ry
@@ -391,7 +393,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       23.3 secs
+     total cpu time spent up to now is       23.0 secs
 
      total energy              =    -186.08154886 Ry
      estimated scf accuracy    <       0.00012249 Ry
@@ -407,7 +409,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       24.8 secs
+     total cpu time spent up to now is       24.5 secs
 
      total energy              =    -186.08158859 Ry
      estimated scf accuracy    <       0.00012060 Ry
@@ -423,7 +425,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       26.4 secs
+     total cpu time spent up to now is       26.1 secs
 
      total energy              =    -186.08159324 Ry
      estimated scf accuracy    <       0.00002253 Ry
@@ -439,7 +441,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       28.3 secs
+     total cpu time spent up to now is       28.0 secs
 
      total energy              =    -186.08193389 Ry
      estimated scf accuracy    <       0.00006658 Ry
@@ -455,7 +457,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       30.1 secs
+     total cpu time spent up to now is       29.8 secs
 
      total energy              =    -186.08106836 Ry
      estimated scf accuracy    <       0.00020318 Ry
@@ -471,7 +473,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       31.8 secs
+     total cpu time spent up to now is       31.5 secs
 
      total energy              =    -186.08160686 Ry
      estimated scf accuracy    <       0.00001585 Ry
@@ -487,7 +489,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       33.2 secs
+     total cpu time spent up to now is       32.8 secs
 
      total energy              =    -186.08152953 Ry
      estimated scf accuracy    <       0.00001208 Ry
@@ -503,7 +505,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       34.6 secs
+     total cpu time spent up to now is       34.3 secs
 
      total energy              =    -186.08153364 Ry
      estimated scf accuracy    <       0.00001250 Ry
@@ -519,7 +521,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       36.1 secs
+     total cpu time spent up to now is       35.8 secs
 
      total energy              =    -186.08152247 Ry
      estimated scf accuracy    <       0.00001147 Ry
@@ -535,7 +537,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       37.7 secs
+     total cpu time spent up to now is       37.4 secs
 
      total energy              =    -186.08148792 Ry
      estimated scf accuracy    <       0.00001033 Ry
@@ -551,7 +553,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       39.3 secs
+     total cpu time spent up to now is       39.0 secs
 
      total energy              =    -186.08138291 Ry
      estimated scf accuracy    <       0.00000157 Ry
@@ -567,7 +569,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       40.9 secs
+     total cpu time spent up to now is       40.6 secs
 
      total energy              =    -186.08131134 Ry
      estimated scf accuracy    <       0.00000024 Ry
@@ -583,7 +585,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       42.6 secs
+     total cpu time spent up to now is       42.2 secs
 
      total energy              =    -186.08126268 Ry
      estimated scf accuracy    <       0.00000021 Ry
@@ -599,7 +601,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       44.2 secs
+     total cpu time spent up to now is       43.9 secs
 
      total energy              =    -186.08116115 Ry
      estimated scf accuracy    <       0.00000104 Ry
@@ -615,7 +617,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       45.8 secs
+     total cpu time spent up to now is       45.5 secs
 
      total energy              =    -186.08131555 Ry
      estimated scf accuracy    <       0.00000015 Ry
@@ -631,7 +633,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       47.3 secs
+     total cpu time spent up to now is       47.0 secs
 
      total energy              =    -186.08128994 Ry
      estimated scf accuracy    <       0.00000002 Ry
@@ -647,7 +649,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       48.8 secs
+     total cpu time spent up to now is       48.5 secs
 
      total energy              =    -186.08130899 Ry
      estimated scf accuracy    <       0.00000007 Ry
@@ -663,7 +665,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       50.3 secs
+     total cpu time spent up to now is       50.0 secs
 
      total energy              =    -186.08129542 Ry
      estimated scf accuracy    <       0.00000003 Ry
@@ -679,7 +681,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       51.9 secs
+     total cpu time spent up to now is       51.6 secs
 
      total energy              =    -186.08130607 Ry
      estimated scf accuracy    <       0.00000005 Ry
@@ -695,7 +697,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       53.4 secs
+     total cpu time spent up to now is       53.1 secs
 
      total energy              =    -186.08125559 Ry
      estimated scf accuracy    <       0.00000001 Ry
@@ -711,7 +713,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       54.8 secs
+     total cpu time spent up to now is       54.5 secs
 
      total energy              =    -186.08124875 Ry
      estimated scf accuracy    <          4.6E-09 Ry
@@ -727,7 +729,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       56.1 secs
+     total cpu time spent up to now is       55.8 secs
 
      total energy              =    -186.08124778 Ry
      estimated scf accuracy    <          3.5E-09 Ry
@@ -743,7 +745,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       57.5 secs
+     total cpu time spent up to now is       57.2 secs
 
      total energy              =    -186.08124827 Ry
      estimated scf accuracy    <          4.1E-09 Ry
@@ -759,7 +761,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       58.8 secs
+     total cpu time spent up to now is       58.4 secs
 
      total energy              =    -186.08125036 Ry
      estimated scf accuracy    <          2.4E-09 Ry
@@ -775,7 +777,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       60.1 secs
+     total cpu time spent up to now is       59.8 secs
 
      total energy              =    -186.08125044 Ry
      estimated scf accuracy    <          3.1E-09 Ry
@@ -791,7 +793,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       61.4 secs
+     total cpu time spent up to now is       61.1 secs
 
      total energy              =    -186.08124931 Ry
      estimated scf accuracy    <          5.2E-10 Ry
@@ -807,7 +809,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       62.7 secs
+     total cpu time spent up to now is       62.4 secs
 
      total energy              =    -186.08124933 Ry
      estimated scf accuracy    <          1.7E-09 Ry
@@ -823,7 +825,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       63.9 secs
+     total cpu time spent up to now is       63.6 secs
 
      total energy              =    -186.08124961 Ry
      estimated scf accuracy    <          1.9E-09 Ry
@@ -839,7 +841,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       65.1 secs
+     total cpu time spent up to now is       64.9 secs
 
      total energy              =    -186.08125017 Ry
      estimated scf accuracy    <          1.6E-09 Ry
@@ -855,7 +857,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       66.5 secs
+     total cpu time spent up to now is       66.2 secs
 
      total energy              =    -186.08125000 Ry
      estimated scf accuracy    <          1.6E-10 Ry
@@ -871,7 +873,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       67.8 secs
+     total cpu time spent up to now is       67.5 secs
 
      total energy              =    -186.08124865 Ry
      estimated scf accuracy    <          5.1E-10 Ry
@@ -887,7 +889,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       69.1 secs
+     total cpu time spent up to now is       68.8 secs
 
      total energy              =    -186.08124831 Ry
      estimated scf accuracy    <          6.2E-11 Ry
@@ -903,7 +905,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       70.5 secs
+     total cpu time spent up to now is       70.2 secs
 
      total energy              =    -186.08124787 Ry
      estimated scf accuracy    <          1.2E-11 Ry
@@ -919,7 +921,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       71.8 secs
+     total cpu time spent up to now is       71.6 secs
 
      total energy              =    -186.08124669 Ry
      estimated scf accuracy    <          7.4E-12 Ry
@@ -935,7 +937,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       73.1 secs
+     total cpu time spent up to now is       72.8 secs
 
      total energy              =    -186.08124664 Ry
      estimated scf accuracy    <          9.6E-12 Ry
@@ -951,7 +953,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       74.3 secs
+     total cpu time spent up to now is       74.0 secs
 
      total energy              =    -186.08124660 Ry
      estimated scf accuracy    <          2.2E-12 Ry
@@ -967,7 +969,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.1033 ev
 
-     total cpu time spent up to now is       75.4 secs
+     total cpu time spent up to now is       75.1 secs
 
      End of self-consistent calculation
 
@@ -1032,7 +1034,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      Total force =     0.015273     Total SCF correction =     0.000000
 
-     total cpu time spent up to now is       77.6 secs
+     total cpu time spent up to now is       77.4 secs
 
      Self-consistent Calculation
 
@@ -1050,7 +1052,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       79.3 secs
+     total cpu time spent up to now is       79.0 secs
 
      WARNING: integrated charge=    15.99979000, expected=    15.99930000
 
@@ -1068,7 +1070,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       80.6 secs
+     total cpu time spent up to now is       80.3 secs
 
      WARNING: integrated charge=    15.99997995, expected=    15.99930000
 
@@ -1086,7 +1088,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       81.9 secs
+     total cpu time spent up to now is       81.6 secs
 
      WARNING: integrated charge=    16.00000271, expected=    15.99930000
 
@@ -1104,7 +1106,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       83.1 secs
+     total cpu time spent up to now is       82.8 secs
 
      WARNING: integrated charge=    15.99999858, expected=    15.99930000
 
@@ -1122,7 +1124,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       84.3 secs
+     total cpu time spent up to now is       84.0 secs
 
      WARNING: integrated charge=    15.99999761, expected=    15.99930000
 
@@ -1140,7 +1142,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       85.6 secs
+     total cpu time spent up to now is       85.3 secs
 
      WARNING: integrated charge=    15.99999887, expected=    15.99930000
 
@@ -1158,7 +1160,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       86.9 secs
+     total cpu time spent up to now is       86.5 secs
 
      WARNING: integrated charge=    15.99999899, expected=    15.99930000
 
@@ -1176,7 +1178,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       88.1 secs
+     total cpu time spent up to now is       87.8 secs
 
      WARNING: integrated charge=    15.99999969, expected=    15.99930000
 
@@ -1194,7 +1196,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       89.4 secs
+     total cpu time spent up to now is       89.1 secs
 
      WARNING: integrated charge=    15.99999958, expected=    15.99930000
 
@@ -1212,7 +1214,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       90.5 secs
+     total cpu time spent up to now is       90.2 secs
 
      WARNING: integrated charge=    16.00000012, expected=    15.99930000
 
@@ -1230,7 +1232,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       91.8 secs
+     total cpu time spent up to now is       91.4 secs
 
      WARNING: integrated charge=    16.00000081, expected=    15.99930000
 
@@ -1248,7 +1250,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       93.0 secs
+     total cpu time spent up to now is       92.7 secs
 
      WARNING: integrated charge=    16.00000042, expected=    15.99930000
 
@@ -1266,7 +1268,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       94.2 secs
+     total cpu time spent up to now is       93.9 secs
 
      WARNING: integrated charge=    15.99999955, expected=    15.99930000
 
@@ -1284,7 +1286,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       95.4 secs
+     total cpu time spent up to now is       95.1 secs
 
      WARNING: integrated charge=    15.99999978, expected=    15.99930000
 
@@ -1302,7 +1304,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       96.7 secs
+     total cpu time spent up to now is       96.3 secs
 
      WARNING: integrated charge=    16.00000001, expected=    15.99930000
 
@@ -1320,7 +1322,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       98.0 secs
+     total cpu time spent up to now is       97.6 secs
 
      WARNING: integrated charge=    16.00000003, expected=    15.99930000
 
@@ -1338,7 +1340,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       99.2 secs
+     total cpu time spent up to now is       98.9 secs
 
      WARNING: integrated charge=    16.00000000, expected=    15.99930000
 
@@ -1356,7 +1358,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      100.4 secs
+     total cpu time spent up to now is      100.1 secs
 
      WARNING: integrated charge=    16.00000002, expected=    15.99930000
 
@@ -1374,7 +1376,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      101.6 secs
+     total cpu time spent up to now is      101.3 secs
 
      WARNING: integrated charge=    16.00000001, expected=    15.99930000
 
@@ -1392,7 +1394,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.1033 ev
 
-     total cpu time spent up to now is      102.7 secs
+     total cpu time spent up to now is      102.4 secs
 
      End of self-consistent calculation
 
@@ -1437,7 +1439,7 @@ Environ Warning (1005): wrong integral of erfc function
      DFT fermi level           =      -5.26850336
      charge in surface states  =       0.00004509
      charge accuracy           <       0.00049000
-     bulk/DFT fermi difference =       0.00744821
+     bulk/DFT fermi difference =       0.00798070
      DFT charge                =       0.00021000
 
      ********************************************
@@ -1463,7 +1465,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      Total force =     0.015162     Total SCF correction =     0.000001
 
-     total cpu time spent up to now is      104.9 secs
+     total cpu time spent up to now is      104.5 secs
 
      Self-consistent Calculation
 
@@ -1481,7 +1483,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      106.4 secs
+     total cpu time spent up to now is      106.1 secs
 
      WARNING: integrated charge=    15.99993700, expected=    15.99979000
 
@@ -1499,7 +1501,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      107.7 secs
+     total cpu time spent up to now is      107.4 secs
 
      WARNING: integrated charge=    15.99999253, expected=    15.99979000
 
@@ -1517,7 +1519,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      108.9 secs
+     total cpu time spent up to now is      108.6 secs
 
      WARNING: integrated charge=    16.00000067, expected=    15.99979000
 
@@ -1535,7 +1537,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      110.1 secs
+     total cpu time spent up to now is      109.8 secs
 
      WARNING: integrated charge=    15.99999993, expected=    15.99979000
 
@@ -1553,7 +1555,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      111.3 secs
+     total cpu time spent up to now is      110.9 secs
 
      WARNING: integrated charge=    15.99999925, expected=    15.99979000
 
@@ -1571,7 +1573,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      112.5 secs
+     total cpu time spent up to now is      112.1 secs
 
      WARNING: integrated charge=    15.99999951, expected=    15.99979000
 
@@ -1589,7 +1591,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      113.7 secs
+     total cpu time spent up to now is      113.4 secs
 
      WARNING: integrated charge=    15.99999948, expected=    15.99979000
 
@@ -1607,7 +1609,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      115.0 secs
+     total cpu time spent up to now is      114.6 secs
 
      WARNING: integrated charge=    15.99999989, expected=    15.99979000
 
@@ -1625,7 +1627,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      116.2 secs
+     total cpu time spent up to now is      115.8 secs
 
      WARNING: integrated charge=    15.99999989, expected=    15.99979000
 
@@ -1643,7 +1645,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      117.4 secs
+     total cpu time spent up to now is      117.0 secs
 
      WARNING: integrated charge=    16.00000009, expected=    15.99979000
 
@@ -1661,7 +1663,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      118.6 secs
+     total cpu time spent up to now is      118.3 secs
 
      WARNING: integrated charge=    16.00000010, expected=    15.99979000
 
@@ -1679,7 +1681,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      119.9 secs
+     total cpu time spent up to now is      119.6 secs
 
      WARNING: integrated charge=    16.00000013, expected=    15.99979000
 
@@ -1697,7 +1699,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      121.2 secs
+     total cpu time spent up to now is      120.8 secs
 
      WARNING: integrated charge=    16.00000000, expected=    15.99979000
 
@@ -1715,7 +1717,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      122.4 secs
+     total cpu time spent up to now is      122.0 secs
 
      WARNING: integrated charge=    16.00000002, expected=    15.99979000
 
@@ -1733,7 +1735,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      123.5 secs
+     total cpu time spent up to now is      123.1 secs
 
      WARNING: integrated charge=    16.00000000, expected=    15.99979000
 
@@ -1751,7 +1753,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      124.8 secs
+     total cpu time spent up to now is      124.4 secs
 
      WARNING: integrated charge=    16.00000000, expected=    15.99979000
 
@@ -1769,7 +1771,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      125.9 secs
+     total cpu time spent up to now is      125.6 secs
 
      WARNING: integrated charge=    16.00000000, expected=    15.99979000
 
@@ -1787,7 +1789,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      127.1 secs
+     total cpu time spent up to now is      126.7 secs
 
      WARNING: integrated charge=    16.00000000, expected=    15.99979000
 
@@ -1805,7 +1807,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.1033 ev
 
-     total cpu time spent up to now is      128.2 secs
+     total cpu time spent up to now is      127.8 secs
 
      End of self-consistent calculation
 
@@ -1849,9 +1851,9 @@ Environ Warning (1005): wrong integral of erfc function
 
      DFT fermi level           =      -5.26950117
      charge in surface states  =       0.00006223
-     charge accuracy           <       0.00003734
-     bulk/DFT fermi difference =      -0.00061437
-     DFT charge                =       0.00024734
+     charge accuracy           <       0.00002585
+     bulk/DFT fermi difference =       0.00039990
+     DFT charge                =       0.00018415
 
      ********************************************
 
@@ -1860,7 +1862,7 @@ Environ Warning (1005): wrong integral of erfc function
      Check: negative core charge=   -0.000003
 
      negative rho (up, down):  3.301E-03 0.000E+00
-     extrapolated charge   16.00000, renormalised to   15.99975
+     extrapolated charge   16.00000, renormalised to   15.99982
 
 Environ Warning (1005): wrong integral of erfc function
 
@@ -1876,7 +1878,7 @@ Environ Warning (1005): wrong integral of erfc function
 
      Total force =     0.015240     Total SCF correction =     0.000000
 
-     total cpu time spent up to now is      130.8 secs
+     total cpu time spent up to now is      129.9 secs
 
      Self-consistent Calculation
 
@@ -1888,778 +1890,221 @@ Environ Warning (1005): wrong integral of erfc function
      Diagonalizing with lowered threshold
 
      Davidson diagonalization with overlap
-     ethr =  2.89E-10,  avg # of iterations =  1.0
+     ethr =  1.60E-10,  avg # of iterations =  1.0
 
      negative rho (up, down):  3.301E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      132.4 secs
+     total cpu time spent up to now is      131.5 secs
 
-     WARNING: integrated charge=    15.99992580, expected=    15.99975266
+     WARNING: integrated charge=    15.99994475, expected=    15.99981585
 
-     total energy              =    -186.08124251 Ry
-     estimated scf accuracy    <       0.00000005 Ry
-     electrostatic embedding   =      -0.01538477 Ry
-     electrolyte free energy   =      -0.00003808 Ry
-     correction to one-el term =       1.08163494 Ry
+     total energy              =    -186.08124214 Ry
+     estimated scf accuracy    <       0.00000003 Ry
+     electrostatic embedding   =      -0.01538853 Ry
+     electrolyte free energy   =      -0.00003821 Ry
+     correction to one-el term =       1.08266664 Ry
 
      iteration #  2     ecut=    20.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
-     ethr =  2.87E-10,  avg # of iterations =  2.0
+     ethr =  1.59E-10,  avg # of iterations =  2.0
 
      negative rho (up, down):  3.301E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      133.6 secs
+     total cpu time spent up to now is      132.7 secs
 
-     WARNING: integrated charge=    15.99998892, expected=    15.99975266
+     WARNING: integrated charge=    15.99999109, expected=    15.99981585
+
+     total energy              =    -186.08124141 Ry
+     estimated scf accuracy    <       0.00000001 Ry
+     electrostatic embedding   =      -0.01540451 Ry
+     electrolyte free energy   =      -0.00003812 Ry
+     correction to one-el term =       1.08407308 Ry
+
+     iteration #  3     ecut=    20.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  6.71E-11,  avg # of iterations =  4.0
+
+     negative rho (up, down):  3.301E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      134.0 secs
+
+     WARNING: integrated charge=    16.00000089, expected=    15.99981585
+
+     total energy              =    -186.08124100 Ry
+     estimated scf accuracy    <       0.00000006 Ry
+     electrostatic embedding   =      -0.01540369 Ry
+     electrolyte free energy   =      -0.00003809 Ry
+     correction to one-el term =       1.08478118 Ry
+
+     iteration #  4     ecut=    20.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  6.71E-11,  avg # of iterations =  2.0
+
+     negative rho (up, down):  3.301E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      135.2 secs
+
+     WARNING: integrated charge=    15.99999959, expected=    15.99981585
+
+     total energy              =    -186.08124123 Ry
+     estimated scf accuracy    <       0.00000001 Ry
+     electrostatic embedding   =      -0.01540664 Ry
+     electrolyte free energy   =      -0.00003804 Ry
+     correction to one-el term =       1.08491831 Ry
+
+     iteration #  5     ecut=    20.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  6.33E-11,  avg # of iterations =  2.0
+
+     negative rho (up, down):  3.301E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      136.3 secs
+
+     WARNING: integrated charge=    15.99999958, expected=    15.99981585
+
+     total energy              =    -186.08124139 Ry
+     estimated scf accuracy    <          2.3E-09 Ry
+     electrostatic embedding   =      -0.01540701 Ry
+     electrolyte free energy   =      -0.00003804 Ry
+     correction to one-el term =       1.08492518 Ry
+
+     iteration #  6     ecut=    20.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.45E-11,  avg # of iterations =  4.0
+
+     negative rho (up, down):  3.301E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      137.5 secs
+
+     WARNING: integrated charge=    15.99999966, expected=    15.99981585
+
+     total energy              =    -186.08124161 Ry
+     estimated scf accuracy    <          4.7E-10 Ry
+     electrostatic embedding   =      -0.01540707 Ry
+     electrolyte free energy   =      -0.00003801 Ry
+     correction to one-el term =       1.08492903 Ry
+
+     iteration #  7     ecut=    20.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.95E-12,  avg # of iterations =  4.0
+
+     negative rho (up, down):  3.301E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      138.7 secs
+
+     WARNING: integrated charge=    15.99999994, expected=    15.99981585
 
      total energy              =    -186.08124157 Ry
-     estimated scf accuracy    <       0.00000002 Ry
-     electrostatic embedding   =      -0.01540632 Ry
-     electrolyte free energy   =      -0.00003795 Ry
-     correction to one-el term =       1.08350492 Ry
-
-     iteration #  3     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.19E-10,  avg # of iterations =  4.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      134.9 secs
-
-     WARNING: integrated charge=    16.00000123, expected=    15.99975266
-
-     total energy              =    -186.08124103 Ry
-     estimated scf accuracy    <       0.00000010 Ry
-     electrostatic embedding   =      -0.01540530 Ry
-     electrolyte free energy   =      -0.00003790 Ry
-     correction to one-el term =       1.08446723 Ry
-
-     iteration #  4     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.19E-10,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      136.1 secs
-
-     WARNING: integrated charge=    15.99999946, expected=    15.99975266
-
-     total energy              =    -186.08124135 Ry
-     estimated scf accuracy    <       0.00000002 Ry
-     electrostatic embedding   =      -0.01540916 Ry
-     electrolyte free energy   =      -0.00003788 Ry
-     correction to one-el term =       1.08468798 Ry
-
-     iteration #  5     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.19E-10,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      137.3 secs
-
-     WARNING: integrated charge=    15.99999932, expected=    15.99975266
-
-     total energy              =    -186.08124154 Ry
-     estimated scf accuracy    <          5.2E-09 Ry
-     electrostatic embedding   =      -0.01540969 Ry
-     electrolyte free energy   =      -0.00003789 Ry
-     correction to one-el term =       1.08470461 Ry
-
-     iteration #  6     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  3.28E-11,  avg # of iterations =  4.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      138.5 secs
-
-     WARNING: integrated charge=    15.99999961, expected=    15.99975266
-
-     total energy              =    -186.08124178 Ry
-     estimated scf accuracy    <          2.2E-10 Ry
-     electrostatic embedding   =      -0.01540987 Ry
-     electrolyte free energy   =      -0.00003783 Ry
-     correction to one-el term =       1.08469411 Ry
-
-     iteration #  7     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.40E-12,  avg # of iterations =  4.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      139.7 secs
-
-     WARNING: integrated charge=    15.99999969, expected=    15.99975266
-
-     total energy              =    -186.08124178 Ry
-     estimated scf accuracy    <          3.5E-10 Ry
-     electrostatic embedding   =      -0.01540951 Ry
-     electrolyte free energy   =      -0.00003787 Ry
-     correction to one-el term =       1.08474192 Ry
+     estimated scf accuracy    <          1.9E-10 Ry
+     electrostatic embedding   =      -0.01540678 Ry
+     electrolyte free energy   =      -0.00003809 Ry
+     correction to one-el term =       1.08503214 Ry
 
      iteration #  8     ecut=    20.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
-     ethr =  1.40E-12,  avg # of iterations =  5.0
+     ethr =  1.17E-12,  avg # of iterations =  4.0
 
      negative rho (up, down):  3.301E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      141.0 secs
+     total cpu time spent up to now is      139.9 secs
 
-     WARNING: integrated charge=    15.99999983, expected=    15.99975266
+     WARNING: integrated charge=    15.99999984, expected=    15.99981585
 
-     total energy              =    -186.08124190 Ry
-     estimated scf accuracy    <          8.7E-10 Ry
-     electrostatic embedding   =      -0.01540844 Ry
-     electrolyte free energy   =      -0.00003785 Ry
-     correction to one-el term =       1.08479853 Ry
+     total energy              =    -186.08124159 Ry
+     estimated scf accuracy    <          3.7E-11 Ry
+     electrostatic embedding   =      -0.01540566 Ry
+     electrolyte free energy   =      -0.00003808 Ry
+     correction to one-el term =       1.08512392 Ry
 
      iteration #  9     ecut=    20.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
-     ethr =  1.40E-12,  avg # of iterations =  4.0
+     ethr =  2.33E-13,  avg # of iterations =  5.0
 
      negative rho (up, down):  3.301E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      142.1 secs
+     total cpu time spent up to now is      141.1 secs
 
-     WARNING: integrated charge=    15.99999985, expected=    15.99975266
+     WARNING: integrated charge=    15.99999991, expected=    15.99981585
 
-     total energy              =    -186.08124196 Ry
-     estimated scf accuracy    <          5.0E-10 Ry
-     electrostatic embedding   =      -0.01540729 Ry
-     electrolyte free energy   =      -0.00003788 Ry
-     correction to one-el term =       1.08497485 Ry
+     total energy              =    -186.08124182 Ry
+     estimated scf accuracy    <          3.2E-10 Ry
+     electrostatic embedding   =      -0.01540531 Ry
+     electrolyte free energy   =      -0.00003802 Ry
+     correction to one-el term =       1.08510323 Ry
 
      iteration # 10     ecut=    20.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
-     ethr =  1.40E-12,  avg # of iterations =  4.0
+     ethr =  2.33E-13,  avg # of iterations =  3.0
 
      negative rho (up, down):  3.301E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      143.4 secs
+     total cpu time spent up to now is      142.3 secs
 
-     WARNING: integrated charge=    15.99999995, expected=    15.99975266
+     WARNING: integrated charge=    16.00000002, expected=    15.99981585
 
-     total energy              =    -186.08124195 Ry
-     estimated scf accuracy    <          2.0E-09 Ry
-     electrostatic embedding   =      -0.01540750 Ry
-     electrolyte free energy   =      -0.00003785 Ry
-     correction to one-el term =       1.08494469 Ry
+     total energy              =    -186.08124184 Ry
+     estimated scf accuracy    <          4.1E-10 Ry
+     electrostatic embedding   =      -0.01540486 Ry
+     electrolyte free energy   =      -0.00003812 Ry
+     correction to one-el term =       1.08523175 Ry
 
      iteration # 11     ecut=    20.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
-     ethr =  1.40E-12,  avg # of iterations =  3.0
+     ethr =  2.33E-13,  avg # of iterations =  3.0
 
      negative rho (up, down):  3.301E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      144.6 secs
+     total cpu time spent up to now is      143.5 secs
 
-     WARNING: integrated charge=    16.00000007, expected=    15.99975266
-
-     total energy              =    -186.08124229 Ry
-     estimated scf accuracy    <          1.2E-10 Ry
-     electrostatic embedding   =      -0.01540646 Ry
-     electrolyte free energy   =      -0.00003780 Ry
-     correction to one-el term =       1.08491358 Ry
-
-     iteration # 12     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  7.67E-13,  avg # of iterations =  4.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      145.9 secs
-
-     WARNING: integrated charge=    16.00000018, expected=    15.99975266
-
-     total energy              =    -186.08124224 Ry
-     estimated scf accuracy    <          7.1E-12 Ry
-     electrostatic embedding   =      -0.01540446 Ry
-     electrolyte free energy   =      -0.00003786 Ry
-     correction to one-el term =       1.08510977 Ry
-
-     iteration # 13     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  4.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      147.1 secs
-
-     WARNING: integrated charge=    16.00000011, expected=    15.99975266
-
-     total energy              =    -186.08124244 Ry
-     estimated scf accuracy    <          3.2E-11 Ry
-     electrostatic embedding   =      -0.01540392 Ry
-     electrolyte free energy   =      -0.00003781 Ry
-     correction to one-el term =       1.08508993 Ry
-
-     iteration # 14     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  5.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      148.4 secs
-
-     WARNING: integrated charge=    16.00000009, expected=    15.99975266
-
-     total energy              =    -186.08124246 Ry
-     estimated scf accuracy    <          2.6E-11 Ry
-     electrostatic embedding   =      -0.01540280 Ry
-     electrolyte free energy   =      -0.00003784 Ry
-     correction to one-el term =       1.08519939 Ry
-
-     iteration # 15     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  5.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      149.7 secs
-
-     WARNING: integrated charge=    16.00000005, expected=    15.99975266
-
-     total energy              =    -186.08124259 Ry
-     estimated scf accuracy    <          1.6E-11 Ry
-     electrostatic embedding   =      -0.01540068 Ry
-     electrolyte free energy   =      -0.00003785 Ry
-     correction to one-el term =       1.08534229 Ry
-
-     iteration # 16     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  5.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      150.9 secs
-
-     WARNING: integrated charge=    16.00000005, expected=    15.99975266
-
-     total energy              =    -186.08124274 Ry
-     estimated scf accuracy    <          1.6E-12 Ry
-     electrostatic embedding   =      -0.01540216 Ry
-     electrolyte free energy   =      -0.00003783 Ry
-     correction to one-el term =       1.08521861 Ry
-
-     iteration # 17     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      152.0 secs
-
-     WARNING: integrated charge=    16.00000006, expected=    15.99975266
-
-     total energy              =    -186.08124281 Ry
-     estimated scf accuracy    <          3.0E-12 Ry
-     electrostatic embedding   =      -0.01540196 Ry
-     electrolyte free energy   =      -0.00003787 Ry
-     correction to one-el term =       1.08527151 Ry
-
-     iteration # 18     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      153.2 secs
-
-     WARNING: integrated charge=    16.00000005, expected=    15.99975266
-
-     total energy              =    -186.08124285 Ry
-     estimated scf accuracy    <          3.6E-12 Ry
-     electrostatic embedding   =      -0.01540171 Ry
-     electrolyte free energy   =      -0.00003789 Ry
-     correction to one-el term =       1.08530869 Ry
-
-     iteration # 19     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      154.3 secs
-
-     WARNING: integrated charge=    16.00000001, expected=    15.99975266
-
-     total energy              =    -186.08124298 Ry
-     estimated scf accuracy    <          2.1E-12 Ry
-     electrostatic embedding   =      -0.01540201 Ry
-     electrolyte free energy   =      -0.00003774 Ry
-     correction to one-el term =       1.08514659 Ry
-
-     iteration # 20     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      155.5 secs
-
-     WARNING: integrated charge=    16.00000000, expected=    15.99975266
-
-     total energy              =    -186.08124303 Ry
-     estimated scf accuracy    <          3.9E-12 Ry
-     electrostatic embedding   =      -0.01540216 Ry
-     electrolyte free energy   =      -0.00003772 Ry
-     correction to one-el term =       1.08511613 Ry
-
-     iteration # 21     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      156.7 secs
-
-     WARNING: integrated charge=    16.00000000, expected=    15.99975266
-
-     total energy              =    -186.08124282 Ry
-     estimated scf accuracy    <          2.5E-12 Ry
-     electrostatic embedding   =      -0.01540191 Ry
-     electrolyte free energy   =      -0.00003786 Ry
-     correction to one-el term =       1.08527122 Ry
-
-     iteration # 22     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      157.8 secs
-
-     WARNING: integrated charge=    16.00000000, expected=    15.99975266
-
-     total energy              =    -186.08124277 Ry
-     estimated scf accuracy    <          2.3E-12 Ry
-     electrostatic embedding   =      -0.01540184 Ry
-     electrolyte free energy   =      -0.00003789 Ry
-     correction to one-el term =       1.08530213 Ry
-
-     iteration # 23     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     the potential shift due to the Gaussian-smeared nuclei is    -0.1033 ev
-
-     total cpu time spent up to now is      158.9 secs
-
-     End of self-consistent calculation
-
-          k = 0.0000 0.0000 0.0000 (  5049 PWs)   bands (ev):
-
-   -16.7282 -14.4891 -11.2459  -7.8316  -7.7922  -7.3483  -6.3975  -5.2788
-    -4.6746  -4.1143  -3.9581  -2.8940
-
-     the Fermi energy is    -5.2693 ev
-
-     WARNING: integrated charge=    16.00000000, expected=    15.99975266
-
-!    total energy              =    -186.08124287 Ry
-
-     total all-electron energy =     -2319.464703 Ry
-     estimated scf accuracy    <          5.6E-13 Ry
-     smearing contrib. (-TS)   =       0.00000000 Ry
-     internal energy E=F+TS    =    -186.08124287 Ry
-
-     The total energy is F=E-TS. E is the sum of the following terms:
-     one-electron contribution =    -416.37116506 Ry
-     hartree contribution      =     209.53586443 Ry
-     xc contribution           =     -24.25464642 Ry
-     ewald contribution        =     186.30364135 Ry
-     one-center paw contrib.   =    -142.36469859 Ry
-     electrostatic embedding   =      -0.01540211 Ry
-     electrolyte free energy   =      -0.00003780 Ry
-     correction to one-el term =       1.08520133 Ry
-
-     WARNING: you are using the parabolic pbc correction;
-              the potential shift above must be added to 
-              band and Fermi energies.
-
-     convergence has been achieved in  23 iterations
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     ********************************************
-
-     charge convergence step   =                3
-
-     DFT fermi level           =      -5.26934157
-     charge in surface states  =       0.00006051
-     charge accuracy           <       0.00001253
-     bulk/DFT fermi difference =       0.00031016
-     DFT charge                =       0.00023481
-
-     ********************************************
-
-     charge density from previous step
-
-     Check: negative core charge=   -0.000003
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-     extrapolated charge   16.00000, renormalised to   15.99977
-
-Environ Warning (1005): wrong integral of erfc function
-
-
-     add environment contribution to local potential
-
-     Forces acting on atoms (cartesian axes, Ry/au):
-
-     atom    1 type  1   force =     0.00000000    0.00000000    0.01069978
-     atom    2 type  1   force =     0.00000000    0.00000000   -0.01069978
-     atom    3 type  1   force =     0.00000000    0.00000000    0.00124610
-     atom    4 type  1   force =     0.00000000    0.00000000   -0.00124610
-
-     Total force =     0.015234     Total SCF correction =     0.000001
-
-     total cpu time spent up to now is      161.0 secs
-
-     Self-consistent Calculation
-
-     iteration #  1     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.00E-06,  avg # of iterations =  1.0
-
-     Threshold (ethr) on eigenvalues was too large:
-     Diagonalizing with lowered threshold
-
-     Davidson diagonalization with overlap
-     ethr =  2.64E-10,  avg # of iterations =  1.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      162.6 secs
-
-     WARNING: integrated charge=    15.99992956, expected=    15.99976519
-
-     total energy              =    -186.08124244 Ry
-     estimated scf accuracy    <       0.00000004 Ry
-     electrostatic embedding   =      -0.01538543 Ry
-     electrolyte free energy   =      -0.00003810 Ry
-     correction to one-el term =       1.08185318 Ry
-
-     iteration #  2     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  2.63E-10,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      163.9 secs
-
-     WARNING: integrated charge=    15.99999358, expected=    15.99976519
-
-     total energy              =    -186.08124154 Ry
-     estimated scf accuracy    <       0.00000002 Ry
-     electrostatic embedding   =      -0.01540582 Ry
-     electrolyte free energy   =      -0.00003798 Ry
-     correction to one-el term =       1.08361312 Ry
-
-     iteration #  3     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  9.80E-11,  avg # of iterations =  5.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      165.1 secs
-
-     WARNING: integrated charge=    16.00000096, expected=    15.99976519
-
-     total energy              =    -186.08124103 Ry
-     estimated scf accuracy    <       0.00000010 Ry
-     electrostatic embedding   =      -0.01540519 Ry
-     electrolyte free energy   =      -0.00003793 Ry
-     correction to one-el term =       1.08458661 Ry
-
-     iteration #  4     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  9.80E-11,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      166.3 secs
-
-     WARNING: integrated charge=    16.00000010, expected=    15.99976519
-
-     total energy              =    -186.08124132 Ry
-     estimated scf accuracy    <       0.00000002 Ry
-     electrostatic embedding   =      -0.01540865 Ry
-     electrolyte free energy   =      -0.00003792 Ry
-     correction to one-el term =       1.08473818 Ry
-
-     iteration #  5     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  9.80E-11,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      167.5 secs
-
-     WARNING: integrated charge=    15.99999932, expected=    15.99976519
-
-     total energy              =    -186.08124152 Ry
-     estimated scf accuracy    <          7.5E-09 Ry
-     electrostatic embedding   =      -0.01540912 Ry
-     electrolyte free energy   =      -0.00003787 Ry
-     correction to one-el term =       1.08468796 Ry
-
-     iteration #  6     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  4.71E-11,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      168.7 secs
-
-     WARNING: integrated charge=    15.99999981, expected=    15.99976519
-
-     total energy              =    -186.08124169 Ry
-     estimated scf accuracy    <          3.1E-09 Ry
-     electrostatic embedding   =      -0.01540934 Ry
-     electrolyte free energy   =      -0.00003787 Ry
-     correction to one-el term =       1.08470387 Ry
-
-     iteration #  7     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.92E-11,  avg # of iterations =  4.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      169.9 secs
-
-     WARNING: integrated charge=    15.99999978, expected=    15.99976519
-
-     total energy              =    -186.08124181 Ry
-     estimated scf accuracy    <          9.2E-11 Ry
-     electrostatic embedding   =      -0.01540883 Ry
-     electrolyte free energy   =      -0.00003790 Ry
-     correction to one-el term =       1.08484662 Ry
-
-     iteration #  8     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  5.78E-13,  avg # of iterations =  5.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      171.1 secs
-
-     WARNING: integrated charge=    15.99999976, expected=    15.99976519
+     WARNING: integrated charge=    16.00000011, expected=    15.99981585
 
      total energy              =    -186.08124194 Ry
-     estimated scf accuracy    <          1.6E-09 Ry
-     electrostatic embedding   =      -0.01540871 Ry
-     electrolyte free energy   =      -0.00003785 Ry
-     correction to one-el term =       1.08483683 Ry
-
-     iteration #  9     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  5.78E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      172.3 secs
-
-     WARNING: integrated charge=    16.00000000, expected=    15.99976519
-
-     total energy              =    -186.08124201 Ry
-     estimated scf accuracy    <          1.3E-09 Ry
-     electrostatic embedding   =      -0.01540830 Ry
-     electrolyte free energy   =      -0.00003787 Ry
-     correction to one-el term =       1.08486937 Ry
-
-     iteration # 10     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  5.78E-13,  avg # of iterations =  6.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      173.6 secs
-
-     WARNING: integrated charge=    16.00000010, expected=    15.99976519
-
-     total energy              =    -186.08124201 Ry
-     estimated scf accuracy    <          7.3E-11 Ry
-     electrostatic embedding   =      -0.01540502 Ry
-     electrolyte free energy   =      -0.00003791 Ry
-     correction to one-el term =       1.08510080 Ry
-
-     iteration # 11     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  4.53E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      174.7 secs
-
-     WARNING: integrated charge=    16.00000004, expected=    15.99976519
-
-     total energy              =    -186.08124207 Ry
-     estimated scf accuracy    <          1.6E-10 Ry
-     electrostatic embedding   =      -0.01540481 Ry
-     electrolyte free energy   =      -0.00003795 Ry
-     correction to one-el term =       1.08514095 Ry
+     estimated scf accuracy    <          1.7E-10 Ry
+     electrostatic embedding   =      -0.01540443 Ry
+     electrolyte free energy   =      -0.00003803 Ry
+     correction to one-el term =       1.08515554 Ry
 
      iteration # 12     ecut=    20.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
-     ethr =  4.53E-13,  avg # of iterations =  2.0
+     ethr =  2.33E-13,  avg # of iterations =  4.0
 
      negative rho (up, down):  3.301E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      175.9 secs
+     total cpu time spent up to now is      144.8 secs
 
-     WARNING: integrated charge=    16.00000004, expected=    15.99976519
+     WARNING: integrated charge=    16.00000009, expected=    15.99981585
 
-     total energy              =    -186.08124237 Ry
-     estimated scf accuracy    <          1.2E-10 Ry
-     electrostatic embedding   =      -0.01540482 Ry
-     electrolyte free energy   =      -0.00003783 Ry
-     correction to one-el term =       1.08502436 Ry
+     total energy              =    -186.08124191 Ry
+     estimated scf accuracy    <          5.1E-12 Ry
+     electrostatic embedding   =      -0.01540329 Ry
+     electrolyte free energy   =      -0.00003806 Ry
+     correction to one-el term =       1.08525715 Ry
 
      iteration # 13     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  4.53E-13,  avg # of iterations =  4.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      177.1 secs
-
-     WARNING: integrated charge=    16.00000014, expected=    15.99976519
-
-     total energy              =    -186.08124245 Ry
-     estimated scf accuracy    <          8.0E-11 Ry
-     electrostatic embedding   =      -0.01540345 Ry
-     electrolyte free energy   =      -0.00003788 Ry
-     correction to one-el term =       1.08518893 Ry
-
-     iteration # 14     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  4.53E-13,  avg # of iterations =  2.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      178.3 secs
-
-     WARNING: integrated charge=    16.00000016, expected=    15.99976519
-
-     total energy              =    -186.08124241 Ry
-     estimated scf accuracy    <          1.9E-11 Ry
-     electrostatic embedding   =      -0.01540317 Ry
-     electrolyte free energy   =      -0.00003788 Ry
-     correction to one-el term =       1.08519553 Ry
-
-     iteration # 15     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.19E-13,  avg # of iterations =  4.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      179.5 secs
-
-     WARNING: integrated charge=    16.00000003, expected=    15.99976519
-
-     total energy              =    -186.08124243 Ry
-     estimated scf accuracy    <          2.7E-11 Ry
-     electrostatic embedding   =      -0.01540208 Ry
-     electrolyte free energy   =      -0.00003787 Ry
-     correction to one-el term =       1.08524673 Ry
-
-     iteration # 16     ecut=    20.00 Ry     beta= 0.70
-     Davidson diagonalization with overlap
-     ethr =  1.19E-13,  avg # of iterations =  3.0
-
-     negative rho (up, down):  3.301E-03 0.000E+00
-
-     add environment contribution to local potential
-
-     total cpu time spent up to now is      180.7 secs
-
-     WARNING: integrated charge=    16.00000000, expected=    15.99976519
-
-     total energy              =    -186.08124237 Ry
-     estimated scf accuracy    <          3.3E-12 Ry
-     electrostatic embedding   =      -0.01540230 Ry
-     electrolyte free energy   =      -0.00003783 Ry
-     correction to one-el term =       1.08518706 Ry
-
-     iteration # 17     ecut=    20.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
      ethr =  1.00E-13,  avg # of iterations =  3.0
 
@@ -2667,17 +2112,71 @@ Environ Warning (1005): wrong integral of erfc function
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      181.9 secs
+     total cpu time spent up to now is      146.0 secs
 
-     WARNING: integrated charge=    16.00000001, expected=    15.99976519
+     WARNING: integrated charge=    16.00000001, expected=    15.99981585
 
-     total energy              =    -186.08124236 Ry
-     estimated scf accuracy    <          2.7E-12 Ry
-     electrostatic embedding   =      -0.01540192 Ry
-     electrolyte free energy   =      -0.00003794 Ry
-     correction to one-el term =       1.08531688 Ry
+     total energy              =    -186.08124205 Ry
+     estimated scf accuracy    <          1.2E-11 Ry
+     electrostatic embedding   =      -0.01540283 Ry
+     electrolyte free energy   =      -0.00003801 Ry
+     correction to one-el term =       1.08524105 Ry
 
-     iteration # 18     ecut=    20.00 Ry     beta= 0.70
+     iteration # 14     ecut=    20.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-13,  avg # of iterations =  4.0
+
+     negative rho (up, down):  3.301E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      147.2 secs
+
+     WARNING: integrated charge=    16.00000001, expected=    15.99981585
+
+     total energy              =    -186.08124209 Ry
+     estimated scf accuracy    <          2.9E-11 Ry
+     electrostatic embedding   =      -0.01540210 Ry
+     electrolyte free energy   =      -0.00003802 Ry
+     correction to one-el term =       1.08529193 Ry
+
+     iteration # 15     ecut=    20.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-13,  avg # of iterations =  3.0
+
+     negative rho (up, down):  3.301E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      148.4 secs
+
+     WARNING: integrated charge=    16.00000000, expected=    15.99981585
+
+     total energy              =    -186.08124217 Ry
+     estimated scf accuracy    <          1.5E-12 Ry
+     electrostatic embedding   =      -0.01540125 Ry
+     electrolyte free energy   =      -0.00003800 Ry
+     correction to one-el term =       1.08532827 Ry
+
+     iteration # 16     ecut=    20.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-13,  avg # of iterations =  3.0
+
+     negative rho (up, down):  3.301E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      149.5 secs
+
+     WARNING: integrated charge=    16.00000001, expected=    15.99981585
+
+     total energy              =    -186.08124201 Ry
+     estimated scf accuracy    <          5.0E-12 Ry
+     electrostatic embedding   =      -0.01540161 Ry
+     electrolyte free energy   =      -0.00003795 Ry
+     correction to one-el term =       1.08525398 Ry
+
+     iteration # 17     ecut=    20.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
      ethr =  1.00E-13,  avg # of iterations =  2.0
 
@@ -2685,52 +2184,52 @@ Environ Warning (1005): wrong integral of erfc function
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.1033 ev
 
-     total cpu time spent up to now is      183.0 secs
+     total cpu time spent up to now is      150.6 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 (  5049 PWs)   bands (ev):
 
-   -16.7282 -14.4891 -11.2459  -7.8316  -7.7922  -7.3483  -6.3975  -5.2788
-    -4.6746  -4.1143  -3.9581  -2.8940
+   -16.7284 -14.4893 -11.2461  -7.8318  -7.7924  -7.3485  -6.3977  -5.2790
+    -4.6748  -4.1145  -3.9583  -2.8942
 
-     the Fermi energy is    -5.2693 ev
+     the Fermi energy is    -5.2696 ev
 
-     WARNING: integrated charge=    16.00000000, expected=    15.99976519
+     WARNING: integrated charge=    16.00000000, expected=    15.99981585
 
-!    total energy              =    -186.08124241 Ry
+!    total energy              =    -186.08124198 Ry
 
      total all-electron energy =     -2319.464702 Ry
-     estimated scf accuracy    <          7.1E-13 Ry
+     estimated scf accuracy    <          8.3E-13 Ry
      smearing contrib. (-TS)   =       0.00000000 Ry
-     internal energy E=F+TS    =    -186.08124241 Ry
+     internal energy E=F+TS    =    -186.08124198 Ry
 
      The total energy is F=E-TS. E is the sum of the following terms:
-     one-electron contribution =    -416.37115224 Ry
-     hartree contribution      =     209.53585209 Ry
-     xc contribution           =     -24.25464712 Ry
+     one-electron contribution =    -416.37141588 Ry
+     hartree contribution      =     209.53587717 Ry
+     xc contribution           =     -24.25464728 Ry
      ewald contribution        =     186.30364135 Ry
-     one-center paw contrib.   =    -142.36469864 Ry
-     electrostatic embedding   =      -0.01540225 Ry
-     electrolyte free energy   =      -0.00003784 Ry
-     correction to one-el term =       1.08520223 Ry
+     one-center paw contrib.   =    -142.36469866 Ry
+     electrostatic embedding   =      -0.01540123 Ry
+     electrolyte free energy   =      -0.00003812 Ry
+     correction to one-el term =       1.08544068 Ry
 
      WARNING: you are using the parabolic pbc correction;
               the potential shift above must be added to 
               band and Fermi energies.
 
-     convergence has been achieved in  18 iterations
+     convergence has been achieved in  17 iterations
 
      negative rho (up, down):  3.301E-03 0.000E+00
 
      ********************************************
 
-     charge convergence step   =                4
+     charge convergence step   =                3
 
-     converged charge accuracy <       0.00000604
-     charge in surface states  =       0.00006163
-     bulk/DFT fermi difference =      -0.00028925
-     final potential (V)       =      -0.22905870
+     converged charge accuracy <       0.00000418
+     charge in surface states  =       0.00006317
+     bulk/DFT fermi difference =      -0.00007712
+     final potential (V)       =      -0.22647793
      output written to q-v.dat
 
      ********************************************
@@ -2738,63 +2237,63 @@ Environ Warning (1005): wrong integral of erfc function
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  1   force =     0.00000000    0.00000000    0.01070095
-     atom    2 type  1   force =     0.00000000    0.00000000   -0.01070095
-     atom    3 type  1   force =     0.00000000    0.00000000    0.00124553
-     atom    4 type  1   force =     0.00000000    0.00000000   -0.00124553
+     atom    1 type  1   force =     0.00000000    0.00000000    0.01070675
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.01070675
+     atom    3 type  1   force =     0.00000000    0.00000000    0.00124411
+     atom    4 type  1   force =     0.00000000    0.00000000   -0.00124411
 
-     Total force =     0.015236     Total SCF correction =     0.000001
+     Total force =     0.015244     Total SCF correction =     0.000001
 
-     Writing all to output data dir ./Si.save/
+     Writing all to output data dir /ascldap/users/qcampbe/Codes/espresso/skybridge/qe-7.0/Environ/..//tempdir/scf.save/
  
-     init_run     :      1.29s CPU      1.51s WALL (       1 calls)
-     electrons    :    157.10s CPU    171.93s WALL (       5 calls)
-     update_pot   :      2.69s CPU      2.69s WALL (       4 calls)
-     forces       :      8.45s CPU      8.97s WALL (       5 calls)
+     init_run     :      1.26s CPU      1.52s WALL (       1 calls)
+     electrons    :    130.20s CPU    142.05s WALL (       4 calls)
+     update_pot   :      2.02s CPU      2.02s WALL (       3 calls)
+     forces       :      6.38s CPU      6.81s WALL (       4 calls)
 
      Called by init_run:
-     wfcinit      :      0.07s CPU      0.09s WALL (       1 calls)
-     potinit      :      0.68s CPU      0.72s WALL (       1 calls)
-     hinit0       :      0.43s CPU      0.50s WALL (       1 calls)
+     wfcinit      :      0.07s CPU      0.08s WALL (       1 calls)
+     potinit      :      0.66s CPU      0.71s WALL (       1 calls)
+     hinit0       :      0.43s CPU      0.53s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :     23.14s CPU     23.22s WALL (     134 calls)
-     sum_band     :     15.68s CPU     22.81s WALL (     134 calls)
-     v_of_rho     :      6.12s CPU      6.16s WALL (     135 calls)
-     newd         :      9.85s CPU     16.92s WALL (     135 calls)
-     PAW_pot      :     78.43s CPU     78.45s WALL (     139 calls)
-     mix_rho      :      1.44s CPU      1.45s WALL (     134 calls)
+     c_bands      :     19.23s CPU     19.30s WALL (     109 calls)
+     sum_band     :     12.76s CPU     18.67s WALL (     109 calls)
+     v_of_rho     :      4.98s CPU      5.02s WALL (     110 calls)
+     newd         :      8.13s CPU     13.90s WALL (     110 calls)
+     PAW_pot      :     63.44s CPU     63.47s WALL (     113 calls)
+     mix_rho      :      1.18s CPU      1.20s WALL (     109 calls)
 
      Called by c_bands:
-     init_us_2    :      0.62s CPU      0.64s WALL (     273 calls)
-     init_us_2:cp :      0.62s CPU      0.64s WALL (     273 calls)
-     cegterg      :     19.16s CPU     19.22s WALL (     134 calls)
+     init_us_2    :      0.51s CPU      0.52s WALL (     222 calls)
+     init_us_2:cp :      0.51s CPU      0.52s WALL (     222 calls)
+     cegterg      :     15.98s CPU     16.01s WALL (     109 calls)
 
      Called by *egterg:
-     cdiaghg      :      0.13s CPU      0.13s WALL (     626 calls)
-     h_psi        :     16.51s CPU     16.56s WALL (     635 calls)
-     s_psi        :      0.89s CPU      0.89s WALL (     635 calls)
-     g_psi        :      0.16s CPU      0.16s WALL (     500 calls)
+     cdiaghg      :      0.11s CPU      0.11s WALL (     530 calls)
+     h_psi        :     13.76s CPU     13.78s WALL (     537 calls)
+     s_psi        :      0.74s CPU      0.75s WALL (     537 calls)
+     g_psi        :      0.13s CPU      0.13s WALL (     427 calls)
 
      Called by h_psi:
-     h_psi:calbec :      0.96s CPU      0.97s WALL (     635 calls)
-     vloc_psi     :     14.59s CPU     14.64s WALL (     635 calls)
-     add_vuspsi   :      0.90s CPU      0.90s WALL (     635 calls)
+     h_psi:calbec :      0.80s CPU      0.80s WALL (     537 calls)
+     vloc_psi     :     12.17s CPU     12.18s WALL (     537 calls)
+     add_vuspsi   :      0.75s CPU      0.75s WALL (     537 calls)
 
      General routines
-     calbec       :      1.29s CPU      1.30s WALL (     793 calls)
-     fft          :      2.22s CPU      2.27s WALL (    1544 calls)
-     ffts         :      0.20s CPU      0.20s WALL (     134 calls)
-     fftw         :     15.75s CPU     15.80s WALL (   11060 calls)
+     calbec       :      1.07s CPU      1.07s WALL (     665 calls)
+     fft          :      1.81s CPU      1.86s WALL (    1257 calls)
+     ffts         :      0.16s CPU      0.16s WALL (     109 calls)
+     fftw         :     13.08s CPU     13.10s WALL (    9194 calls)
  
      Parallel routines
  
      Environ routines
  
-     PWSCF        :   2m46.95s CPU   3m 3.43s WALL
+     PWSCF        :   2m17.94s CPU   2m31.09s WALL
 
  
-   This run was terminated on:  12:43:29  26Apr2022            
+   This run was terminated on:  15: 6:10  27Apr2022            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
