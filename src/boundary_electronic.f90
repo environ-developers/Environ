@@ -508,7 +508,7 @@ CONTAINS
         !
         spurious_force = partial%modulus%integrate()
         !
-        IF (io%lnode .AND. spurious_force > tolspuriousforce) &
+        IF (io%lnode .AND. spurious_force > 1.D-5) &
             WRITE (io%unit, 1000) index, spurious_force
         !
         !--------------------------------------------------------------------------------

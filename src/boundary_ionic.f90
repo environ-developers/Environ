@@ -738,11 +738,6 @@ CONTAINS
         CALL denlocal%destroy()
         !
         !--------------------------------------------------------------------------------
-        !
-1000    FORMAT(" WARNING: Unphysical forces due to core electrons are non-negligible ", /, &
-               " atom type ", I3, " is subject to a spurious force of ", F12.6)
-        !
-        !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
     !------------------------------------------------------------------------------------
     !>
