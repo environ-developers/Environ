@@ -78,7 +78,8 @@ MODULE class_setup
         LOGICAL :: restart = .FALSE.
         REAL(DP) :: threshold = 0.0_DP
         INTEGER :: nskip = 0
-        INTEGER :: niter = 0
+        INTEGER :: niter_scf = 0
+        INTEGER :: niter_ionic = 0
         INTEGER :: nrep = 1
         !
         !--------------------------------------------------------------------------------
@@ -263,7 +264,8 @@ CONTAINS
         this%restart = .FALSE.
         this%threshold = 0.0_DP
         this%nskip = 0
-        this%niter = 0
+        this%niter_scf = 0
+        this%niter_ionic = 0
         this%nrep = 1
         this%static_permittivity = 0.0_DP
         this%optical_permittivity = 0.0_DP

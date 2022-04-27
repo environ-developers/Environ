@@ -328,7 +328,7 @@ CONTAINS
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
-        REAL(DP) :: local_pos(3)
+        REAL(DP) :: local_pos(3), ext_pos(3, 2)
         !
         TYPE(environ_setup), POINTER :: setup
         !
@@ -338,6 +338,8 @@ CONTAINS
         !
         this%system_ions%lupdate = .TRUE.
         this%environment_ions%lupdate = .TRUE.
+        !
+        setup%niter_ionic = setup%niter_ionic + 1
         !
         !--------------------------------------------------------------------------------
         ! Update system ions parameters
@@ -409,10 +411,26 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! External charges rely on the environment cell, which is defined
-        ! with respect to the system origin
+        ! Update externals positions
+        ! Note: if using ms-gcs, set positions of Helmholtz planes
         !
-        IF (setup%lexternals) CALL this%externals%update()
+        IF (setup%lexternals) THEN
+            !
+            IF (setup%niter_ionic == 1) THEN
+                !
+                IF (setup%lmsgcs) THEN
+                    extcharge_pos = 0.D0
+                    extcharge_pos(3, 1) = MINVAL(this%system_ions%tau(3, :)) - 15.1178D0
+                    extcharge_pos(3, 2) = MAXVAL(this%system_ions%tau(3, :)) + 15.1178D0
+                END IF
+                !
+                CALL this%externals%update(env_external_charges, extcharge_pos)
+                !
+            END IF
+            !
+            CALL this%externals%update() ! only updating charge density
+            !
+        END IF
         !
         IF (setup%lelectrostatic .OR. setup%lconfine) THEN
             !
@@ -720,6 +738,7 @@ CONTAINS
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
+        !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_physical'
         !
         !--------------------------------------------------------------------------------
@@ -828,13 +847,11 @@ CONTAINS
             !
             extcharge_dim(1) = 2
             extcharge_axis(1) = 3
-            extcharge_pos(:, 1) = (/0.0, 0.0, 11.92/)
             extcharge_spread(1) = 0.25
             extcharge_charge(1) = 0.0
             !
             extcharge_dim(2) = 2
             extcharge_axis(2) = 3
-            extcharge_pos(:, 2) = (/0.0, 0.0, 50.00/)
             extcharge_spread(2) = 0.25
             extcharge_charge(2) = 0.0
         END IF
@@ -842,9 +859,8 @@ CONTAINS
         IF (setup%lexternals) THEN
             !
             CALL this%externals%init(env_external_charges, extcharge_dim, &
-                                     extcharge_axis, extcharge_pos, &
-                                     extcharge_spread, extcharge_charge, &
-                                     environment_cell)
+                                     extcharge_axis, extcharge_spread, &
+                                     extcharge_charge, environment_cell)
             !
             CALL this%environment_charges%add(externals=this%externals)
             !

@@ -318,7 +318,7 @@ CONTAINS
         main%econfine = 0.D0
         main%eelectrolyte = 0.D0
         !
-        setup%niter = setup%niter + 1
+        setup%niter_scf = setup%niter_scf + 1
         !
         !--------------------------------------------------------------------------------
         ! If electrostatic is on, compute electrostatic energy

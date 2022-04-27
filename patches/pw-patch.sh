@@ -523,20 +523,12 @@ sed '/Environ MODULES BEGIN/ a\
 \
 USE class_io,           ONLY : io\
  \
-USE mp,             ONLY: mp_bcast, mp_barrier, mp_sum \
-USE mp_world,       ONLY: world_comm \
-USE mp_images,      ONLY: intra_image_comm \
-USE mp_bands,       ONLY: intra_bgrp_comm \
 USE klist,            ONLY : tot_charge, nelec \
-USE cell_base,        ONLY : omega \
-USE lsda_mod,         ONLY : nspin \
 USE control_flags,    ONLY : conv_ions, nstep, istep \
 USE ener,             ONLY : ef \
 USE constants,        ONLY : rytoev \
-USE fft_base,         ONLY : dfftp \
 USE ions_base,        ONLY : nat, ityp, zv \
 USE extrapolation,    ONLY : update_pot \
-USE qexsd_module,     ONLY:   qexsd_set_status \
 USE environ_api,      ONLY : environ\
 !Environ patch
 ' plugin_ext_forces.f90 > tmp.1
@@ -545,19 +537,19 @@ sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
 \
 SAVE \
-REAL(DP)                  ::   cur_chg \
-REAL(DP)                  ::   prev_chg, prev_chg2 \
-REAL(DP)                  ::   cur_dchg \
-REAL(DP)                  ::   cur_fermi \
-REAL(DP)                  ::   prev_dchg \
-REAL(DP)                  ::   gamma_mult \
-REAL(DP)                  ::   prev_step_size \
-REAL(DP)                  ::   ss_chg, charge \
-INTEGER                   ::   chg_step, na \
-REAL(DP)                  ::   surf_area \
+REAL(DP)                  :: cur_chg \
+REAL(DP)                  :: prev_chg, prev_chg2 \
+REAL(DP)                  :: cur_dchg \
+REAL(DP)                  :: cur_fermi \
+REAL(DP)                  :: prev_dchg \
+REAL(DP)                  :: gamma_mult \
+REAL(DP)                  :: prev_step_size \
+REAL(DP)                  :: ss_chg, charge \
+INTEGER                   :: chg_step, na \
+REAL(DP)                  :: surf_area \
 REAL(DP)                  :: chg_per_area \
 REAL(DP)                  :: ss_chg_per_area \
-REAL(DP)                  :: ss_potential, total_potential \
+REAL(DP)                  :: ss_potential \
 REAL(DP)                  :: dft_chg_max, dft_chg_min \
 REAL(DP)                  :: change_vec \
 REAL(DP)                  :: v_cut, bulk_potential \
@@ -577,22 +569,17 @@ sed '/Environ CALLS BEGIN/ a\
 ! \
 !************************************************* \
  \
+IF (use_environ .AND. environ%setup%lmsgcs) THEN \
 gamma_mult = 0.15 \
-\
-\
 converge = .TRUE. \
+\
+CALL start_clock( "semiconductor" ) \
 \
 ! calculating ionic charge \
 ionic_charge = 0._DP \
 DO na = 1, nat \
 ionic_charge = ionic_charge + zv( ityp(na) ) \
 END DO \
-\
- \
- \
-IF (use_environ .AND. environ%setup%lmsgcs) THEN \
-CALL start_clock( "semiconductor" ) \
-\
 chg_step = istep \
 ! Initializing the constraints of possible DFT charges \
 ! Should probably be initialized at chg_step =1 but that seemed to be \
@@ -619,8 +606,10 @@ IF (chg_step == 0) THEN \
 environ%main%semiconductor%base%flatband_fermi = ef!*rytoev \
 tot_charge = 0.7*environ%main%semiconductor%base%electrode_charge \
 environ%main%semiconductor%base%slab_charge = tot_charge \
-environ%main%environment_charges%externals%functions%array(1)%volume = -(environ%main%semiconductor%base%electrode_charge - tot_charge) \
-environ%main%environment_charges%externals%functions%array(2)%volume = environ%main%semiconductor%base%electrode_charge \
+environ%main%environment_charges%externals%functions%array(1)%volume = & \
+-(environ%main%semiconductor%base%electrode_charge - tot_charge) \
+environ%main%environment_charges%externals%functions%array(2)%volume = & \
+environ%main%semiconductor%base%electrode_charge \
 conv_ions = .FALSE. \
 istep =  istep + 1 \
 WRITE( stdout, 1001) environ%main%semiconductor%base%flatband_fermi*rytoev,tot_charge \
@@ -641,7 +630,8 @@ cur_fermi = ef!*rytoev  \
 ! not calling it dfermi because difference is only used as a guide to changing \
 ! charge. Calling it dchg to conform with steepest descent model  \
 cur_dchg = environ%main%semiconductor%base%bulk_sc_fermi - cur_fermi \
-bulk_potential = (environ%main%semiconductor%base%bulk_sc_fermi - environ%main%semiconductor%base%flatband_fermi)*rytoev \
+bulk_potential = (environ%main%semiconductor%base%bulk_sc_fermi - & \
+environ%main%semiconductor%base%flatband_fermi)*rytoev \
 ss_chg = environ%main%semiconductor%base%ss_chg \
  \
 ! making sure constraints are updated  \
@@ -662,8 +652,6 @@ ELSE \
 prev_chg2 = tot_charge \
 END IF \
 END IF \
-CALL mp_bcast(dft_chg_min, ionode_id,intra_image_comm) \
-CALL mp_bcast(dft_chg_max, ionode_id,intra_image_comm) \
  \
 ! Updating the steepest descent parameter, gamma_mult \
 IF (chg_step > 1 )THEN \
@@ -693,13 +681,10 @@ tot_charge = tot_charge + change_vec \
 END IF \
  \
  \
-CALL mp_bcast(tot_charge, ionode_id,intra_image_comm) \
 !updating variables based on new_tot_charge \
 cur_chg = tot_charge \
 prev_step_size = ABS(cur_chg - prev_chg) \
 prev_dchg = cur_dchg \
-CALL mp_bcast(converge,ionode_id, intra_image_comm) \
-CALL mp_bcast(prev_step_size,ionode_id,intra_image_comm) \
  \
 ! decide if loop has converged based on change in charge \
 IF (((prev_step_size > environ%main%semiconductor%base%charge_threshold) .OR. (.NOT. converge)) & \
@@ -711,8 +696,8 @@ WRITE( STDOUT, 1002)& \
 istep =  istep + 1 \
 nelec = ionic_charge - tot_charge \
 environ%main%semiconductor%base%slab_charge = tot_charge \
-environ%main%environment_charges%externals%functions%array(1)%volume=-(environ%main%semiconductor%base%electrode_charge - tot_charge) \
-CALL mp_bcast(nelec, ionode_id,intra_image_comm) \
+environ%main%environment_charges%externals%functions%array(1)%volume = &\
+-(environ%main%semiconductor%base%electrode_charge - tot_charge) \
 CALL update_pot() \
 CALL hinit1() \
 ELSE \
@@ -738,7 +723,6 @@ surf_area = environ%main%semiconductor%base%surf_area_per_sq_cm \
 chg_per_area = environ%main%semiconductor%base%electrode_charge/surf_area \
 ss_chg_per_area = ss_chg/surf_area \
 ss_potential = environ%main%semiconductor%base%ss_v_cut \
-CALL mp_bcast(ss_potential, ionode_id, intra_image_comm) \
 WRITE(21, 1004) -bulk_potential, ss_potential,& \
 &environ%main%semiconductor%base%electrode_charge, ss_chg,& \
 &chg_per_area,ss_chg_per_area \

@@ -1323,16 +1323,17 @@ CONTAINS
         !
         INTEGER :: i, icount, ir, j, k, naxis, z_cut_idx, avg_window
         !
-        REAL(DP) :: kbt, invkbt, delta_chg
-        REAL(DP) :: ez, ez_ms, ez_gcs, fact, vms, vstern
-        REAL(DP) :: arg, const, constr, constl, depletion_length, compress_fact
-        REAL(DP) :: dv, vbound, v_cut, v_edge, z_cut, z_val
+        REAL(DP) :: kbt, invkbt 
+        REAL(DP) :: ez_ms, fact, vms
+        REAL(DP) :: arg, const, depletion_length
+        REAL(DP) :: v_cut, v_edge, z_cut, z_val
         REAL(DP) :: asinh, coth, acoth
-        REAL(DP) :: f1, f2, max_axis
-        REAL(DP) :: area, vtmp, distance
+        REAL(DP) :: max_axis
+        REAL(DP) :: area
         REAL(DP) :: charge, dipole(3), quadrupole(3)
         !
         REAL(DP), DIMENSION(:), ALLOCATABLE :: current_pot, subtracted_pot, avgd_pot
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: flatband_pot
         !
         LOGICAL :: physical
         !
@@ -1368,16 +1369,11 @@ CONTAINS
                    slab_axis => this%axis, &
                    axis_length => this%size, &
                    axis => this%x, &
-                   cion => electrolyte%ioncctype(1)%cbulk, &
-                   zion => ABS(electrolyte%ioncctype(1)%z), &
-                   permittivity_gcs => electrolyte%permittivity, &
-                   xstern_gcs => electrolyte%distance, &
                    permittivity_ms => semiconductor%permittivity, &
                    carrier_density => semiconductor%carrier_density, &
                    electrode_charge => semiconductor%electrode_charge, &
                    xstern_ms => semiconductor%sc_distance, &
-                   slab_charge => semiconductor%slab_charge, &
-                   flatband_pot => semiconductor%flatband_pot_planar_avg)
+                   slab_charge => semiconductor%slab_charge)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -1403,6 +1399,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! First apply parabolic correction
             !
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "charge: ",charge
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "dipole: ",dipole(slab_axis)
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "quadrupole: ",quadrupole(slab_axis)
             fact = e2 * tpi / omega
             const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
             vms_gcs = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
@@ -1423,12 +1422,9 @@ CONTAINS
             !
             DO i = 1, nnr
                 !
-                IF (axis(1, i) == max_axis) THEN
+                IF (max_axis - axis(1, i) <= 0.1) THEN
                     icount = icount + 1
-                    !
-                    v_edge = v_edge + v%of_r(i) + vms_gcs(i) - &
-                             ez * (ABS(axis(1, i)) - xstern_gcs)
-                    !
+                    v_edge = v_edge + v%of_r(i) + vms_gcs(i)
                 END IF
                 !
             END DO
@@ -1438,6 +1434,7 @@ CONTAINS
             CALL env_mp_sum(v_edge, comm)
             !
             v_edge = v_edge / DBLE(icount)
+            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "v_edge: ",v_edge
             vms_gcs = vms_gcs - v_edge
             !
             !----------------------------------------------------------------------------
@@ -1452,7 +1449,7 @@ CONTAINS
             !
             avg_window = INT(semiconductor%sc_spread / 2.0 / v%cell%at(3, 3) * naxis)
             !
-            IF (io%verbosity > 1) WRITE (io%debug_unit, 1000)
+            IF ( io%lnode .AND. io%verbosity >= 1) WRITE (io%debug_unit, 1000)
             !
             IF (slab_charge == 0.D0) THEN
                 !
@@ -1463,12 +1460,14 @@ CONTAINS
                 !
                 IF (.NOT. ALLOCATED(avgd_pot)) ALLOCATE (avgd_pot(naxis))
                 !
+                IF (.NOT. ALLOCATED(flatband_pot)) ALLOCATE (flatband_pot(naxis))
+                !
                 CALL v%cell%planar_average(nnr, naxis, 3, 0, .FALSE., v%of_r, &
                                            flatband_pot)
                 !
                 CALL v%cell%running_average(naxis, avg_window, flatband_pot, avgd_pot)
                 !
-                flatband_pot = avgd_pot
+                semiconductor%flatband_pot_planar_avg = avgd_pot
             ELSE
                 !
                 !------------------------------------------------------------------------
@@ -1485,42 +1484,60 @@ CONTAINS
                 CALL v%cell%running_average(naxis, avg_window, current_pot, avgd_pot)
                 !
                 current_pot = avgd_pot
-                subtracted_pot = current_pot - flatband_pot
+                subtracted_pot = current_pot - semiconductor%flatband_pot_planar_avg
                 z_cut = this%origin(3) - xstern_ms
                 !
-                IF (io%verbosity > 1) THEN
+                IF ( io%lnode .AND. io%verbosity > 1) THEN
                     WRITE (io%debug_unit, 1001) z_cut
                 END IF
                 !
                 z_cut_idx = INT(z_cut / v%cell%at(3, 3) * naxis)
                 !
-                v_cut = subtracted_pot(z_cut_idx)
-                ez_ms = (subtracted_pot(z_cut_idx) - subtracted_pot(z_cut_idx + 1)) / &
-                        (v%cell%at(3, 3) / naxis)
+                v_cut = 0.0
+                ez_ms = 0.0
+                icount = 0
+                ! Averaging the v_cut and ez_ms for stability
+                DO i= 1, naxis
+                   IF (ABS(z_cut_idx - i) < INT(avg_window/2)) THEN
+                      v_cut = v_cut + subtracted_pot(z_cut_idx)
+                      ez_ms = ez_ms + (subtracted_pot(z_cut_idx+1) - &
+                               subtracted_pot(z_cut_idx )) / (v%cell%at(3, 3) / naxis)
+                      icount = icount + 1
+                   END IF
+                END DO
+                !
+                CALL env_mp_sum(icount, comm)
+                !
+                CALL env_mp_sum(v_cut, comm)
+                !
+                CALL env_mp_sum(ez_ms, comm)
+                !
+                v_cut = v_cut/DBLE(icount)
+                ez_ms = ez_ms/DBLE(icount)
                 !
                 !------------------------------------------------------------------------
                 ! Calculate what charge ez_ms corresponds to with Gauss law
                 !
                 semiconductor%ss_v_cut = v_cut
-                semiconductor%ss_chg = -ez_ms * area / tpi / e2
+                semiconductor%ss_chg = ez_ms * area / tpi / e2
                 !
-                IF (io%verbosity > 1) THEN
+                IF (io%lnode .AND. io%verbosity > 1) THEN
                     WRITE (io%debug_unit, 1002) v_cut
                     WRITE (io%debug_unit, 1003) ez_ms
                 END IF
                 !
             END IF
             !
-            fact = 1.D0 / tpi / e2 / 4.D0 / carrier_density * permittivity_ms
+            fact = 1.D0 / carrier_density * permittivity_ms
             arg = fact * (ez_ms**2.D0)
             !
             IF (ez_ms < 0) THEN
-                vms = -arg
-            ELSE
                 vms = arg
+            ELSE
+                vms = -arg
             END IF
             !
-            IF (io%verbosity > 1) WRITE (io%debug_unit, 1004) vms
+            IF (io%lnode .AND.io%verbosity >= 1) WRITE (io%debug_unit, 1004) vms
             !
             depletion_length = ABS(2.D0 * fact * ez_ms)
             !
@@ -1532,15 +1549,15 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Write potentials
             !
-            IF (io%verbosity > 1) THEN
+            IF (io%lnode .AND. io%verbosity > 1) THEN
                 !
                 OPEN (93, file='subtracted_pot.dat', status='replace')
                 OPEN (94, file='current_pot.dat', status='replace')
-                OPEN (95, file='flataband_pot.dat', status='replace')
+                OPEN (95, file='flatband_pot.dat', status='replace')
                 !
                 DO i = 1, naxis
                     z_val = i * v%cell%at(3, 3) / naxis
-                    WRITE (95, *) z_val, flatband_pot(i)
+                    WRITE (95, *) z_val, semiconductor%flatband_pot_planar_avg(i)
                     !
                     IF (slab_charge /= 0.D0) THEN
                         WRITE (93, *) z_val, subtracted_pot(i)
@@ -1593,15 +1610,9 @@ CONTAINS
         !
         REAL(DP), POINTER :: grad_vms_gcs(:, :)
         !
-        INTEGER :: i
         !
         REAL(DP) :: kbt, invkbt
-        REAL(DP) :: ez, ez_ms, ez_gcs, fact, vms, vtmp
-        REAL(DP) :: vstern, const
-        REAL(DP) :: lin_k, lin_e, lin_c
-        REAL(DP) :: arg, asinh, coth, acoth
-        REAL(DP) :: f1, f2, depletion_length
-        REAL(DP) :: area, dvtmp_dx, distance
+        REAL(DP) :: fact
         REAL(DP) :: charge, dipole(0:3), quadrupole(3)
         !
         TYPE(environ_gradient), TARGET :: glocal
@@ -1622,7 +1633,7 @@ CONTAINS
         !
         IF (electrolyte%ntyp /= 2) &
             CALL io%error(sub_name, &
-                          "Unexpected number of counterionic species, different from two", 1)
+                        "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
@@ -1630,18 +1641,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (nnr => grad_v%cell%nnr, &
+        ASSOCIATE( slab_axis => this%axis, &
                    omega => grad_v%cell%omega, &
-                   slab_axis => this%axis, &
-                   axis => this%x, &
-                   cion => electrolyte%ioncctype(1)%cbulk, &
-                   zion => ABS(electrolyte%ioncctype(1)%z), &
-                   permittivity_gcs => electrolyte%permittivity, &
-                   xstern_gcs => electrolyte%distance, &
-                   permittivity_ms => semiconductor%permittivity, &
-                   electrode_charge => semiconductor%electrode_charge, &
-                   carrier_density => semiconductor%carrier_density, &
-                   xstern_ms => semiconductor%sc_distance)
+                   axis => this%x )
             !
             !----------------------------------------------------------------------------
             !
@@ -1654,7 +1656,6 @@ CONTAINS
             CALL glocal%init(grad_v%cell)
             !
             grad_vms_gcs => glocal%of_r
-            area = omega / this%size
             !
             !----------------------------------------------------------------------------
             !
