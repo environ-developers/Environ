@@ -163,8 +163,10 @@ CONTAINS
         this%electrode_charge = sc_electrode_chg
         this%charge_threshold = sc_chg_thr
         !
-        IF (need_flatband) ALLOCATE (this%flatband_pot_planar_avg(naxis))
-        this%flatband_pot_planar_avg = 0.D0
+        IF (need_flatband) THEN
+            ALLOCATE (this%flatband_pot_planar_avg(naxis))
+            this%flatband_pot_planar_avg = 0.D0
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor_base

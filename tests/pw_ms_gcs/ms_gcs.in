@@ -1,5 +1,4 @@
  &ENVIRON
-    verbose = 0,
     environ_thr = 0.1,
     system_axis = 3,
     system_dim = 2,
@@ -15,7 +14,6 @@
     sc_carrier_density = 1.D18,
     sc_electrode_chg = 0.001
     sc_chg_thr = 1.D-5
-    !env_electrostatic = .TRUE.
 /
  &BOUNDARY
     sc_spread = 7.0,

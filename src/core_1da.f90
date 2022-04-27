@@ -1323,7 +1323,7 @@ CONTAINS
         !
         INTEGER :: i, icount, ir, j, k, naxis, z_cut_idx, avg_window
         !
-        REAL(DP) :: kbt, invkbt 
+        REAL(DP) :: kbt, invkbt
         REAL(DP) :: ez_ms, fact, vms
         REAL(DP) :: arg, const, depletion_length
         REAL(DP) :: v_cut, v_edge, z_cut, z_val
@@ -1399,9 +1399,6 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! First apply parabolic correction
             !
-            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "charge: ",charge
-            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "dipole: ",dipole(slab_axis)
-            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "quadrupole: ",quadrupole(slab_axis)
             fact = e2 * tpi / omega
             const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
             vms_gcs = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
@@ -1434,7 +1431,6 @@ CONTAINS
             CALL env_mp_sum(v_edge, comm)
             !
             v_edge = v_edge / DBLE(icount)
-            IF ( io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, *) "v_edge: ",v_edge
             vms_gcs = vms_gcs - v_edge
             !
             !----------------------------------------------------------------------------
@@ -1449,7 +1445,7 @@ CONTAINS
             !
             avg_window = INT(semiconductor%sc_spread / 2.0 / v%cell%at(3, 3) * naxis)
             !
-            IF ( io%lnode .AND. io%verbosity >= 1) WRITE (io%debug_unit, 1000)
+            IF (io%lnode .AND. io%verbosity >= 1) WRITE (io%debug_unit, 1000)
             !
             IF (slab_charge == 0.D0) THEN
                 !
@@ -1487,23 +1483,29 @@ CONTAINS
                 subtracted_pot = current_pot - semiconductor%flatband_pot_planar_avg
                 z_cut = this%origin(3) - xstern_ms
                 !
-                IF ( io%lnode .AND. io%verbosity > 1) THEN
-                    WRITE (io%debug_unit, 1001) z_cut
-                END IF
+                IF (io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, 1001) z_cut
                 !
                 z_cut_idx = INT(z_cut / v%cell%at(3, 3) * naxis)
                 !
                 v_cut = 0.0
                 ez_ms = 0.0
                 icount = 0
-                ! Averaging the v_cut and ez_ms for stability
-                DO i= 1, naxis
-                   IF (ABS(z_cut_idx - i) < INT(avg_window/2)) THEN
-                      v_cut = v_cut + subtracted_pot(z_cut_idx)
-                      ez_ms = ez_ms + (subtracted_pot(z_cut_idx+1) - &
-                               subtracted_pot(z_cut_idx )) / (v%cell%at(3, 3) / naxis)
-                      icount = icount + 1
-                   END IF
+                !
+                !------------------------------------------------------------------------
+                ! Averaging v_cut and ez_ms for stability
+                !
+                DO i = 1, naxis
+                    !
+                    IF (ABS(z_cut_idx - i) < INT(avg_window / 2)) THEN
+                        v_cut = v_cut + subtracted_pot(z_cut_idx)
+                        !
+                        ez_ms = ez_ms + &
+                                (subtracted_pot(z_cut_idx + 1) - &
+                                 subtracted_pot(z_cut_idx)) / (v%cell%at(3, 3) / naxis)
+                        !
+                        icount = icount + 1
+                    END IF
+                    !
                 END DO
                 !
                 CALL env_mp_sum(icount, comm)
@@ -1512,8 +1514,8 @@ CONTAINS
                 !
                 CALL env_mp_sum(ez_ms, comm)
                 !
-                v_cut = v_cut/DBLE(icount)
-                ez_ms = ez_ms/DBLE(icount)
+                v_cut = v_cut / DBLE(icount)
+                ez_ms = ez_ms / DBLE(icount)
                 !
                 !------------------------------------------------------------------------
                 ! Calculate what charge ez_ms corresponds to with Gauss law
@@ -1537,7 +1539,7 @@ CONTAINS
                 vms = -arg
             END IF
             !
-            IF (io%lnode .AND.io%verbosity >= 1) WRITE (io%debug_unit, 1004) vms
+            IF (io%lnode .AND. io%verbosity >= 1) WRITE (io%debug_unit, 1004) vms
             !
             depletion_length = ABS(2.D0 * fact * ez_ms)
             !
@@ -1633,7 +1635,7 @@ CONTAINS
         !
         IF (electrolyte%ntyp /= 2) &
             CALL io%error(sub_name, &
-                        "Unexpected number of counterionic species, different from two", 1)
+                          "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
             CALL io%error(sub_name, &
@@ -1641,9 +1643,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE( slab_axis => this%axis, &
+        ASSOCIATE (slab_axis => this%axis, &
                    omega => grad_v%cell%omega, &
-                   axis => this%x )
+                   axis => this%x)
             !
             !----------------------------------------------------------------------------
             !
