@@ -10,6 +10,5 @@
    !
    solvent_mode = 'ionic'
    field_aware = .TRUE.
-   stype = 1
    !
  /

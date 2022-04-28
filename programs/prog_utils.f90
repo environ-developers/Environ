@@ -59,10 +59,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_from_cube(environ, rho)
+    SUBROUTINE init_environ_from_cube(environ, rho, reduce_cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        LOGICAL, OPTIONAL, INTENT(IN) :: reduce_cell
         !
         TYPE(environ_interface), INTENT(INOUT) :: environ
         REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
@@ -70,7 +72,7 @@ CONTAINS
         INTEGER :: nat
         INTEGER :: ntyp
         INTEGER, ALLOCATABLE :: ityp(:)
-        CHARACTER(LEN=2), ALLOCATABLE :: label(:)
+        INTEGER, ALLOCATABLE :: species(:)
         REAL(DP), ALLOCATABLE :: zv(:)
         REAL(DP), ALLOCATABLE :: tau(:, :)
         REAL(DP) :: origin(3)
@@ -81,14 +83,18 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL read_cube(nat, ntyp, ityp, label, zv, tau, origin, nr, at, rho)
+        CALL read_cube(nat, ntyp, ityp, species, zv, tau, origin, nr, at, rho)
         !
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL environ%read_input(inputfile, SIZE(label))
+        CALL environ%read_input(inputfile, ntyp)
         !
         CALL environ%setup%init()
+        !
+        IF (PRESENT(reduce_cell)) THEN
+            IF (reduce_cell) CALL get_reduced_cell(nat, at, tau)
+        END IF
         !
         IF (ANY(ABS(nr) == 1)) THEN
             CALL environ%setup%init_cell(io%comm, at)
@@ -98,12 +104,81 @@ CONTAINS
         !
         CALL environ%setup%init_numerical(use_internal_pbc_corr)
         !
-        CALL environ%main%init(nat, ntyp, label, ityp, zv)
+        CALL environ%main%init(nat, ntyp, ityp, zv, number=species)
         !
         CALL environ%main%update_ions(nat, tau, origin)
         !
         !--------------------------------------------------------------------------------
+        ! Print summary
+        !
+        IF (io%lnode) THEN
+            WRITE (io%unit, 1000) 
+            WRITE (io%unit, 1001)
+            WRITE (io%unit, 1002) at(1, 1), at(2, 2), at(3, 3)
+            WRITE (io%unit, 1003) nat
+            WRITE (io%unit, 1003) ntyp
+        END IF
+        !
+        FLUSH (io%unit)
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(5X, "Summary of system information")
+        !
+1001    FORMAT(10X, "Values will be printed using ENVIRON internal units, e.g. length is in Bohr")
+        !
+1002    FORMAT(10X, "Cell parameters: ", 3F17.8)
+        !
+1003    FORMAT(10X, "Number of atoms: ", I4)
+        !
+1004    FORMAT(10X, "Number of atomic types: ", I10)
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_from_cube
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                              PRIVATE HELPER ROUTINES
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE get_reduced_cell(nat, at, tau)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: nat
+        !
+        REAL(DP), INTENT(INOUT) :: at(3, 3)
+        REAL(DP), INTENT(INOUT) :: tau(:, :)
+        !
+        INTEGER :: i
+        !
+        REAL(DP), PARAMETER :: fluff = 7.D0
+        REAL(DP) :: min_vec(3), max_vec(3), shift(3)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        at = 0.D0
+        !
+        min_vec = MINVAL(tau, DIM=2) - fluff
+        max_vec = MAXVAL(tau, DIM=2) + fluff
+        !
+        shift = max_vec - min_vec
+        !
+        DO i = 1, nat
+            tau(:, i) = tau(:, i) - min_vec
+        END DO
+        !
+        DO i = 1, 3
+            at(i, i) = shift(i)
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE get_reduced_cell
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

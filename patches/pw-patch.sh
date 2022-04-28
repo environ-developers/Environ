@@ -193,7 +193,8 @@ sed '/Environ MODULES BEGIN/ a\
 USE kinds,             ONLY : DP\
 USE mp_bands,          ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 USE cell_base,         ONLY : at, alat\
-USE ions_base,         ONLY : nat, nsp, ityp, atm, zv\
+USE ions_base,         ONLY : nat, nsp, ityp, zv\
+USE uspp_param,        ONLY : upf\
 USE gvect,             ONLY : gcutm\
 USE martyna_tuckerman, ONLY : do_comp_mt\
 USE environ_api,       ONLY : environ\
@@ -230,7 +231,10 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL environ%setup%init_numerical(do_comp_mt)\
       !\
-      CALL environ%main%init(nat, nsp, atm, ityp, zv)\
+      ! upf%psd (size of nsp) are the atom labels read\
+      ! directly from the pseudopotential files\
+      !\
+      CALL environ%main%init(nat, nsp, ityp, zv, label=upf%psd)\
       !\
   END IF\
 !Environ patch

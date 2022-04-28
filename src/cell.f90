@@ -105,6 +105,12 @@ MODULE class_cell
         ! G-vectors cartesian components (in units 2pi/a)
         !
         !--------------------------------------------------------------------------------
+        ! Reduced arrays for optimization
+        !
+        REAL(DP), ALLOCATABLE :: coords(:, :) ! position vectors
+        INTEGER, ALLOCATABLE :: ir(:) ! indices of physical grid points
+        !
+        !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
@@ -119,10 +125,10 @@ MODULE class_cell
         PROCEDURE :: volume
         PROCEDURE :: get_min_distance
         PROCEDURE :: ir2ijk
+        PROCEDURE :: ir2coords
         PROCEDURE :: planar_average
         PROCEDURE :: running_average
         !
-        PROCEDURE, PRIVATE :: ir2r
         PROCEDURE, PRIVATE :: minimum_image
         PROCEDURE, PRIVATE :: is_cubic
         !
@@ -162,6 +168,10 @@ CONTAINS
         IF (ALLOCATED(this%g)) CALL io%create_error(sub_name)
         !
         IF (ALLOCATED(this%gg)) CALL io%create_error(sub_name)
+        !
+        IF (ALLOCATED(this%coords)) CALL io%create_error(sub_name)
+        !
+        IF (ALLOCATED(this%ir)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -208,6 +218,10 @@ CONTAINS
         !
         INTEGER :: ngm_g ! global number of G vectors (summed on all procs)
         ! in serial execution, ngm_g = ngm
+        !
+        INTEGER :: i
+        LOGICAL :: physical
+        REAL(DP) :: coords(3)
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_cell'
         !
@@ -265,6 +279,24 @@ CONTAINS
         !
         CALL env_ggen(this%dfft, this%dfft%comm, this%at, this%bg, this%gcutm, &
                       ngm_g, this%dfft%ngm, this%g, this%gg, this%gstart, .TRUE.)
+        !
+        !--------------------------------------------------------------------------------
+        ! Storing position vectors for optimization
+        !
+        ALLOCATE (this%coords(3, this%nnr))
+        ALLOCATE (this%ir(this%nnr))
+        this%coords = 0.D0
+        this%ir = 0
+        !
+        DO i = 1, this%nnr
+            !
+            CALL this%ir2coords(i, coords, physical)
+            !
+            IF (.NOT. physical) CYCLE
+            !
+            this%coords(:, i) = coords
+            this%ir(i) = i
+        END DO
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_cell
@@ -348,6 +380,9 @@ CONTAINS
         CALL this%destroy_dfft()
         !
         CALL this%deallocate_gvect()
+        !
+        IF (ALLOCATED(this%coords)) DEALLOCATE (this%coords)
+        IF (ALLOCATED(this%ir)) DEALLOCATE (this%ir)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_cell
@@ -534,13 +569,23 @@ CONTAINS
         LOGICAL, INTENT(INOUT) :: physical
         REAL(DP), INTENT(OUT) :: r(3), r2
         !
+        REAL(DP) :: coords(3)
+        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%ir2r(ir, r, physical) ! position in real space grid
+        physical = .TRUE.
         !
-        IF (.NOT. physical) RETURN ! do not include points outside the physical range
+        IF (this%ir(ir) == 0) THEN
+            !
+            physical = .FALSE.
+            !
+            RETURN
+            !
+        END IF
         !
-        CALL displacement(dim, axis, r, origin, r) ! displacement from origin
+        coords = this%coords(:, ir)
+        !
+        CALL displacement(dim, axis, coords, origin, r) ! displacement from origin
         !
         CALL this%minimum_image(r, r2) ! minimum image convention
         !
@@ -706,7 +751,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE ir2r(this, ir, r, physical)
+    SUBROUTINE ir2coords(this, ir, coords, physical)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -714,14 +759,14 @@ CONTAINS
         CLASS(environ_cell), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: ir
         !
-        REAL(DP), INTENT(OUT) :: r(3)
+        REAL(DP), INTENT(OUT) :: coords(3)
         LOGICAL, INTENT(OUT) :: physical
         !
         INTEGER :: i, j, k, l
         !
         !--------------------------------------------------------------------------------
         !
-        r = 0.D0
+        coords = 0.D0
         !
         CALL this%ir2ijk(ir, i, j, k, physical)
         !
@@ -729,21 +774,21 @@ CONTAINS
         !
         DO l = 1, 3
             !
-            r(l) = DBLE(i) * this%in1 * this%at(l, 1) + &
-                   DBLE(j) * this%in2 * this%at(l, 2) + &
-                   DBLE(k) * this%in3 * this%at(l, 3)
+            coords(l) = DBLE(i) * this%in1 * this%at(l, 1) + &
+                        DBLE(j) * this%in2 * this%at(l, 2) + &
+                        DBLE(k) * this%in3 * this%at(l, 3)
             !
         END DO
         !
-        r = r + this%origin
+        coords = coords + this%origin
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE ir2r
+    END SUBROUTINE ir2coords
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE displacement(dim, axis, r1, r2, dr)
+    SUBROUTINE displacement(dim, axis, r1, r2, r)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -751,7 +796,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: dim, axis
         REAL(DP), DIMENSION(3), INTENT(IN) :: r1, r2
         !
-        REAL(DP), INTENT(OUT) :: dr(3)
+        REAL(DP), INTENT(OUT) :: r(3)
         !
         INTEGER :: i
         !
@@ -759,19 +804,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        dr = r1 - r2
+        r = r1 - r2
         !
         SELECT CASE (dim)
             !
         CASE (0)
             !
         CASE (1)
-            dr(axis) = 0.D0
+            r(axis) = 0.D0
             !
         CASE (2)
             !
             DO i = 1, 3
-                IF (i /= axis) dr(i) = 0.D0
+                IF (i /= axis) r(i) = 0.D0
             END DO
             !
         CASE DEFAULT

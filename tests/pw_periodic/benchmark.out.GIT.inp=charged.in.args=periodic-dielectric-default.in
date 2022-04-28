@@ -1,10 +1,11 @@
 
-     Program PWSCF v.6.7MaX starts on  1Oct2021 at 20:48:53 
+     Program PWSCF v.7.0 starts on 22Apr2022 at 20:38:51 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
          "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
+         "P. Giannozzi et al., J. Chem. Phys. 152 154105 (2020);
           URL http://www.quantum-espresso.org", 
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote
@@ -12,34 +13,19 @@
      Parallel version (MPI), running on     1 processors
 
      MPI processes distributed on     1 nodes
+     22860 MiB available memory on the printing compute node when the environment starts
+ 
      Reading input from charged.in
 
      Current dimensions of program PWSCF are:
      Max number of different atomic species (ntypx) = 10
      Max number of k-points (npk) =  40000
-     Max angular momentum in pseudopotentials (lmaxx) =  3
-
-     Reading input from environ.in
-
-     ================================================================================
-
-     Reading ENVIRON namelist
-
-     Reading BOUNDARY namelist
-
-     Checking boundary derivatives
-     derivatives               = chain          ! SCCS default
-
-     Reading ELECTROSTATIC namelist
-
-     Setting up electrostatic problem
-     problem                   = generalized    
-     solver                    = cg             
-
-     Checking PBC correction
-
-     ================================================================================
+     Max angular momentum in pseudopotentials (lmaxx) =  4
  
+     Reading input from environ.in:
+     * using electronic solvent mode
+     * setting boundary derivatives method to SCCS default
+     
      file C.pbe-rrkjus.UPF: wavefunction(s)  2S 2P renormalized
      file H.pbe-rrkjus.UPF: wavefunction(s)  1S renormalized
      file N.pbe-rrkjus.UPF: wavefunction(s)  2S renormalized
@@ -56,6 +42,8 @@
      sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
      Sum        9549    3809    949               701475   177509   22119
  
+     Using Slab Decomposition
+ 
 
 
      bravais-lattice index     =            1
@@ -67,33 +55,54 @@
      number of Kohn-Sham states=           12
      kinetic-energy cutoff     =      30.0000  Ry
      charge density cutoff     =     300.0000  Ry
-     scf convergence threshold =      5.0E-03
+     scf convergence threshold =      5.0E-06
      mixing beta               =       0.7000
      number of iterations used =            8  plain     mixing
      Exchange-correlation= SLA  PW   PBE  PBE
                            (   1   4   3   4   0   0   0)
+
+     ================================================================================
  
+                                  Environ Setup Summary
 
-     Environ Module
-     ==============
-
+     ================================================================================
+ 
      Please cite
-         O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)         
+
+          O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)
+
      in publications or presentations arising from this work.
+
+     ================================================================================
+ 
+     Parameters
+     ==========
 
      compensation onset threshold      =               0.1000E+03
      static permittivity               =                   100.00
-     epsilon calculation mode          =               electronic
+
+     Solvent Boundary
+     ================
+
+     solvent mode                      =               electronic
+     derivatives method                =                    chain
+     numerical core for derivatives    =                      fft
+     switching function adopted        =                     SCCS
+     density limit for vacuum region   =               0.5000E-02
+     density limit for bulk solvent    =               0.1000E-03
 
      Electrostatic Setup
-     -------------------
-     electrostatic problem to solve    = generalized             
-     numerical solver adopted          = cg                      
-     type of auxiliary density adopted = none                    
-     type of core tool for poisson     = fft                     
-     type of core tool for correction  = 1d-analytic             
+     ===================
 
+     electrostatic problem to solve    =              generalized
+     numerical solver adopted          =                       cg
+     type of auxiliary density adopted =                     none
+     numerical core for poisson        =                      fft
+     type of pbc corrections           =                parabolic
+     numerical core for corrections    =                      1da
 
+     ================================================================================
+ 
 
      celldm(1)=  20.000000  celldm(2)=   0.000000  celldm(3)=   0.000000
      celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
@@ -110,7 +119,6 @@
 
 
      PseudoPot. # 1 for C  read from file:
-     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/C.pbe-rrkjus.UPF
      MD5 check sum: c9ac5a99bc85b198593446162950cd17
      Pseudo is Ultrasoft, Zval =  4.0
      Generated by new atomic code, or converted to UPF format
@@ -123,7 +131,6 @@
 
 
      PseudoPot. # 2 for H  read from file:
-     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/H.pbe-rrkjus.UPF
      MD5 check sum: 2d52a7f45632fd764c17cc6affed14c8
      Pseudo is Ultrasoft, Zval =  1.0
      Generated by new atomic code, or converted to UPF format
@@ -134,7 +141,6 @@
 
 
      PseudoPot. # 3 for N  read from file:
-     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/N.pbe-rrkjus.UPF
      MD5 check sum: 28c76d763763edb36c62a6ca2be9aebd
      Pseudo is Ultrasoft, Zval =  5.0
      Generated by new atomic code, or converted to UPF format
@@ -147,7 +153,6 @@
 
 
      PseudoPot. # 4 for O  read from file:
-     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/O.pbe-rrkjus.UPF
      MD5 check sum: fadcf19ee70a498d3030e2e79cf929a4
      Pseudo is Ultrasoft, Zval =  6.0
      Generated by new atomic code, or converted to UPF format
@@ -195,12 +200,12 @@
 
      Initial potential from superposition of free atoms
 
-     starting charge   24.42266, renormalised to   24.00000
+     starting charge      24.4227, renormalised to      24.0000
 
      negative rho (up, down):  4.438E-04 0.000E+00
      Starting wfcs are   22 randomized atomic wfcs
 
-     total cpu time spent up to now is        6.1 secs
+     total cpu time spent up to now is        3.5 secs
 
      Self-consistent Calculation
 
@@ -211,9 +216,9 @@
      negative rho (up, down):  1.234E-04 0.000E+00
 
      add environment contribution to local potential
-     Polarization accuracy = 9.3E-06, # of iterations =  14
+     Polarization accuracy = 9.1E-06, # of iterations =  14
 
-     total cpu time spent up to now is       12.6 secs
+     total cpu time spent up to now is        8.4 secs
 
      total energy              =     -80.29071716 Ry
      estimated scf accuracy    <       3.64924908 Ry
@@ -227,14 +232,14 @@
      negative rho (up, down):  4.931E-04 0.000E+00
 
      add environment contribution to local potential
-     Polarization accuracy = 8.6E-06, # of iterations =  18
+     Polarization accuracy = 8.5E-06, # of iterations =  18
 
-     total cpu time spent up to now is       19.3 secs
+     total cpu time spent up to now is       13.8 secs
 
-     total energy              =     -81.15267934 Ry
-     estimated scf accuracy    <       1.04168814 Ry
-     electrostatic embedding   =      -0.16541216 Ry
-     correction to one-el term =      -4.24539494 Ry
+     total energy              =     -81.15268019 Ry
+     estimated scf accuracy    <       1.04168594 Ry
+     electrostatic embedding   =      -0.16541355 Ry
+     correction to one-el term =      -4.24543488 Ry
 
      iteration #  3     ecut=    30.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
@@ -245,12 +250,12 @@
      add environment contribution to local potential
      Polarization accuracy = 4.6E-06, # of iterations =  21
 
-     total cpu time spent up to now is       26.8 secs
+     total cpu time spent up to now is       18.6 secs
 
-     total energy              =     -81.33044608 Ry
-     estimated scf accuracy    <       0.11304102 Ry
-     electrostatic embedding   =      -0.13117911 Ry
-     correction to one-el term =      -3.51974772 Ry
+     total energy              =     -81.33044693 Ry
+     estimated scf accuracy    <       0.11303854 Ry
+     electrostatic embedding   =      -0.13117830 Ry
+     correction to one-el term =      -3.51974687 Ry
 
      iteration #  4     ecut=    30.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
@@ -261,113 +266,192 @@
      add environment contribution to local potential
      Polarization accuracy = 8.0E-06, # of iterations =  22
 
-     total cpu time spent up to now is       35.9 secs
+     total cpu time spent up to now is       24.6 secs
 
-     total energy              =     -81.36216444 Ry
-     estimated scf accuracy    <       0.01961493 Ry
-     electrostatic embedding   =      -0.10905404 Ry
-     correction to one-el term =      -3.28472082 Ry
+     total energy              =     -81.36216435 Ry
+     estimated scf accuracy    <       0.01961521 Ry
+     electrostatic embedding   =      -0.10905361 Ry
+     correction to one-el term =      -3.28471932 Ry
 
      iteration #  5     ecut=    30.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
      ethr =  8.17E-05,  avg # of iterations =  4.0
 
-     negative rho (up, down):  2.790E-04 0.000E+00
+     negative rho (up, down):  7.687E-05 0.000E+00
+
+     add environment contribution to local potential
+     Polarization accuracy = 9.3E-06, # of iterations =  22
+
+     total cpu time spent up to now is       30.2 secs
+
+     total energy              =     -81.36722931 Ry
+     estimated scf accuracy    <       0.00175210 Ry
+     electrostatic embedding   =      -0.10374114 Ry
+     correction to one-el term =      -3.08271850 Ry
+
+     iteration #  6     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  7.30E-06,  avg # of iterations =  2.0
+
+     negative rho (up, down):  1.017E-04 0.000E+00
+
+     add environment contribution to local potential
+     Polarization accuracy = 2.5E-06, # of iterations =  23
+
+     total cpu time spent up to now is       35.3 secs
+
+     total energy              =     -81.36774831 Ry
+     estimated scf accuracy    <       0.00024275 Ry
+     electrostatic embedding   =      -0.10458541 Ry
+     correction to one-el term =      -3.06253266 Ry
+
+     iteration #  7     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.01E-06,  avg # of iterations =  5.0
+
+     negative rho (up, down):  3.222E-04 0.000E+00
+
+     add environment contribution to local potential
+     Polarization accuracy = 2.9E-06, # of iterations =  23
+
+     total cpu time spent up to now is       40.4 secs
+
+     total energy              =     -81.36796187 Ry
+     estimated scf accuracy    <       0.00004783 Ry
+     electrostatic embedding   =      -0.10609060 Ry
+     correction to one-el term =      -3.05775849 Ry
+
+     iteration #  8     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.99E-07,  avg # of iterations =  5.0
+
+     negative rho (up, down):  3.862E-04 0.000E+00
+
+     add environment contribution to local potential
+     Polarization accuracy = 3.0E-06, # of iterations =  23
+
+     total cpu time spent up to now is       46.6 secs
+
+     total energy              =     -81.36808286 Ry
+     estimated scf accuracy    <       0.00001330 Ry
+     electrostatic embedding   =      -0.10781236 Ry
+     correction to one-el term =      -3.05818006 Ry
+
+     iteration #  9     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  5.54E-08,  avg # of iterations =  3.0
+
+     negative rho (up, down):  3.025E-04 0.000E+00
+
+     add environment contribution to local potential
+     Polarization accuracy = 3.3E-06, # of iterations =  23
+
+     total cpu time spent up to now is       52.4 secs
+
+     total energy              =     -81.36812372 Ry
+     estimated scf accuracy    <       0.00000714 Ry
+     electrostatic embedding   =      -0.10878794 Ry
+     correction to one-el term =      -3.06301930 Ry
+
+     iteration # 10     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.97E-08,  avg # of iterations =  5.0
+
+     negative rho (up, down):  2.792E-04 0.000E+00
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.0668 ev
 
-     total cpu time spent up to now is       37.6 secs
+     total cpu time spent up to now is       54.2 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 ( 11060 PWs)   bands (ev):
 
-   -29.3110 -23.5921 -19.1180 -16.4260 -15.1002 -13.8549 -12.0971 -11.3759
-   -10.0755 -10.0540  -9.7725  -7.8532
+   -29.3064 -23.4758 -19.0311 -16.3883 -15.0150 -13.7733 -12.0660 -11.3428
+   -10.0251 -10.0182  -9.7057  -7.7668
 
-     highest occupied level (ev):    -7.8532
+     highest occupied level (ev):    -7.7668
 
-!    total energy              =     -81.36680414 Ry
-     estimated scf accuracy    <       0.00175211 Ry
+!    total energy              =     -81.36818268 Ry
+     estimated scf accuracy    <       0.00000307 Ry
 
      The total energy is the sum of the following terms:
-     one-electron contribution =    -242.75450807 Ry
-     hartree contribution      =     123.23519890 Ry
-     xc contribution           =     -22.96887560 Ry
+     one-electron contribution =    -242.69657125 Ry
+     hartree contribution      =     123.17540039 Ry
+     xc contribution           =     -22.96552694 Ry
      ewald contribution        =      64.30784069 Ry
-     electrostatic embedding   =      -0.10374131 Ry
-     correction to one-el term =      -3.08271876 Ry
+     electrostatic embedding   =      -0.11138066 Ry
+     correction to one-el term =      -3.07794491 Ry
 
      WARNING: you are using the parabolic pbc correction;
               the potential shift above must be added to 
               band and Fermi energies.
 
-     convergence has been achieved in   5 iterations
+     convergence has been achieved in  10 iterations
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  1   force =     0.21318600    0.00000059    0.09951717
-     atom    2 type  1   force =    -0.03203302    0.00000437   -0.07981609
-     atom    3 type  3   force =    -0.13617715    0.00000383    0.04389421
-     atom    4 type  2   force =     0.01435304   -0.02168484    0.00667347
-     atom    5 type  2   force =    -0.02490040   -0.00000288    0.01011910
-     atom    6 type  2   force =     0.01434950    0.02167925    0.00667167
-     atom    7 type  4   force =    -0.08305406   -0.00000284   -0.00698913
-     atom    8 type  2   force =     0.00620738    0.00000087   -0.04705616
-     atom    9 type  2   force =     0.03858542    0.00000425    0.03819288
-     atom   10 type  2   force =    -0.01051671   -0.00000259   -0.07120711
+     atom    1 type  1   force =     0.21746395    0.00000252    0.09518510
+     atom    2 type  1   force =    -0.03057229    0.00000154   -0.08017327
+     atom    3 type  3   force =    -0.13947548   -0.00000240    0.04331328
+     atom    4 type  2   force =     0.01854462   -0.02809351    0.00852295
+     atom    5 type  2   force =    -0.03096013   -0.00000050    0.01126929
+     atom    6 type  2   force =     0.01854315    0.02809526    0.00852430
+     atom    7 type  4   force =    -0.09239146   -0.00000589   -0.00009264
+     atom    8 type  2   force =     0.00690209    0.00000059   -0.05290369
+     atom    9 type  2   force =     0.04324830    0.00000249    0.03725532
+     atom   10 type  2   force =    -0.01130276   -0.00000009   -0.07090065
 
-     Total force =     0.320486     Total SCF correction =     0.071627
-     SCF correction compared to forces is large: reduce conv_thr to get better values
+     Total force =     0.329144     Total SCF correction =     0.002246
 
-     Writing output data file /home/simplogic86/Work/QE1/Environ/tests/../..//tempdir/pwscf.save/
  
-     init_run     :      5.79s CPU      6.02s WALL (       1 calls)
-     electrons    :     30.05s CPU     31.50s WALL (       1 calls)
-     forces       :      0.85s CPU      0.91s WALL (       1 calls)
+     init_run     :      3.23s CPU      3.47s WALL (       1 calls)
+     electrons    :     47.13s CPU     50.63s WALL (       1 calls)
+     forces       :      0.68s CPU      0.79s WALL (       1 calls)
 
      Called by init_run:
      wfcinit      :      0.10s CPU      0.10s WALL (       1 calls)
-     potinit      :      1.10s CPU      1.18s WALL (       1 calls)
-     hinit0       :      3.83s CPU      3.84s WALL (       1 calls)
+     potinit      :      0.91s CPU      0.99s WALL (       1 calls)
+     hinit0       :      1.81s CPU      1.83s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.88s CPU      0.93s WALL (       5 calls)
-     sum_band     :      2.01s CPU      2.35s WALL (       5 calls)
-     v_of_rho     :      2.38s CPU      2.60s WALL (       6 calls)
-     newd         :      1.28s CPU      1.72s WALL (       6 calls)
-     mix_rho      :      0.22s CPU      0.22s WALL (       5 calls)
+     c_bands      :      1.97s CPU      2.13s WALL (      10 calls)
+     sum_band     :      3.99s CPU      4.60s WALL (      10 calls)
+     v_of_rho     :      3.99s CPU      4.45s WALL (      11 calls)
+     newd         :      2.61s CPU      3.37s WALL (      11 calls)
+     mix_rho      :      0.54s CPU      0.55s WALL (      10 calls)
 
      Called by c_bands:
-     init_us_2    :      0.03s CPU      0.03s WALL (      11 calls)
-     regterg      :      0.82s CPU      0.88s WALL (       5 calls)
+     init_us_2    :      0.06s CPU      0.08s WALL (      21 calls)
+     init_us_2:cp :      0.06s CPU      0.08s WALL (      21 calls)
+     regterg      :      1.86s CPU      1.99s WALL (      10 calls)
 
      Called by *egterg:
-     rdiaghg      :      0.01s CPU      0.01s WALL (      24 calls)
-     h_psi        :      0.82s CPU      0.88s WALL (      25 calls)
-     s_psi        :      0.02s CPU      0.02s WALL (      25 calls)
-     g_psi        :      0.00s CPU      0.00s WALL (      19 calls)
+     rdiaghg      :      0.01s CPU      0.01s WALL (      49 calls)
+     h_psi        :      1.76s CPU      1.88s WALL (      50 calls)
+     s_psi        :      0.05s CPU      0.05s WALL (      50 calls)
+     g_psi        :      0.01s CPU      0.01s WALL (      39 calls)
 
      Called by h_psi:
-     h_psi:calbec :      0.02s CPU      0.03s WALL (      25 calls)
-     vloc_psi     :      0.78s CPU      0.82s WALL (      25 calls)
-     add_vuspsi   :      0.02s CPU      0.02s WALL (      25 calls)
+     h_psi:calbec :      0.04s CPU      0.04s WALL (      50 calls)
+     vloc_psi     :      1.66s CPU      1.79s WALL (      50 calls)
+     add_vuspsi   :      0.05s CPU      0.05s WALL (      50 calls)
 
      General routines
-     calbec       :      0.03s CPU      0.04s WALL (      34 calls)
-     fft          :      1.02s CPU      1.08s WALL (      66 calls)
-     ffts         :      0.03s CPU      0.03s WALL (      11 calls)
-     fftw         :      0.63s CPU      0.66s WALL (     240 calls)
-     interpolate  :      0.13s CPU      0.13s WALL (       6 calls)
+     calbec       :      0.06s CPU      0.06s WALL (      64 calls)
+     fft          :      1.96s CPU      2.02s WALL (     121 calls)
+     ffts         :      0.06s CPU      0.06s WALL (      21 calls)
+     fftw         :      1.37s CPU      1.48s WALL (     476 calls)
+     interpolate  :      0.26s CPU      0.27s WALL (      11 calls)
  
      Parallel routines
  
      Environ routines
  
-     PWSCF        :     36.80s CPU     38.55s WALL
+     PWSCF        :     51.12s CPU     54.99s WALL
 
  
-   This run was terminated on:  20:49:31   1Oct2021            
+   This run was terminated on:  20:39:46  22Apr2022            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -382,10 +466,10 @@
 %%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  total charge               =    -25.0000000
- center of charge           =      0.1910593    -0.0000030     0.1279620
+ center of charge           =      0.1036944    -0.0000075     0.0650154
  dipole                     =      0.0000000     0.0000000     0.0000000
- quadrupole (pc)            =    -79.0828051    -5.4513517  -105.8059620
- quadrupole (gauss)         =    -82.2078051    -8.5763517  -108.9309620
+ quadrupole (pc)            =    -79.2736207    -5.4513517  -105.9050187
+ quadrupole (gauss)         =    -82.3986207    -8.5763517  -109.0300187
 
    i | type | coordinates
  -----------------------------------------------------------------------
@@ -407,16 +491,16 @@
  system defined dimension   =              0
  system defined axis        =              3
 
- system center              =      0.1910593    -0.0000030     0.1279620
- system width               =      4.0428509
+ system center              =      0.1036944    -0.0000075     0.0650154
+ system width               =      4.0527608
 
 %%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  total charge               =    -25.0000000
- center of charge           =      0.1910593    -0.0000030     0.1279620
+ center of charge           =      0.1036944    -0.0000075     0.0650154
  dipole                     =      0.0000000     0.0000000     0.0000000
- quadrupole (pc)            =    -79.0828051    -5.4513517  -105.8059620
- quadrupole (gauss)         =    -82.2078051    -8.5763517  -108.9309620
+ quadrupole (pc)            =    -79.2736207    -5.4513517  -105.9050187
+ quadrupole (gauss)         =    -82.3986207    -8.5763517  -109.0300187
 
    i | type | coordinates
  -----------------------------------------------------------------------
@@ -438,18 +522,18 @@
  system defined dimension   =              0
  system defined axis        =              3
 
- system center              =      0.1910593    -0.0000030     0.1279620
- system width               =      4.0428509
+ system center              =      0.1036944    -0.0000075     0.0650154
+ system width               =      4.0527608
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- total number of charges    =             11
+ total number of charges    =             10
 
  total charge               =    -25.0000000
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- total number of charges    =             11
+ total number of charges    =             10
 
  total charge               =    -25.0000000
 
@@ -488,15 +572,13 @@
  boundary label             = solvent             
  boundary mode              = electronic          
 
- boundary is built as a type-2 function of a smooth density
-
- using the modified SCCS function:
+ using the optimal SCCS function:
  rhomax                     =      0.0050000
  rhomin                     =      0.0001000
 
- volume of the QM region    =   2771.6247496
+ volume of the QM region    =   1611.6286938
 
- surface of the QM region   =    905.6008158
+ surface of the QM region   =    641.7174084
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -557,40 +639,38 @@
  boundary label             = solvent             
  boundary mode              = electronic          
 
- boundary is built as a type-2 function of a smooth density
-
- using the modified SCCS function:
+ using the optimal SCCS function:
  rhomax                     =      0.0050000
  rhomin                     =      0.0001000
 
- volume of the QM region    =    994.3250268
+ volume of the QM region    =    687.4669158
 
- surface of the QM region   =    491.9124258
+ surface of the QM region   =    391.9317725
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = vreference                                        
 
- integral of density        =  -0.6906738556E-12
+ integral of density        =  -0.6883053798E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
    i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
  ---------------------------------------------------------------------------------------------------------
-   1 |   0.806250E+00 |   0.111917E+03 |   0.902333E+02 |   0.443549E-01 |   0.339959E+04 |   0.100000E-04
-   2 |   0.645368E-01 |   0.387862E+04 |   0.250313E+03 |   0.408472E-02 |   0.288316E+02 |   0.100000E-04
-   3 |   0.190966E+00 |   0.302759E+01 |   0.578168E+00 |   0.137789E-02 |   0.328074E+01 |   0.100000E-04
-   4 |   0.200713E+00 |   0.322419E+00 |   0.647137E-01 |   0.737668E-03 |   0.940299E+00 |   0.100000E-04
-   5 |   0.323853E+00 |   0.202058E-01 |   0.654371E-02 |   0.340429E-03 |   0.200261E+00 |   0.100000E-04
-   6 |   0.419024E+00 |   0.334180E-02 |   0.140030E-02 |   0.160815E-03 |   0.446884E-01 |   0.100000E-04
-   7 |   0.206421E+00 |   0.153557E-02 |   0.316974E-03 |   0.119004E-03 |   0.244718E-01 |   0.100000E-04
-   8 |   0.338835E+00 |   0.258413E-03 |   0.875594E-04 |   0.109762E-03 |   0.208184E-01 |   0.100000E-04
-   9 |   0.735568E+00 |   0.354627E-04 |   0.260852E-04 |   0.673109E-04 |   0.782914E-02 |   0.100000E-04
-  10 |   0.769454E+00 |   0.278683E-04 |   0.214434E-04 |   0.274163E-04 |   0.129886E-02 |   0.100000E-04
-  11 |   0.527452E+00 |   0.109392E-04 |   0.576990E-05 |   0.141637E-04 |   0.346656E-03 |   0.100000E-04
-  12 |   0.482391E+00 |   0.173325E-05 |   0.836104E-06 |   0.702956E-05 |   0.853886E-04 |   0.100000E-04
-  13 |   0.391276E+00 |   0.496244E-06 |   0.194169E-06 |   0.361897E-05 |   0.226315E-04 |   0.100000E-04
-  14 |   0.334286E+00 |   0.179474E-06 |   0.599957E-07 |   0.232090E-05 |   0.930801E-05 |   0.100000E-04
+   1 |   0.806249E+00 |   0.111917E+03 |   0.902333E+02 |   0.443548E-01 |   0.339958E+04 |   0.100000E-04
+   2 |   0.645368E-01 |   0.387861E+04 |   0.250313E+03 |   0.408504E-02 |   0.288361E+02 |   0.100000E-04
+   3 |   0.190956E+00 |   0.302815E+01 |   0.578241E+00 |   0.137781E-02 |   0.328037E+01 |   0.100000E-04
+   4 |   0.200720E+00 |   0.322444E+00 |   0.647210E-01 |   0.737684E-03 |   0.940338E+00 |   0.100000E-04
+   5 |   0.323860E+00 |   0.202051E-01 |   0.654363E-02 |   0.340405E-03 |   0.200233E+00 |   0.100000E-04
+   6 |   0.419027E+00 |   0.334169E-02 |   0.140026E-02 |   0.160751E-03 |   0.446533E-01 |   0.100000E-04
+   7 |   0.206422E+00 |   0.153533E-02 |   0.316925E-03 |   0.118979E-03 |   0.244616E-01 |   0.100000E-04
+   8 |   0.338795E+00 |   0.258403E-03 |   0.875456E-04 |   0.109734E-03 |   0.208079E-01 |   0.100000E-04
+   9 |   0.735490E+00 |   0.354510E-04 |   0.260738E-04 |   0.673001E-04 |   0.782663E-02 |   0.100000E-04
+  10 |   0.769557E+00 |   0.278500E-04 |   0.214321E-04 |   0.274145E-04 |   0.129868E-02 |   0.100000E-04
+  11 |   0.527480E+00 |   0.109367E-04 |   0.576891E-05 |   0.141643E-04 |   0.346686E-03 |   0.100000E-04
+  12 |   0.482394E+00 |   0.173320E-05 |   0.836086E-06 |   0.703252E-05 |   0.854604E-04 |   0.100000E-04
+  13 |   0.391326E+00 |   0.496227E-06 |   0.194186E-06 |   0.361791E-05 |   0.226182E-04 |   0.100000E-04
+  14 |   0.338717E+00 |   0.176735E-06 |   0.598631E-07 |   0.229636E-05 |   0.911222E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -598,7 +678,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =   -240.6961198    
+ integral of density        =   -240.6866078    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -610,13 +690,13 @@
 
  density label              = vsoftcavity                                       
 
- integral of density        =    72.23827652    
+ integral of density        =    72.23276466    
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = dvtot                                             
 
- integral of density        =   -168.4578433    
+ integral of density        =   -168.4538431    
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -647,46 +727,44 @@
  boundary label             = solvent             
  boundary mode              = electronic          
 
- boundary is built as a type-2 function of a smooth density
-
- using the modified SCCS function:
+ using the optimal SCCS function:
  rhomax                     =      0.0050000
  rhomin                     =      0.0001000
 
- volume of the QM region    =    821.1075342
+ volume of the QM region    =    635.8688563
 
- surface of the QM region   =    442.9819547
+ surface of the QM region   =    379.1305432
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = vreference                                        
 
- integral of density        =   0.1076340663E-12
+ integral of density        =  -0.1154171409E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- Warning: Bad guess with residual norm =   0.867527E+04, reset to no guess
+ Warning: Bad guess with residual norm =   0.867525E+04, reset to no guess
 
    i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
  ---------------------------------------------------------------------------------------------------------
-   1 |   0.822235E+00 |   0.113426E+03 |   0.932628E+02 |   0.595202E-01 |   0.612170E+04 |   0.100000E-04
-   2 |   0.522576E-01 |   0.564295E+04 |   0.294887E+03 |   0.716148E-02 |   0.886235E+02 |   0.100000E-04
-   3 |   0.128954E+00 |   0.122893E+02 |   0.158475E+01 |   0.211630E-02 |   0.773920E+01 |   0.100000E-04
-   4 |   0.192035E+00 |   0.515946E+00 |   0.990794E-01 |   0.916662E-03 |   0.145199E+01 |   0.100000E-04
-   5 |   0.291794E+00 |   0.247126E-01 |   0.721099E-02 |   0.501534E-03 |   0.434654E+00 |   0.100000E-04
-   6 |   0.260518E+00 |   0.101009E-01 |   0.263147E-02 |   0.360165E-03 |   0.224155E+00 |   0.100000E-04
-   7 |   0.225369E+00 |   0.578747E-02 |   0.130431E-02 |   0.307028E-03 |   0.162891E+00 |   0.100000E-04
-   8 |   0.436878E+00 |   0.501891E-03 |   0.219265E-03 |   0.287980E-03 |   0.143307E+00 |   0.100000E-04
-   9 |   0.824364E+00 |   0.152095E-03 |   0.125382E-03 |   0.192967E-03 |   0.643441E-01 |   0.100000E-04
-  10 |   0.687842E+00 |   0.204319E-03 |   0.140539E-03 |   0.784438E-04 |   0.106331E-01 |   0.100000E-04
-  11 |   0.428284E+00 |   0.837701E-04 |   0.358774E-04 |   0.497598E-04 |   0.427860E-02 |   0.100000E-04
-  12 |   0.375298E+00 |   0.222697E-04 |   0.835777E-05 |   0.336717E-04 |   0.195918E-02 |   0.100000E-04
-  13 |   0.456065E+00 |   0.514725E-05 |   0.234748E-05 |   0.208087E-04 |   0.748230E-03 |   0.100000E-04
-  14 |   0.431193E+00 |   0.253425E-05 |   0.109275E-05 |   0.145092E-04 |   0.363773E-03 |   0.100000E-04
-  15 |   0.434851E+00 |   0.116338E-05 |   0.505897E-06 |   0.896421E-05 |   0.138857E-03 |   0.100000E-04
-  16 |   0.757534E-01 |   0.833076E-05 |   0.631084E-06 |   0.871739E-05 |   0.131316E-03 |   0.100000E-04
-  17 |   0.349151E+00 |   0.959413E-06 |   0.334980E-06 |   0.373444E-05 |   0.240987E-04 |   0.100000E-04
-  18 |   0.321575E+00 |   0.207406E-06 |   0.666967E-07 |   0.222485E-05 |   0.855349E-05 |   0.100000E-04
+   1 |   0.822235E+00 |   0.113426E+03 |   0.932629E+02 |   0.595201E-01 |   0.612169E+04 |   0.100000E-04
+   2 |   0.522576E-01 |   0.564293E+04 |   0.294886E+03 |   0.716179E-02 |   0.886313E+02 |   0.100000E-04
+   3 |   0.128952E+00 |   0.122901E+02 |   0.158484E+01 |   0.211623E-02 |   0.773870E+01 |   0.100000E-04
+   4 |   0.192037E+00 |   0.515937E+00 |   0.990790E-01 |   0.916635E-03 |   0.145190E+01 |   0.100000E-04
+   5 |   0.291795E+00 |   0.247125E-01 |   0.721100E-02 |   0.501560E-03 |   0.434700E+00 |   0.100000E-04
+   6 |   0.260518E+00 |   0.101011E-01 |   0.263151E-02 |   0.360136E-03 |   0.224118E+00 |   0.100000E-04
+   7 |   0.225371E+00 |   0.578753E-02 |   0.130434E-02 |   0.307044E-03 |   0.162909E+00 |   0.100000E-04
+   8 |   0.436888E+00 |   0.501904E-03 |   0.219276E-03 |   0.287988E-03 |   0.143315E+00 |   0.100000E-04
+   9 |   0.824343E+00 |   0.152112E-03 |   0.125393E-03 |   0.192964E-03 |   0.643424E-01 |   0.100000E-04
+  10 |   0.687796E+00 |   0.204333E-03 |   0.140539E-03 |   0.784478E-04 |   0.106342E-01 |   0.100000E-04
+  11 |   0.428301E+00 |   0.837589E-04 |   0.358740E-04 |   0.497722E-04 |   0.428072E-02 |   0.100000E-04
+  12 |   0.375358E+00 |   0.222687E-04 |   0.835874E-05 |   0.336858E-04 |   0.196082E-02 |   0.100000E-04
+  13 |   0.456214E+00 |   0.514919E-05 |   0.234913E-05 |   0.208205E-04 |   0.749073E-03 |   0.100000E-04
+  14 |   0.431111E+00 |   0.253846E-05 |   0.109436E-05 |   0.145469E-04 |   0.365666E-03 |   0.100000E-04
+  15 |   0.404761E+00 |   0.126257E-05 |   0.511039E-06 |   0.912065E-05 |   0.143746E-03 |   0.100000E-04
+  16 |   0.702016E-01 |   0.120535E-04 |   0.846171E-06 |   0.871296E-05 |   0.131182E-03 |   0.100000E-04
+  17 |   0.404854E+00 |   0.728543E-06 |   0.294954E-06 |   0.373573E-05 |   0.241155E-04 |   0.100000E-04
+  18 |   0.323108E+00 |   0.205573E-06 |   0.664223E-07 |   0.222044E-05 |   0.851969E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -694,7 +772,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =   -242.4894295    
+ integral of density        =   -242.4632112    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -706,13 +784,13 @@
 
  density label              = vsoftcavity                                       
 
- integral of density        =    48.87387054    
+ integral of density        =    48.87429449    
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = dvtot                                             
 
- integral of density        =   -193.6155589    
+ integral of density        =   -193.5889167    
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -743,21 +821,19 @@
  boundary label             = solvent             
  boundary mode              = electronic          
 
- boundary is built as a type-2 function of a smooth density
-
- using the modified SCCS function:
+ using the optimal SCCS function:
  rhomax                     =      0.0050000
  rhomin                     =      0.0001000
 
- volume of the QM region    =    753.3817822
+ volume of the QM region    =    608.0091115
 
- surface of the QM region   =    423.3061880
+ surface of the QM region   =    371.9083124
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = vreference                                        
 
- integral of density        =   0.1525693152E-12
+ integral of density        =   0.2544137740E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -766,26 +842,26 @@
    i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
  ---------------------------------------------------------------------------------------------------------
    1 |   0.832117E+00 |   0.112961E+03 |   0.939966E+02 |   0.673464E-01 |   0.783740E+04 |   0.100000E-04
-   2 |   0.456790E-01 |   0.708151E+04 |   0.323477E+03 |   0.811933E-02 |   0.113916E+03 |   0.100000E-04
-   3 |   0.120068E+00 |   0.132481E+02 |   0.159066E+01 |   0.246044E-02 |   0.104609E+02 |   0.100000E-04
-   4 |   0.164805E+00 |   0.805460E+00 |   0.132744E+00 |   0.105465E-02 |   0.192203E+01 |   0.100000E-04
-   5 |   0.251021E+00 |   0.374233E-01 |   0.939405E-02 |   0.627306E-03 |   0.679990E+00 |   0.100000E-04
-   6 |   0.252475E+00 |   0.121072E-01 |   0.305676E-02 |   0.468773E-03 |   0.379725E+00 |   0.100000E-04
-   7 |   0.217358E+00 |   0.809710E-02 |   0.175997E-02 |   0.415169E-03 |   0.297847E+00 |   0.100000E-04
-   8 |   0.384883E+00 |   0.106571E-02 |   0.410175E-03 |   0.418704E-03 |   0.302941E+00 |   0.100000E-04
-   9 |   0.739458E+00 |   0.294004E-03 |   0.217403E-03 |   0.331971E-03 |   0.190434E+00 |   0.100000E-04
-  10 |   0.746151E+00 |   0.373334E-03 |   0.278564E-03 |   0.143377E-03 |   0.355222E-01 |   0.100000E-04
-  11 |   0.353992E+00 |   0.394069E-03 |   0.139497E-03 |   0.957613E-04 |   0.158461E-01 |   0.100000E-04
-  12 |   0.293414E+00 |   0.152635E-03 |   0.447852E-04 |   0.694754E-04 |   0.834078E-02 |   0.100000E-04
-  13 |   0.394779E+00 |   0.242676E-04 |   0.958035E-05 |   0.496432E-04 |   0.425857E-02 |   0.100000E-04
-  14 |   0.464372E+00 |   0.936702E-05 |   0.434978E-05 |   0.331930E-04 |   0.190387E-02 |   0.100000E-04
-  15 |   0.121365E+00 |   0.226219E-04 |   0.274551E-05 |   0.325626E-04 |   0.183224E-02 |   0.100000E-04
-  16 |   0.180572E+00 |   0.252588E-04 |   0.456103E-05 |   0.221613E-04 |   0.848662E-03 |   0.100000E-04
-  17 |   0.459814E+00 |   0.257219E-05 |   0.118273E-05 |   0.130696E-04 |   0.295165E-03 |   0.100000E-04
-  18 |   0.256462E+00 |   0.253726E-05 |   0.650709E-06 |   0.859997E-05 |   0.127802E-03 |   0.100000E-04
-  19 |   0.336432E+00 |   0.821146E-06 |   0.276259E-06 |   0.451370E-05 |   0.352054E-04 |   0.100000E-04
-  20 |   0.488962E+00 |   0.782215E-07 |   0.382473E-07 |   0.286292E-05 |   0.141632E-04 |   0.100000E-04
-  21 |   0.587551E+00 |   0.159060E-07 |   0.934559E-08 |   0.162452E-05 |   0.456030E-05 |   0.100000E-04
+   2 |   0.456790E-01 |   0.708152E+04 |   0.323477E+03 |   0.811947E-02 |   0.113920E+03 |   0.100000E-04
+   3 |   0.120067E+00 |   0.132484E+02 |   0.159070E+01 |   0.246042E-02 |   0.104607E+02 |   0.100000E-04
+   4 |   0.164806E+00 |   0.805458E+00 |   0.132744E+00 |   0.105464E-02 |   0.192199E+01 |   0.100000E-04
+   5 |   0.251020E+00 |   0.374237E-01 |   0.939411E-02 |   0.627327E-03 |   0.680036E+00 |   0.100000E-04
+   6 |   0.252472E+00 |   0.121075E-01 |   0.305682E-02 |   0.468753E-03 |   0.379693E+00 |   0.100000E-04
+   7 |   0.217362E+00 |   0.809709E-02 |   0.176000E-02 |   0.415178E-03 |   0.297860E+00 |   0.100000E-04
+   8 |   0.384888E+00 |   0.106573E-02 |   0.410186E-03 |   0.418710E-03 |   0.302949E+00 |   0.100000E-04
+   9 |   0.739457E+00 |   0.294017E-03 |   0.217413E-03 |   0.331973E-03 |   0.190436E+00 |   0.100000E-04
+  10 |   0.746131E+00 |   0.373354E-03 |   0.278571E-03 |   0.143379E-03 |   0.355236E-01 |   0.100000E-04
+  11 |   0.353994E+00 |   0.394056E-03 |   0.139493E-03 |   0.957659E-04 |   0.158477E-01 |   0.100000E-04
+  12 |   0.293420E+00 |   0.152629E-03 |   0.447846E-04 |   0.694786E-04 |   0.834154E-02 |   0.100000E-04
+  13 |   0.394836E+00 |   0.242667E-04 |   0.958135E-05 |   0.496688E-04 |   0.426296E-02 |   0.100000E-04
+  14 |   0.471095E+00 |   0.922465E-05 |   0.434569E-05 |   0.339973E-04 |   0.199725E-02 |   0.100000E-04
+  15 |   0.336207E+00 |   0.628352E-05 |   0.211256E-05 |   0.241152E-04 |   0.100491E-02 |   0.100000E-04
+  16 |   0.690181E-01 |   0.890367E-04 |   0.614514E-05 |   0.226757E-04 |   0.888520E-03 |   0.100000E-04
+  17 |   0.428197E+00 |   0.294755E-05 |   0.126213E-05 |   0.130397E-04 |   0.293819E-03 |   0.100000E-04
+  18 |   0.256327E+00 |   0.254094E-05 |   0.651312E-06 |   0.860361E-05 |   0.127910E-03 |   0.100000E-04
+  19 |   0.336473E+00 |   0.821221E-06 |   0.276319E-06 |   0.451435E-05 |   0.352155E-04 |   0.100000E-04
+  20 |   0.488963E+00 |   0.782351E-07 |   0.382541E-07 |   0.286318E-05 |   0.141658E-04 |   0.100000E-04
+  21 |   0.587547E+00 |   0.159088E-07 |   0.934719E-08 |   0.162460E-05 |   0.456075E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -793,7 +869,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =   -238.8166117    
+ integral of density        =   -238.7957654    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -805,13 +881,13 @@
 
  density label              = vsoftcavity                                       
 
- integral of density        =    37.95220362    
+ integral of density        =    37.95232260    
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = dvtot                                             
 
- integral of density        =   -200.8644081    
+ integral of density        =   -200.8434428    
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -842,50 +918,48 @@
  boundary label             = solvent             
  boundary mode              = electronic          
 
- boundary is built as a type-2 function of a smooth density
-
- using the modified SCCS function:
+ using the optimal SCCS function:
  rhomax                     =      0.0050000
  rhomin                     =      0.0001000
 
- volume of the QM region    =    715.3431891
+ volume of the QM region    =    589.4163451
 
- surface of the QM region   =    412.1643233
+ surface of the QM region   =    366.7718804
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = vreference                                        
 
- integral of density        =  -0.7313326899E-12
+ integral of density        =  -0.9254161223E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- Warning: Bad guess with residual norm =   0.149417E+05, reset to no guess
+ Warning: Bad guess with residual norm =   0.149418E+05, reset to no guess
 
    i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
  ---------------------------------------------------------------------------------------------------------
    1 |   0.838170E+00 |   0.111967E+03 |   0.938477E+02 |   0.787334E-01 |   0.107118E+05 |   0.100000E-04
-   2 |   0.418176E-01 |   0.812586E+04 |   0.339804E+03 |   0.107384E-01 |   0.199262E+03 |   0.100000E-04
-   3 |   0.109614E+00 |   0.200176E+02 |   0.219420E+01 |   0.304739E-02 |   0.160472E+02 |   0.100000E-04
+   2 |   0.418176E-01 |   0.812586E+04 |   0.339804E+03 |   0.107385E-01 |   0.199263E+03 |   0.100000E-04
+   3 |   0.109614E+00 |   0.200176E+02 |   0.219421E+01 |   0.304739E-02 |   0.160472E+02 |   0.100000E-04
    4 |   0.152776E+00 |   0.109602E+01 |   0.167444E+00 |   0.125766E-02 |   0.273318E+01 |   0.100000E-04
-   5 |   0.226027E+00 |   0.517995E-01 |   0.117081E-01 |   0.795687E-03 |   0.109403E+01 |   0.100000E-04
-   6 |   0.223730E+00 |   0.173658E-01 |   0.388526E-02 |   0.611805E-03 |   0.646800E+00 |   0.100000E-04
-   7 |   0.225389E+00 |   0.981496E-02 |   0.221218E-02 |   0.559995E-03 |   0.541891E+00 |   0.100000E-04
-   8 |   0.361826E+00 |   0.159715E-02 |   0.577890E-03 |   0.579448E-03 |   0.580193E+00 |   0.100000E-04
-   9 |   0.677376E+00 |   0.425854E-03 |   0.288463E-03 |   0.490721E-03 |   0.416114E+00 |   0.100000E-04
-  10 |   0.788740E+00 |   0.484280E-03 |   0.381971E-03 |   0.227073E-03 |   0.890996E-01 |   0.100000E-04
-  11 |   0.340161E+00 |   0.837295E-03 |   0.284815E-03 |   0.157181E-03 |   0.426920E-01 |   0.100000E-04
-  12 |   0.286179E+00 |   0.361287E-03 |   0.103393E-03 |   0.120392E-03 |   0.250460E-01 |   0.100000E-04
-  13 |   0.361897E+00 |   0.604068E-04 |   0.218610E-04 |   0.924575E-04 |   0.147716E-01 |   0.100000E-04
-  14 |   0.465415E+00 |   0.223776E-04 |   0.104149E-04 |   0.650679E-04 |   0.731606E-02 |   0.100000E-04
-  15 |   0.142353E+00 |   0.476412E-04 |   0.678187E-05 |   0.543018E-04 |   0.509533E-02 |   0.100000E-04
-  16 |   0.143073E+00 |   0.105917E-03 |   0.151538E-04 |   0.440127E-04 |   0.334734E-02 |   0.100000E-04
-  17 |   0.502533E+00 |   0.671769E-05 |   0.337586E-05 |   0.263990E-04 |   0.120425E-02 |   0.100000E-04
-  18 |   0.367355E+00 |   0.395918E-05 |   0.145443E-05 |   0.164331E-04 |   0.466639E-03 |   0.100000E-04
-  19 |   0.214103E+00 |   0.481103E-05 |   0.103006E-05 |   0.104740E-04 |   0.189569E-03 |   0.100000E-04
-  20 |   0.424505E+00 |   0.424146E-06 |   0.180052E-06 |   0.693381E-05 |   0.830782E-04 |   0.100000E-04
-  21 |   0.539500E+00 |   0.784647E-07 |   0.423317E-07 |   0.446566E-05 |   0.344600E-04 |   0.100000E-04
-  22 |   0.608646E+00 |   0.411368E-07 |   0.250378E-07 |   0.215541E-05 |   0.802792E-05 |   0.100000E-04
+   5 |   0.226026E+00 |   0.517996E-01 |   0.117081E-01 |   0.795692E-03 |   0.109404E+01 |   0.100000E-04
+   6 |   0.223730E+00 |   0.173659E-01 |   0.388527E-02 |   0.611803E-03 |   0.646795E+00 |   0.100000E-04
+   7 |   0.225390E+00 |   0.981496E-02 |   0.221219E-02 |   0.559998E-03 |   0.541897E+00 |   0.100000E-04
+   8 |   0.361826E+00 |   0.159716E-02 |   0.577894E-03 |   0.579450E-03 |   0.580198E+00 |   0.100000E-04
+   9 |   0.677376E+00 |   0.425858E-03 |   0.288466E-03 |   0.490722E-03 |   0.416117E+00 |   0.100000E-04
+  10 |   0.788736E+00 |   0.484286E-03 |   0.381974E-03 |   0.227073E-03 |   0.890994E-01 |   0.100000E-04
+  11 |   0.340162E+00 |   0.837292E-03 |   0.284815E-03 |   0.157184E-03 |   0.426935E-01 |   0.100000E-04
+  12 |   0.286179E+00 |   0.361285E-03 |   0.103392E-03 |   0.120402E-03 |   0.250504E-01 |   0.100000E-04
+  13 |   0.361848E+00 |   0.604164E-04 |   0.218616E-04 |   0.924238E-04 |   0.147609E-01 |   0.100000E-04
+  14 |   0.451674E+00 |   0.231166E-04 |   0.104412E-04 |   0.630661E-04 |   0.687282E-02 |   0.100000E-04
+  15 |   0.737679E-01 |   0.136423E-03 |   0.100636E-04 |   0.622818E-04 |   0.670295E-02 |   0.100000E-04
+  16 |   0.281936E+00 |   0.317364E-04 |   0.894765E-05 |   0.435223E-04 |   0.327317E-02 |   0.100000E-04
+  17 |   0.507228E+00 |   0.659938E-05 |   0.334739E-05 |   0.264161E-04 |   0.120582E-02 |   0.100000E-04
+  18 |   0.367863E+00 |   0.395085E-05 |   0.145337E-05 |   0.164204E-04 |   0.465918E-03 |   0.100000E-04
+  19 |   0.213871E+00 |   0.481087E-05 |   0.102891E-05 |   0.104736E-04 |   0.189556E-03 |   0.100000E-04
+  20 |   0.424330E+00 |   0.424434E-06 |   0.180100E-06 |   0.693389E-05 |   0.830803E-04 |   0.100000E-04
+  21 |   0.539490E+00 |   0.784691E-07 |   0.423334E-07 |   0.446571E-05 |   0.344608E-04 |   0.100000E-04
+  22 |   0.608643E+00 |   0.411380E-07 |   0.250383E-07 |   0.215541E-05 |   0.802792E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -893,7 +967,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =   -232.1003197    
+ integral of density        =   -232.0760924    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -905,13 +979,13 @@
 
  density label              = vsoftcavity                                       
 
- integral of density        =    33.74491891    
+ integral of density        =    33.74500952    
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = dvtot                                             
 
- integral of density        =   -198.3554008    
+ integral of density        =   -198.3310829    
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -942,33 +1016,56 @@
  boundary label             = solvent             
  boundary mode              = electronic          
 
- boundary is built as a type-2 function of a smooth density
-
- using the modified SCCS function:
+ using the optimal SCCS function:
  rhomax                     =      0.0050000
  rhomin                     =      0.0001000
 
- volume of the QM region    =    715.3431891
+ volume of the QM region    =    590.0298047
 
- surface of the QM region   =    412.1643233
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
- density label              = dvtot                                             
-
- integral of density        =   -198.3554008    
+ surface of the QM region   =    367.1431507
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = vreference                                        
 
- integral of density        =  -0.7313326899E-12
+ integral of density        =  -0.5136302906E-12
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ Warning: Bad guess with residual norm =   0.152067E+05, reset to no guess
+
+   i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
+ ---------------------------------------------------------------------------------------------------------
+   1 |   0.838956E+00 |   0.111839E+03 |   0.938277E+02 |   0.794802E-01 |   0.109160E+05 |   0.100000E-04
+   2 |   0.416333E-01 |   0.814904E+04 |   0.339272E+03 |   0.110397E-01 |   0.210599E+03 |   0.100000E-04
+   3 |   0.109713E+00 |   0.207828E+02 |   0.228014E+01 |   0.316414E-02 |   0.173004E+02 |   0.100000E-04
+   4 |   0.151472E+00 |   0.117535E+01 |   0.178033E+00 |   0.128258E-02 |   0.284259E+01 |   0.100000E-04
+   5 |   0.225388E+00 |   0.536965E-01 |   0.121025E-01 |   0.810370E-03 |   0.113478E+01 |   0.100000E-04
+   6 |   0.227125E+00 |   0.171599E-01 |   0.389743E-02 |   0.623611E-03 |   0.672004E+00 |   0.100000E-04
+   7 |   0.221326E+00 |   0.102969E-01 |   0.227897E-02 |   0.571098E-03 |   0.563592E+00 |   0.100000E-04
+   8 |   0.359403E+00 |   0.163904E-02 |   0.589074E-03 |   0.590188E-03 |   0.601900E+00 |   0.100000E-04
+   9 |   0.671464E+00 |   0.436263E-03 |   0.292935E-03 |   0.501849E-03 |   0.435201E+00 |   0.100000E-04
+  10 |   0.797119E+00 |   0.482489E-03 |   0.384601E-03 |   0.232465E-03 |   0.933814E-01 |   0.100000E-04
+  11 |   0.343085E+00 |   0.849666E-03 |   0.291508E-03 |   0.161713E-03 |   0.451893E-01 |   0.100000E-04
+  12 |   0.287514E+00 |   0.374124E-03 |   0.107566E-03 |   0.124481E-03 |   0.267764E-01 |   0.100000E-04
+  13 |   0.359317E+00 |   0.639246E-04 |   0.229692E-04 |   0.962567E-04 |   0.160105E-01 |   0.100000E-04
+  14 |   0.437257E+00 |   0.255816E-04 |   0.111857E-04 |   0.661718E-04 |   0.756641E-02 |   0.100000E-04
+  15 |   0.609620E-01 |   0.232680E-03 |   0.141847E-04 |   0.650517E-04 |   0.731241E-02 |   0.100000E-04
+  16 |   0.349687E+00 |   0.227628E-04 |   0.795987E-05 |   0.456110E-04 |   0.359487E-02 |   0.100000E-04
+  17 |   0.486162E+00 |   0.751672E-05 |   0.365434E-05 |   0.282895E-04 |   0.138291E-02 |   0.100000E-04
+  18 |   0.281459E+00 |   0.674964E-05 |   0.189975E-05 |   0.194553E-04 |   0.654066E-03 |   0.100000E-04
+  19 |   0.275872E+00 |   0.432650E-05 |   0.119356E-05 |   0.112103E-04 |   0.217158E-03 |   0.100000E-04
+  20 |   0.450684E+00 |   0.420855E-06 |   0.189673E-06 |   0.738649E-05 |   0.942801E-04 |   0.100000E-04
+  21 |   0.551343E+00 |   0.837056E-07 |   0.461505E-07 |   0.472668E-05 |   0.386061E-04 |   0.100000E-04
+  22 |   0.594673E+00 |   0.480487E-07 |   0.285733E-07 |   0.231493E-05 |   0.926016E-05 |   0.100000E-04
+
+ Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = velectrostatic                                    
 
- integral of density        =   -232.1003197    
+ integral of density        =   -231.3114309    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -980,4 +1077,473 @@
 
  density label              = vsoftcavity                                       
 
- integral of density        =    33.74491891    
+ integral of density        =    34.04455320    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =   -197.2668777    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = electronic          
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    591.2071063
+
+ surface of the QM region   =    367.7007101
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =  -0.5111960238E-13
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ Warning: Bad guess with residual norm =   0.154327E+05, reset to no guess
+
+   i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
+ ---------------------------------------------------------------------------------------------------------
+   1 |   0.839262E+00 |   0.111770E+03 |   0.938047E+02 |   0.800829E-01 |   0.110821E+05 |   0.100000E-04
+   2 |   0.415454E-01 |   0.815778E+04 |   0.338918E+03 |   0.113535E-01 |   0.222742E+03 |   0.100000E-04
+   3 |   0.109969E+00 |   0.215415E+02 |   0.236889E+01 |   0.326859E-02 |   0.184614E+02 |   0.100000E-04
+   4 |   0.150603E+00 |   0.125023E+01 |   0.188289E+00 |   0.130735E-02 |   0.295343E+01 |   0.100000E-04
+   5 |   0.224297E+00 |   0.561033E-01 |   0.125838E-01 |   0.824401E-03 |   0.117441E+01 |   0.100000E-04
+   6 |   0.228729E+00 |   0.172380E-01 |   0.394282E-02 |   0.635371E-03 |   0.697588E+00 |   0.100000E-04
+   7 |   0.219286E+00 |   0.106574E-01 |   0.233702E-02 |   0.580339E-03 |   0.581980E+00 |   0.100000E-04
+   8 |   0.358366E+00 |   0.168200E-02 |   0.602770E-03 |   0.599952E-03 |   0.621980E+00 |   0.100000E-04
+   9 |   0.667050E+00 |   0.445791E-03 |   0.297365E-03 |   0.511840E-03 |   0.452702E+00 |   0.100000E-04
+  10 |   0.803250E+00 |   0.481799E-03 |   0.387005E-03 |   0.237938E-03 |   0.978299E-01 |   0.100000E-04
+  11 |   0.347950E+00 |   0.854160E-03 |   0.297205E-03 |   0.165780E-03 |   0.474904E-01 |   0.100000E-04
+  12 |   0.287763E+00 |   0.386885E-03 |   0.111331E-03 |   0.128390E-03 |   0.284845E-01 |   0.100000E-04
+  13 |   0.359070E+00 |   0.666467E-04 |   0.239308E-04 |   0.998933E-04 |   0.172432E-01 |   0.100000E-04
+  14 |   0.466109E+00 |   0.253246E-04 |   0.118040E-04 |   0.686682E-04 |   0.814809E-02 |   0.100000E-04
+  15 |   0.203230E+00 |   0.348961E-04 |   0.709193E-05 |   0.654781E-04 |   0.740859E-02 |   0.100000E-04
+  16 |   0.100415E+00 |   0.212699E-03 |   0.213583E-04 |   0.468673E-04 |   0.379563E-02 |   0.100000E-04
+  17 |   0.478017E+00 |   0.832297E-05 |   0.397852E-05 |   0.292560E-04 |   0.147902E-02 |   0.100000E-04
+  18 |   0.292389E+00 |   0.663587E-05 |   0.194026E-05 |   0.199896E-04 |   0.690480E-03 |   0.100000E-04
+  19 |   0.262344E+00 |   0.483761E-05 |   0.126912E-05 |   0.118298E-04 |   0.241825E-03 |   0.100000E-04
+  20 |   0.451089E+00 |   0.456784E-06 |   0.206050E-06 |   0.782897E-05 |   0.105914E-03 |   0.100000E-04
+  21 |   0.565896E+00 |   0.885421E-07 |   0.501057E-07 |   0.495933E-05 |   0.425000E-04 |   0.100000E-04
+  22 |   0.581144E+00 |   0.550681E-07 |   0.320025E-07 |   0.246183E-05 |   0.104727E-04 |   0.100000E-04
+  23 |   0.507380E+00 |   0.235837E-07 |   0.119659E-07 |   0.120956E-05 |   0.252813E-05 |   0.100000E-04
+
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =   -231.2455899    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =    34.56777317    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =   -196.6778167    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = electronic          
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    591.5958999
+
+ surface of the QM region   =    367.9815330
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =  -0.8772571147E-12
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ Warning: Bad guess with residual norm =   0.157058E+05, reset to no guess
+
+   i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
+ ---------------------------------------------------------------------------------------------------------
+   1 |   0.839285E+00 |   0.111801E+03 |   0.938332E+02 |   0.807772E-01 |   0.112751E+05 |   0.100000E-04
+   2 |   0.414326E-01 |   0.819590E+04 |   0.339577E+03 |   0.117292E-01 |   0.237729E+03 |   0.100000E-04
+   3 |   0.109773E+00 |   0.225401E+02 |   0.247430E+01 |   0.336502E-02 |   0.195668E+02 |   0.100000E-04
+   4 |   0.149617E+00 |   0.131824E+01 |   0.197231E+00 |   0.132891E-02 |   0.305166E+01 |   0.100000E-04
+   5 |   0.222419E+00 |   0.584021E-01 |   0.129898E-01 |   0.841182E-03 |   0.122271E+01 |   0.100000E-04
+   6 |   0.227518E+00 |   0.176805E-01 |   0.402264E-02 |   0.647895E-03 |   0.725360E+00 |   0.100000E-04
+   7 |   0.220363E+00 |   0.108147E-01 |   0.238315E-02 |   0.590303E-03 |   0.602136E+00 |   0.100000E-04
+   8 |   0.357261E+00 |   0.173493E-02 |   0.619821E-03 |   0.611625E-03 |   0.646420E+00 |   0.100000E-04
+   9 |   0.664839E+00 |   0.455660E-03 |   0.302940E-03 |   0.523105E-03 |   0.472848E+00 |   0.100000E-04
+  10 |   0.805225E+00 |   0.488087E-03 |   0.393020E-03 |   0.243915E-03 |   0.102806E+00 |   0.100000E-04
+  11 |   0.349868E+00 |   0.872361E-03 |   0.305211E-03 |   0.170430E-03 |   0.501920E-01 |   0.100000E-04
+  12 |   0.288129E+00 |   0.401656E-03 |   0.115729E-03 |   0.132917E-03 |   0.305285E-01 |   0.100000E-04
+  13 |   0.358109E+00 |   0.699986E-04 |   0.250671E-04 |   0.104118E-03 |   0.187326E-01 |   0.100000E-04
+  14 |   0.441040E+00 |   0.285958E-04 |   0.126119E-04 |   0.767400E-04 |   0.101762E-01 |   0.100000E-04
+  15 |   0.631055E-01 |   0.242864E-03 |   0.153260E-04 |   0.668801E-04 |   0.772925E-02 |   0.100000E-04
+  16 |   0.335195E+00 |   0.287121E-04 |   0.962415E-05 |   0.495968E-04 |   0.425060E-02 |   0.100000E-04
+  17 |   0.482427E+00 |   0.876331E-05 |   0.422766E-05 |   0.306661E-04 |   0.162502E-02 |   0.100000E-04
+  18 |   0.280190E+00 |   0.768644E-05 |   0.215366E-05 |   0.213043E-04 |   0.784296E-03 |   0.100000E-04
+  19 |   0.273376E+00 |   0.493510E-05 |   0.134914E-05 |   0.125352E-04 |   0.271525E-03 |   0.100000E-04
+  20 |   0.451946E+00 |   0.497826E-06 |   0.224990E-06 |   0.832117E-05 |   0.119650E-03 |   0.100000E-04
+  21 |   0.576505E+00 |   0.958202E-07 |   0.552409E-07 |   0.524289E-05 |   0.474991E-04 |   0.100000E-04
+  22 |   0.572686E+00 |   0.628010E-07 |   0.359653E-07 |   0.263415E-05 |   0.119901E-04 |   0.100000E-04
+  23 |   0.503446E+00 |   0.270038E-07 |   0.135950E-07 |   0.129522E-05 |   0.289889E-05 |   0.100000E-04
+
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =   -231.1603283    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =    34.95332024    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =   -196.2070080    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = electronic          
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    591.4553564
+
+ surface of the QM region   =    367.9586665
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =  -0.7499515412E-12
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ Warning: Bad guess with residual norm =   0.158013E+05, reset to no guess
+
+   i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
+ ---------------------------------------------------------------------------------------------------------
+   1 |   0.839069E+00 |   0.111828E+03 |   0.938318E+02 |   0.809994E-01 |   0.113372E+05 |   0.100000E-04
+   2 |   0.414172E-01 |   0.820992E+04 |   0.340032E+03 |   0.118848E-01 |   0.244079E+03 |   0.100000E-04
+   3 |   0.109800E+00 |   0.228859E+02 |   0.251287E+01 |   0.340213E-02 |   0.200007E+02 |   0.100000E-04
+   4 |   0.149037E+00 |   0.134815E+01 |   0.200925E+00 |   0.133622E-02 |   0.308530E+01 |   0.100000E-04
+   5 |   0.221927E+00 |   0.591200E-01 |   0.131203E-01 |   0.847017E-03 |   0.123973E+01 |   0.100000E-04
+   6 |   0.227766E+00 |   0.177224E-01 |   0.403657E-02 |   0.652308E-03 |   0.735275E+00 |   0.100000E-04
+   7 |   0.220439E+00 |   0.108872E-01 |   0.239996E-02 |   0.593668E-03 |   0.609019E+00 |   0.100000E-04
+   8 |   0.356404E+00 |   0.175928E-02 |   0.627015E-03 |   0.615815E-03 |   0.655306E+00 |   0.100000E-04
+   9 |   0.664865E+00 |   0.458942E-03 |   0.305135E-03 |   0.526864E-03 |   0.479668E+00 |   0.100000E-04
+  10 |   0.804785E+00 |   0.492110E-03 |   0.396043E-03 |   0.245571E-03 |   0.104208E+00 |   0.100000E-04
+  11 |   0.348458E+00 |   0.884818E-03 |   0.308322E-03 |   0.172171E-03 |   0.512231E-01 |   0.100000E-04
+  12 |   0.288795E+00 |   0.406483E-03 |   0.117390E-03 |   0.134596E-03 |   0.313045E-01 |   0.100000E-04
+  13 |   0.358446E+00 |   0.710152E-04 |   0.254551E-04 |   0.105623E-03 |   0.192781E-01 |   0.100000E-04
+  14 |   0.473840E+00 |   0.269775E-04 |   0.127830E-04 |   0.737368E-04 |   0.939535E-02 |   0.100000E-04
+  15 |   0.455180E+00 |   0.155215E-04 |   0.706507E-05 |   0.497356E-04 |   0.427443E-02 |   0.100000E-04
+  16 |   0.561858E-01 |   0.251854E-03 |   0.141506E-04 |   0.515306E-04 |   0.458854E-02 |   0.100000E-04
+  17 |   0.380399E+00 |   0.142715E-04 |   0.542885E-05 |   0.307147E-04 |   0.163018E-02 |   0.100000E-04
+  18 |   0.301520E+00 |   0.679680E-05 |   0.204937E-05 |   0.209814E-04 |   0.760701E-03 |   0.100000E-04
+  19 |   0.251324E+00 |   0.546029E-05 |   0.137230E-05 |   0.127357E-04 |   0.280278E-03 |   0.100000E-04
+  20 |   0.446122E+00 |   0.521242E-06 |   0.232537E-06 |   0.847576E-05 |   0.124137E-03 |   0.100000E-04
+  21 |   0.581355E+00 |   0.978984E-07 |   0.569138E-07 |   0.532523E-05 |   0.490027E-04 |   0.100000E-04
+  22 |   0.569122E+00 |   0.656048E-07 |   0.373372E-07 |   0.269002E-05 |   0.125042E-04 |   0.100000E-04
+  23 |   0.502320E+00 |   0.281654E-07 |   0.141481E-07 |   0.132385E-05 |   0.302846E-05 |   0.100000E-04
+
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =   -231.0147892    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =    35.14810077    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =   -195.8666884    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = electronic          
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    591.4851526
+
+ surface of the QM region   =    367.9899181
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =  -0.1745435072E-12
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ Warning: Bad guess with residual norm =   0.159249E+05, reset to no guess
+
+   i |      alpha     |       pAp      |      rzold     |    delta_qm    |    delta_en    |       tol
+ ---------------------------------------------------------------------------------------------------------
+   1 |   0.838470E+00 |   0.111901E+03 |   0.938257E+02 |   0.812581E-01 |   0.114098E+05 |   0.100000E-04
+   2 |   0.414566E-01 |   0.821658E+04 |   0.340631E+03 |   0.122197E-01 |   0.258026E+03 |   0.100000E-04
+   3 |   0.110085E+00 |   0.236244E+02 |   0.260068E+01 |   0.348320E-02 |   0.209652E+02 |   0.100000E-04
+   4 |   0.147908E+00 |   0.141780E+01 |   0.209705E+00 |   0.134979E-02 |   0.314831E+01 |   0.100000E-04
+   5 |   0.220989E+00 |   0.607742E-01 |   0.134304E-01 |   0.857312E-03 |   0.127005E+01 |   0.100000E-04
+   6 |   0.228758E+00 |   0.177247E-01 |   0.405468E-02 |   0.660110E-03 |   0.752968E+00 |   0.100000E-04
+   7 |   0.220801E+00 |   0.110204E-01 |   0.243332E-02 |   0.598828E-03 |   0.619652E+00 |   0.100000E-04
+   8 |   0.354947E+00 |   0.180879E-02 |   0.642027E-03 |   0.622620E-03 |   0.669868E+00 |   0.100000E-04
+   9 |   0.666302E+00 |   0.463688E-03 |   0.308956E-03 |   0.532600E-03 |   0.490169E+00 |   0.100000E-04
+  10 |   0.804679E+00 |   0.499141E-03 |   0.401648E-03 |   0.246979E-03 |   0.105406E+00 |   0.100000E-04
+  11 |   0.347311E+00 |   0.892387E-03 |   0.309935E-03 |   0.174531E-03 |   0.526368E-01 |   0.100000E-04
+  12 |   0.290281E+00 |   0.408500E-03 |   0.118580E-03 |   0.137341E-03 |   0.325943E-01 |   0.100000E-04
+  13 |   0.359698E+00 |   0.721830E-04 |   0.259641E-04 |   0.108216E-03 |   0.202362E-01 |   0.100000E-04
+  14 |   0.478867E+00 |   0.276466E-04 |   0.132390E-04 |   0.747562E-04 |   0.965692E-02 |   0.100000E-04
+  15 |   0.301828E+00 |   0.257783E-04 |   0.778062E-05 |   0.681284E-04 |   0.802049E-02 |   0.100000E-04
+  16 |   0.694911E-01 |   0.385690E-03 |   0.268020E-04 |   0.502347E-04 |   0.436065E-02 |   0.100000E-04
+  17 |   0.471393E+00 |   0.997467E-05 |   0.470199E-05 |   0.310803E-04 |   0.166922E-02 |   0.100000E-04
+  18 |   0.337106E+00 |   0.573667E-05 |   0.193386E-05 |   0.203777E-04 |   0.717553E-03 |   0.100000E-04
+  19 |   0.224937E+00 |   0.595649E-05 |   0.133984E-05 |   0.130781E-04 |   0.295553E-03 |   0.100000E-04
+  20 |   0.434615E+00 |   0.563485E-06 |   0.244899E-06 |   0.875516E-05 |   0.132456E-03 |   0.100000E-04
+  21 |   0.595528E+00 |   0.100418E-06 |   0.598019E-07 |   0.543625E-05 |   0.510672E-04 |   0.100000E-04
+  22 |   0.558927E+00 |   0.715043E-07 |   0.399657E-07 |   0.277984E-05 |   0.133532E-04 |   0.100000E-04
+  23 |   0.499819E+00 |   0.301601E-07 |   0.150746E-07 |   0.137321E-05 |   0.325851E-05 |   0.100000E-04
+
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =   -230.7670553    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =    35.74369166    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =   -195.0233637    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ number of electrons        =             24
+
+ total electronic charge    =     24.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ boundary label             = solvent             
+ boundary mode              = electronic          
+
+ using the optimal SCCS function:
+ rhomax                     =      0.0050000
+ rhomin                     =      0.0001000
+
+ volume of the QM region    =    591.4851526
+
+ surface of the QM region   =    367.9899181
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = dvtot                                             
+
+ integral of density        =   -195.0233637    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vreference                                        
+
+ integral of density        =  -0.1745435072E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = velectrostatic                                    
+
+ integral of density        =   -230.7670553    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ total number of charges    =             34
+
+ total charge               =     -1.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ density label              = vsoftcavity                                       
+
+ integral of density        =    35.74369166    

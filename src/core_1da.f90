@@ -68,9 +68,15 @@ MODULE class_core_1da
         INTEGER :: axis = 0
         !
         REAL(DP) :: size = 0.D0
-        REAL(DP) :: origin(3) = 0.D0
+        REAL(DP) :: origin(3) = 0.D0 ! set later to system center of mass
         !
         REAL(DP), ALLOCATABLE :: x(:, :)
+        !
+        !--------------------------------------------------------------------------------
+        ! Reduced arrays for optimization
+        !
+        INTEGER, ALLOCATABLE :: ir(:) ! indices of points of interest
+        REAL(DP), ALLOCATABLE :: r(:, :) ! displacements w.r.t. origin
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -125,6 +131,10 @@ CONTAINS
         IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
         !
         IF (ALLOCATED(this%x)) CALL io%create_error(sub_name)
+        !
+        IF (ALLOCATED(this%ir)) CALL io%create_error(sub_name)
+        !
+        IF (ALLOCATED(this%r)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -219,14 +229,23 @@ CONTAINS
         CLASS(core_1da), INTENT(INOUT) :: this
         !
         LOGICAL :: physical
-        INTEGER :: i
+        INTEGER :: i, count
         REAL(DP) :: r(3), r2
+        !
+        INTEGER, ALLOCATABLE :: ir(:)
+        REAL(DP), ALLOCATABLE :: disps(:, :)
         !
         CHARACTER(LEN=80) :: sub_name = 'update_core_1da_origin'
         !
         !--------------------------------------------------------------------------------
         !
         this%origin = origin
+        !
+        ALLOCATE (ir(this%cell%ir_end))
+        ALLOCATE (disps(3, this%cell%ir_end))
+        ir = 0
+        disps = 0.D0
+        count = 0
         !
         ASSOCIATE (cell => this%cell, &
                    dim => this%dim)
@@ -238,6 +257,10 @@ CONTAINS
                     CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
                     !
                     IF (.NOT. physical) CYCLE
+                    !
+                    count = count + 1
+                    ir(count) = i
+                    disps(:, count) = r
                     !
                     this%x(:, i) = r
                 END DO
@@ -252,12 +275,23 @@ CONTAINS
                     !
                     IF (.NOT. physical) CYCLE
                     !
+                    count = count + 1
+                    ir(count) = i
+                    disps(:, count) = r
+                    !
                     this%x(1, i) = r(this%axis)
                 END DO
                 !
             END IF
             !
         END ASSOCIATE
+        !
+        IF (.NOT. ALLOCATED(this%ir)) ALLOCATE (this%ir(count - 2))
+        !
+        IF (.NOT. ALLOCATED(this%r)) ALLOCATE (this%r(3, count - 2))
+        !
+        this%ir = ir(:count)
+        this%r = disps(:, :count)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_core_1da_origin
@@ -283,6 +317,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         DEALLOCATE (this%x)
+        !
+        IF (ALLOCATED(this%ir)) DEALLOCATE (this%ir)
+        !
+        IF (ALLOCATED(this%r)) DEALLOCATE (this%r)
         !
         NULLIFY (this%cell)
         !
@@ -349,9 +387,10 @@ CONTAINS
             vperiodic => local%of_r
             !
             !----------------------------------------------------------------------------
+            ! Compute multipoles of the system with respect to the chosen origin
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
-            ! compute multipoles of the system with respect to the chosen origin
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, this%ir, &
+                                    this%r)
             !
             !----------------------------------------------------------------------------
             ! Compute quadratic PBC correction
@@ -461,9 +500,10 @@ CONTAINS
             gvperiodic => glocal%of_r
             !
             !----------------------------------------------------------------------------
+            ! Compute multipoles of the system with respect to the chosen origin
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
-            ! compute multipoles of the system with respect to the chosen origin
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, this%ir, &
+                                    this%r)
             !
             !----------------------------------------------------------------------------
             ! Compute gradient of periodic images correction
@@ -559,9 +599,9 @@ CONTAINS
             local%of_r = auxiliary%of_r
             !
             !----------------------------------------------------------------------------
+            ! Compute multipoles of the system with respect to the chosen origin
             !
-            CALL local%multipoles(origin, charge, dipole, quadrupole)
-            ! compute multipoles of the system with respect to the chosen origin
+            CALL local%multipoles(origin, charge, dipole, quadrupole, this%ir, this%r)
             !
             !----------------------------------------------------------------------------
             ! Interatomic forces, quadrupole is not needed, thus the same
@@ -694,9 +734,10 @@ CONTAINS
             area = omega / axis_length
             !
             !----------------------------------------------------------------------------
-
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
-            ! compute multipoles of the system with respect to the chosen origin
+            ! Compute multipoles of the system with respect to the chosen origin
+            !
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, this%ir, &
+                                    this%r)
             !
             !----------------------------------------------------------------------------
             ! First apply parabolic correction
@@ -930,9 +971,10 @@ CONTAINS
             area = omega / this%size
             !
             !----------------------------------------------------------------------------
+            ! Compute multipoles of the system with respect to the chosen origin
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
-            ! compute multipoles of the system with respect to the chosen origin
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, this%ir, &
+                                    this%r)
             !
             !----------------------------------------------------------------------------
             ! First compute the gradient of parabolic correction
@@ -1121,9 +1163,10 @@ CONTAINS
             area = omega / axis_length
             !
             !----------------------------------------------------------------------------
+            ! Compute multipoles of the system w.r.t the chosen origin
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
-            ! compute multipoles of the system w.r.t the chosen origin
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, this%ir, &
+                                    this%r)
             !
             !----------------------------------------------------------------------------
             ! First apply parabolic correction
@@ -1279,9 +1322,10 @@ CONTAINS
             grad_vms => glocal%of_r
             !
             !----------------------------------------------------------------------------
+            ! Compute multipoles of the system w.r.t the chosen origin
             !
-            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
-            ! compute multipoles of the system w.r.t the chosen origin
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole, this%ir, &
+                                    this%r)
             !
             !----------------------------------------------------------------------------
             ! First compute the gradient of parabolic correction

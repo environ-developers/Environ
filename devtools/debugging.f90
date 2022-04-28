@@ -67,7 +67,7 @@ CONTAINS
         !
         TYPE(environ_boundary), INTENT(IN), TARGET :: boundary
         !
-        TYPE(environ_boundary) :: localbound
+        TYPE(environ_boundary), ALLOCATABLE :: localbound
         TYPE(environ_density) :: de_dboundary
         TYPE(environ_function_gaussian) :: test_function
         TYPE(environ_density) :: delta
@@ -83,7 +83,7 @@ CONTAINS
         !
         cell => boundary%scaled%cell
         !
-        CALL boundary%copy(localbound)
+        ALLOCATE (localbound, source=boundary)
         !
         CALL de_dboundary%init(cell)
         !
@@ -126,7 +126,9 @@ CONTAINS
             !
             de_fd = 0.D0
             !
-            CALL boundary%copy(localbound)
+            DEALLOCATE (localbound)
+            !
+            ALLOCATE (localbound, source=boundary)
             !
             localbound%scaled%of_r = localbound%scaled%of_r + epsilon * delta%of_r
             localbound%volume = localbound%scaled%integrate()
@@ -151,7 +153,9 @@ CONTAINS
             !
             de_fd = de_fd + eplus
             !
-            CALL boundary%copy(localbound)
+            DEALLOCATE (localbound)
+            !
+            ALLOCATE (localbound, source=boundary)
             !
             localbound%scaled%of_r = localbound%scaled%of_r - epsilon * delta%of_r
             localbound%volume = localbound%scaled%integrate()
@@ -275,11 +279,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Test functional derivative wrt electronic density of each flux
             !
-            ALLOCATE (analytic_dion_field_drho(bound%ions%number))
-            !
-            DO i = 1, bound%ions%number
-                CALL bound%dion_field_drho(i)%copy(analytic_dion_field_drho(i))
-            END DO
+            ALLOCATE (analytic_dion_field_drho, source=bound%dion_field_drho)
             !
             ALLOCATE (fd_dion_field_drho(bound%ions%number))
             !

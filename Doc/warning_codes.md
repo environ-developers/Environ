@@ -39,3 +39,13 @@
         - consider increasing grid spacing and/or ERFC function spread
       - the ERFC function spills over the cell boundary
         - consider increasing cell size
+
+</br>
+
+1006. Environ interface is not yet initialized
+
+      This is triggered by a premature attempt to destroy Environ components.
+
+      Reasons:
+
+      - As a plugin, Environ routines may be called out of order due to uncontrollable host routine calls

@@ -6,9 +6,6 @@
    !
  /
  &BOUNDARY
-   !
-   stype = 1 
-   !
  /
  &ELECTROSTATIC
    !

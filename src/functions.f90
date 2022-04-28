@@ -72,8 +72,6 @@ MODULE class_functions
         !
         PROCEDURE, PRIVATE :: create => create_environ_functions
         PROCEDURE :: init => init_environ_functions
-        PROCEDURE :: copy => copy_environ_functions
-        PROCEDURE :: update => update_environ_functions
         PROCEDURE :: destroy => destroy_environ_functions
         !
         PROCEDURE :: density => density_of_functions
@@ -180,82 +178,6 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_functions(this, n, pos)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: n
-        REAL(DP), INTENT(IN) :: pos(3, n)
-        !
-        CLASS(environ_functions), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_functions'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (n /= this%number) CALL io%error(sub_name, "Wrong number of functions", 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, this%number
-            this%array(i)%pos = pos(:, i)
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE update_environ_functions
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_functions(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_functions), INTENT(IN) :: this
-        !
-        CLASS(environ_functions), INTENT(OUT) :: copy
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'copy_environ_functions'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ALLOCATED(this%array)) &
-            CALL io%error(sub_name, "Trying to copy an empty object", 1)
-        !
-        !--------------------------------------------------------------------------------
-        ! Cast function as concrete type
-        !
-        SELECT CASE (this%f_type)
-            !
-        CASE (1)
-            ALLOCATE (environ_function_gaussian :: copy%array(this%number))
-            !
-        CASE (2, 3, 4)
-            ALLOCATE (environ_function_erfc :: copy%array(this%number))
-            !
-        CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected function type", 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, this%number
-            CALL this%array(i)%copy(copy%array(i))
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_functions
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE destroy_environ_functions(this)
         !--------------------------------------------------------------------------------
         !
@@ -296,7 +218,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_functions), INTENT(IN) :: this
+        CLASS(environ_functions), INTENT(INOUT) :: this
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density
