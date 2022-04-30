@@ -234,9 +234,13 @@ CONTAINS
         !
         ASSOCIATE (setup => this%main%setup)
             !
-            CALL setup%outer%destroy()
-            !
-            CALL setup%reference%destroy()
+            IF (setup%has_numerical_setup) THEN
+                !
+                CALL setup%outer%destroy()
+                !
+                CALL setup%reference%destroy()
+                !
+            END IF
             !
             CALL setup%system_cell%destroy()
             !

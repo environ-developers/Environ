@@ -72,6 +72,8 @@ MODULE class_setup
     TYPE, PUBLIC :: environ_setup
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: has_numerical_setup = .FALSE.
+        !
         !--------------------------------------------------------------------------------
         ! Main flags
         !
@@ -305,6 +307,7 @@ CONTAINS
         this%need_gradient = .FALSE.
         this%need_factsqrt = .FALSE.
         this%need_auxiliary = .FALSE.
+        this%has_numerical_setup = .FALSE.
         !
         NULLIFY (this%environment_cell)
         !
@@ -453,6 +456,8 @@ CONTAINS
         CALL this%set_core_containers(use_internal_pbc_corr)
         !
         CALL this%set_electrostatics()
+        !
+        this%has_numerical_setup = .TRUE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_numerical_base

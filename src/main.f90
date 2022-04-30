@@ -194,7 +194,8 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, nat, ntyp, ityp, zv, label, number, weight)
+    SUBROUTINE init_environ_base(this, nat, ntyp, ityp, zv, label, number, weight, &
+                                 only_boundary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -205,6 +206,7 @@ CONTAINS
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label(ntyp)
         INTEGER, OPTIONAL, INTENT(IN) :: number(ntyp)
         REAL(DP), OPTIONAL, INTENT(IN) :: weight(ntyp)
+        LOGICAL, OPTIONAL, INTENT(IN) :: only_boundary
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
@@ -212,7 +214,11 @@ CONTAINS
         !
         CALL this%create()
         !
-        CALL this%init_potential()
+        IF (.NOT. PRESENT(only_boundary)) THEN
+            CALL this%init_potential()
+        ELSE
+            this%setup%lelectrostatic = .FALSE.
+        END IF
         !
         CALL this%init_physical(nat, ntyp, ityp, zv, label, number, weight)
         !

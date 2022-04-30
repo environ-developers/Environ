@@ -27,7 +27,7 @@ MODULE programs
     !------------------------------------------------------------------------------------
     !
     USE env_parallel_include
-    USE env_mp, ONLY: env_mp_rank, env_mp_stop
+    USE env_mp, ONLY: env_mp_rank, env_mp_stop, env_mp_sum
     !
     USE env_mytime, ONLY: env_f_wall
     !
@@ -231,7 +231,9 @@ CONTAINS
         !
         IF (.NOT. calc_energy) reduce_cell = .TRUE.
         !
-        CALL init_environ_from_cube(environ, reduce_cell=reduce_cell)
+        CALL init_environ_from_cube(environ, &
+                                    reduce_cell=reduce_cell, &
+                                    only_boundary=.TRUE.)
         !
         !--------------------------------------------------------------------------------
         !
@@ -357,6 +359,12 @@ CONTAINS
                     !
                 END DO
                 !
+#if defined (__MPI)
+                CALL env_mp_sum(pvol, io%comm)
+                !
+                CALL env_mp_sum(psurf, io%comm)
+#endif
+                !
                 IF (io%lnode) THEN
                     !
                     DO i = 1, num
@@ -379,13 +387,13 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-2000        FORMAT(/, 5X, "Total Volume of the QM region: ", F17.8)
+2000        FORMAT(5X, "Total volume of the QM region: ", F18.8)
             !
-2001        FORMAT(5X, "Total Surface of the QM region: ", F17.8,/)
+2001        FORMAT(5X, "Total surface of the QM region: ", F17.8,/)
             !
 2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I4,/)
             !
-2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface", 8X, 52('-'))
+2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface", /, 9X, 52('-'))
             !
 2004        FORMAT(10X, F6.3, ' |', F17.8, '     |', f17.8)
             !
