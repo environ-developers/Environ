@@ -140,8 +140,8 @@ MODULE class_environ
         PROCEDURE :: update_potential => environ_update_potential
         PROCEDURE :: update_response => environ_update_response
         PROCEDURE :: update_cell_dependent_quantities
-        PROCEDURE :: init_physical => environ_init_physical
         !
+        PROCEDURE, PRIVATE :: init_physical => environ_init_physical
         PROCEDURE, PRIVATE :: init_potential => environ_init_potential
         !
         PROCEDURE :: print_energies => print_environ_energies
@@ -191,7 +191,7 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE init_environ_base(this, nat, ntyp, atom_label, ityp, zv, only_boundary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -200,6 +200,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
+        LOGICAL, OPTIONAL, INTENT(IN) :: only_boundary
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
@@ -207,7 +208,11 @@ CONTAINS
         !
         CALL this%create()
         !
-        CALL this%init_potential()
+        IF (.NOT. PRESENT(only_boundary)) THEN
+            CALL this%init_potential()
+        ELSE
+            this%setup%lelectrostatic = .FALSE.
+        END IF
         !
         CALL this%init_physical(nat, ntyp, atom_label, ityp, zv)
         !

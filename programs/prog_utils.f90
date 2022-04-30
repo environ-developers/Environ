@@ -78,18 +78,12 @@ CONTAINS
         REAL(DP) :: origin(3)
         INTEGER :: nr(3)
         REAL(DP) :: at(3, 3)
-        LOGICAL :: init_ob
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_from_cube'
         !
         !--------------------------------------------------------------------------------
         !
         CALL read_cube(nat, ntyp, ityp, label, zv, tau, origin, nr, at, rho)
-        !
-        init_ob = .FALSE.
-        IF (PRESENT(only_boundary)) THEN
-            IF (only_boundary) init_ob = .TRUE.
-        END IF
         !
         !--------------------------------------------------------------------------------
         ! Initialize Environ
@@ -108,18 +102,12 @@ CONTAINS
             CALL environ%setup%init_cell(io%comm, at, nr=nr)
         END IF
         !
-        IF (init_ob) THEN
-            CALL environ%main%init_physical(nat, ntyp, label, ityp, zv)
-            environ%setup%lelectrostatic = .FALSE.
-            environ%setup%lconfine = .FALSE.
-            CALL environ%main%update_ions(nat, tau, origin)
-        ELSE
+        IF (.NOT. PRESENT(only_boundary)) &
             CALL environ%setup%init_numerical(use_internal_pbc_corr)
-            !
-            CALL environ%main%init(nat, ntyp, label, ityp, zv)
-            !
-            CALL environ%main%update_ions(nat, tau, origin)
-        END IF
+        !
+        CALL environ%main%init(nat, ntyp, label, ityp, zv, only_boundary)
+        !
+        CALL environ%main%update_ions(nat, tau, origin)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_from_cube
