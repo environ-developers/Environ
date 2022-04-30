@@ -146,29 +146,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_externals(this, n, pos)
+    SUBROUTINE update_environ_externals(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, OPTIONAL, INTENT(IN) :: n
-        REAL(DP), OPTIONAL, INTENT(IN) :: pos(:, :)
-        !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'update_environ_externals'
-        !
-        !--------------------------------------------------------------------------------
-        ! Update externals positions
-        !
-        IF (PRESENT(n) .AND. PRESENT(pos)) THEN
-            !
-            IF (.NOT. ALL(SHAPE(pos) == (/3, n/))) &
-                CALL io%error(sub_name, "Mismatch in array size", 1)
-            !
-            CALL this%functions%update(n, pos)
-            !
-        END IF
         !
         !--------------------------------------------------------------------------------
         ! Update externals charge density
