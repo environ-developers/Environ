@@ -670,9 +670,9 @@ MODULE env_base_input
     ! Periodic correction keywords
     !
     CHARACTER(LEN=80) :: pbc_correction = 'none'
-    CHARACTER(LEN=80) :: pbc_correction_allowed(4)
+    CHARACTER(LEN=80) :: pbc_correction_allowed(5)
     !
-    DATA pbc_correction_allowed/'none', 'parabolic', 'gcs', 'ms'/
+    DATA pbc_correction_allowed/'none', 'parabolic', 'gcs', 'ms', 'ms-gcs'/
     !
     ! type of periodic boundary condition correction to be used
     !
@@ -680,7 +680,9 @@ MODULE env_base_input
     !
     ! gcs       = Gouy-Chapman-Stern correction for electrolyte
     !
-    ! ms        = mott-schottky correction for semiconductor
+    ! ms        = Mott-Schottky correction for semiconductor
+    !
+    ! ms-gcs    = Mott-Schottky combined with Gouy-Chapman-Stern
     !
     INTEGER :: pbc_dim = -3 ! dimensionality of the simulation cell
     ! periodic boundary conditions on 3/2/1/0 sides of the cell

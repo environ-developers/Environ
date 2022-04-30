@@ -132,7 +132,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: f_type
         INTEGER, DIMENSION(n), INTENT(IN) :: f_dim, f_axis
         REAL(DP), DIMENSION(n), INTENT(IN) :: f_width, f_spread, f_volume
-        REAL(DP), TARGET, INTENT(IN) :: f_pos(3, n)
+        REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: f_pos(3, n)
         !
         CLASS(environ_functions), INTENT(INOUT) :: this
         !

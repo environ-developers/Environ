@@ -269,11 +269,7 @@ semiconductor.o : functions.o
 semiconductor.o : io.o
 semiconductor.o : semiconductor_base.o
 semiconductor.o : system.o
-semiconductor_base.o : cell.o
 semiconductor_base.o : constants.o
-semiconductor_base.o : density.o
-semiconductor_base.o : function_erfc.o
-semiconductor_base.o : functions.o
 semiconductor_base.o : io.o
 setup.o : ../UtilXlib/mp.o
 setup.o : base_input.o

@@ -207,10 +207,10 @@ CONTAINS
         CLASS(solver_fixedpoint), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         CHARACTER(LEN=80) :: sub_name = 'generalized_density'
         !
@@ -343,10 +343,10 @@ CONTAINS
         CLASS(solver_fixedpoint), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         INTEGER :: i
         REAL(DP) :: total, totpol, totzero, totiter, delta_qm, delta_en
@@ -417,7 +417,7 @@ CONTAINS
                 rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
                 !
                 CALL this%direct%grad_poisson(rhotot, gradpoisson, electrolyte, &
-                                              semiconductor)
+                                                semiconductor)
                 !
                 CALL dielectric%gradlog%scalar_product(gradpoisson, residual)
                 !
@@ -470,7 +470,7 @@ CONTAINS
             CALL this%direct%poisson(rhotot, v, electrolyte, semiconductor)
             !
             rhotot%of_r = rhozero%of_r + rhoiter%of_r
-            ! in rhotot store total polarization charge
+            ! store total polarization charge in rhotot
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities

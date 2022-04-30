@@ -313,6 +313,9 @@ CONTAINS
         sc_permittivity = 1.D0
         sc_carrier_density = 0.D0
         !
+        sc_electrode_chg = 0.D0
+        sc_chg_thr = 1.D-5
+        !
         env_external_charges = 0
         env_dielectric_regions = 0
         !
@@ -484,6 +487,10 @@ CONTAINS
         CALL env_mp_bcast(sc_permittivity, io%node, io%comm)
         !
         CALL env_mp_bcast(sc_carrier_density, io%node, io%comm)
+        !
+        CALL env_mp_bcast(sc_electrode_chg, io%node, io%comm)
+        !
+        CALL env_mp_bcast(sc_chg_thr, io%node, io%comm)
         !
         CALL env_mp_bcast(env_external_charges, io%node, io%comm)
         !
@@ -1310,7 +1317,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Electrolyte checks
         !
-        IF (TRIM(pbc_correction) == 'gcs') THEN
+        SELECT CASE (pbc_correction)
+            !
+        CASE ('gcs', 'ms-gcs')
             !
             IF (electrolyte_distance == 0.0_DP) &
                 CALL io%error(sub_name, &
@@ -1324,11 +1333,15 @@ CONTAINS
                 !
             END IF
             !
-        END IF
+        END SELECT
         !
         IF (env_electrolyte_ntyp > 0) THEN
             !
-            IF (TRIM(pbc_correction) /= 'gcs') THEN
+            SELECT CASE (pbc_correction)
+                !
+            CASE ('gcs', 'ms-gcs')
+                !
+            CASE DEFAULT
                 !
                 IF (electrolyte_linearized) THEN
                     !
@@ -1354,7 +1367,7 @@ CONTAINS
                     !
                 END IF
                 !
-            END IF
+            END SELECT
             !
         END IF
         !
@@ -1407,9 +1420,9 @@ CONTAINS
             !
             IF (problem == 'none') problem = 'generalized'
             !
-            IF (TRIM(pbc_correction) /= 'gcs') THEN
-                IF (solver == 'none') solver = 'cg'
-            ELSE
+            SELECT CASE (pbc_correction)
+                !
+            CASE ('gcs', 'ms-gcs')
                 !
                 IF (solver /= 'fixed-point') THEN
                     solver = 'fixed-point'
@@ -1418,7 +1431,10 @@ CONTAINS
                     !
                 END IF
                 !
-            END IF
+            CASE DEFAULT
+                IF (solver == 'none') solver = 'cg'
+                !
+            END SELECT
             !
         ELSE
             !

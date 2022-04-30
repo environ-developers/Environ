@@ -98,6 +98,9 @@ MODULE class_core_1da
         PROCEDURE :: calc_vms => calc_1da_vms
         PROCEDURE :: calc_grad_vms => calc_1da_grad_vms
         !
+        PROCEDURE :: calc_vms_gcs => calc_1da_vms_gcs
+        PROCEDURE :: calc_grad_vms_gcs => calc_1da_grad_vms_gcs
+
         !--------------------------------------------------------------------------------
     END TYPE core_1da
     !------------------------------------------------------------------------------------
@@ -983,7 +986,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute the physical properties of the interface
             !
-            ez = -tpi * e2 * charge / area !/ permittivity
+            ez = -tpi * e2 * charge / area
             ! the input charge density includes explicit and polarization charges, so
             ! tot_charge already accounts for the dielectric screening. permittivity
             ! needs not to be included
@@ -1180,7 +1183,7 @@ CONTAINS
             ez = -tpi * e2 * charge / area
             fact = 1.D0 / tpi / e2 / 2.D0 / semiconductor%carrier_density
             arg = fact * (ez**2.D0)
-            delta_vms = arg ! +kbt ! #TODO figure this out
+            delta_vms = arg
             !
             !----------------------------------------------------------------------------
             ! Finds the total length of the depletion region
@@ -1344,6 +1347,383 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_grad_vms
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_1da_vms_gcs(this, electrolyte, semiconductor, charges, v)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_1da), INTENT(IN) :: this
+        TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
+        TYPE(environ_density), INTENT(IN) :: charges
+        !
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_semiconductor_base), INTENT(INOUT) :: semiconductor
+        !
+        REAL(DP), POINTER :: vms_gcs(:)
+        !
+        INTEGER :: i, icount, ir, j, k, naxis, z_cut_idx, avg_window
+        !
+        REAL(DP) :: kbt, invkbt
+        REAL(DP) :: ez_ms, fact, vms
+        REAL(DP) :: arg, const, depletion_length
+        REAL(DP) :: v_cut, v_edge, z_cut, z_val
+        REAL(DP) :: asinh, coth, acoth
+        REAL(DP) :: max_axis
+        REAL(DP) :: area
+        REAL(DP) :: charge, dipole(3), quadrupole(3)
+        !
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: current_pot, subtracted_pot, avgd_pot
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: flatband_pot
+        !
+        LOGICAL :: physical
+        !
+        TYPE(environ_density), TARGET :: local
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_1da_vms_gcs'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL env_start_clock(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
+            CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
+        !
+        IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
+            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+        !
+        IF (electrolyte%ntyp /= 2) &
+            CALL io%error(sub_name, &
+                          "Unexpected number of counterionic species, different from two", 1)
+        !
+        IF (this%dim /= 2) &
+            CALL io%error(sub_name, &
+                          "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (comm => v%cell%dfft%comm, &
+                   nnr => v%cell%nnr, &
+                   omega => v%cell%omega, &
+                   slab_axis => this%axis, &
+                   axis_length => this%size, &
+                   axis => this%x, &
+                   permittivity_ms => semiconductor%permittivity, &
+                   carrier_density => semiconductor%carrier_density, &
+                   electrode_charge => semiconductor%electrode_charge, &
+                   xstern_ms => semiconductor%sc_distance, &
+                   slab_charge => semiconductor%slab_charge)
+            !
+            !----------------------------------------------------------------------------
+            ! Set Boltzmann factors
+            !
+            kbt = semiconductor%temperature * k_boltzmann_ry
+            invkbt = 1.D0 / kbt
+            !
+            !----------------------------------------------------------------------------
+            ! Initialize local densities
+            !
+            CALL local%init(v%cell)
+            !
+            vms_gcs => local%of_r
+            area = omega / axis_length
+            semiconductor%surf_area_per_sq_cm = area * 2.8002D-17
+            ! value of 1 square bohr in cm^2
+            !
+            !----------------------------------------------------------------------------
+            !
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            ! compute multipoles of the system w.r.t the chosen origin
+            !
+            !----------------------------------------------------------------------------
+            ! First apply parabolic correction
+            !
+            fact = e2 * tpi / omega
+            const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
+            vms_gcs = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
+            vms_gcs = fact * vms_gcs(:) + const
+            !
+            !
+            !----------------------------------------------------------------------------
+            ! Find the edge of the slab
+            !
+            max_axis = 0.0
+            !
+            DO i = 1, nnr
+                IF (axis(1, i) > max_axis) max_axis = axis(1, i)
+            END DO
+            !
+            v_edge = 0.D0
+            icount = 0
+            !
+            DO i = 1, nnr
+                !
+                IF (max_axis - axis(1, i) <= 0.1) THEN
+                    icount = icount + 1
+                    v_edge = v_edge + v%of_r(i) + vms_gcs(i)
+                END IF
+                !
+            END DO
+            !
+            CALL env_mp_sum(icount, comm)
+            !
+            CALL env_mp_sum(v_edge, comm)
+            !
+            v_edge = v_edge / DBLE(icount)
+            vms_gcs = vms_gcs - v_edge
+            !
+            !----------------------------------------------------------------------------
+            ! Save in periodic changes to potential
+            !
+            v%of_r = v%of_r + vms_gcs
+            !
+            !----------------------------------------------------------------------------
+            ! Compute physical properties - MS system
+            !
+            naxis = v%cell%nr(3)
+            !
+            avg_window = INT(semiconductor%sc_spread / 2.0 / v%cell%at(3, 3) * naxis)
+            !
+            IF (io%lnode .AND. io%verbosity >= 1) WRITE (io%debug_unit, 1000)
+            !
+            IF (slab_charge == 0.D0) THEN
+                !
+                !------------------------------------------------------------------------
+                ! Save planar average of flatband potential
+                !
+                ez_ms = 0.D0
+                !
+                IF (.NOT. ALLOCATED(avgd_pot)) ALLOCATE (avgd_pot(naxis))
+                !
+                IF (.NOT. ALLOCATED(flatband_pot)) ALLOCATE (flatband_pot(naxis))
+                !
+                CALL v%cell%planar_average(nnr, naxis, 3, 0, .FALSE., v%of_r, &
+                                           flatband_pot)
+                !
+                CALL v%cell%running_average(naxis, avg_window, flatband_pot, avgd_pot)
+                !
+                semiconductor%flatband_pot_planar_avg = avgd_pot
+            ELSE
+                !
+                !------------------------------------------------------------------------
+                ! Generate subtracted potential and corresponding ez_ms
+                !
+                IF (.NOT. ALLOCATED(current_pot)) ALLOCATE (current_pot(naxis))
+                !
+                IF (.NOT. ALLOCATED(subtracted_pot)) ALLOCATE (subtracted_pot(naxis))
+                !
+                IF (.NOT. ALLOCATED(avgd_pot)) ALLOCATE (avgd_pot(naxis))
+                !
+                CALL v%cell%planar_average(nnr, naxis, 3, 0, .FALSE., v%of_r, current_pot)
+                !
+                CALL v%cell%running_average(naxis, avg_window, current_pot, avgd_pot)
+                !
+                current_pot = avgd_pot
+                subtracted_pot = current_pot - semiconductor%flatband_pot_planar_avg
+                z_cut = this%origin(3) - xstern_ms
+                !
+                IF (io%lnode .AND. io%verbosity > 1) WRITE (io%debug_unit, 1001) z_cut
+                !
+                z_cut_idx = INT(z_cut / v%cell%at(3, 3) * naxis)
+                !
+                v_cut = 0.0
+                ez_ms = 0.0
+                icount = 0
+                !
+                !------------------------------------------------------------------------
+                ! Averaging v_cut and ez_ms for stability
+                !
+                DO i = 1, naxis
+                    !
+                    IF (ABS(z_cut_idx - i) < INT(avg_window / 2)) THEN
+                        v_cut = v_cut + subtracted_pot(z_cut_idx)
+                        !
+                        ez_ms = ez_ms + &
+                                (subtracted_pot(z_cut_idx + 1) - &
+                                 subtracted_pot(z_cut_idx)) / (v%cell%at(3, 3) / naxis)
+                        !
+                        icount = icount + 1
+                    END IF
+                    !
+                END DO
+                !
+                CALL env_mp_sum(icount, comm)
+                !
+                CALL env_mp_sum(v_cut, comm)
+                !
+                CALL env_mp_sum(ez_ms, comm)
+                !
+                v_cut = v_cut / DBLE(icount)
+                ez_ms = ez_ms / DBLE(icount)
+                !
+                !------------------------------------------------------------------------
+                ! Calculate what charge ez_ms corresponds to with Gauss law
+                !
+                semiconductor%ss_v_cut = v_cut
+                semiconductor%ss_chg = ez_ms * area / tpi / e2
+                !
+                IF (io%lnode .AND. io%verbosity > 1) THEN
+                    WRITE (io%debug_unit, 1002) v_cut
+                    WRITE (io%debug_unit, 1003) ez_ms
+                END IF
+                !
+            END IF
+            !
+            fact = 1.D0 / carrier_density * permittivity_ms
+            arg = fact * (ez_ms**2.D0)
+            !
+            IF (ez_ms < 0) THEN
+                vms = arg
+            ELSE
+                vms = -arg
+            END IF
+            !
+            IF (io%lnode .AND. io%verbosity >= 1) WRITE (io%debug_unit, 1004) vms
+            !
+            depletion_length = ABS(2.D0 * fact * ez_ms)
+            !
+            !----------------------------------------------------------------------------
+            ! Set bulk fermi
+            !
+            semiconductor%bulk_sc_fermi = vms + semiconductor%flatband_fermi + v_cut
+            !
+            !----------------------------------------------------------------------------
+            ! Write potentials
+            !
+            IF (io%lnode .AND. io%verbosity > 1) THEN
+                !
+                OPEN (93, file='subtracted_pot.dat', status='replace')
+                OPEN (94, file='current_pot.dat', status='replace')
+                OPEN (95, file='flatband_pot.dat', status='replace')
+                !
+                DO i = 1, naxis
+                    z_val = i * v%cell%at(3, 3) / naxis
+                    WRITE (95, *) z_val, semiconductor%flatband_pot_planar_avg(i)
+                    !
+                    IF (slab_charge /= 0.D0) THEN
+                        WRITE (93, *) z_val, subtracted_pot(i)
+                        WRITE (94, *) z_val, current_pot(i)
+                    END IF
+                    !
+                END DO
+                !
+                CLOSE (93)
+                CLOSE (94)
+                CLOSE (95)
+            END IF
+            !
+            !----------------------------------------------------------------------------
+            !
+            CALL local%destroy()
+            !
+        END ASSOCIATE
+        !
+        CALL env_stop_clock(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(/, 4('%'), " MS-GCS ", 68('%'),/)
+        !
+1001    FORMAT(1X, "MS/DFT cutoff (bohr)       = ", F14.6,/)
+        !
+1002    FORMAT(1X, "Potential at cutoff        = ", G18.10,/)
+        !
+1003    FORMAT(1X, "Electric field at cutoff   = ", G18.10,/)
+        !
+1004    FORMAT(1X, "MS potential               = ", F14.6)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_1da_vms_gcs
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_1da_grad_vms_gcs(this, electrolyte, semiconductor, charges, grad_v)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_1da), INTENT(IN) :: this
+        TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
+        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(environ_gradient), INTENT(INOUT) :: grad_v
+        !
+        REAL(DP), POINTER :: grad_vms_gcs(:, :)
+        !
+        !
+        REAL(DP) :: kbt, invkbt
+        REAL(DP) :: fact
+        REAL(DP) :: charge, dipole(0:3), quadrupole(3)
+        !
+        TYPE(environ_gradient), TARGET :: glocal
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_1da_grad_vms_gcs'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL env_start_clock(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
+            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
+        !
+        IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
+            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+        !
+        IF (electrolyte%ntyp /= 2) &
+            CALL io%error(sub_name, &
+                          "Unexpected number of counterionic species, different from two", 1)
+        !
+        IF (this%dim /= 2) &
+            CALL io%error(sub_name, &
+                          "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (slab_axis => this%axis, &
+                   omega => grad_v%cell%omega, &
+                   axis => this%x)
+            !
+            !----------------------------------------------------------------------------
+            !
+            kbt = semiconductor%temperature * k_boltzmann_ry
+            invkbt = 1.D0 / kbt
+            !
+            !----------------------------------------------------------------------------
+            ! Initialize local densities
+            !
+            CALL glocal%init(grad_v%cell)
+            !
+            grad_vms_gcs => glocal%of_r
+            !
+            !----------------------------------------------------------------------------
+            !
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
+            ! compute multipoles of the system with respect to the chosen origin
+            !
+            !----------------------------------------------------------------------------
+            ! compute the gradient of parabolic correction
+            !
+            fact = e2 * fpi / omega
+            grad_vms_gcs(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
+            grad_vms_gcs = grad_vms_gcs * fact
+            grad_v%of_r = grad_v%of_r + grad_vms_gcs
+            !
+            CALL glocal%destroy()
+            !
+        END ASSOCIATE
+        !
+        CALL env_stop_clock(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_1da_grad_vms_gcs
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

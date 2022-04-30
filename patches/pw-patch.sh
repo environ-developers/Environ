@@ -466,6 +466,309 @@ mv tmp.1 plugin_check.f90
 
 rm tmp.2
 
+# plugin initialization
+# Note, when I tried this from a fresh compilation, it didn't actually patch in
+# may need a different spot to place this and plugin_ext_forces
+
+sed '/Environ MODULES BEGIN/ a\
+!Environ patch \
+USE klist,            ONLY : tot_charge\
+USE control_flags,    ONLY : lbfgs, lforce => tprnfor\
+USE control_flags,    ONLY : nstep\
+USE environ_api,      ONLY : environ\
+!Environ patch
+' plugin_initialization.f90 > tmp.1
+
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch \
+!\
+\
+! *****************************************************************************\
+!\
+! This checks on whether semiconductor optimization is used and either starts \
+! the initial calculation of flatband potential or reads flatband potential from \
+! file according to user input \
+! \
+! ***************************************************************************** \
+ \
+IF (use_environ) THEN \
+ \
+IF (environ%setup%lmsgcs) THEN \
+CALL start_clock( "semiconductor" ) \
+lforce = .TRUE. \
+lbfgs = .FALSE. \
+nstep = 100 \
+tot_charge = 0.0 \
+CALL stop_clock( "semiconductor" ) \
+ \
+END IF \
+ \
+END IF \
+ \
+!Environ patch
+' tmp.1 > tmp.2
+
+mv tmp.2 plugin_initialization.f90
+
+#plugin_ext_forces (where I'm hiding all the semiconductor shit)
+
+
+sed '/Environ MODULES BEGIN/ a\
+!Environ patch \
+!------------------------------------------------ \
+! \
+!Note: I am using the forces plugin as a backdoor \
+!for the semiconductor loop. Its kinda off, but it works \
+!If youre actually interested in plugin forces, check \
+!the plugin_int_forces module \
+! \
+!------------------------------------------------ \
+ \
+\
+USE class_io,           ONLY : io\
+ \
+USE klist,            ONLY : tot_charge, nelec \
+USE control_flags,    ONLY : conv_ions, nstep, istep \
+USE ener,             ONLY : ef \
+USE constants,        ONLY : rytoev \
+USE ions_base,        ONLY : nat, ityp, zv \
+USE extrapolation,    ONLY : update_pot \
+USE environ_api,      ONLY : environ\
+!Environ patch
+' plugin_ext_forces.f90 > tmp.1
+
+sed '/Environ VARIABLES BEGIN/ a\
+!Environ patch \
+\
+SAVE \
+REAL(DP)                  :: cur_chg \
+REAL(DP)                  :: prev_chg, prev_chg2 \
+REAL(DP)                  :: cur_dchg \
+REAL(DP)                  :: cur_fermi \
+REAL(DP)                  :: prev_dchg \
+REAL(DP)                  :: gamma_mult \
+REAL(DP)                  :: prev_step_size \
+REAL(DP)                  :: ss_chg, charge \
+INTEGER                   :: chg_step, na \
+REAL(DP)                  :: surf_area \
+REAL(DP)                  :: chg_per_area \
+REAL(DP)                  :: ss_chg_per_area \
+REAL(DP)                  :: ss_potential \
+REAL(DP)                  :: dft_chg_max, dft_chg_min \
+REAL(DP)                  :: change_vec \
+REAL(DP)                  :: v_cut, bulk_potential \
+REAL(DP)                  :: ionic_charge \
+LOGICAL                   :: converge \
+! !Environ patch
+' tmp.1 > tmp.2
+
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch \
+ \
+!************************************************* \
+! \
+! This section designed to run after a call to electrons. Basically, it checks \
+! whether the semiconductor charge has converged and then updates the relevant \
+! quantities (tot_charge) accordingly \
+! \
+!************************************************* \
+ \
+IF (use_environ .AND. environ%setup%lmsgcs) THEN \
+gamma_mult = 0.15 \
+converge = .TRUE. \
+\
+CALL start_clock( "semiconductor" ) \
+\
+! calculating ionic charge \
+ionic_charge = 0._DP \
+DO na = 1, nat \
+ionic_charge = ionic_charge + zv( ityp(na) ) \
+END DO \
+chg_step = istep \
+! Initializing the constraints of possible DFT charges \
+! Should probably be initialized at chg_step =1 but that seemed to be \
+! creating some trouble possibly \
+\
+! Set dft charge boundaries \
+IF (chg_step == 1) THEN \
+! this is an option that feels like it should be useful to edit in the future \
+\
+IF (environ%main%semiconductor%base%electrode_charge > 0.0) THEN \
+dft_chg_max = environ%main%semiconductor%base%electrode_charge \
+dft_chg_min = 0.0 \
+ELSE \
+dft_chg_min = environ%main%semiconductor%base%electrode_charge \
+dft_chg_max = 0.0 \
+END IF \
+\
+END IF \
+ \
+ \
+! \
+IF (chg_step == 0) THEN \
+! After first scf step, extract fermi, set charge \
+environ%main%semiconductor%base%flatband_fermi = ef!*rytoev \
+tot_charge = 0.7*environ%main%semiconductor%base%electrode_charge \
+environ%main%semiconductor%base%slab_charge = tot_charge \
+environ%main%environment_charges%externals%functions%array(1)%volume = & \
+-(environ%main%semiconductor%base%electrode_charge - tot_charge) \
+environ%main%environment_charges%externals%functions%array(2)%volume = & \
+environ%main%semiconductor%base%electrode_charge \
+conv_ions = .FALSE. \
+istep =  istep + 1 \
+WRITE( stdout, 1001) environ%main%semiconductor%base%flatband_fermi*rytoev,tot_charge \
+!  \
+! ... re-initialize atomic position-dependent quantities  \
+!  \
+nelec = ionic_charge - tot_charge \
+CALL update_pot() \
+CALL hinit1() \
+ELSE \
+ \
+! Calculate steepest descent for changing charge at each scf step \
+ \
+cur_fermi = ef!*rytoev  \
+! for now, will try to keep everything in Ry, should basically work the same  \
+ \
+ \
+! not calling it dfermi because difference is only used as a guide to changing \
+! charge. Calling it dchg to conform with steepest descent model  \
+cur_dchg = environ%main%semiconductor%base%bulk_sc_fermi - cur_fermi \
+bulk_potential = (environ%main%semiconductor%base%bulk_sc_fermi - & \
+environ%main%semiconductor%base%flatband_fermi)*rytoev \
+ss_chg = environ%main%semiconductor%base%ss_chg \
+ \
+! making sure constraints are updated  \
+! 1) if electrode chg positive and dft is negative stop it \
+! 2) if electrode chg negative and dft is positive stop it   \
+IF (environ%main%semiconductor%base%electrode_charge > 0) THEN \
+IF (ss_chg < 0.0) THEN \
+dft_chg_min = tot_charge \
+converge = .FALSE. \
+ELSE \
+prev_chg2 = tot_charge \
+END IF \
+ELSE \
+IF (ss_chg > 0.0) THEN \
+dft_chg_max = tot_charge \
+converge = .FALSE. \
+ELSE \
+prev_chg2 = tot_charge \
+END IF \
+END IF \
+ \
+! Updating the steepest descent parameter, gamma_mult \
+IF (chg_step > 1 )THEN \
+gamma_mult = (cur_chg - prev_chg)/(cur_dchg - prev_dchg) \
+END IF \
+ \
+change_vec = -gamma_mult*cur_dchg \
+prev_chg = tot_charge \
+ \
+! Making sure that charge doesnt go above dft_chg_max or below dft_chg_min    \
+! Updating tot_charge \
+IF ((tot_charge + change_vec) > dft_chg_max ) THEN \
+IF (tot_charge >= dft_chg_max) THEN \
+tot_charge = prev_chg2 + 0.7*(dft_chg_max-prev_chg2) \
+ELSE \
+tot_charge = tot_charge + 0.7*(dft_chg_max-tot_charge) \
+END IF \
+ELSE IF ((tot_charge + change_vec) < dft_chg_min) THEN \
+IF (tot_charge <= dft_chg_min) THEN \
+tot_charge = prev_chg2 - 0.7*(prev_chg2-dft_chg_min) \
+ELSE \
+tot_charge = tot_charge - 0.7*(tot_charge-dft_chg_min) \
+END IF \
+ \
+ELSE \
+tot_charge = tot_charge + change_vec \
+END IF \
+ \
+ \
+!updating variables based on new_tot_charge \
+cur_chg = tot_charge \
+prev_step_size = ABS(cur_chg - prev_chg) \
+prev_dchg = cur_dchg \
+ \
+! decide if loop has converged based on change in charge \
+IF (((prev_step_size > environ%main%semiconductor%base%charge_threshold) .OR. (.NOT. converge)) & \
+& .AND. (chg_step < nstep-1))  THEN \
+! not converged \
+conv_ions = .FALSE. \
+WRITE( STDOUT, 1002)& \
+&chg_step,cur_fermi*rytoev,ss_chg,prev_step_size,cur_dchg,tot_charge \
+istep =  istep + 1 \
+nelec = ionic_charge - tot_charge \
+environ%main%semiconductor%base%slab_charge = tot_charge \
+environ%main%environment_charges%externals%functions%array(1)%volume = &\
+-(environ%main%semiconductor%base%electrode_charge - tot_charge) \
+CALL update_pot() \
+CALL hinit1() \
+ELSE \
+! converged  \
+! case where about to exceed max number of steps \
+IF (chg_step == nstep -1) THEN \
+WRITE(STDOUT,*)NEW_LINE("a")//"   Exceeded Max number steps!"//& \
+&NEW_LINE("a")//"   Results probably out of accurate range"//& \
+&NEW_LINE("a")//"   Larger chg_thr recommended."//& \
+&NEW_LINE("a")//"   Writing current step to q-v.dat." \
+END IF \
+ \
+!writing output for successful converge \
+WRITE(STDOUT, 1003)chg_step,prev_step_size,ss_chg,cur_dchg,& \
+&bulk_potential \
+OPEN(21,file = "q-v.dat", status = "unknown") \
+WRITE(21, *)"Potential (V-V_fb)  Surface State Potential (V-V_cut)",& \
+&"  Electrode Charge (e)",& \
+&"  Surface States Charge (e)    ",& \
+&"Electrode Charge per surface area (e/cm^2)     ",& \
+&"Surface State Charge per surface area (e/cm^2)" \
+surf_area = environ%main%semiconductor%base%surf_area_per_sq_cm \
+chg_per_area = environ%main%semiconductor%base%electrode_charge/surf_area \
+ss_chg_per_area = ss_chg/surf_area \
+ss_potential = environ%main%semiconductor%base%ss_v_cut \
+WRITE(21, 1004) -bulk_potential, ss_potential,& \
+&environ%main%semiconductor%base%electrode_charge, ss_chg,& \
+&chg_per_area,ss_chg_per_area \
+CLOSE(21) \
+END IF \
+END IF \
+ \
+CALL stop_clock( "semiconductor" ) \
+END IF  \
+ \
+1001 FORMAT(/, 5X, 44("*"), //, & \
+               5X, "flatband potential        = ", F16.8, //, & \
+               5X, "initial DFT charge        = ", F16.8, //, & \
+               5X, 44("*"), /) \
+! \
+1002 FORMAT(/, 5X, 44("*"), //, & \
+               5X, "charge convergence step   = ", I16, //, & \
+               5X, "DFT fermi level           = ", F16.8, /, & \
+               5X, "charge in surface states  = ", F16.8, /, & \
+               5X, "charge accuracy           < ", F16.8, /, & \
+               5X, "bulk/DFT fermi difference = ", F16.8, /, & \
+               5X, "DFT charge                = ", F16.8, //, & \
+               5X, 44("*"), /) \
+! \
+1003 FORMAT(/, 5X, 44("*"), //, & \
+               5X, "charge convergence step   = ", I16, //, & \
+               5X, "converged charge accuracy < ", F16.8, /, & \
+               5X, "charge in surface states  = ", F16.8, /, & \
+               5X, "bulk/DFT fermi difference = ", F16.8, /, & \
+               5X, "final potential (V)       = ", F16.8, /, & \
+               5X, "output written to q-v.dat", //, & \
+               5X, 44("*"), /) \
+! \
+1004 FORMAT(1X, 4F14.8, 2ES12.5) \
+!Environ patch
+' tmp.2 > tmp.1
+
+mv tmp.1 plugin_ext_forces.f90
+
+
+rm tmp.2
+
 printf " done!\n"
 
 cd $QE_DIR
