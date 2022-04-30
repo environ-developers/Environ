@@ -88,7 +88,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initialize Environ
         !
-        CALL environ%read_input(inputfile, SIZE(label))
+        CALL environ%read_input(inputfile, ntyp)
         !
         CALL environ%setup%init()
         !
