@@ -387,9 +387,9 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-2000        FORMAT(/, 5X, "Total Volume of the QM region: ", F17.8)
+2000        FORMAT(5X, "Total volume of the QM region: ", F18.8)
             !
-2001        FORMAT(5X, "Total Surface of the QM region: ", F17.8,/)
+2001        FORMAT(5X, "Total surface of the QM region: ", F17.8,/)
             !
 2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I4,/)
             !
