@@ -1392,7 +1392,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
+            CALL io%error(sub_name, 'Missmatch in domains of potential and charges', 1)
         !
         IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
             CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
