@@ -41,6 +41,8 @@ MODULE programs
     USE class_density, ONLY: environ_density
     USE class_gradient, ONLY: environ_gradient
     !
+    USE class_boundary_ionic, ONLY: environ_boundary_ionic
+    !
     USE env_write_cube, ONLY: write_cube
     !
     USE cmdline_args
@@ -300,15 +302,26 @@ CONTAINS
             LOGICAL :: physical
             REAL(DP), ALLOCATABLE :: alpha(:), pvol(:, :), psurf(:, :)
             !
+            TYPE(environ_boundary_ionic), POINTER :: solvent
+            !
             !----------------------------------------------------------------------------
             !
-            ASSOCIATE (ss => environ%main%solvent%soft_spheres%array, &
-                       scal => environ%main%solvent%scaled, &
-                       mod_grad => environ%main%solvent%gradient%modulus, &
-                       num => environ%main%solvent%soft_spheres%number, &
+            SELECT TYPE (main_solvent => environ%main%solvent)
+                !
+            TYPE IS (environ_boundary_ionic)
+                solvent => main_solvent
+                !
+            END SELECT
+            !
+            !----------------------------------------------------------------------------
+            !
+            ASSOCIATE (ss => solvent%soft_spheres%array, &
+                       scal => solvent%scaled, &
+                       mod_grad => solvent%gradient%modulus, &
+                       num => solvent%soft_spheres%number, &
                        a_num => NINT(alpha_max / alpha_step), &
-                       vol => environ%main%solvent%volume, &
-                       surf => environ%main%solvent%surface)
+                       vol => solvent%volume, &
+                       surf => solvent%surface)
                 !
                 !------------------------------------------------------------------------
                 ! Print out surface and volume
@@ -368,7 +381,7 @@ CONTAINS
                 IF (io%lnode) THEN
                     !
                     DO i = 1, num
-                        WRITE (io%unit, 2002) i, environ%main%solvent%ions%ityp(i)
+                        WRITE (io%unit, 2002) i, solvent%ions%ityp(i)
                         !
                         WRITE (io%unit, 2003)
                         !
