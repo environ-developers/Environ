@@ -493,7 +493,6 @@ CONTAINS
                 !
                 IF (this%solvent_aware) THEN
                     hess => this%hessian
-                    hess%of_r = 0.D0
                 ELSE
                     ALLOCATE (hess)
                     !
