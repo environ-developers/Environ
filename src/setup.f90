@@ -945,7 +945,8 @@ CONTAINS
                         this%lconfine
         !
         this%lelectrostatic = this%ldielectric .OR. this%lelectrolyte .OR. &
-                              this%lexternals .OR. this%lperiodic .OR. field_aware
+                              this%lexternals .OR. this%lperiodic .OR. field_aware .OR. &
+                              env_electrostatic
         !
         this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
                                                  solvent_mode == 'full' .OR. &
