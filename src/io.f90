@@ -101,7 +101,7 @@ CONTAINS
         !
         CLASS(environ_io), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_base_io'
+        CHARACTER(LEN=80) :: routine = 'create_base_io'
         !
         !--------------------------------------------------------------------------------
         !
@@ -437,7 +437,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: verbose, base_verbose, unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'env_block_divider'
+        CHARACTER(LEN=80) :: routine = 'env_block_divider'
         !
         !--------------------------------------------------------------------------------
         !
@@ -461,7 +461,7 @@ CONTAINS
             WRITE (unit, 14)
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected verbose value", 1)
+            CALL io%error(routine, "Unexpected verbose value", 1)
             !
         END SELECT
         !

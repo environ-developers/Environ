@@ -99,7 +99,7 @@ CONTAINS
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_solver_direct'
+        CHARACTER(LEN=80) :: routine = 'create_solver_direct'
         !
         !--------------------------------------------------------------------------------
         !
@@ -143,7 +143,7 @@ CONTAINS
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_solver_direct'
+        CHARACTER(LEN=80) :: routine = 'destroy_solver_direct'
         !
         !--------------------------------------------------------------------------------
         !
@@ -171,12 +171,12 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_charges'
+        CHARACTER(LEN=80) :: routine = 'poisson_charges'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, v%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of charges and potential", 1)
+            CALL io%error(routine, "Mismatch in domains of charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -200,7 +200,7 @@ CONTAINS
                 CASE ('gcs') ! gouy-chapman-stern
                     !
                     IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(electrolyte%base, density, v)
@@ -208,7 +208,7 @@ CONTAINS
                 CASE ('ms') ! mott-schottky
                     !
                     IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(semiconductor%base, density, v)
@@ -216,14 +216,14 @@ CONTAINS
                 CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
                     !
                     IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(electrolyte%base, semiconductor%base, &
                                               density, v)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected corrections method", 1)
+                    CALL io%error(routine, "Unexpected corrections method", 1)
                     !
                 END SELECT
                 !
@@ -251,12 +251,12 @@ CONTAINS
         !
         TYPE(environ_density) :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_density'
+        CHARACTER(LEN=80) :: routine = 'poisson_density'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of charges and potential", 1)
+            CALL io%error(routine, "Mismatch in domains of charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         ! Using a local variable for the potential because the routine may be
@@ -281,7 +281,7 @@ CONTAINS
                 CASE ('gcs') ! gouy-chapman-stern
                     !
                     IF (.NOT. PRESENT(electrolyte)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(electrolyte%base, charges, local)
@@ -289,7 +289,7 @@ CONTAINS
                 CASE ('ms') ! mott-schottky
                     !
                     IF (.NOT. PRESENT(semiconductor)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(semiconductor%base, charges, local)
@@ -297,18 +297,18 @@ CONTAINS
                 CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
                     !
                     IF (.NOT. PRESENT(semiconductor)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     IF (.NOT. PRESENT(electrolyte)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(electrolyte%base, semiconductor%base, &
                                               charges, local)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected corrections method", 1)
+                    CALL io%error(routine, "Unexpected corrections method", 1)
                     !
                 END SELECT
                 !
@@ -336,12 +336,12 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'grad_poisson_charges'
+        CHARACTER(LEN=80) :: routine = 'grad_poisson_charges'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, grad_v%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of charges and gradient", 1)
+            CALL io%error(routine, "Mismatch in domains of charges and gradient", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -365,7 +365,7 @@ CONTAINS
                 CASE ('gcs') ! gouy-chapman-stern
                     !
                     IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(electrolyte%base, density, grad_v)
@@ -373,7 +373,7 @@ CONTAINS
                 CASE ('ms') ! mott-schottky
                     !
                     IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(semiconductor%base, density, grad_v)
@@ -381,14 +381,14 @@ CONTAINS
                 CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
                     !
                     IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(electrolyte%base, semiconductor%base, &
                                                    density, grad_v)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected corrections method", 1)
+                    CALL io%error(routine, "Unexpected corrections method", 1)
                     !
                 END SELECT
                 !
@@ -414,12 +414,12 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'grad_poisson_density'
+        CHARACTER(LEN=80) :: routine = 'grad_poisson_density'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, grad_v%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of charges and gradient", 1)
+            CALL io%error(routine, "Mismatch in domains of charges and gradient", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -440,7 +440,7 @@ CONTAINS
                 CASE ('gcs') ! gouy-chapman-stern
                     !
                     IF (.NOT. PRESENT(electrolyte)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing electrolyte for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(electrolyte%base, charges, grad_v)
@@ -448,7 +448,7 @@ CONTAINS
                 CASE ('ms') ! mott-schottky
                     !
                     IF (.NOT. PRESENT(semiconductor)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(semiconductor%base, charges, grad_v)
@@ -456,14 +456,14 @@ CONTAINS
                 CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
                     !
                     IF (.NOT. PRESENT(semiconductor)) &
-                        CALL io%error(sub_name, &
+                        CALL io%error(routine, &
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(electrolyte%base, semiconductor%base, &
                                                    charges, grad_v)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected corrections method", 1)
+                    CALL io%error(routine, "Unexpected corrections method", 1)
                     !
                 END SELECT
                 !

@@ -106,11 +106,11 @@ CONTAINS
         !
         CLASS(environ_boundary_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'create_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%system)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%system)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -134,7 +134,7 @@ CONTAINS
         !
         CLASS(environ_boundary_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'init_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -160,7 +160,7 @@ CONTAINS
         !
         LOGICAL :: update_anything
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'update_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -220,7 +220,7 @@ CONTAINS
         !
         CLASS(environ_boundary_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -253,7 +253,7 @@ CONTAINS
         !
         TYPE(environ_hessian), POINTER :: hessloc
         !
-        CHARACTER(LEN=80) :: sub_name = 'boundary_of_system'
+        CHARACTER(LEN=80) :: routine = 'boundary_of_system'
         !
         !--------------------------------------------------------------------------------
         !
@@ -312,7 +312,7 @@ CONTAINS
                 END IF
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected derivatives method", 1)
+                CALL io%error(routine, "Unexpected derivatives method", 1)
                 !
             END SELECT
             !
@@ -360,14 +360,14 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: partial
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_dboundary_dions'
+        CHARACTER(LEN=80) :: routine = 'calc_dboundary_dions'
         !
         !--------------------------------------------------------------------------------
         !
         IF (index > this%system%ions%number) &
-            CALL io%error(sub_name, "Index greater than number of ions", 1)
+            CALL io%error(routine, "Index greater than number of ions", 1)
         !
-        IF (index <= 0) CALL io%error(sub_name, "Index of ion is zero or lower", 1)
+        IF (index <= 0) CALL io%error(routine, "Index of ion is zero or lower", 1)
         !
         ! PROBABLY THERE IS A UNIFORM CONTRIBUTION TO THE FORCES
         ! WHICH SHOULD ONLY AFFECT THE COM OF THE SYSTEM, POSSIBLY NEED TO ADD
@@ -404,7 +404,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'print_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !

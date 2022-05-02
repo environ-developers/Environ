@@ -79,7 +79,7 @@ CONTAINS
         INTEGER :: nr(3)
         REAL(DP) :: at(3, 3)
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_from_cube'
+        CHARACTER(LEN=80) :: routine = 'init_environ_from_cube'
         !
         !--------------------------------------------------------------------------------
         !

@@ -256,11 +256,11 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_setup'
+        CHARACTER(LEN=80) :: routine = 'create_environ_setup'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%environment_cell)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%environment_cell)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -325,7 +325,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
+        CHARACTER(LEN=80) :: routine = 'init_environ_setup'
         !
         !--------------------------------------------------------------------------------
         !
@@ -372,7 +372,7 @@ CONTAINS
         !
         REAL(DP) :: local_gcutm, at2
         !
-        CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
+        CHARACTER(LEN=80) :: routine = 'environ_init_cell'
         !
         !--------------------------------------------------------------------------------
         !
@@ -389,7 +389,7 @@ CONTAINS
             at2 = SUM(at(:, 1)**2)
             local_gcutm = CEILING((nr(1) - 3)**2 * 0.25 / at2 + 0.5 / SQRT(at2) * nr(1))
         ELSE
-            CALL io%error(sub_name, "Missing FFT-grid information", 1003)
+            CALL io%error(routine, "Missing FFT-grid information", 1003)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -522,7 +522,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'environ_end_cell_update'
+        CHARACTER(LEN=80) :: routine = 'environ_end_cell_update'
         !
         !--------------------------------------------------------------------------------
         !
@@ -543,7 +543,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_numerical_cores'
+        CHARACTER(LEN=80) :: routine = 'update_environ_numerical_cores'
         !
         !--------------------------------------------------------------------------------
         !
@@ -568,7 +568,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'environ_update_mapping'
+        CHARACTER(LEN=80) :: routine = 'environ_update_mapping'
         !
         !--------------------------------------------------------------------------------
         !
@@ -665,7 +665,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(IN) :: this
         !
-        CHARACTER(LEN=80) :: fun_name = 'get_nnt'
+        CHARACTER(LEN=80) :: routine = 'get_nnt'
         !
         !--------------------------------------------------------------------------------
         !
@@ -685,7 +685,7 @@ CONTAINS
         CLASS(environ_setup), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: i
         !
-        CHARACTER(LEN=80) :: fun_name = 'get_nri'
+        CHARACTER(LEN=80) :: routine = 'get_nri'
         !
         !--------------------------------------------------------------------------------
         !
@@ -815,7 +815,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_environ_flags'
+        CHARACTER(LEN=80) :: routine = 'set_environ_flags'
         !
         !--------------------------------------------------------------------------------
         !
@@ -861,7 +861,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_simulation_flags'
+        CHARACTER(LEN=80) :: routine = 'set_simulation_flags'
         !
         !--------------------------------------------------------------------------------
         !
@@ -891,7 +891,7 @@ CONTAINS
             this%lmsgcs = .TRUE.
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected correction type", 1)
+            CALL io%error(routine, "Unexpected correction type", 1)
             !
         END SELECT
         !
@@ -1003,7 +1003,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_numerical_flags'
+        CHARACTER(LEN=80) :: routine = 'set_numerical_flags'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1036,7 +1036,7 @@ CONTAINS
         CLASS(environ_core), POINTER :: &
             local_outer_core, local_inner_core, local_pbc_core, local_deriv_core
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_core_containers'
+        CHARACTER(LEN=80) :: routine = 'init_environ_core_containers'
         !
         !--------------------------------------------------------------------------------
         ! Calling program reference core
@@ -1064,7 +1064,7 @@ CONTAINS
                 local_deriv_core => this%env_fft
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected derivatives core", 1)
+                CALL io%error(routine, "Unexpected derivatives core", 1)
                 !
             END SELECT
             !
@@ -1086,7 +1086,7 @@ CONTAINS
                 local_outer_core => this%env_fft
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected outer core", 1)
+                CALL io%error(routine, "Unexpected outer core", 1)
                 !
             END SELECT
             !
@@ -1103,7 +1103,7 @@ CONTAINS
                     local_inner_core => this%env_fft
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected inner core", 1)
+                    CALL io%error(routine, "Unexpected inner core", 1)
                     !
                 END SELECT
                 !
@@ -1124,7 +1124,7 @@ CONTAINS
                 local_pbc_core => this%env_1da
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected corrections core", 1)
+                CALL io%error(routine, "Unexpected corrections core", 1)
                 !
             END SELECT
             !
@@ -1155,7 +1155,7 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: local_auxiliary, local_problem
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_electrostatic'
+        CHARACTER(LEN=80) :: routine = 'init_environ_electrostatic'
         !
         !--------------------------------------------------------------------------------
         ! Calling program reference solver
@@ -1198,7 +1198,7 @@ CONTAINS
             local_outer_solver => this%newton
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected outer solver", 1)
+            CALL io%error(routine, "Unexpected outer solver", 1)
             !
         END SELECT
         !
@@ -1240,7 +1240,7 @@ CONTAINS
                     !
                 ELSE
                     !
-                    CALL io%error(sub_name, &
+                    CALL io%error(routine, &
                                   'Unexpected value for auxiliary charge in nested solver', 1)
                     !
                 END IF
@@ -1256,7 +1256,7 @@ CONTAINS
                 local_inner_solver => this%inner_gradient
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected inner solver", 1)
+                CALL io%error(routine, "Unexpected inner solver", 1)
                 !
             END SELECT
             !
@@ -1308,7 +1308,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_electrostatic_flags'
+        CHARACTER(LEN=80) :: routine = 'set_electrostatic_flags'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1331,7 +1331,7 @@ CONTAINS
                     this%need_gradient = .TRUE.
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
+                    CALL io%error(routine, "Unexpected 'preconditioner'", 1)
                     !
                 END SELECT
                 !
@@ -1344,12 +1344,12 @@ CONTAINS
                 IF (solver%auxiliary /= 'none') this%need_auxiliary = .TRUE.
                 !
             CLASS DEFAULT
-                CALL io%error(sub_name, "Unexpected solver", 1)
+                CALL io%error(routine, "Unexpected solver", 1)
                 !
             END SELECT
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected 'problem'", 1)
+            CALL io%error(routine, "Unexpected 'problem'", 1)
             !
         END SELECT
         !

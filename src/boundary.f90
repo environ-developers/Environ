@@ -216,13 +216,13 @@ CONTAINS
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'pre_create_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'pre_create_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%cores)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cores)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -276,7 +276,7 @@ CONTAINS
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'pre_init_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'pre_init_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -327,7 +327,7 @@ CONTAINS
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_solvent_aware'
+        CHARACTER(LEN=80) :: routine = 'init_solvent_aware'
         !
         !--------------------------------------------------------------------------------
         !
@@ -368,7 +368,7 @@ CONTAINS
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_field_aware'
+        CHARACTER(LEN=80) :: routine = 'init_field_aware'
         !
         !--------------------------------------------------------------------------------
         !
@@ -391,7 +391,7 @@ CONTAINS
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_solvent_aware'
+        CHARACTER(LEN=80) :: routine = 'update_solvent_aware'
         !
         !--------------------------------------------------------------------------------
         ! Solvent-aware interface
@@ -412,7 +412,7 @@ CONTAINS
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'pre_destroy_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'pre_destroy_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -597,7 +597,7 @@ CONTAINS
         !
         TYPE(environ_density) :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_solvent_aware_de_dboundary'
+        CHARACTER(LEN=80) :: routine = 'calc_solvent_aware_de_dboundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -636,11 +636,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: partial
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_dboundary_dions'
+        CHARACTER(LEN=80) :: routine = 'calc_dboundary_dions'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
@@ -659,11 +659,11 @@ CONTAINS
         CLASS(environ_boundary), INTENT(INOUT) :: this
         TYPE(environ_gradient), INTENT(INOUT) :: partial
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_dboundary_dions'
+        CHARACTER(LEN=80) :: routine = 'calc_field_aware_dboundary_dions'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_field_aware_dboundary_dions
@@ -679,11 +679,11 @@ CONTAINS
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_ion_field_partial'
+        CHARACTER(LEN=80) :: routine = 'calc_ion_field_partial'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_ion_field_partial
@@ -715,7 +715,7 @@ CONTAINS
         TYPE(environ_density) :: laplloc
         TYPE(environ_hessian) :: hessloc
         !
-        CHARACTER(LEN=80) :: sub_name = 'solvent_aware_boundary'
+        CHARACTER(LEN=80) :: routine = 'solvent_aware_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -876,7 +876,7 @@ CONTAINS
                     CALL calc_dsurface_no_pre(cell, grad%of_r, hess%of_r, dsurf%of_r)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected derivatives method", 1)
+                CALL io%error(routine, "Unexpected derivatives method", 1)
                 !
             END SELECT
             !
@@ -920,7 +920,7 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: lapl
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         !
-        CHARACTER(LEN=80) :: sub_name = 'compute_convolution_deriv'
+        CHARACTER(LEN=80) :: routine = 'compute_convolution_deriv'
         !
         !--------------------------------------------------------------------------------
         !
@@ -962,7 +962,7 @@ CONTAINS
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         TYPE(environ_density), INTENT(INOUT) :: dsurf
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_dsurface'
+        CHARACTER(LEN=80) :: routine = 'calc_dsurface'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1031,7 +1031,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit, i
         !
-        CHARACTER(LEN=80) :: sub_name = 'pre_print_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'pre_print_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1138,7 +1138,7 @@ CONTAINS
         !
         INTEGER, INTENT(OUT) :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_setup'
+        CHARACTER(LEN=80) :: routine = 'print_setup'
         !
         !--------------------------------------------------------------------------------
         !

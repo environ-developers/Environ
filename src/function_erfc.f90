@@ -103,12 +103,12 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function'
+        CHARACTER(LEN=80) :: routine = 'density_of_function'
         !
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, "Wrong value of axis", 1)
+            CALL io%error(routine, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -126,7 +126,7 @@ CONTAINS
             IF (.NOT. PRESENT(vals) .OR. &
                 .NOT. PRESENT(r_vals) .OR. &
                 .NOT. PRESENT(dist_vals)) &
-                CALL io%error(sub_name, "Missing value arrays", 1)
+                CALL io%error(routine, "Missing value arrays", 1)
             !
             storing = .TRUE.
         ELSE
@@ -225,12 +225,12 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
+        CHARACTER(LEN=80) :: routine = 'gradient_of_function'
         !
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, "Wrong value of axis", 1)
+            CALL io%error(routine, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -246,7 +246,7 @@ CONTAINS
             IF (.NOT. PRESENT(vals) .OR. &
                 .NOT. PRESENT(r_vals) .OR. &
                 .NOT. PRESENT(dist_vals)) &
-                CALL io%error(sub_name, "Missing value arrays", 1)
+                CALL io%error(routine, "Missing value arrays", 1)
             !
             imax = SIZE(ir)
             stored = .TRUE.
@@ -342,12 +342,12 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: lapllocal(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function'
+        CHARACTER(LEN=80) :: routine = 'laplacian_of_function'
         !
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, "Wrong value of axis", 1)
+            CALL io%error(routine, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -362,7 +362,7 @@ CONTAINS
             !
             IF (.NOT. PRESENT(r_vals) .OR. &
                 .NOT. PRESENT(dist_vals)) &
-                CALL io%error(sub_name, "Missing value arrays", 1)
+                CALL io%error(routine, "Missing value arrays", 1)
             !
             imax = SIZE(ir)
             stored = .TRUE.
@@ -444,7 +444,7 @@ CONTAINS
                     lapllocal(irs) = EXP(-arg**2) * arg / spread * 2.D0
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected system dimensions", 1)
+                    CALL io%error(routine, "Unexpected system dimensions", 1)
                     !
                 END SELECT
                 !
@@ -478,12 +478,12 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, tmp, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: hesslocal(:, :, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function'
+        CHARACTER(LEN=80) :: routine = 'hessian_of_function'
         !
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, "Wrong value of axis", 1)
+            CALL io%error(routine, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -498,7 +498,7 @@ CONTAINS
             !
             IF (.NOT. PRESENT(r_vals) .OR. &
                 .NOT. PRESENT(dist_vals)) &
-                CALL io%error(sub_name, "Missing value arrays", 1)
+                CALL io%error(routine, "Missing value arrays", 1)
             !
             imax = SIZE(ir)
             stored = .TRUE.
@@ -608,12 +608,12 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: derivlocal(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'derivative_of_function'
+        CHARACTER(LEN=80) :: routine = 'derivative_of_function'
         !
         !--------------------------------------------------------------------------------
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, "Wrong value of axis", 1)
+            CALL io%error(routine, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -628,7 +628,7 @@ CONTAINS
             !
             IF (.NOT. PRESENT(r_vals) .OR. &
                 .NOT. PRESENT(dist_vals)) &
-                CALL io%error(sub_name, "Missing value arrays", 1)
+                CALL io%error(routine, "Missing value arrays", 1)
             !
             imax = SIZE(ir)
             stored = .TRUE.
@@ -735,7 +735,7 @@ CONTAINS
         REAL(DP) :: f1 = 0.0_DP, f2 = 0.0_DP
         REAL(DP) :: t, invt
         !
-        CHARACTER(LEN=80) :: fun_name = 'erfcvolume'
+        CHARACTER(LEN=80) :: routine = 'erfcvolume'
         !
         !--------------------------------------------------------------------------------
         !
@@ -745,7 +745,7 @@ CONTAINS
                    axis => this%axis)
             !
             IF (spread < func_tol .OR. width < func_tol) &
-                CALL io%error(fun_name, 'Wrong parameters of erfc function', 1)
+                CALL io%error(routine, 'Wrong parameters of erfc function', 1)
             !
             t = spread / width
             invt = width / spread
@@ -781,7 +781,7 @@ CONTAINS
                 erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis)
                 !
             CASE DEFAULT
-                CALL io%error(fun_name, "Unexpected system dimensions", 1)
+                CALL io%error(routine, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -808,7 +808,7 @@ CONTAINS
         CLASS(environ_function_erfc), INTENT(IN) :: this
         TYPE(environ_cell), INTENT(IN) :: cell
         !
-        CHARACTER(LEN=80) :: sub_name = 'get_charge'
+        CHARACTER(LEN=80) :: routine = 'get_charge'
         !
         !--------------------------------------------------------------------------------
         !
@@ -827,7 +827,7 @@ CONTAINS
                 get_charge = -this%erfcvolume(cell) * charge
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected function type", 1)
+                CALL io%error(routine, "Unexpected function type", 1)
                 !
             END SELECT
             !

@@ -104,7 +104,7 @@ CONTAINS
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_externals'
+        CHARACTER(LEN=80) :: routine = 'create_environ_externals'
         !
         !--------------------------------------------------------------------------------
         !
@@ -153,7 +153,7 @@ CONTAINS
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_externals'
+        CHARACTER(LEN=80) :: routine = 'update_environ_externals'
         !
         !--------------------------------------------------------------------------------
         ! Update externals charge density
@@ -215,7 +215,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_externals'
+        CHARACTER(LEN=80) :: routine = 'print_environ_externals'
         !
         !--------------------------------------------------------------------------------
         !

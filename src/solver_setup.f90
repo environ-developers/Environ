@@ -105,13 +105,13 @@ CONTAINS
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_electrostatic_setup'
+        CHARACTER(LEN=80) :: routine = 'create_electrostatic_setup'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%solver)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%solver)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%inner)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%inner)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -136,7 +136,7 @@ CONTAINS
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_electrostatic_setup'
+        CHARACTER(LEN=80) :: routine = 'init_electrostatic_setup'
         !
         !--------------------------------------------------------------------------------
         !
@@ -158,11 +158,11 @@ CONTAINS
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_electrostatic_setup'
+        CHARACTER(LEN=80) :: routine = 'destroy_electrostatic_setup'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%solver)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%solver)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -200,11 +200,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_velectrostatic'
+        CHARACTER(LEN=80) :: routine = 'calc_velectrostatic'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         v%of_r = 0.D0
         !
@@ -219,26 +219,26 @@ CONTAINS
         CASE ('generalized')
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL io%error(sub_name, "Missing details of dielectric medium", 1)
+                CALL io%error(routine, "Missing details of dielectric medium", 1)
             !
             CALL this%solver%generalized(charges, v)
             !
         CASE ('linpb', 'linmodpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL io%error(sub_name, "Missing details of electrolyte ions", 1)
+                CALL io%error(routine, "Missing details of electrolyte ions", 1)
             !
             CALL this%solver%linearized_pb(charges, v)
             !
         CASE ('pb', 'modpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL io%error(sub_name, "Missing details of electrolyte ions", 1)
+                CALL io%error(routine, "Missing details of electrolyte ions", 1)
             !
             IF (ASSOCIATED(this%inner)) THEN
                 !
                 IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                    CALL io%error(sub_name, "Missing details of dielectric medium", 1)
+                    CALL io%error(routine, "Missing details of dielectric medium", 1)
                 !
                 CALL this%solver%pb_nested(charges, v, this%inner%solver)
                 !
@@ -247,11 +247,11 @@ CONTAINS
             END IF
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected 'problem'", 1)
+            CALL io%error(routine, "Unexpected 'problem'", 1)
             !
         END SELECT
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_velectrostatic
@@ -273,14 +273,14 @@ CONTAINS
         !
         REAL(DP) :: degauss, eself
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_eelectrostatic'
+        CHARACTER(LEN=80) :: routine = 'calc_eelectrostatic'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
-            CALL io%error(sub_name, "Mismatch in charges and potential domains", 1)
+            CALL io%error(routine, "Mismatch in charges and potential domains", 1)
         !
         energy = 0.D0
         eself = 0.D0
@@ -328,7 +328,7 @@ CONTAINS
         !
         energy = energy + eself + degauss
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_eelectrostatic
@@ -355,11 +355,11 @@ CONTAINS
         !
         TYPE(environ_density) :: aux
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_felectrostatic'
+        CHARACTER(LEN=80) :: routine = 'calc_felectrostatic'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         ! Electrostatic contributions to forces are formulated in terms
@@ -373,7 +373,7 @@ CONTAINS
         ELSE IF (charges%include_externals) THEN
             !
             IF (.NOT. ASSOCIATED(charges%externals)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             aux%of_r = aux%of_r + charges%externals%density%of_r
         END IF
@@ -381,7 +381,7 @@ CONTAINS
         IF (charges%include_dielectric) THEN
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             aux%of_r = aux%of_r + charges%dielectric%density%of_r
         END IF
@@ -389,7 +389,7 @@ CONTAINS
         IF (charges%include_electrolyte) THEN
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             aux%of_r = aux%of_r + charges%electrolyte%density%of_r
         END IF
@@ -411,7 +411,7 @@ CONTAINS
         !
         CALL aux%destroy()
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_felectrostatic

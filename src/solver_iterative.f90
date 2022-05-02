@@ -91,11 +91,11 @@ CONTAINS
         !
         CLASS(solver_iterative), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_solver_iterative'
+        CHARACTER(LEN=80) :: routine = 'create_solver_iterative'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%direct)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%direct)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -150,11 +150,11 @@ CONTAINS
         !
         CLASS(solver_iterative), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_solver_iterative'
+        CHARACTER(LEN=80) :: routine = 'destroy_solver_iterative'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%direct)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%direct)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !

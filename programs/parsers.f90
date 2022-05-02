@@ -81,7 +81,7 @@ CONTAINS
         CHARACTER(LEN=14) :: current_combo ! current number/charge
         CHARACTER(LEN=14), ALLOCATABLE :: combo(:) ! unique set of number/charge
         !
-        CHARACTER(LEN=80) :: sub_name = 'read_cube'
+        CHARACTER(LEN=80) :: routine = 'read_cube'
         !
         !--------------------------------------------------------------------------------
         ! Open cube file
@@ -89,7 +89,7 @@ CONTAINS
         unit = io%find_free_unit()
         INQUIRE (file=TRIM(cubefile), exist=ext)
         !
-        IF (.NOT. ext) CALL io%error(sub_name, TRIM(cubefile)//' not found', 1)
+        IF (.NOT. ext) CALL io%error(routine, TRIM(cubefile)//' not found', 1)
         !
         OPEN (unit=unit, file=TRIM(cubefile), status='old')
         !
@@ -276,7 +276,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: ios
         !
-        CHARACTER(LEN=80) :: sub_name = 'check_EOF'
+        CHARACTER(LEN=80) :: routine = 'check_EOF'
         !
         !--------------------------------------------------------------------------------
         !

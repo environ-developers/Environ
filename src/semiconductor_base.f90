@@ -103,11 +103,11 @@ CONTAINS
         !
         CLASS(environ_semiconductor_base), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_semiconductor_base'
+        CHARACTER(LEN=80) :: routine = 'create_environ_semiconductor_base'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%flatband_pot_planar_avg)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%flatband_pot_planar_avg)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !

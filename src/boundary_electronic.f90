@@ -115,13 +115,13 @@ CONTAINS
         !
         CLASS(environ_boundary_electronic), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'create_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%electrons)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%electrons)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%ions)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -152,7 +152,7 @@ CONTAINS
         !
         CLASS(environ_boundary_electronic), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'init_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -166,7 +166,7 @@ CONTAINS
         !
         IF (this%mode == 'full') THEN
             !
-            IF (.NOT. PRESENT(ions)) CALL io%error(sub_name, "Missing ions", 1)
+            IF (.NOT. PRESENT(ions)) CALL io%error(routine, "Missing ions", 1)
 
             this%ions => ions
         END IF
@@ -192,7 +192,7 @@ CONTAINS
         !
         LOGICAL :: update_anything
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'update_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -231,7 +231,7 @@ CONTAINS
                 ! Check if the ionic part has been updated
                 !
                 IF (this%update_status == 0) &
-                    CALL io%error(sub_name, &
+                    CALL io%error(routine, &
                                   "Wrong update status, possibly missing ionic update", 1)
                 !
                 this%density%of_r = this%electrons%density%of_r + this%ions%core%of_r
@@ -262,7 +262,7 @@ CONTAINS
             END IF
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+            CALL io%error(routine, "Unrecognized boundary mode", 1)
             !
         END SELECT
         !
@@ -286,7 +286,7 @@ CONTAINS
         !
         CLASS(environ_boundary_electronic), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -328,7 +328,7 @@ CONTAINS
         !
         INTEGER :: i, j
         !
-        CHARACTER(LEN=80) :: sub_name = 'boundary_of_density'
+        CHARACTER(LEN=80) :: routine = 'boundary_of_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -339,7 +339,7 @@ CONTAINS
         END IF
         !
         IF (.NOT. ASSOCIATED(denloc%cell, this%scaled%cell)) &
-            CALL io%error(sub_name, "Inconsistent domains", 1)
+            CALL io%error(routine, "Inconsistent domains", 1)
         !
         rhomax => this%rhomax
         rhomin => this%rhomin
@@ -435,7 +435,7 @@ CONTAINS
                 END IF
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected derivatives method", 1)
+                CALL io%error(routine, "Unexpected derivatives method", 1)
                 !
             END SELECT
             !
@@ -480,7 +480,7 @@ CONTAINS
         INTEGER :: i
         REAL(DP) :: spurious_force
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_dboundary_dions'
+        CHARACTER(LEN=80) :: routine = 'calc_dboundary_dions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -488,15 +488,15 @@ CONTAINS
         ! exit if boundary is only defined on electronic density
         !
         IF (index > this%ions%number) &
-            CALL io%error(sub_name, "Index greater than number of ions", 1)
+            CALL io%error(routine, "Index greater than number of ions", 1)
         !
-        IF (index <= 0) CALL io%error(sub_name, "Index of ion is zero or lower", 1)
+        IF (index <= 0) CALL io%error(routine, "Index of ion is zero or lower", 1)
         !
         IF (this%ions%core_electrons%number == 0) &
-            CALL io%error(sub_name, "Missing details of core electrons", 1)
+            CALL io%error(routine, "Missing details of core electrons", 1)
         !
         IF (.NOT. ASSOCIATED(this%dscaled%cell, partial%cell)) &
-            CALL io%error(sub_name, "Mismatch or unassociated boundary derivative", 1)
+            CALL io%error(routine, "Mismatch or unassociated boundary derivative", 1)
         !
         CALL this%ions%core_electrons%array(index)%gradient(partial, .TRUE.)
         !
@@ -545,7 +545,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'print_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !

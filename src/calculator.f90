@@ -105,7 +105,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_venviron'
+        CHARACTER(LEN=80) :: routine = 'calc_venviron'
         !
         !--------------------------------------------------------------------------------
         !
@@ -297,7 +297,7 @@ CONTAINS
         TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_eenviron'
+        CHARACTER(LEN=80) :: routine = 'calc_eenviron'
         !
         !--------------------------------------------------------------------------------
         !
@@ -375,7 +375,7 @@ CONTAINS
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: environment_cell
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_fenviron'
+        CHARACTER(LEN=80) :: routine = 'calc_fenviron'
         !
         !--------------------------------------------------------------------------------
         !
@@ -525,7 +525,7 @@ CONTAINS
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_dvenviron'
+        CHARACTER(LEN=80) :: routine = 'calc_dvenviron'
         !
         !--------------------------------------------------------------------------------
         !

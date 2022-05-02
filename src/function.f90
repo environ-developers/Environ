@@ -118,11 +118,11 @@ CONTAINS
         !
         CLASS(environ_function), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_function'
+        CHARACTER(LEN=80) :: routine = 'create_environ_function'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%pos)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%pos)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -184,11 +184,11 @@ CONTAINS
         !
         CLASS(environ_function), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_function'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_function'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%pos)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%pos)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -219,11 +219,11 @@ CONTAINS
         INTEGER, OPTIONAL, INTENT(OUT) :: ir(:)
         REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:), r_vals(:, :), dist_vals(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function'
+        CHARACTER(LEN=80) :: routine = 'density_of_function'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE density_of_function
@@ -246,11 +246,11 @@ CONTAINS
         !
         REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
+        CHARACTER(LEN=80) :: routine = 'gradient_of_function'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE gradient_of_function
@@ -271,11 +271,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
-        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function'
+        CHARACTER(LEN=80) :: routine = 'laplacian_of_function'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE laplacian_of_function
@@ -296,11 +296,11 @@ CONTAINS
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
-        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function'
+        CHARACTER(LEN=80) :: routine = 'hessian_of_function'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function
@@ -321,11 +321,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: derivative
         !
-        CHARACTER(LEN=80) :: sub_name = 'derivative_of_function'
+        CHARACTER(LEN=80) :: routine = 'derivative_of_function'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE derivative_of_function
@@ -340,13 +340,13 @@ CONTAINS
         !
         CLASS(environ_function), INTENT(IN) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'quadrapole_corrections'
+        CHARACTER(LEN=80) :: routine = 'quadrapole_corrections'
         !
         !--------------------------------------------------------------------------------
         !
         quadrapole_corrections = 0.D0
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION quadrapole_corrections

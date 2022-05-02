@@ -143,11 +143,11 @@ CONTAINS
         !
         CLASS(electrostatic_solver), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_solver'
+        CHARACTER(LEN=80) :: routine = 'create_solver'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cores)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cores)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -168,7 +168,7 @@ CONTAINS
         !
         CLASS(electrostatic_solver), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_solver_cores'
+        CHARACTER(LEN=80) :: routine = 'set_solver_cores'
         !
         !--------------------------------------------------------------------------------
         !
@@ -189,7 +189,7 @@ CONTAINS
         !
         CLASS(electrostatic_solver), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_solver_cores'
+        CHARACTER(LEN=80) :: routine = 'destroy_solver_cores'
         !
         !--------------------------------------------------------------------------------
         !
@@ -222,11 +222,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_charges'
+        CHARACTER(LEN=80) :: routine = 'poisson_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_charges
@@ -248,11 +248,11 @@ CONTAINS
         !
         TYPE(environ_density) :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_density'
+        CHARACTER(LEN=80) :: routine = 'poisson_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_density
@@ -270,11 +270,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'grad_poisson_charges'
+        CHARACTER(LEN=80) :: routine = 'grad_poisson_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE grad_poisson_charges
@@ -294,11 +294,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'grad_poisson_density'
+        CHARACTER(LEN=80) :: routine = 'grad_poisson_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE grad_poisson_density
@@ -322,11 +322,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_charges'
+        CHARACTER(LEN=80) :: routine = 'generalized_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_charges
@@ -348,11 +348,11 @@ CONTAINS
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
         TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_density'
+        CHARACTER(LEN=80) :: routine = 'generalized_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_density
@@ -373,11 +373,11 @@ CONTAINS
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_charges'
+        CHARACTER(LEN=80) :: routine = 'linearized_pb_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE linearized_pb_charges
@@ -401,11 +401,11 @@ CONTAINS
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_density'
+        CHARACTER(LEN=80) :: routine = 'linearized_pb_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE linearized_pb_density
@@ -424,11 +424,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
         !
-        CHARACTER(LEN=80) :: sub_name = 'pb_nested_charges'
+        CHARACTER(LEN=80) :: routine = 'pb_nested_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_charges
@@ -449,11 +449,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
-        CHARACTER(LEN=80) :: sub_name = 'pb_nested_density'
+        CHARACTER(LEN=80) :: routine = 'pb_nested_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_density

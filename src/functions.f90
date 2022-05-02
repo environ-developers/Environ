@@ -106,11 +106,11 @@ CONTAINS
         !
         CLASS(environ_functions), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_functions'
+        CHARACTER(LEN=80) :: routine = 'create_environ_functions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%array)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%array)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -139,7 +139,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_functions'
+        CHARACTER(LEN=80) :: routine = 'init_environ_functions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -157,7 +157,7 @@ CONTAINS
             ALLOCATE (environ_function_erfc :: this%array(n))
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected function type", 1)
+            CALL io%error(routine, "Unexpected function type", 1)
             !
         END SELECT
         !
@@ -191,11 +191,11 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_functions'
+        CHARACTER(LEN=80) :: routine = 'update_environ_functions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (n /= this%number) CALL io%error(sub_name, "Wrong number of functions", 1)
+        IF (n /= this%number) CALL io%error(routine, "Wrong number of functions", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -218,11 +218,11 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_functions'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_functions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALLOCATED(this%array)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%array)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -407,7 +407,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, local_unit, i
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_functions'
+        CHARACTER(LEN=80) :: routine = 'print_environ_functions'
         !
         !--------------------------------------------------------------------------------
         !

@@ -107,7 +107,7 @@ CONTAINS
         !
         CLASS(solver_fixedpoint), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_solver_fixedpoint'
+        CHARACTER(LEN=80) :: routine = 'create_solver_fixedpoint'
         !
         !--------------------------------------------------------------------------------
         !
@@ -169,11 +169,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_charges'
+        CHARACTER(LEN=80) :: routine = 'generalized_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         v%of_r = 0.D0
         !
@@ -184,13 +184,13 @@ CONTAINS
             !
         ELSE
             !
-            CALL io%error(sub_name, "Option not yet implemented", 1)
+            CALL io%error(routine, "Option not yet implemented", 1)
             !
             ! CALL generalized_iterative_velect(charges, dielectric, v) #TODO future-work
             !
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_charges
@@ -212,11 +212,11 @@ CONTAINS
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
         TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_density'
+        CHARACTER(LEN=80) :: routine = 'generalized_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         v%of_r = 0.D0
         !
@@ -227,13 +227,13 @@ CONTAINS
             !
         ELSE
             !
-            CALL io%error(sub_name, "Option not yet implemented", 1)
+            CALL io%error(routine, "Option not yet implemented", 1)
             !
             ! CALL generalized_iterative_velect(charges, dielectric, v) #TODO future-work
             !
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_density
@@ -252,18 +252,18 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
         !
-        CHARACTER(LEN=80) :: sub_name = 'pb_nested_charges'
+        CHARACTER(LEN=80) :: routine = 'pb_nested_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         IF (this%auxiliary == 'ioncc') THEN
             !
             IF (ASSOCIATED(charges%dielectric)) THEN
                 !
                 IF (.NOT. PRESENT(inner)) &
-                    CALL io%error(sub_name, "Missing inner solver", 1)
+                    CALL io%error(routine, "Missing inner solver", 1)
                 !
                 CALL this%pb_fixedpoint(v, charges%density, charges%electrolyte, &
                                         charges%dielectric, inner=inner)
@@ -273,10 +273,10 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL io%error(sub_name, "Option not available", 1)
+            CALL io%error(routine, "Option not available", 1)
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_charges
@@ -297,18 +297,18 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
-        CHARACTER(LEN=80) :: sub_name = 'pb_nested_density'
+        CHARACTER(LEN=80) :: routine = 'pb_nested_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         IF (this%auxiliary == 'ioncc') THEN
             !
             IF (PRESENT(dielectric)) THEN
                 !
                 IF (.NOT. PRESENT(inner)) &
-                    CALL io%error(sub_name, "Missing inner setup", 1)
+                    CALL io%error(routine, "Missing inner setup", 1)
                 !
                 CALL this%pb_fixedpoint(v, charges, electrolyte, dielectric, inner=inner)
                 !
@@ -317,10 +317,10 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL io%error(sub_name, "Option not available", 1)
+            CALL io%error(routine, "Option not available", 1)
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_density
@@ -354,7 +354,7 @@ CONTAINS
         TYPE(environ_density) :: residual
         TYPE(environ_gradient) :: gradpoisson
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_fixedpoint'
+        CHARACTER(LEN=80) :: routine = 'generalized_fixedpoint'
         !
         !--------------------------------------------------------------------------------
         !
@@ -363,10 +363,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+            CALL io%error(routine, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
+            CALL io%error(routine, "Inconsistent cells for charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -529,7 +529,7 @@ CONTAINS
         !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
-        CHARACTER(LEN=80) :: sub_name = 'pb_fixedpoint'
+        CHARACTER(LEN=80) :: routine = 'pb_fixedpoint'
         !
         !--------------------------------------------------------------------------------
         !
@@ -538,17 +538,17 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+            CALL io%error(routine, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
+            CALL io%error(routine, "Inconsistent cells for charges and potential", 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+                CALL io%error(routine, "Inconsistent cells of input fields", 1)
             !
-            IF (.NOT. PRESENT(inner)) CALL io%error(sub_name, "Missing inner solver", 1)
+            IF (.NOT. PRESENT(inner)) CALL io%error(routine, "Missing inner solver", 1)
             !
         END IF
         !
@@ -652,7 +652,7 @@ CONTAINS
                                     factor * (1.D0 - gam%of_r * cfactor%of_r)
                                 !
                             CASE DEFAULT
-                                CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                                CALL io%error(routine, "Unexpected electrolyte entropy", 1)
                                 !
                             END SELECT
                             !

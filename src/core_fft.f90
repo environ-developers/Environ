@@ -120,11 +120,11 @@ CONTAINS
         !
         CLASS(core_fft), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_core_fft'
+        CHARACTER(LEN=80) :: routine = 'create_core_fft'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -203,13 +203,13 @@ CONTAINS
         !
         CLASS(core_fft), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_core_fft'
+        CHARACTER(LEN=80) :: routine = 'destroy_core_fft'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell)) RETURN
         !
-        IF (.NOT. ALLOCATED(this%correction)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%correction)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -941,12 +941,12 @@ CONTAINS
         !
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
-        CHARACTER(LEN=80) :: sub_name = 'force_fft'
+        CHARACTER(LEN=80) :: routine = 'force_fft'
         !
         !--------------------------------------------------------------------------------
         !
         IF (nat /= ions%number) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           'Mismatch in numbers of atoms passed in input and stored', 1)
         !
         !--------------------------------------------------------------------------------
@@ -1041,11 +1041,11 @@ CONTAINS
         !
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
-        CHARACTER(LEN=80) :: sub_name = 'grad_v_h_of_rho_r'
+        CHARACTER(LEN=80) :: routine = 'grad_v_h_of_rho_r'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nnr /= this%cell%nnr) CALL io%error(sub_name, "Mismatch in FFT domain", 1)
+        IF (nnr /= this%cell%nnr) CALL io%error(routine, "Mismatch in FFT domain", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1120,11 +1120,11 @@ CONTAINS
         !
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
-        CHARACTER(LEN=80) :: sub_name = 'hess_v_h_of_rho_r'
+        CHARACTER(LEN=80) :: routine = 'hess_v_h_of_rho_r'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nnr /= this%cell%nnr) CALL io%error(sub_name, "Mismatch in FFT domain", 1)
+        IF (nnr /= this%cell%nnr) CALL io%error(routine, "Mismatch in FFT domain", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1199,11 +1199,11 @@ CONTAINS
         !
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, auxe
         !
-        CHARACTER(LEN=80) :: sub_name = 'field_of_grad_rho'
+        CHARACTER(LEN=80) :: routine = 'field_of_grad_rho'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nnr /= this%cell%nnr) CALL io%error(sub_name, "Mismatch in FFT domain", 1)
+        IF (nnr /= this%cell%nnr) CALL io%error(routine, "Mismatch in FFT domain", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1279,7 +1279,7 @@ CONTAINS
         REAL(DP) :: r(3), rws, upperbound, ecutrho
         COMPLEX(DP), ALLOCATABLE :: aux(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_mt_correction'
+        CHARACTER(LEN=80) :: routine = 'update_mt_correction'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1303,7 +1303,7 @@ CONTAINS
             DO WHILE (upperbound > 1.E-7_DP)
                 alpha = alpha - 0.1_DP
                 !
-                IF (alpha <= 0._DP) CALL io%error(sub_name, "Optimal alpha not found", 1)
+                IF (alpha <= 0._DP) CALL io%error(routine, "Optimal alpha not found", 1)
                 !
                 upperbound = e2 * SQRT(2.D0 * alpha / tpi) * &
                              environ_erfc(SQRT(ecutrho / 4.D0 / alpha))

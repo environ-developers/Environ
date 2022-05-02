@@ -165,11 +165,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_gradient'
+        CHARACTER(LEN=80) :: routine = 'calc_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_gradient
@@ -187,11 +187,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: div
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_divergence'
+        CHARACTER(LEN=80) :: routine = 'calc_divergence'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_divergence
@@ -209,11 +209,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: lapla
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_laplacian'
+        CHARACTER(LEN=80) :: routine = 'calc_laplacian'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_laplacian
@@ -232,11 +232,11 @@ CONTAINS
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_hessian'
+        CHARACTER(LEN=80) :: routine = 'calc_hessian'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_hessian
@@ -255,11 +255,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: f_out
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_density'
+        CHARACTER(LEN=80) :: routine = 'calc_convolution_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_convolution_density
@@ -278,11 +278,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_out
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_gradient'
+        CHARACTER(LEN=80) :: routine = 'calc_convolution_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_convolution_gradient
@@ -301,11 +301,11 @@ CONTAINS
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hess_out
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_hessian'
+        CHARACTER(LEN=80) :: routine = 'calc_convolution_hessian'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_convolution_hessian
@@ -329,11 +329,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_poisson'
+        CHARACTER(LEN=80) :: routine = 'calc_poisson'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_poisson
@@ -351,11 +351,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_grad_poisson'
+        CHARACTER(LEN=80) :: routine = 'calc_grad_poisson'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_grad_poisson
@@ -375,11 +375,11 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_force'
+        CHARACTER(LEN=80) :: routine = 'calc_force'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_force
@@ -398,13 +398,13 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: grad_v(3, nnr)
         !
-        CHARACTER(LEN=80) :: sub_name = 'grad_v_h_of_rho_r'
+        CHARACTER(LEN=80) :: routine = 'grad_v_h_of_rho_r'
         !
         !--------------------------------------------------------------------------------
         !
         grad_v = 0.D0
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE grad_v_h_of_rho_r
@@ -423,13 +423,13 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: hess_v(3, 3, nnr)
         !
-        CHARACTER(LEN=80) :: sub_name = 'hess_v_h_of_rho_r'
+        CHARACTER(LEN=80) :: routine = 'hess_v_h_of_rho_r'
         !
         !--------------------------------------------------------------------------------
         !
         hess_v = 0.D0
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hess_v_h_of_rho_r
@@ -448,13 +448,13 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: field(nnr)
         !
-        CHARACTER(LEN=80) :: sub_name = 'field_of_grad_rho'
+        CHARACTER(LEN=80) :: routine = 'field_of_grad_rho'
         !
         !--------------------------------------------------------------------------------
         !
         field = 0.D0
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE field_of_grad_rho
@@ -478,11 +478,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_vperiodic'
+        CHARACTER(LEN=80) :: routine = 'calc_vperiodic'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_vperiodic
@@ -500,11 +500,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_grad_vperiodic'
+        CHARACTER(LEN=80) :: routine = 'calc_grad_vperiodic'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_grad_vperiodic
@@ -524,11 +524,11 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_fperiodic'
+        CHARACTER(LEN=80) :: routine = 'calc_fperiodic'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_fperiodic
@@ -547,11 +547,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_vgcs'
+        CHARACTER(LEN=80) :: routine = 'calc_vgcs'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_vgcs
@@ -570,11 +570,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_grad_vgcs'
+        CHARACTER(LEN=80) :: routine = 'calc_grad_vgcs'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_grad_vgcs
@@ -593,11 +593,11 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_vms'
+        CHARACTER(LEN=80) :: routine = 'calc_vms'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_vms
@@ -616,11 +616,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_grad_vms'
+        CHARACTER(LEN=80) :: routine = 'calc_grad_vms'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_grad_vms
@@ -640,11 +640,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_semiconductor_base), INTENT(INOUT) :: semiconductor
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_vms_gcs'
+        CHARACTER(LEN=80) :: routine = 'calc_vms_gcs'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_vms_gcs
@@ -664,11 +664,11 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_grad_vms_gcs'
+        CHARACTER(LEN=80) :: routine = 'calc_grad_vms_gcs'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL io%error(sub_name, "Not implemented", 1)
+        CALL io%error(routine, "Not implemented", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_grad_vms_gcs

@@ -161,17 +161,17 @@ CONTAINS
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_cell'
+        CHARACTER(LEN=80) :: routine = 'create_environ_cell'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%g)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%g)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%gg)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%gg)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%coords)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%coords)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%ir)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%ir)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -223,7 +223,7 @@ CONTAINS
         LOGICAL :: physical
         REAL(DP) :: coords(3)
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_cell'
+        CHARACTER(LEN=80) :: routine = 'init_environ_cell'
         !
         !--------------------------------------------------------------------------------
         !
@@ -316,7 +316,7 @@ CONTAINS
         INTEGER :: i, j, k, l
         REAL(DP) :: dx, dy, dz
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_cell'
+        CHARACTER(LEN=80) :: routine = 'update_environ_cell'
         !
         !--------------------------------------------------------------------------------
         !
@@ -649,7 +649,7 @@ CONTAINS
         INTEGER :: idx, narea
         LOGICAL :: physical
         !
-        CHARACTER(LEN=80) :: sub_name = 'planar_average'
+        CHARACTER(LEN=80) :: routine = 'planar_average'
         !
         !--------------------------------------------------------------------------------
         !
@@ -679,7 +679,7 @@ CONTAINS
                 idx = k
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected axis value", 1)
+                CALL io%error(routine, "Unexpected axis value", 1)
                 !
             END SELECT
             !
@@ -800,7 +800,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'displacement'
+        CHARACTER(LEN=80) :: routine = 'displacement'
         !
         !--------------------------------------------------------------------------------
         !
@@ -820,7 +820,7 @@ CONTAINS
             END DO
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected system dimensions", 1)
+            CALL io%error(routine, "Unexpected system dimensions", 1)
             !
         END SELECT
         !
@@ -997,7 +997,7 @@ CONTAINS
         LOGICAL :: global_sort, is_local
         INTEGER, ALLOCATABLE :: ngmpe(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'env_ggen'
+        CHARACTER(LEN=80) :: routine = 'env_ggen'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1107,7 +1107,7 @@ CONTAINS
                         ngm = ngm + 1
                         !
                         IF (ngm > ngm_max) &
-                            CALL io%error(sub_name, "Too many g-vectors", ngm)
+                            CALL io%error(routine, "Too many g-vectors", ngm)
                         !
                         IF (tt(k - kstart + 1) > eps8) THEN
                             g2sort_g(ngm) = tt(k - kstart + 1)
@@ -1132,7 +1132,7 @@ CONTAINS
         END DO iloop
         !
         IF (ngm /= ngm_max) &
-            CALL io%error(sub_name, "G-vectors missing!", ABS(ngm - ngm_max))
+            CALL io%error(routine, "G-vectors missing!", ABS(ngm - ngm_max))
         !
         igsrt(1) = 0
         !
@@ -1196,7 +1196,7 @@ CONTAINS
         DEALLOCATE (igsrt, g2l)
         !
         IF (ngm /= ngm_save) &
-            CALL io%error(sub_name, "G-vectors (ngm) missing!", ABS(ngm - ngm_save))
+            CALL io%error(routine, "G-vectors (ngm) missing!", ABS(ngm - ngm_save))
         !
         !--------------------------------------------------------------------------------
         ! Determine first nonzero g vector
@@ -1421,7 +1421,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_cell'
+        CHARACTER(LEN=80) :: routine = 'print_environ_cell'
         !
         !--------------------------------------------------------------------------------
         !

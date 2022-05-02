@@ -173,7 +173,7 @@ CONTAINS
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_base'
+        CHARACTER(LEN=80) :: routine = 'create_environ_base'
         !
         !--------------------------------------------------------------------------------
         !
@@ -272,7 +272,7 @@ CONTAINS
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'environ_update_potential'
+        CHARACTER(LEN=80) :: routine = 'environ_update_potential'
         !
         !--------------------------------------------------------------------------------
         !
@@ -281,7 +281,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(this%vzero%cell)) RETURN
         !
         IF (this%vzero%cell%nnr /= nnr) &
-            CALL io%error(sub_name, "Inconsistent size in input potential", 1)
+            CALL io%error(routine, "Inconsistent size in input potential", 1)
         !
         this%vzero%of_r = vltot
         !
@@ -302,7 +302,7 @@ CONTAINS
         !
         TYPE(environ_setup), POINTER :: setup
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_cell_dependent_quantities'
+        CHARACTER(LEN=80) :: routine = 'update_cell_dependent_quantities'
         !
         !--------------------------------------------------------------------------------
         !
@@ -634,12 +634,12 @@ CONTAINS
         !
         REAL(DP) :: vzero(nnr)
         !
-        CHARACTER(LEN=80) :: sub_name = 'get_vzero'
+        CHARACTER(LEN=80) :: routine = 'get_vzero'
         !
         !--------------------------------------------------------------------------------
         !
         IF (nnr /= this%vzero%cell%nnr) &
-            CALL io%error(sub_name, "Mismatch in grid size", 1)
+            CALL io%error(routine, "Mismatch in grid size", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -659,12 +659,12 @@ CONTAINS
         !
         REAL(DP) :: dvtot(nnr)
         !
-        CHARACTER(LEN=80) :: sub_name = 'get_dvtot'
+        CHARACTER(LEN=80) :: routine = 'get_dvtot'
         !
         !--------------------------------------------------------------------------------
         !
         IF (nnr /= this%dvtot%cell%nnr) &
-            CALL io%error(sub_name, "Mismatch in grid size", 1)
+            CALL io%error(routine, "Mismatch in grid size", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -692,7 +692,7 @@ CONTAINS
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
-        CHARACTER(LEN=80) :: sub_name = 'environ_init_potential'
+        CHARACTER(LEN=80) :: routine = 'environ_init_potential'
         !
         !--------------------------------------------------------------------------------
         !
@@ -753,7 +753,7 @@ CONTAINS
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
         !
-        CHARACTER(LEN=80) :: sub_name = 'environ_init_physical'
+        CHARACTER(LEN=80) :: routine = 'environ_init_physical'
         !
         !--------------------------------------------------------------------------------
         !
@@ -851,7 +851,7 @@ CONTAINS
                 ALLOCATED(extcharge_charge) .OR. &
                 ALLOCATED(extcharge_spread) .OR. &
                 ALLOCATED(extcharge_pos)) &
-                CALL io%error(sub_name, "ms-gcs does not support user-defined external charges", 1)
+                CALL io%error(routine, "ms-gcs does not support user-defined external charges", 1)
             !
             ALLOCATE (extcharge_dim(env_external_charges))
             ALLOCATE (extcharge_axis(env_external_charges))
@@ -904,7 +904,7 @@ CONTAINS
                 ALLOCATE (environ_boundary_system :: this%solvent)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+                CALL io%error(routine, "Unrecognized boundary mode", 1)
                 !
             END SELECT
             !
@@ -945,7 +945,7 @@ CONTAINS
                                   this%environment_system)
                 !
             CLASS DEFAULT
-                CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+                CALL io%error(routine, "Unrecognized boundary mode", 1)
                 !
             END SELECT
             !
@@ -1059,7 +1059,7 @@ CONTAINS
         !
         LOGICAL :: print_de
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_energies'
+        CHARACTER(LEN=80) :: routine = 'print_environ_energies'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1103,7 +1103,7 @@ CONTAINS
             IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte * 0.5D0
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected calling program", 1)
+            CALL io%error(routine, "Unexpected calling program", 1)
             !
         END SELECT
         !

@@ -104,7 +104,7 @@ CONTAINS
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_semiconductor'
+        CHARACTER(LEN=80) :: routine = 'create_environ_semiconductor'
         !
         !--------------------------------------------------------------------------------
         !
@@ -183,7 +183,7 @@ CONTAINS
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_semiconductor'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_semiconductor'
         !
         !--------------------------------------------------------------------------------
         !
@@ -224,7 +224,7 @@ CONTAINS
         !
         TYPE(environ_semiconductor_base), POINTER :: base
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_semiconductor'
+        CHARACTER(LEN=80) :: routine = 'print_environ_semiconductor'
         !
         !--------------------------------------------------------------------------------
         !

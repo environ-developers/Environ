@@ -171,7 +171,7 @@ CONTAINS
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_iontype'
+        CHARACTER(LEN=80) :: routine = 'create_environ_iontype'
         !
         !--------------------------------------------------------------------------------
         !
@@ -205,7 +205,7 @@ CONTAINS
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_iontype'
+        CHARACTER(LEN=80) :: routine = 'init_environ_iontype'
         !
         !--------------------------------------------------------------------------------
         !
@@ -231,14 +231,14 @@ CONTAINS
         ! If cavity is defined exclusively on ions, check that radius is not zero
         !
         IF (.NOT. lsoftcavity .AND. (this%solvationrad == 0.D0)) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           'Missing solvation radius for one of the atom types', 1)
         !
         !--------------------------------------------------------------------------------
         ! If using smeared ions, check that spread is not zero
         !
         IF (lsmearedions .AND. (this%atomicspread == 0.D0)) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           'Missing atomic spread for one of the atom types', 1)
         !
         !--------------------------------------------------------------------------------
@@ -262,7 +262,7 @@ CONTAINS
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_iontype_id'
+        CHARACTER(LEN=80) :: routine = 'set_iontype_id'
         !
         !--------------------------------------------------------------------------------
         !
@@ -302,7 +302,7 @@ CONTAINS
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_iontype_defaults'
+        CHARACTER(LEN=80) :: routine = 'set_iontype_defaults'
         !
         !--------------------------------------------------------------------------------
         !
@@ -326,7 +326,7 @@ CONTAINS
             this%solvationrad = MUFF_diameters(this%atmnum) * 0.5_DP
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unknown radius_mode", 1)
+            CALL io%error(routine, "Unknown radius_mode", 1)
             !
         END SELECT
         !
@@ -348,7 +348,7 @@ CONTAINS
         INTEGER :: i, get_atmnum
         CHARACTER(LEN=2) :: lowcase_label
         !
-        CHARACTER(LEN=80) :: fun_name = 'get_atmnum'
+        CHARACTER(LEN=80) :: routine = 'get_atmnum'
         !
         !--------------------------------------------------------------------------------
         !
@@ -368,7 +368,7 @@ CONTAINS
         END DO
         !
         IF (get_atmnum == 0) &
-            CALL io%error(fun_name, &
+            CALL io%error(routine, &
                           'Cannot assign the atom type associated with input label', 1)
         !
         !--------------------------------------------------------------------------------
@@ -384,14 +384,14 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: number
         !
-        CHARACTER(LEN=80) :: sub_name = 'get_element_by_number'
+        CHARACTER(LEN=80) :: routine = 'get_element_by_number'
         !
         !--------------------------------------------------------------------------------
         !
         IF (number < 1 .OR. number > SIZE(elements)) THEN
             WRITE (io%unit, '(/, 5X, "Atomic number = ", I10)') number
             !
-            CALL io%error(sub_name, "Atomic number out of bounds", 1)
+            CALL io%error(routine, "Atomic number out of bounds", 1)
             !
         END IF
         !
@@ -412,7 +412,7 @@ CONTAINS
         !
         INTEGER :: i, index
         !
-        CHARACTER(LEN=80) :: sub_name = 'get_element_by_weight'
+        CHARACTER(LEN=80) :: routine = 'get_element_by_weight'
         !
         !--------------------------------------------------------------------------------
         !
@@ -432,7 +432,7 @@ CONTAINS
         IF (index < 0) THEN
             WRITE (io%unit, '(/, 5X, "Atomic weight = ", F9.5)') weight
             !
-            CALL io%error(sub_name, "Wrong atomic weight", 1)
+            CALL io%error(routine, "Wrong atomic weight", 1)
             !
         END IF
         !
@@ -469,7 +469,7 @@ CONTAINS
         INTEGER :: i
         INTEGER :: base_verbose, local_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_iontypes'
+        CHARACTER(LEN=80) :: routine = 'print_environ_iontypes'
         !
         !--------------------------------------------------------------------------------
         !

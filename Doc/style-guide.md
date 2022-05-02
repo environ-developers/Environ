@@ -311,7 +311,7 @@ sum_ = 1 + var1 + &
 # Error/info/warning messages
 
 - use `io%error` to raise an error
-  - requires sub_name and error code
+  - requires routine and error code
   - sentence-cased message
 - use `io%write` for indented messages
 - use `io%warning` for non-indented, non-terminating warning messages
@@ -379,7 +379,7 @@ ASSOCIATE (item1 => SUM(some_items))
 - use "" for messages
 
 ```
-CALL io%error(sub_name, "blah blah blah", 1)
+CALL io%error(routine, "blah blah blah", 1)
 ```
 
 - use '' for parameters

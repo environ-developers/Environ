@@ -145,15 +145,15 @@ CONTAINS
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_ions'
+        CHARACTER(LEN=80) :: routine = 'create_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%tau)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%tau)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%ityp)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%ityp)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%iontype)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%iontype)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -210,7 +210,7 @@ CONTAINS
         !
         CLASS(*), POINTER :: id
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_ions'
+        CHARACTER(LEN=80) :: routine = 'init_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -331,11 +331,11 @@ CONTAINS
         REAL(DP) :: pos(3)
         REAL(DP) :: tot_weight
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_ions'
+        CHARACTER(LEN=80) :: routine = 'update_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%number /= nat) CALL io%error(sub_name, "Mismatch in number of atoms", 1)
+        IF (this%number /= nat) CALL io%error(routine, "Mismatch in number of atoms", 1)
         !
         this%tau = tau ! update positions
         !
@@ -421,15 +421,15 @@ CONTAINS
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_ions'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALLOCATED(this%ityp)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%ityp)) CALL io%destroy_error(routine)
         !
-        IF (.NOT. ALLOCATED(this%iontype)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%iontype)) CALL io%destroy_error(routine)
         !
-        IF (.NOT. ASSOCIATED(this%tau)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%tau)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -477,7 +477,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'convert_iontype_to_ion_array_char'
+        CHARACTER(LEN=80) :: routine = 'convert_iontype_to_ion_array_char'
         !
         !--------------------------------------------------------------------------------
         !
@@ -492,7 +492,7 @@ CONTAINS
             END DO
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected keyword", 1)
+            CALL io%error(routine, "Unexpected keyword", 1)
             !
         END SELECT
         !
@@ -514,7 +514,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'convert_iontype_to_ion_array_integer'
+        CHARACTER(LEN=80) :: routine = 'convert_iontype_to_ion_array_integer'
         !
         !--------------------------------------------------------------------------------
         !
@@ -535,7 +535,7 @@ CONTAINS
             END DO
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected keyword", 1)
+            CALL io%error(routine, "Unexpected keyword", 1)
             !
         END SELECT
         !
@@ -557,7 +557,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'convert_iontype_to_ion_array_real'
+        CHARACTER(LEN=80) :: routine = 'convert_iontype_to_ion_array_real'
         !
         !--------------------------------------------------------------------------------
         !
@@ -590,7 +590,7 @@ CONTAINS
             END DO
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected keyword", 1)
+            CALL io%error(routine, "Unexpected keyword", 1)
             !
         END SELECT
         !
@@ -623,7 +623,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit, i
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_ions'
+        CHARACTER(LEN=80) :: routine = 'print_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !

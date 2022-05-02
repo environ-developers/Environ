@@ -95,11 +95,11 @@ CONTAINS
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_system'
+        CHARACTER(LEN=80) :: routine = 'create_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%ions)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -128,7 +128,7 @@ CONTAINS
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_system'
+        CHARACTER(LEN=80) :: routine = 'init_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
@@ -162,7 +162,7 @@ CONTAINS
         REAL(DP) :: charge, dist
         REAL(DP) :: tot_weight
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_system'
+        CHARACTER(LEN=80) :: routine = 'update_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
@@ -235,11 +235,11 @@ CONTAINS
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_system'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%ions)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%ions)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -272,7 +272,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_system'
+        CHARACTER(LEN=80) :: routine = 'print_environ_system'
         !
         !--------------------------------------------------------------------------------
         !

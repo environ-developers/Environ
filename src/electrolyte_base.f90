@@ -98,11 +98,11 @@ CONTAINS
         !
         CLASS(environ_electrolyte_base), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrolyte_base'
+        CHARACTER(LEN=80) :: routine = 'create_environ_electrolyte_base'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%ioncctype)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%ioncctype)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -141,7 +141,7 @@ CONTAINS
         INTEGER :: i
         REAL(DP) :: neutral, sumcbulk, sum_cz2, arg, KT
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte_base'
+        CHARACTER(LEN=80) :: routine = 'init_environ_electrolyte_base'
         !
         !--------------------------------------------------------------------------------
         !
@@ -172,7 +172,7 @@ CONTAINS
         END DO
         !
         IF (neutral > 1.D-8) &
-            CALL io%error(sub_name, "Bulk electrolyte is not neutral", 1)
+            CALL io%error(routine, "Bulk electrolyte is not neutral", 1)
         !
         kT = K_BOLTZMANN_RY * temperature
         !
@@ -192,7 +192,7 @@ CONTAINS
         sumcbulk = SUM(this%ioncctype%cbulk)
         !
         IF (this%cionmax > 0.D0 .AND. this%cionmax <= sumcbulk) &
-            CALL io%error(sub_name, "cionmax should be larger than the sum of cbulks", 1)
+            CALL io%error(routine, "cionmax should be larger than the sum of cbulks", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrolyte_base
@@ -209,11 +209,11 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_electrolyte_base'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_electrolyte_base'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALLOCATED(this%ioncctype)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%ioncctype)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !

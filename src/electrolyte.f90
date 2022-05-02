@@ -127,7 +127,7 @@ CONTAINS
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrolyte'
+        CHARACTER(LEN=80) :: routine = 'create_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
         !
@@ -174,7 +174,7 @@ CONTAINS
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte'
+        CHARACTER(LEN=80) :: routine = 'init_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
         !
@@ -198,7 +198,7 @@ CONTAINS
             ALLOCATE (environ_boundary_system :: this%boundary)
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+            CALL io%error(routine, "Unrecognized boundary mode", 1)
             !
         END SELECT
         !
@@ -232,7 +232,7 @@ CONTAINS
             CALL boundary%init(distance, spread, system)
             !
         CLASS DEFAULT
-            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+            CALL io%error(routine, "Unrecognized boundary mode", 1)
             !
         END SELECT
         !
@@ -262,11 +262,11 @@ CONTAINS
         !
         INTEGER :: ityp
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_electrolyte'
+        CHARACTER(LEN=80) :: routine = 'update_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         ! Check if the boundary is under update (status = 1) or
@@ -289,7 +289,7 @@ CONTAINS
             !
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
         ! Output current state
@@ -309,7 +309,7 @@ CONTAINS
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_electrolyte'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
         !
@@ -344,7 +344,7 @@ CONTAINS
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'electrolyte_of_boundary'
+        CHARACTER(LEN=80) :: routine = 'electrolyte_of_boundary'
         !
         !--------------------------------------------------------------------------------
         ! Compute exclusion function gamma(r) and dgamma/ds(r)
@@ -373,7 +373,7 @@ CONTAINS
         !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_electrolyte_density'
+        CHARACTER(LEN=80) :: routine = 'calc_electrolyte_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -451,7 +451,7 @@ CONTAINS
                                                    fact * (1.D0 - gamma * cfactor)
                                 !
                             CASE DEFAULT
-                                CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                                CALL io%error(routine, "Unexpected electrolyte entropy", 1)
                                 !
                             END SELECT
                             !
@@ -528,7 +528,7 @@ CONTAINS
         !
         TYPE(environ_density) :: arg, f
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_eelectrolyte'
+        CHARACTER(LEN=80) :: routine = 'calc_eelectrolyte'
         !
         !--------------------------------------------------------------------------------
         !
@@ -569,7 +569,7 @@ CONTAINS
                         energy = -kT * cionmax * integral
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                        CALL io%error(routine, "Unexpected electrolyte entropy", 1)
                         !
                     END SELECT
                     !
@@ -610,7 +610,7 @@ CONTAINS
                         energy = -kT * cionmax * integral
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                        CALL io%error(routine, "Unexpected electrolyte entropy", 1)
                         !
                     END SELECT
                     !
@@ -643,7 +643,7 @@ CONTAINS
         !
         TYPE(environ_density) :: arg
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_deelectrolyte_dboundary'
+        CHARACTER(LEN=80) :: routine = 'calc_deelectrolyte_dboundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -677,7 +677,7 @@ CONTAINS
                                             (1.D0 - sumcbulk / cionmax * (1.D0 - gamma))
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                        CALL io%error(routine, "Unexpected electrolyte entropy", 1)
                         !
                     END SELECT
                     !
@@ -720,7 +720,7 @@ CONTAINS
                             (1.D0 - (sumcbulk - arg%of_r * gamma) / cionmax)
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                        CALL io%error(routine, "Unexpected electrolyte entropy", 1)
                         !
                     END SELECT
                     !
@@ -764,7 +764,7 @@ CONTAINS
         !
         TYPE(environ_electrolyte_base), POINTER :: base
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_electrolyte'
+        CHARACTER(LEN=80) :: routine = 'print_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
         !

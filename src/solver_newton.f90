@@ -97,7 +97,7 @@ CONTAINS
         !
         CLASS(solver_newton), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_solver_newton'
+        CHARACTER(LEN=80) :: routine = 'create_solver_newton'
         !
         !--------------------------------------------------------------------------------
         !
@@ -151,11 +151,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
         !
-        CHARACTER(LEN=80) :: sub_name = 'pb_nested_charges'
+        CHARACTER(LEN=80) :: routine = 'pb_nested_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         IF (ASSOCIATED(charges%dielectric)) THEN
             !
@@ -166,7 +166,7 @@ CONTAINS
             CALL this%pb_newton(v, charges%density, charges%electrolyte, inner=inner)
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_charges
@@ -187,15 +187,15 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
-        CHARACTER(LEN=80) :: sub_name = 'pb_nested_density'
+        CHARACTER(LEN=80) :: routine = 'pb_nested_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         CALL this%pb_newton(v, charges, electrolyte, dielectric, inner=inner)
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_density
@@ -230,7 +230,7 @@ CONTAINS
         !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
-        CHARACTER(LEN=80) :: sub_name = 'pb_newton'
+        CHARACTER(LEN=80) :: routine = 'pb_newton'
         !
         !--------------------------------------------------------------------------------
         !
@@ -239,15 +239,15 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+            CALL io%error(routine, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
+            CALL io%error(routine, "Inconsistent cells for charges and potential", 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+                CALL io%error(routine, "Inconsistent cells of input fields", 1)
             !
         END IF
         !
@@ -400,7 +400,7 @@ CONTAINS
                                 END DO
                                 !
                             CASE DEFAULT
-                                CALL io%error(sub_name, "Unexpected electrolyte entropy", 1)
+                                CALL io%error(routine, "Unexpected electrolyte entropy", 1)
                                 !
                             END SELECT
                             !

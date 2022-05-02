@@ -133,23 +133,23 @@ CONTAINS
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_charges'
+        CHARACTER(LEN=80) :: routine = 'create_environ_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%ions)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%electrons)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%electrons)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%externals)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%externals)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%dielectric)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%dielectric)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%electrolyte)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%electrolyte)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%semiconductor)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%semiconductor)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%additional_charges)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%additional_charges)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -207,7 +207,7 @@ CONTAINS
         !
         REAL(DP) :: local_charge
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_charges'
+        CHARACTER(LEN=80) :: routine = 'update_environ_charges'
         !
         !--------------------------------------------------------------------------------
         !
@@ -218,7 +218,7 @@ CONTAINS
         IF (this%include_electrons) THEN
             !
             IF (.NOT. ASSOCIATED(this%electrons)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             this%number = this%number + this%electrons%number
             this%charge = this%charge + this%electrons%charge
@@ -228,7 +228,7 @@ CONTAINS
         IF (this%include_ions) THEN
             !
             IF (.NOT. ASSOCIATED(this%ions)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             this%number = this%number + this%ions%number
             this%charge = this%charge + this%ions%charge
@@ -238,7 +238,7 @@ CONTAINS
         IF (this%include_externals) THEN
             !
             IF (.NOT. ASSOCIATED(this%externals)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             this%number = this%number + this%externals%number
             this%charge = this%charge + this%externals%charge
@@ -248,7 +248,7 @@ CONTAINS
         IF (this%include_additional_charges) THEN
             !
             IF (.NOT. ASSOCIATED(this%additional_charges)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             this%charge = this%charge + this%additional_charges%charge
             this%density%of_r = this%density%of_r + this%additional_charges%of_r
@@ -257,7 +257,7 @@ CONTAINS
         local_charge = this%density%integrate()
         !
         IF (ABS(local_charge - this%charge) > 1.D-5) &
-            CALL io%error(sub_name, "Inconsistent integral of total charge", 1)
+            CALL io%error(routine, "Inconsistent integral of total charge", 1)
         !
         !--------------------------------------------------------------------------------
         ! Output current state
@@ -287,7 +287,7 @@ CONTAINS
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'add_environ_charges'
+        CHARACTER(LEN=80) :: routine = 'add_environ_charges'
         !
         !--------------------------------------------------------------------------------
         !
@@ -339,7 +339,7 @@ CONTAINS
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_charges'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_charges'
         !
         !--------------------------------------------------------------------------------
         !
@@ -381,7 +381,7 @@ CONTAINS
         !
         TYPE(environ_density) :: tot_charge_density
         !
-        CHARACTER(LEN=80) :: sub_name = 'charges_of_potential'
+        CHARACTER(LEN=80) :: routine = 'charges_of_potential'
         !
         !--------------------------------------------------------------------------------
         !
@@ -392,7 +392,7 @@ CONTAINS
         IF (this%include_electrolyte) THEN
             !
             IF (.NOT. ASSOCIATED(this%electrolyte)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             CALL this%electrolyte%of_potential(potential)
             !
@@ -408,7 +408,7 @@ CONTAINS
         IF (this%include_dielectric) THEN
             !
             IF (.NOT. ASSOCIATED(this%dielectric)) &
-                CALL io%error(sub_name, "Missing expected charge component", 1)
+                CALL io%error(routine, "Missing expected charge component", 1)
             !
             CALL this%dielectric%of_potential(tot_charge_density, potential)
             !
@@ -445,7 +445,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_charges'
+        CHARACTER(LEN=80) :: routine = 'print_environ_charges'
         !
         !--------------------------------------------------------------------------------
         !

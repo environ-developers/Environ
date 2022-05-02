@@ -64,7 +64,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: fun_name = 'env_get_index:integer'
+        CHARACTER(LEN=80) :: routine = 'env_get_index:integer'
         !
         !--------------------------------------------------------------------------------
         !
@@ -79,7 +79,7 @@ CONTAINS
             !
         END DO
         !
-        CALL io%error(fun_name, "Element not found", 1)
+        CALL io%error(routine, "Element not found", 1)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION env_get_index_integer
@@ -96,7 +96,7 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: fun_name = 'env_get_index:char'
+        CHARACTER(LEN=80) :: routine = 'env_get_index:char'
         !
         !--------------------------------------------------------------------------------
         !
@@ -111,7 +111,7 @@ CONTAINS
             !
         END DO
         !
-        CALL io%error(fun_name, "Element not found", 1)
+        CALL io%error(routine, "Element not found", 1)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION env_get_index_char

@@ -105,13 +105,13 @@ CONTAINS
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_mapping'
+        CHARACTER(LEN=80) :: routine = 'create_environ_mapping'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%large)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%large)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%small)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%small)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -253,13 +253,13 @@ CONTAINS
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_mapping'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_mapping'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%small)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%small)) CALL io%destroy_error(routine)
         !
-        IF (.NOT. ASSOCIATED(this%large)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%large)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -294,16 +294,16 @@ CONTAINS
         INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_real'
+        CHARACTER(LEN=80) :: routine = 'map_small_to_large_real'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= this%small%nnr) &
-            CALL io%error(sub_name, "Wrong dimension of small cell", 1)
+            CALL io%error(routine, "Wrong dimension of small cell", 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL io%error(sub_name, "Wrong dimension of large cell", 1)
+            CALL io%error(routine, "Wrong dimension of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -352,16 +352,16 @@ CONTAINS
         INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_density'
+        CHARACTER(LEN=80) :: routine = 'map_small_to_large_density'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL io%error(sub_name, "Mismatch of small cell", 1)
+            CALL io%error(routine, "Mismatch of small cell", 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL io%error(sub_name, "Mismatch of large cell", 1)
+            CALL io%error(routine, "Mismatch of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -411,16 +411,16 @@ CONTAINS
         INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_real'
+        CHARACTER(LEN=80) :: routine = 'map_large_to_small_real'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= this%small%nnr) &
-            CALL io%error(sub_name, "Wrong dimension of small cell", 1)
+            CALL io%error(routine, "Wrong dimension of small cell", 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL io%error(sub_name, "Wrong dimension of large cell", 1)
+            CALL io%error(routine, "Wrong dimension of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -470,16 +470,16 @@ CONTAINS
         INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_density'
+        CHARACTER(LEN=80) :: routine = 'map_large_to_small_density'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL io%error(sub_name, "Mismatch of small cell", 1)
+            CALL io%error(routine, "Mismatch of small cell", 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL io%error(sub_name, "Mismatch of large cell", 1)
+            CALL io%error(routine, "Mismatch of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -538,7 +538,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_mapping'
+        CHARACTER(LEN=80) :: routine = 'print_environ_mapping'
         !
         !--------------------------------------------------------------------------------
         !

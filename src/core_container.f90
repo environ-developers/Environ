@@ -95,15 +95,15 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_core_container'
+        CHARACTER(LEN=80) :: routine = 'create_core_container'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%corrections)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%corrections)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -137,7 +137,7 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_core_container'
+        CHARACTER(LEN=80) :: routine = 'init_core_container'
         !
         !--------------------------------------------------------------------------------
         !
@@ -166,7 +166,7 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_core_container'
+        CHARACTER(LEN=80) :: routine = 'destroy_core_container'
         !
         !--------------------------------------------------------------------------------
         !
@@ -206,11 +206,11 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_derivatives'
+        CHARACTER(LEN=80) :: routine = 'set_derivatives'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -232,11 +232,11 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_electrostatics'
+        CHARACTER(LEN=80) :: routine = 'set_electrostatics'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -258,11 +258,11 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_corrections'
+        CHARACTER(LEN=80) :: routine = 'set_corrections'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%corrections)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%corrections)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !

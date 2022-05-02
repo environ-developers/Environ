@@ -103,13 +103,13 @@ CONTAINS
         !
         CLASS(environ_gradient), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_gradient'
+        CHARACTER(LEN=80) :: routine = 'create_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%of_r)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -136,7 +136,7 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: modulus_label = 'gradient_modulus'
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_gradient'
+        CHARACTER(LEN=80) :: routine = 'init_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
@@ -190,13 +190,13 @@ CONTAINS
         !
         CLASS(environ_gradient), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_gradient'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(routine)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -229,17 +229,17 @@ CONTAINS
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_gradient'
+        CHARACTER(LEN=80) :: routine = 'scalar_product_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
         dens%of_r = 0.D0
         !
         IF (.NOT. ASSOCIATED(this%cell, gradB%cell)) &
-            CALL io%error(sub_name, "Mismatch in domain of input gradients", 1)
+            CALL io%error(routine, "Mismatch in domain of input gradients", 1)
         !
         IF (.NOT. ASSOCIATED(this%cell, dens%cell)) &
-            CALL io%error(sub_name, "Mismatch in domain of input and output", 1)
+            CALL io%error(routine, "Mismatch in domain of input and output", 1)
         !
         DO i = 1, dens%cell%ir_end
             dens%of_r(i) = SUM(this%of_r(:, i) * gradB%of_r(:, i))
@@ -266,14 +266,14 @@ CONTAINS
         !
         INTEGER, POINTER :: ir_end
         !
-        CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_gradient_density'
+        CHARACTER(LEN=80) :: routine = 'scalar_product_environ_gradient_density'
         !
         !--------------------------------------------------------------------------------
         !
         res = 0.D0
         !
         IF (.NOT. ASSOCIATED(this%cell, density%cell)) &
-            CALL io%error(sub_name, "Mismatch in domain of input vectors", 1)
+            CALL io%error(routine, "Mismatch in domain of input vectors", 1)
         !
         ir_end => density%cell%ir_end
         !
@@ -317,7 +317,7 @@ CONTAINS
         !
         TYPE(environ_density) :: dens
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_gradient'
+        CHARACTER(LEN=80) :: routine = 'print_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !

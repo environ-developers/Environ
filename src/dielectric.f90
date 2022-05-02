@@ -163,11 +163,11 @@ CONTAINS
         !
         CLASS(environ_dielectric), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_dielectric'
+        CHARACTER(LEN=80) :: routine = 'create_environ_dielectric'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%boundary)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%boundary)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -283,11 +283,11 @@ CONTAINS
         !
         CLASS(environ_dielectric), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_dielectric'
+        CHARACTER(LEN=80) :: routine = 'update_environ_dielectric'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         IF (this%epsilon%cell%lupdate) THEN
             !
@@ -327,7 +327,7 @@ CONTAINS
             !
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_dielectric
@@ -342,7 +342,7 @@ CONTAINS
         !
         CLASS(environ_dielectric), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_dielectric'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_dielectric'
         !
         !--------------------------------------------------------------------------------
         !
@@ -351,11 +351,11 @@ CONTAINS
         ELSE
             !
             IF (this%regions%number /= 0) &
-                CALL io%error(sub_name, "Found unexpected allocated object", 1)
+                CALL io%error(routine, "Found unexpected allocated object", 1)
             !
         END IF
         !
-        IF (.NOT. ASSOCIATED(this%boundary)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%boundary)) CALL io%destroy_error(routine)
         !
         NULLIFY (this%boundary)
         !
@@ -413,12 +413,12 @@ CONTAINS
         REAL(DP), ALLOCATABLE :: d2eps_dbackdbound(:)
         REAL(DP), ALLOCATABLE :: gradepsmod2(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'dielectric_of_boundary'
+        CHARACTER(LEN=80) :: routine = 'dielectric_of_boundary'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ALLOCATED(this%boundary%gradient%of_r)) &
-            CALL io%error(sub_name, "Missing required gradient of boundary", 1)
+            CALL io%error(routine, "Missing required gradient of boundary", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -444,7 +444,7 @@ CONTAINS
             IF (this%need_factsqrt) THEN
                 !
                 IF (.NOT. ALLOCATED(this%boundary%laplacian%of_r)) &
-                    CALL io%error(sub_name, "Missing required laplacian of boundary", 1)
+                    CALL io%error(routine, "Missing required laplacian of boundary", 1)
                 !
                 ALLOCATE (d2eps(nnr))
             END IF
@@ -606,16 +606,16 @@ CONTAINS
         !
         TYPE(environ_gradient) :: gradient
         !
-        CHARACTER(LEN=80) :: sub_name = 'dielectric_of_potential'
+        CHARACTER(LEN=80) :: routine = 'dielectric_of_potential'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(potential%cell, this%density%cell)) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Mismatch in domains of potential and dielectric", 1)
         !
         !--------------------------------------------------------------------------------
@@ -838,7 +838,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_dielectric'
+        CHARACTER(LEN=80) :: routine = 'print_environ_dielectric'
         !
         !--------------------------------------------------------------------------------
         !

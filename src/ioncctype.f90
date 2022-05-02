@@ -88,7 +88,7 @@ CONTAINS
         !
         CLASS(environ_ioncctype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_ioncctype'
+        CHARACTER(LEN=80) :: routine = 'create_environ_ioncctype'
         !
         !--------------------------------------------------------------------------------
         !
@@ -115,7 +115,7 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: index_s
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_ioncctype'
+        CHARACTER(LEN=80) :: routine = 'init_environ_ioncctype'
         !
         !--------------------------------------------------------------------------------
         !
@@ -146,7 +146,7 @@ CONTAINS
         !
         CLASS(environ_ioncctype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_ioncctype'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_ioncctype'
         !
         !--------------------------------------------------------------------------------
         !

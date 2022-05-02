@@ -129,7 +129,7 @@ CONTAINS
         !
         REAL(DP) :: gcutm, tmp, a1(3), sumat2, est
         !
-        CHARACTER(LEN=80) :: sub_name = 'run_environ_from_cube'
+        CHARACTER(LEN=80) :: routine = 'run_environ_from_cube'
         !
         !--------------------------------------------------------------------------------
         ! Initialize Environ
@@ -222,7 +222,7 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        CHARACTER(LEN=80) :: sub_name = 'run_descriptors_generator'
+        CHARACTER(LEN=80) :: routine = 'run_descriptors_generator'
         !
         !--------------------------------------------------------------------------------
         ! Validate input parameters
@@ -268,7 +268,7 @@ CONTAINS
             IF (alpha_max + alpha_min + alpha_step /= -3.D0) THEN
                 !
                 IF (alpha_max == -1.D0) &
-                    CALL io%error(sub_name, 'Missing maximum alpha value', 1)
+                    CALL io%error(routine, 'Missing maximum alpha value', 1)
                 !
                 IF (alpha_step == -1.D0) THEN
                     !
@@ -577,7 +577,7 @@ CONTAINS
         !
         INTEGER :: ierr
         !
-        CHARACTER(LEN=80) :: sub_name = 'clean_up'
+        CHARACTER(LEN=80) :: routine = 'clean_up'
         !
         !--------------------------------------------------------------------------------
         !

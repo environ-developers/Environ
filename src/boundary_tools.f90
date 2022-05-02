@@ -166,11 +166,11 @@ CONTAINS
         REAL(DP) :: bound_val
         TYPE(environ_density) :: denlocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_partial_of_boundary'
+        CHARACTER(LEN=80) :: routine = 'calc_partial_of_boundary'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (i > n) CALL io%error(sub_name, "Index out of bound", 1)
+        IF (i > n) CALL io%error(routine, "Index out of bound", 1)
         !
         CALL denlocal%init(partial%cell)
         !
@@ -839,7 +839,7 @@ CONTAINS
         !
         INTEGER :: i, idx
         !
-        CHARACTER(LEN=80) :: sub_name = 'reduced2nnr'
+        CHARACTER(LEN=80) :: routine = 'reduced2nnr'
         !
         !--------------------------------------------------------------------------------
         !
@@ -849,16 +849,16 @@ CONTAINS
             den_of_r = init_val
             !
             IF (.NOT. PRESENT(den_vals)) &
-                CALL io%error(sub_name, 'Missing stored density values', 1)
+                CALL io%error(routine, 'Missing stored density values', 1)
             !
         ELSE IF (PRESENT(grad_of_r)) THEN
             grad_of_r = init_val
             !
             IF (.NOT. PRESENT(grad_vals)) &
-                CALL io%error(sub_name, 'Missing stored gradient values', 1)
+                CALL io%error(routine, 'Missing stored gradient values', 1)
             !
         ELSE
-            CALL io%error(sub_name, 'Missing of_r array', 1)
+            CALL io%error(routine, 'Missing of_r array', 1)
         END IF
         !
         !--------------------------------------------------------------------------------

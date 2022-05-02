@@ -113,7 +113,7 @@ CONTAINS
         !
         CLASS(solver_gradient), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_solver_gradient'
+        CHARACTER(LEN=80) :: routine = 'create_solver_gradient'
         !
         !--------------------------------------------------------------------------------
         !
@@ -188,11 +188,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_charges), INTENT(INOUT) :: charges
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_charges'
+        CHARACTER(LEN=80) :: routine = 'generalized_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         v%of_r = 0.D0
         !
@@ -216,19 +216,19 @@ CONTAINS
                                            charges%electrolyte, charges%semiconductor)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
+                CALL io%error(routine, "Unexpected 'preconditioner'", 1)
                 !
             END SELECT
             !
         ELSE
             !
-            CALL io%error(sub_name, "Option not yet implemented", 1)
+            CALL io%error(routine, "Option not yet implemented", 1)
             !
             ! CALL generalized_rhoaux(charges, dielectric, v) #TODO future-work
             !
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_charges
@@ -250,11 +250,11 @@ CONTAINS
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
         TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_density'
+        CHARACTER(LEN=80) :: routine = 'generalized_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         v%of_r = 0.D0
         !
@@ -272,19 +272,19 @@ CONTAINS
                 CALL this%generalized_left(charges, dielectric, v, electrolyte)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
+                CALL io%error(routine, "Unexpected 'preconditioner'", 1)
                 !
             END SELECT
             !
         ELSE
             !
-            CALL io%error(sub_name, "Option not yet implemented", 1)
+            CALL io%error(routine, "Option not yet implemented", 1)
             !
             ! CALL generalized_rhoaux(charges, dielectric, v) #TODO future-work
             !
         END IF
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_density
@@ -305,11 +305,11 @@ CONTAINS
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_charges'
+        CHARACTER(LEN=80) :: routine = 'linearized_pb_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         CALL local_screening%init(v%cell)
         !
@@ -350,7 +350,7 @@ CONTAINS
                                                  charges%dielectric)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
+                    CALL io%error(routine, "Unexpected 'preconditioner'", 1)
                     !
                 END SELECT
                 !
@@ -361,12 +361,12 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL io%error(sub_name, "Option not yet implemented", 1)
+            CALL io%error(routine, "Option not yet implemented", 1)
         END IF
         !
         CALL local_screening%destroy()
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE linearized_pb_charges
@@ -390,11 +390,11 @@ CONTAINS
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_density'
+        CHARACTER(LEN=80) :: routine = 'linearized_pb_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         CALL local_screening%init(v%cell)
         !
@@ -434,7 +434,7 @@ CONTAINS
                                                  dielectric)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
+                    CALL io%error(routine, "Unexpected 'preconditioner'", 1)
                     !
                 END SELECT
                 !
@@ -443,12 +443,12 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL io%error(sub_name, "Option not yet implemented", 1)
+            CALL io%error(routine, "Option not yet implemented", 1)
         END IF
         !
         CALL local_screening%destroy()
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE linearized_pb_density
@@ -480,7 +480,7 @@ CONTAINS
         TYPE(environ_density) :: r, z, p, Ap, l
         TYPE(environ_gradient) :: g
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_none'
+        CHARACTER(LEN=80) :: routine = 'generalized_none'
         !
         !--------------------------------------------------------------------------------
         !
@@ -489,10 +489,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+            CALL io%error(routine, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
+            CALL io%error(routine, "Inconsistent cells for charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -556,7 +556,7 @@ CONTAINS
                 rznew = r%scalar_product(z)
                 !
                 IF (ABS(rznew) < 1.D-30) &
-                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
+                    CALL io%error(routine, "Null step in gradient descent iteration", 1)
                 !
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
@@ -698,7 +698,7 @@ CONTAINS
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
         TYPE(environ_density) :: r, z, p, Ap, invsqrt
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_sqrt'
+        CHARACTER(LEN=80) :: routine = 'generalized_sqrt'
         !
         !--------------------------------------------------------------------------------
         !
@@ -707,10 +707,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+            CALL io%error(routine, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
+            CALL io%error(routine, "Inconsistent cells for charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -753,7 +753,7 @@ CONTAINS
                 rzold = r%scalar_product(z)
                 !
                 IF (ABS(rzold) < 1.D-30) &
-                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
+                    CALL io%error(routine, "Null step in gradient descent iteration", 1)
                 !
                 r%of_r = factsqrt%of_r * (v%of_r - z%of_r)
                 delta_en = r%euclidean_norm()
@@ -812,7 +812,7 @@ CONTAINS
                 rznew = r%scalar_product(z)
                 !
                 IF (ABS(rznew) < 1.D-30) &
-                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
+                    CALL io%error(routine, "Null step in gradient descent iteration", 1)
                 !
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
@@ -957,7 +957,7 @@ CONTAINS
         TYPE(environ_density) :: r, z, p, Ap
         TYPE(environ_gradient) :: g
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_left'
+        CHARACTER(LEN=80) :: routine = 'generalized_left'
         !
         !--------------------------------------------------------------------------------
         !
@@ -967,10 +967,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+            CALL io%error(routine, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
+            CALL io%error(routine, "Inconsistent cells for charges and potential", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1027,7 +1027,7 @@ CONTAINS
                 rznew = r%scalar_product(z)
                 !
                 IF (ABS(rznew) < 1.D-30) &
-                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
+                    CALL io%error(routine, "Null step in gradient descent iteration", 1)
                 !
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
@@ -1166,7 +1166,7 @@ CONTAINS
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
         TYPE(environ_density) :: r, z, p, Ap, invsqrt
         !
-        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_sqrt'
+        CHARACTER(LEN=80) :: routine = 'linearized_pb_sqrt'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1175,15 +1175,15 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, screening%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+            CALL io%error(routine, "Inconsistent cells of input fields", 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, v%cell)) &
-            CALL io%error(sub_name, "Inconsistent cells for charges and potential", 1)
+            CALL io%error(routine, "Inconsistent cells for charges and potential", 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL io%error(sub_name, "Inconsistent cells of input fields", 1)
+                CALL io%error(routine, "Inconsistent cells of input fields", 1)
             !
         END IF
         !
@@ -1245,7 +1245,7 @@ CONTAINS
                 rzold = r%scalar_product(z)
                 !
                 IF (ABS(rzold) < 1.D-30) &
-                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
+                    CALL io%error(routine, "Null step in gradient descent iteration", 1)
                 !
                 IF (PRESENT(dielectric)) THEN
                     r%of_r = (factsqrt%of_r + scr%of_r) * (v%of_r - z%of_r)
@@ -1316,7 +1316,7 @@ CONTAINS
                 rznew = r%scalar_product(z)
                 !
                 IF (ABS(rznew) < 1.D-30) &
-                    CALL io%error(sub_name, "Null step in gradient descent iteration", 1)
+                    CALL io%error(routine, "Null step in gradient descent iteration", 1)
                 !
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input

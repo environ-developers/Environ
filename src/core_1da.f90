@@ -124,17 +124,17 @@ CONTAINS
         !
         CLASS(core_1da), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_core_1da'
+        CHARACTER(LEN=80) :: routine = 'create_core_1da'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%x)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%x)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%ir)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%ir)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%r)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%r)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -164,21 +164,21 @@ CONTAINS
         !
         CLASS(core_1da), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_core_1da'
+        CHARACTER(LEN=80) :: routine = 'init_core_1da'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
         !
         IF (dim == 3 .OR. dim < 0) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Wrong dimensions for analytic one dimensional core", 1)
         !
         this%dim = dim
         this%pdim = 3 - dim
         !
         IF ((dim == 1 .OR. dim == 2) .AND. (axis > 3 .OR. axis < 1)) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Wrong choice of axis for analytic one dimensional core", 1)
         !
         this%axis = axis
@@ -235,7 +235,7 @@ CONTAINS
         INTEGER, ALLOCATABLE :: ir(:)
         REAL(DP), ALLOCATABLE :: disps(:, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_core_1da_origin'
+        CHARACTER(LEN=80) :: routine = 'update_core_1da_origin'
         !
         !--------------------------------------------------------------------------------
         !
@@ -266,7 +266,7 @@ CONTAINS
                 END DO
                 !
             ELSE IF (dim == 1) THEN
-                CALL io%error(sub_name, "Option not yet implemented", 1)
+                CALL io%error(routine, "Option not yet implemented", 1)
             ELSE IF (dim == 2) THEN
                 !
                 DO i = 1, cell%ir_end
@@ -306,13 +306,13 @@ CONTAINS
         !
         CLASS(core_1da), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_core_1da'
+        CHARACTER(LEN=80) :: routine = 'destroy_core_1da'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell)) RETURN
         !
-        IF (.NOT. ALLOCATED(this%x)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%x)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -355,22 +355,22 @@ CONTAINS
         !
         TYPE(environ_density), TARGET :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_vperiodic'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_vperiodic'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and solver", 1)
         !
         IF (this%dim == 0 .AND. .NOT. v%cell%cubic) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Parabolic correction in 0D is only for cubic cells", 1)
         !
         !--------------------------------------------------------------------------------
@@ -416,7 +416,7 @@ CONTAINS
                 vperiodic = fact / 3.D0 * vperiodic + const
                 !
             CASE (1)
-                CALL io%error(sub_name, "Option not yet implemented", 1)
+                CALL io%error(routine, "Option not yet implemented", 1)
                 !
             CASE (2)
                 !
@@ -433,7 +433,7 @@ CONTAINS
                 vperiodic = 0.D0
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected system dimensions", 1)
+                CALL io%error(routine, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -446,7 +446,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_vperiodic
@@ -477,15 +477,15 @@ CONTAINS
         !
         TYPE(environ_gradient), TARGET :: glocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_grad_vperiodic'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_grad_vperiodic'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of gradient and charges", 1)
+            CALL io%error(routine, "Mismatch in domains of gradient and charges", 1)
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of gradient and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of gradient and solver", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -519,7 +519,7 @@ CONTAINS
                 END DO
                 !
             CASE (1)
-                CALL io%error(sub_name, "Option not yet implemented", 1)
+                CALL io%error(routine, "Option not yet implemented", 1)
                 !
             CASE (2)
                 gvperiodic(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
@@ -528,7 +528,7 @@ CONTAINS
                 gvperiodic = 0.D0
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected system dimensions", 1)
+                CALL io%error(routine, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -571,20 +571,20 @@ CONTAINS
         !
         TYPE(environ_density) :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_fperiodic'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_fperiodic'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
         IF (nat /= ions%number) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Mismatch between input and stored number of ions", 1)
         !
         IF (.NOT. ASSOCIATED(auxiliary%cell, this%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of charges and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of charges and solver", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -621,7 +621,7 @@ CONTAINS
                         ftmp(:, i) = (charge * pos - dipole) / 3.D0
                         !
                     CASE (1)
-                        CALL io%error(sub_name, "Option not yet implemented", 1)
+                        CALL io%error(routine, "Option not yet implemented", 1)
                         !
                     CASE (2)
                         ftmp(slab_axis, i) = charge * pos(slab_axis) - dipole(slab_axis)
@@ -630,7 +630,7 @@ CONTAINS
                         ftmp = 0.D0
                         !
                     CASE DEFAULT
-                        CALL io%error(sub_name, "Unexpected system dimensions", 1)
+                        CALL io%error(routine, "Unexpected system dimensions", 1)
                         !
                     END SELECT
                     !
@@ -649,7 +649,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_fperiodic
@@ -684,26 +684,26 @@ CONTAINS
         !
         TYPE(environ_density), TARGET :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_vgcs'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_vgcs'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and solver", 1)
         !
         IF (electrolyte%ntyp /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
@@ -890,7 +890,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_vgcs
@@ -923,26 +923,26 @@ CONTAINS
         !
         TYPE(environ_gradient), TARGET :: glocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_grad_vgcs'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_grad_vgcs'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and solver", 1)
         !
         IF (electrolyte%ntyp /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
@@ -1089,7 +1089,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_grad_vgcs
@@ -1120,22 +1120,22 @@ CONTAINS
         !
         TYPE(environ_density), TARGET :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_vms'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_vms'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and charges", 1)
         !
         IF (v%cell%nnr /= this%nnr) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and solver", 1)
         !
         IF (this%dim /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
@@ -1254,7 +1254,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_vms
@@ -1285,22 +1285,22 @@ CONTAINS
         !
         TYPE(environ_gradient), TARGET :: glocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_grad_vms'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_grad_vms'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and charges", 1)
         !
         IF (grad_v%cell%nnr /= this%nnr) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and solver", 1)
         !
         IF (this%dim /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
@@ -1343,7 +1343,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_grad_vms
@@ -1383,26 +1383,26 @@ CONTAINS
         !
         TYPE(environ_density), TARGET :: local
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_vms_gcs'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_vms_gcs'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
-            CALL io%error(sub_name, 'Missmatch in domains of potential and charges', 1)
+            CALL io%error(routine, 'Missmatch in domains of potential and charges', 1)
         !
         IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and solver", 1)
         !
         IF (electrolyte%ntyp /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
@@ -1623,7 +1623,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1663,26 +1663,26 @@ CONTAINS
         !
         TYPE(environ_gradient), TARGET :: glocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_grad_vms_gcs'
+        CHARACTER(LEN=80) :: routine = 'calc_1da_grad_vms_gcs'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_start_clock(sub_name)
+        CALL env_start_clock(routine)
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and charges", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and charges", 1)
         !
         IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
-            CALL io%error(sub_name, "Mismatch in domains of potential and solver", 1)
+            CALL io%error(routine, "Mismatch in domains of potential and solver", 1)
         !
         IF (electrolyte%ntyp /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Unexpected number of counterionic species, different from two", 1)
         !
         IF (this%dim /= 2) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           "Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems", 1)
         !
         !--------------------------------------------------------------------------------
@@ -1720,7 +1720,7 @@ CONTAINS
             !
         END ASSOCIATE
         !
-        CALL env_stop_clock(sub_name)
+        CALL env_stop_clock(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_grad_vms_gcs

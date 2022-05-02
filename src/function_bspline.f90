@@ -119,7 +119,7 @@ CONTAINS
         REAL(DP) :: coords(3), length
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function'
+        CHARACTER(LEN=80) :: routine = 'density_of_function'
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -156,7 +156,7 @@ CONTAINS
                 this%norm = charge * length / cell%omega / this%bsplinevolume()
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected system dimensions", 1)
+                CALL io%error(routine, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -209,12 +209,12 @@ CONTAINS
         LOGICAL :: physical
         REAL(DP) :: coords(3)
         !
-        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
+        CHARACTER(LEN=80) :: routine = 'gradient_of_function'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ALLOCATED(this%spans)) &
-            CALL io%error(sub_name, "Powers and coefficients not calculated", 1)
+            CALL io%error(routine, "Powers and coefficients not calculated", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -266,7 +266,7 @@ CONTAINS
         REAL(DP) :: term1, term2, x2_vals(3), c1, c2
         INTEGER :: i, j
         !
-        CHARACTER(LEN=80) :: sub_name = 'quadrapole_corrections'
+        CHARACTER(LEN=80) :: routine = 'quadrapole_corrections'
         !
         !--------------------------------------------------------------------------------
         !
@@ -329,7 +329,7 @@ CONTAINS
         !
         INTEGER :: i, a
         !
-        CHARACTER(LEN=80) :: sub_name = 'get_u'
+        CHARACTER(LEN=80) :: routine = 'get_u'
         !
         !--------------------------------------------------------------------------------
         !
@@ -363,7 +363,7 @@ CONTAINS
         INTEGER, ALLOCATABLE :: pows(:)
         REAL(DP) :: cvals(4), fluff, dx
         !
-        CHARACTER(LEN=80) :: sub_name = 'setup_of_function'
+        CHARACTER(LEN=80) :: routine = 'setup_of_function'
         !
         !--------------------------------------------------------------------------------
         !
@@ -379,7 +379,7 @@ CONTAINS
             END DO
             !
             IF (this%u(i, this%nknot) - this%u(i, 1) > 1.6D0) &
-                CALL io%error(sub_name, 'B-spline spread larger than 1.6 Bohr', 1)
+                CALL io%error(routine, 'B-spline spread larger than 1.6 Bohr', 1)
             !
         END DO
         !
@@ -481,7 +481,7 @@ CONTAINS
         !
         INTEGER, POINTER :: deg
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_den'
+        CHARACTER(LEN=80) :: routine = 'calc_den'
         !
         !--------------------------------------------------------------------------------
         !
@@ -531,7 +531,7 @@ CONTAINS
         !
         INTEGER, POINTER :: deg
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_grad'
+        CHARACTER(LEN=80) :: routine = 'calc_grad'
         !
         !--------------------------------------------------------------------------------
         !
@@ -625,7 +625,7 @@ CONTAINS
         !
         INTEGER, POINTER :: deg
         !
-        CHARACTER(LEN=80) :: sub_name = 'bsplinevolume'
+        CHARACTER(LEN=80) :: routine = 'bsplinevolume'
         !
         !--------------------------------------------------------------------------------
         !

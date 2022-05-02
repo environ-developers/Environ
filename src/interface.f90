@@ -109,15 +109,15 @@ CONTAINS
         !
         CLASS(environ_interface), TARGET, INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_interface'
+        CHARACTER(LEN=80) :: routine = 'create_interface'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%main%setup)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%main%setup)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%calc%main)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%calc%main)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%clean%main)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%clean%main)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_interface
@@ -132,7 +132,7 @@ CONTAINS
         !
         CLASS(environ_interface), TARGET, INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_interface'
+        CHARACTER(LEN=80) :: routine = 'init_interface'
         !
         !--------------------------------------------------------------------------------
         !
@@ -159,7 +159,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: program_unit
         LOGICAL, INTENT(IN) :: lstdout
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_io'
+        CHARACTER(LEN=80) :: routine = 'init_io'
         !
         !--------------------------------------------------------------------------------
         !
@@ -179,7 +179,7 @@ CONTAINS
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: filename
         INTEGER, OPTIONAL, INTENT(IN) :: nsx
         !
-        CHARACTER(LEN=80) :: sub_name = 'read_input'
+        CHARACTER(LEN=80) :: routine = 'read_input'
         !
         !--------------------------------------------------------------------------------
         !
@@ -200,7 +200,7 @@ CONTAINS
         !
         CLASS(environ_interface), TARGET, INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_interface'
+        CHARACTER(LEN=80) :: routine = 'destroy_interface'
         !
         !--------------------------------------------------------------------------------
         !
@@ -256,7 +256,7 @@ CONTAINS
                     CALL this%destroy(1)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, "Unexpected clean level", 1)
+                    CALL io%error(routine, "Unexpected clean level", 1)
                     !
                 END SELECT
                 !
@@ -487,7 +487,7 @@ CONTAINS
         INTEGER :: ir, i, j, k
         LOGICAL :: physical
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_to_gridx'
+        CHARACTER(LEN=80) :: routine = 'map_to_gridx'
         !
         !--------------------------------------------------------------------------------
         !

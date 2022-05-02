@@ -144,27 +144,27 @@ CONTAINS
         !
         CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'create_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%ions)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%ir_nz)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%ir_nz)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%den_nz)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%den_nz)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%grad_nz)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%grad_nz)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%electrons)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%electrons)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%ion_field)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%ion_field)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%dion_field_drho)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%dion_field_drho)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%partial_of_ion_field)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%partial_of_ion_field)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%unscaled_spheres)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%unscaled_spheres)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -204,7 +204,7 @@ CONTAINS
         !
         TYPE(environ_density) :: denlocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'init_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -221,7 +221,7 @@ CONTAINS
         !
         IF (this%field_aware) THEN
             !
-            IF (.NOT. PRESENT(electrons)) CALL io%error(sub_name, "Missing electrons", 1)
+            IF (.NOT. PRESENT(electrons)) CALL io%error(routine, "Missing electrons", 1)
             !
             this%electrons => electrons
             !
@@ -313,7 +313,7 @@ CONTAINS
         !
         LOGICAL :: update_anything
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'update_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -388,7 +388,7 @@ CONTAINS
         !
         CLASS(environ_boundary_ionic), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -445,7 +445,7 @@ CONTAINS
         !
         REAL(DP), ALLOCATABLE :: r(:, :, :), dist(:, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'boundary_of_functions'
+        CHARACTER(LEN=80) :: routine = 'boundary_of_functions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -627,7 +627,7 @@ CONTAINS
                 IF (deriv == 3) DEALLOCATE (hessloc)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected derivatives method", 1)
+                CALL io%error(routine, "Unexpected derivatives method", 1)
                 !
             END SELECT
             !
@@ -695,18 +695,18 @@ CONTAINS
         INTEGER :: i, j
         TYPE(environ_density) :: denlocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_dboundary_dions'
+        CHARACTER(LEN=80) :: routine = 'calc_dboundary_dions'
         !
         !--------------------------------------------------------------------------------
         !
         nat => this%ions%number
         !
-        IF (index > nat) CALL io%error(sub_name, "Index greater than number of ions", 1)
+        IF (index > nat) CALL io%error(routine, "Index greater than number of ions", 1)
         !
-        IF (index <= 0) CALL io%error(sub_name, "Index of ion is zero or lower", 1)
+        IF (index <= 0) CALL io%error(routine, "Index of ion is zero or lower", 1)
         !
         IF (this%soft_spheres%number == 0) &
-            CALL io%error(sub_name, "Missing details of ionic boundary", 1)
+            CALL io%error(routine, "Missing details of ionic boundary", 1)
         !
         IF (this%derivatives_method == 'fft' .OR. &
             (.NOT. this%has_stored_gradient)) THEN
@@ -763,7 +763,7 @@ CONTAINS
         !
         REAL(DP), POINTER :: solvationrad
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_dboundary_dions'
+        CHARACTER(LEN=80) :: routine = 'calc_field_aware_dboundary_dions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -847,7 +847,7 @@ CONTAINS
         TYPE(environ_gradient), ALLOCATABLE :: gradloc(:)
         REAL(DP), ALLOCATABLE :: ion_field(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_ion_field_partial'
+        CHARACTER(LEN=80) :: routine = 'calc_ion_field_partial'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1050,7 +1050,7 @@ CONTAINS
         INTEGER :: i
         REAL(DP) :: field_scale
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_soft_spheres'
+        CHARACTER(LEN=80) :: routine = 'update_soft_spheres'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1096,7 +1096,7 @@ CONTAINS
         TYPE(environ_density) :: aux, prod
         TYPE(environ_gradient) :: auxg, field
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_ion_field'
+        CHARACTER(LEN=80) :: routine = 'calc_ion_field'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1191,7 +1191,7 @@ CONTAINS
         !
         TYPE(environ_density), ALLOCATABLE :: local(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_dion_field_drho'
+        CHARACTER(LEN=80) :: routine = 'calc_dion_field_drho'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1274,7 +1274,7 @@ CONTAINS
         !
         REAL(DP) :: scaling, multiplier, arg, diff
         !
-        CHARACTER(LEN=80) :: fun_name = 'scaling_of_field'
+        CHARACTER(LEN=80) :: routine = 'scaling_of_field'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1357,7 +1357,7 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit, i
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_boundary'
+        CHARACTER(LEN=80) :: routine = 'print_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !

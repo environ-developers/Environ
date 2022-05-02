@@ -99,13 +99,13 @@ CONTAINS
         !
         CLASS(environ_hessian), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_hessian'
+        CHARACTER(LEN=80) :: routine = 'create_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%of_r)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -132,7 +132,7 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: laplacian_label = 'hessian_laplacian'
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_hessian'
+        CHARACTER(LEN=80) :: routine = 'init_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
@@ -186,13 +186,13 @@ CONTAINS
         !
         CLASS(environ_hessian), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_hessian'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(routine)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -226,17 +226,17 @@ CONTAINS
         !
         INTEGER :: i, j
         !
-        CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_hessian'
+        CHARACTER(LEN=80) :: routine = 'scalar_product_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
         gradout%of_r = 0.D0
         !
         IF (.NOT. ASSOCIATED(gradin%cell, this%cell)) &
-            CALL io%error(sub_name, "Mismatch in domain of input hessian/gradients", 1)
+            CALL io%error(routine, "Mismatch in domain of input hessian/gradients", 1)
         !
         IF (.NOT. ASSOCIATED(gradin%cell, gradout%cell)) &
-            CALL io%error(sub_name, "Mismatch in domain of input and output", 1)
+            CALL io%error(routine, "Mismatch in domain of input and output", 1)
         !
         DO i = 1, this%cell%ir_end
             !
@@ -279,7 +279,7 @@ CONTAINS
         REAL(DP) :: integral
         TYPE(environ_density) :: dens
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_hessian'
+        CHARACTER(LEN=80) :: routine = 'print_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !

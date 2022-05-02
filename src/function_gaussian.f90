@@ -93,14 +93,14 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, length
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function'
+        CHARACTER(LEN=80) :: routine = 'density_of_function'
         !
         !--------------------------------------------------------------------------------
         !
         IF (ABS(this%volume) < func_tol) RETURN
         !
         IF (ABS(this%spread) < func_tol) &
-            CALL io%error(sub_name, "Wrong spread for Gaussian function", 1)
+            CALL io%error(routine, "Wrong spread for Gaussian function", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -135,7 +135,7 @@ CONTAINS
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected system dimensions", 1)
+                CALL io%error(routine, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
@@ -187,17 +187,17 @@ CONTAINS
         REAL(DP) :: r(3), r2, scale, length
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
+        CHARACTER(LEN=80) :: routine = 'gradient_of_function'
         !
         !--------------------------------------------------------------------------------
         !
         IF (ABS(this%volume) < func_tol) RETURN
         !
         IF (ABS(this%spread) < func_tol) &
-            CALL io%error(sub_name, "Wrong spread for Gaussian function", 1)
+            CALL io%error(routine, "Wrong spread for Gaussian function", 1)
         !
         IF (this%axis < 1 .OR. this%axis > 3) &
-            CALL io%error(sub_name, "Wrong value of axis", 1)
+            CALL io%error(routine, "Wrong value of axis", 1)
         !
         !--------------------------------------------------------------------------------
         ! If called directly and not through a functions object, initialize the register
@@ -232,7 +232,7 @@ CONTAINS
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected system dimensions", 1)
+                CALL io%error(routine, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !

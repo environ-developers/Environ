@@ -446,7 +446,7 @@ CONTAINS
         !
         INTEGER :: debugcubes = 0
         !
-        CHARACTER(len=80) :: sub_name = 'update_test_boundary'
+        CHARACTER(len=80) :: routine = 'update_test_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -485,7 +485,7 @@ CONTAINS
             CALL bound%boundary_of_density(electrons%density)
             !
         CASE DEFAULT
-            CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+            CALL io%error(routine, "Unrecognized boundary mode", 1)
             !
         END SELECT
         !
@@ -544,7 +544,7 @@ CONTAINS
         TYPE(environ_electrons) :: localelectrons
         TYPE(environ_gradient) :: partial
         !
-        CHARACTER(LEN=80) :: sub_name = 'test_energy_derivatives'
+        CHARACTER(LEN=80) :: routine = 'test_energy_derivatives'
         !
         !--------------------------------------------------------------------------------
         !
@@ -807,7 +807,7 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        CHARACTER(LEN=80) :: sub_name = 'extract_boundary_data'
+        CHARACTER(LEN=80) :: routine = 'extract_boundary_data'
         !
         !--------------------------------------------------------------------------------
         !

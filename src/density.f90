@@ -118,13 +118,13 @@ CONTAINS
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_density'
+        CHARACTER(LEN=80) :: routine = 'create_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%of_r)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -152,7 +152,7 @@ CONTAINS
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_density'
+        CHARACTER(LEN=80) :: routine = 'init_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -178,13 +178,13 @@ CONTAINS
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_density'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(routine)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -225,7 +225,7 @@ CONTAINS
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
         !
-        CHARACTER(LEN=80) :: sub_name = 'multipoles_environ_density'
+        CHARACTER(LEN=80) :: routine = 'multipoles_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -238,7 +238,7 @@ CONTAINS
         IF (PRESENT(ir)) THEN
             !
             IF (.NOT. PRESENT(disps)) &
-                CALL io%error(sub_name, "Missing displacement values", 1)
+                CALL io%error(routine, "Missing displacement values", 1)
             !
             imax = SIZE(ir)
             stored = .TRUE.
@@ -411,12 +411,12 @@ CONTAINS
         INTEGER, POINTER :: ir_end
         REAL(DP) :: scalar_product
         !
-        CHARACTER(LEN=80) :: fun_name = 'scalar_product_environ_density'
+        CHARACTER(LEN=80) :: routine = 'scalar_product_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell, density2%cell)) &
-            CALL io%error(fun_name, "Operation on fields with inconsistent domains", 1)
+            CALL io%error(routine, "Operation on fields with inconsistent domains", 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -461,7 +461,7 @@ CONTAINS
         LOGICAL :: print_cube = .TRUE.
         REAL(DP) :: integral
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_density'
+        CHARACTER(LEN=80) :: routine = 'print_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -605,7 +605,7 @@ CONTAINS
         !
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
-        CHARACTER(LEN=80) :: sub_name = 'write_cube_density'
+        CHARACTER(LEN=80) :: routine = 'write_cube_density'
         !
         !--------------------------------------------------------------------------------
         !
