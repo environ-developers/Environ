@@ -37,12 +37,12 @@ MODFLAGS = $(BASEMOD_FLAGS)
 
 OBJS = $(patsubst %.f90,%.o,$(filter-out mkl_wrapper.f90,$(wildcard *.f90)))
 
-all: libsdir libfft.a
+all: libsdir libenvfft.a
 
-libfft.a: $(OBJS)
+libenvfft.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
-	@ /bin/mv libfft.a ../libs
+	@ /bin/mv libenvfft.a ../libs
 
 fft_scalar.DFTI.o: mkl_wrapper.o
 

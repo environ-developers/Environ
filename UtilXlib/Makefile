@@ -37,12 +37,12 @@ C_OBJS = cptimer.o
 
 OBJS += $(C_OBJS)
 
-all: libsdir libutil.a
+all: libsdir libenvutil.a
 
-libutil.a: $(OBJS)
+libenvutil.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
-	@ /bin/mv libutil.a ../libs
+	@ /bin/mv libenvutil.a ../libs
 
 libsdir:
 	@ test -d ../libs || mkdir ../libs

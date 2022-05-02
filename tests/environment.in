@@ -1,7 +1,7 @@
-#!/bin/bash
 #----------------------------------------------------------------------------------------
 #
 # Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2001-2017 Quantum ESPRESSO (www.quantum-espresso.org)
 #
 #----------------------------------------------------------------------------------------
 #
@@ -22,34 +22,30 @@
 #----------------------------------------------------------------------------------------
 #
 # Authors: Oliviero Andreussi (Department of Physics, UNT)
-#          Iurii Timrov       (THEOS and NCCR-MARVEL, EPFL)
 #          Edan Bainglass     (Department of Physics, UNT)
 #
 #----------------------------------------------------------------------------------------
 #
-# PATCH REVERT for plugin files and Makefile in TDDFPT/src
+# This file was adapted from the following Quantum ESPRESSO v6.1 file:
+#
+# 		QE/test-suite/ENVIRONMENT
 #
 #----------------------------------------------------------------------------------------
 
-cd $TD_SRC
+# Edit this line every time a new reference is created
+export REFERENCE_VERSION=GIT
 
-revert_makefile
+####################################################################################
 
-check_src_reverted
-if test "$REVERTED" == 1; then 
-   return
-else
-   message "Reverting"
-fi
+# Edit this line _ONLY_ iff you run test-code outside the QE main directory
+export ENVIRON_ROOT=${PWD}/../
+export ESPRESSO_ROOT=
 
-rm "Environ_PATCH"
+export ESPRESSO_PSEUDO=${ESPRESSO_ROOT}/pseudo
+export ESPRESSO_TMPDIR=${ESPRESSO_ROOT}/tempdir
+export NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+export TESTCODE_DIR=${ENVIRON_ROOT}/tests/testcode
 
-# plugin_tddfpt_potential
+export TESTCODE_NPROCS=4
 
-sed '/Environ patch/,/Environ patch/d' plugin_tddfpt_potential.f90 > tmp.1
-
-mv tmp.1 plugin_tddfpt_potential.f90
-
-printf " done!\n"
-
-cd $QE_DIR
+export JOBCONFIG=jobconfig

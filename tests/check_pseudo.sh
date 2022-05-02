@@ -33,8 +33,6 @@
 #
 #----------------------------------------------------------------------------------------
 
-source ${ENVIRON_ROOT}/tests/ENVIRONMENT
-
 if test "`which curl`" = "" ; then
    if test "`which wget`" = "" ; then
       echo "### wget or curl not found: will not be able to download missing PP ###"
