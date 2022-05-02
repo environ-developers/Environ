@@ -27,9 +27,6 @@ X_AC_ENV_ARCH()
 # Add all needed -D options to try_dflags
 try_dflags=""
 
-# Add needed include directories
-try_iflags="-I\$(TOPDIR)/include "
-
 # Checking archiver...
 X_AC_ENV_AR()
 
