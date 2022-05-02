@@ -65,7 +65,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_boundary), INTENT(IN), TARGET :: boundary
+        TYPE(environ_boundary), TARGET, INTENT(IN) :: boundary
         !
         TYPE(environ_boundary), ALLOCATABLE :: localbound
         TYPE(environ_density) :: de_dboundary

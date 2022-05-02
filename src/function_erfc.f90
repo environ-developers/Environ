@@ -597,7 +597,7 @@ CONTAINS
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
         !
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
         REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
