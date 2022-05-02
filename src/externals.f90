@@ -118,7 +118,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_externals(this, n, dims, axes, pos, spreads, charges, cell)
+    SUBROUTINE init_environ_externals(this, n, dims, axes, spreads, charges, cell, pos)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -126,8 +126,8 @@ CONTAINS
         INTEGER, INTENT(IN) :: n
         INTEGER, DIMENSION(n), INTENT(IN) :: dims, axes
         REAL(DP), DIMENSION(n), INTENT(IN) :: spreads, charges
-        REAL(DP), INTENT(IN) :: pos(3, n)
         TYPE(environ_cell), INTENT(IN) :: cell
+        REAL(DP), OPTIONAL, INTENT(IN) :: pos(3, n)
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
@@ -153,7 +153,10 @@ CONTAINS
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'update_environ_externals'
+        !
         !--------------------------------------------------------------------------------
+        ! Update externals charge density
         !
         CALL this%functions%density(this%density, .TRUE.)
         !

@@ -69,10 +69,6 @@ MODULE class_semiconductor
         TYPE(environ_density) :: density
         !
         REAL(DP) :: charge = 0.D0
-        REAL(DP) :: slab_charge = 0.D0
-        REAL(DP) :: flatband_fermi = 0.D0
-        REAL(DP) :: bulk_sc_fermi = 0.D0
-        REAL(DP) :: surf_area_per_sq_cm = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -114,10 +110,6 @@ CONTAINS
         !
         this%lupdate = .FALSE.
         this%charge = 0.D0
-        this%slab_charge = 0.D0
-        this%flatband_fermi = 0.D0
-        this%bulk_sc_fermi = 0.D0
-        this%surf_area_per_sq_cm = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_semiconductor
@@ -128,13 +120,15 @@ CONTAINS
     SUBROUTINE init_environ_semiconductor(this, temperature, sc_permittivity, &
                                           sc_carrier_density, sc_electrode_chg, &
                                           sc_distance, sc_spread, sc_chg_thr, &
-                                          system, cell)
+                                          need_flatband, system, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: temperature, sc_permittivity, sc_electrode_chg, &
                                 sc_carrier_density, sc_distance, sc_spread, sc_chg_thr
+        !
+        LOGICAL, INTENT(IN) :: need_flatband
         !
         TYPE(environ_system), INTENT(IN) :: system
         TYPE(environ_cell), INTENT(IN) :: cell
@@ -146,7 +140,8 @@ CONTAINS
         CALL this%create()
         !
         CALL this%base%init(temperature, sc_permittivity, sc_carrier_density, &
-                            sc_electrode_chg, sc_distance, sc_spread, sc_chg_thr)
+                            sc_electrode_chg, sc_distance, sc_spread, sc_chg_thr, &
+                            need_flatband, cell%nr(3))
         !
         CALL this%density%init(cell, 'semiconductor')
         !
@@ -195,6 +190,8 @@ CONTAINS
         CALL this%density%destroy()
         !
         CALL this%simple%destroy()
+        !
+        CALL this%base%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_semiconductor

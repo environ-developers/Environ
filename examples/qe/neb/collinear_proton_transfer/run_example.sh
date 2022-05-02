@@ -177,7 +177,6 @@ cat > environ.in << EOF
    env_pressure = 10. 
  /
  &BOUNDARY
-   stype = 1
  /
 EOF
 

@@ -179,9 +179,9 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions(this, nat, ntyp, atom_label, ityp, zv, atomicspread, &
-                                 corespread, solvationrad, radius_mode, lsoftcavity, &
-                                 lsmearedions, lcoredensity, cell)
+    SUBROUTINE init_environ_ions(this, nat, ntyp, ityp, zv, atomicspread, corespread, &
+                                 solvationrad, radius_mode, lsoftcavity, lsmearedions, &
+                                 lcoredensity, cell, label, number, weight)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -189,11 +189,13 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=*), INTENT(IN) :: atom_label(ntyp)
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: atomicspread, corespread, solvationrad
         CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions, lcoredensity
         TYPE(environ_cell), INTENT(IN) :: cell
+        CHARACTER(LEN=*), OPTIONAL, TARGET, INTENT(IN) :: label(ntyp)
+        INTEGER, OPTIONAL, TARGET, INTENT(IN) :: number(ntyp)
+        REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: weight(ntyp)
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
@@ -205,6 +207,8 @@ CONTAINS
         CHARACTER(LEN=3), ALLOCATABLE :: labels(:)
         REAL(DP), DIMENSION(:), ALLOCATABLE :: atomic_spreads, core_spreads
         REAL(DP), DIMENSION(:), ALLOCATABLE :: solvation_radii, ionic_charges
+        !
+        CLASS(*), POINTER :: id
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_ions'
         !
@@ -228,9 +232,17 @@ CONTAINS
         !
         DO i = 1, ntyp
             !
-            CALL this%iontype(i)%init(i, atom_label(i), zv(i), radius_mode, &
-                                      atomicspread(i), corespread(i), solvationrad(i), &
-                                      lsoftcavity, lsmearedions)
+            IF (PRESENT(label)) THEN
+                id => label(i)
+            ELSE IF (PRESENT(number)) THEN
+                id => number(i)
+            ELSE IF (PRESENT(weight)) THEN
+                id => weight(i)
+            END IF
+            !
+            CALL this%iontype(i)%init(i, id, zv(i), radius_mode, atomicspread(i), &
+                                      corespread(i), solvationrad(i), lsoftcavity, &
+                                      lsmearedions)
             !
         END DO
         !
@@ -704,7 +716,7 @@ CONTAINS
 1000    FORMAT(/, 4('%'), " IONS ", 70('%'))
         !
 1001    FORMAT(/, " total charge               = ", F14.7, /, &
-                " center of charge           = ", 3F14.7, /, &
+                " center of mass             = ", 3F14.7, /, &
                 " dipole                     = ", 3F14.7, /, &
                 " quadrupole (pc)            = ", 3F14.7)
         !

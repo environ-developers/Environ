@@ -213,6 +213,15 @@ CONTAINS
                     !
                     CALL correction%potential(semiconductor%base, density, v)
                     !
+                CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
+                    !
+                    IF (.NOT. ASSOCIATED(charges%semiconductor)) &
+                        CALL io%error(sub_name, &
+                                      "Missing semiconductor for electrochemical boundary correction", 1)
+                    !
+                    CALL correction%potential(electrolyte%base, semiconductor%base, &
+                                              density, v)
+                    !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected corrections method", 1)
                     !
@@ -236,9 +245,9 @@ CONTAINS
         CLASS(solver_direct), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), OPTIONAL, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, INTENT(IN) :: semiconductor
         !
         TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_semiconductor), OPTIONAL, INTENT(INOUT) :: semiconductor
         !
         TYPE(environ_density) :: local
         !
@@ -284,6 +293,19 @@ CONTAINS
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%potential(semiconductor%base, charges, local)
+                    !
+                CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
+                    !
+                    IF (.NOT. PRESENT(semiconductor)) &
+                        CALL io%error(sub_name, &
+                                      "Missing semiconductor for electrochemical boundary correction", 1)
+                    !
+                    IF (.NOT. PRESENT(electrolyte)) &
+                        CALL io%error(sub_name, &
+                                      "Missing electrolyte for electrochemical boundary correction", 1)
+                    !
+                    CALL correction%potential(electrolyte%base, semiconductor%base, &
+                                              charges, local)
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected corrections method", 1)
@@ -356,6 +378,15 @@ CONTAINS
                     !
                     CALL correction%grad_potential(semiconductor%base, density, grad_v)
                     !
+                CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
+                    !
+                    IF (.NOT. ASSOCIATED(charges%semiconductor)) &
+                        CALL io%error(sub_name, &
+                                      "Missing semiconductor for electrochemical boundary correction", 1)
+                    !
+                    CALL correction%grad_potential(electrolyte%base, semiconductor%base, &
+                                                   density, grad_v)
+                    !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected corrections method", 1)
                     !
@@ -421,6 +452,15 @@ CONTAINS
                                       "Missing semiconductor for electrochemical boundary correction", 1)
                     !
                     CALL correction%grad_potential(semiconductor%base, charges, grad_v)
+                    !
+                CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
+                    !
+                    IF (.NOT. PRESENT(semiconductor)) &
+                        CALL io%error(sub_name, &
+                                      "Missing semiconductor for electrochemical boundary correction", 1)
+                    !
+                    CALL correction%grad_potential(electrolyte%base, semiconductor%base, &
+                                                   charges, grad_v)
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected corrections method", 1)

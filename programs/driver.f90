@@ -85,6 +85,30 @@ CONTAINS
             CASE ('--no-density')
                 no_density = .TRUE.
                 !
+            CASE ('--energy')
+                calc_energy = .TRUE.
+                !
+            CASE ('--force')
+                calc_force = .TRUE.
+                !
+            CASE ('-min')
+                !
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg)
+                !
+                READ (arg, *) alpha_min
+                !
+            CASE ('-max')
+                !
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg)
+                !
+                READ (arg, *) alpha_max
+                !
+            CASE ('-step')
+                !
+                CALL GET_COMMAND_ARGUMENT(i + 1, arg)
+                !
+                READ (arg, *) alpha_step
+                !
             END SELECT
             !
         END DO
@@ -104,6 +128,9 @@ CONTAINS
             !
         CASE ('tester')
             CALL run_tester()
+            !
+        CASE ('descriptors')
+            CALL run_descriptors_generator()
             !
         CASE ('from_cube')
             CALL run_environ_from_cube()

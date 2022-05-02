@@ -72,7 +72,6 @@ MODULE class_hessian
         !
         PROCEDURE, PRIVATE :: create => create_environ_hessian
         PROCEDURE :: init => init_environ_hessian
-        PROCEDURE :: copy => copy_environ_hessian
         PROCEDURE :: update_laplacian => update_hessian_laplacian
         PROCEDURE :: destroy => destroy_environ_hessian
         !
@@ -153,42 +152,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_hessian
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_hessian(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_hessian), INTENT(IN) :: this
-        !
-        TYPE(environ_hessian), INTENT(OUT) :: copy
-        !
-        INTEGER :: n
-        !
-        CHARACTER(LEN=80) :: sub_name = 'copy_environ_hessian'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        copy%cell => this%cell
-        copy%lupdate = this%lupdate
-        copy%label = this%label
-        !
-        IF (ALLOCATED(this%of_r)) THEN
-            n = SIZE(this%of_r, 3)
-            !
-            IF (ALLOCATED(copy%of_r)) DEALLOCATE (copy%of_r)
-            !
-            ALLOCATE (copy%of_r(3, 3, n))
-            copy%of_r = this%of_r
-        END IF
-        !
-        CALL this%laplacian%copy(copy%laplacian)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_hessian
     !------------------------------------------------------------------------------------
     !>
     !!

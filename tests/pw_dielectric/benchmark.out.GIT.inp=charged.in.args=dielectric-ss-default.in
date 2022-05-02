@@ -1,10 +1,11 @@
 
-     Program PWSCF v.6.7MaX starts on  1Oct2021 at 20:25:32 
+     Program PWSCF v.7.0 starts on 22Apr2022 at 20:17:22 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
          "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
+         "P. Giannozzi et al., J. Chem. Phys. 152 154105 (2020);
           URL http://www.quantum-espresso.org", 
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote
@@ -12,35 +13,19 @@
      Parallel version (MPI), running on     1 processors
 
      MPI processes distributed on     1 nodes
+     22835 MiB available memory on the printing compute node when the environment starts
+ 
      Reading input from charged.in
 
      Current dimensions of program PWSCF are:
      Max number of different atomic species (ntypx) = 10
      Max number of k-points (npk) =  40000
-     Max angular momentum in pseudopotentials (lmaxx) =  3
-
-     Reading input from environ.in
-
-     ================================================================================
-
-     Reading ENVIRON namelist
-
-     Reading BOUNDARY namelist
-
-     Checking boundary derivatives
-     derivatives               = lowmem         ! SSCS default
-
-     Reading ELECTROSTATIC namelist
-
-     Setting up electrostatic problem
-     problem                   = generalized    
-     solver                    = cg             
-
-     Checking PBC correction
-     pbc_correction            = none           ! default
-
-     ================================================================================
+     Max angular momentum in pseudopotentials (lmaxx) =  4
  
+     Reading input from environ.in:
+     * using ionic solvent mode
+     * setting boundary derivatives method to SSCS default
+     
      file C.pbe-rrkjus.UPF: wavefunction(s)  2S 2P renormalized
      file H.pbe-rrkjus.UPF: wavefunction(s)  1S renormalized
      file N.pbe-rrkjus.UPF: wavefunction(s)  2S renormalized
@@ -56,6 +41,8 @@
      --------------------
      sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
      Sum        9549    3809    949               701475   177509   22119
+ 
+     Using Slab Decomposition
  
 
 
@@ -73,27 +60,50 @@
      number of iterations used =            8  plain     mixing
      Exchange-correlation= SLA  PW   PBE  PBE
                            (   1   4   3   4   0   0   0)
+
+     ================================================================================
  
+                                  Environ Setup Summary
 
-     Environ Module
-     ==============
-
+     ================================================================================
+ 
      Please cite
-         O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)         
+
+          O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)
+
      in publications or presentations arising from this work.
+
+     ================================================================================
+ 
+     Parameters
+     ==========
 
      compensation onset threshold      =               0.1000E+03
      static permittivity               =                   100.00
-     epsilon calculation mode          =                    ionic
+
+     Solvent Boundary
+     ================
+
+     solvent mode                      =                    ionic
+     derivatives method                =                   lowmem
+     numerical core for derivatives    =                      fft
+     switching function adopted        =                     SCCS
+     density limit for vacuum region   =               0.5000E-02
+     density limit for bulk solvent    =               0.1000E-03
+     soft-sphere radius mode           =                      uff
+     soft-sphere softness              =                     0.50
+     alpha                             =                     1.00
 
      Electrostatic Setup
-     -------------------
-     electrostatic problem to solve    = generalized             
-     numerical solver adopted          = cg                      
-     type of auxiliary density adopted = none                    
-     type of core tool for poisson     = fft                     
+     ===================
 
+     electrostatic problem to solve    =              generalized
+     numerical solver adopted          =                       cg
+     type of auxiliary density adopted =                     none
+     numerical core for poisson        =                      fft
 
+     ================================================================================
+ 
 
      celldm(1)=  20.000000  celldm(2)=   0.000000  celldm(3)=   0.000000
      celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
@@ -110,7 +120,6 @@
 
 
      PseudoPot. # 1 for C  read from file:
-     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/C.pbe-rrkjus.UPF
      MD5 check sum: c9ac5a99bc85b198593446162950cd17
      Pseudo is Ultrasoft, Zval =  4.0
      Generated by new atomic code, or converted to UPF format
@@ -123,7 +132,6 @@
 
 
      PseudoPot. # 2 for H  read from file:
-     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/H.pbe-rrkjus.UPF
      MD5 check sum: 2d52a7f45632fd764c17cc6affed14c8
      Pseudo is Ultrasoft, Zval =  1.0
      Generated by new atomic code, or converted to UPF format
@@ -134,7 +142,6 @@
 
 
      PseudoPot. # 3 for N  read from file:
-     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/N.pbe-rrkjus.UPF
      MD5 check sum: 28c76d763763edb36c62a6ca2be9aebd
      Pseudo is Ultrasoft, Zval =  5.0
      Generated by new atomic code, or converted to UPF format
@@ -147,7 +154,6 @@
 
 
      PseudoPot. # 4 for O  read from file:
-     /home/simplogic86/Work/QE1/Environ/tests/../..//pseudo/O.pbe-rrkjus.UPF
      MD5 check sum: fadcf19ee70a498d3030e2e79cf929a4
      Pseudo is Ultrasoft, Zval =  6.0
      Generated by new atomic code, or converted to UPF format
@@ -195,12 +201,12 @@
 
      Initial potential from superposition of free atoms
 
-     starting charge   24.42266, renormalised to   24.00000
+     starting charge      24.4227, renormalised to      24.0000
 
      negative rho (up, down):  4.438E-04 0.000E+00
      Starting wfcs are   22 randomized atomic wfcs
 
-     total cpu time spent up to now is        9.4 secs
+     total cpu time spent up to now is        4.9 secs
 
      Self-consistent Calculation
 
@@ -213,7 +219,7 @@
      add environment contribution to local potential
      Polarization accuracy = 5.4E-06, # of iterations =  17
 
-     total cpu time spent up to now is       14.0 secs
+     total cpu time spent up to now is        8.3 secs
 
      total energy              =     -80.29562589 Ry
      estimated scf accuracy    <       3.64924908 Ry
@@ -229,7 +235,7 @@
      add environment contribution to local potential
      Polarization accuracy = 6.2E-06, # of iterations =  17
 
-     total cpu time spent up to now is       18.7 secs
+     total cpu time spent up to now is       12.5 secs
 
      total energy              =     -81.12511621 Ry
      estimated scf accuracy    <       1.21997961 Ry
@@ -245,7 +251,7 @@
      add environment contribution to local potential
      Polarization accuracy = 9.9E-06, # of iterations =  17
 
-     total cpu time spent up to now is       22.7 secs
+     total cpu time spent up to now is       16.8 secs
 
      total energy              =     -81.36290489 Ry
      estimated scf accuracy    <       0.12146851 Ry
@@ -261,7 +267,7 @@
      add environment contribution to local potential
      Polarization accuracy = 5.8E-06, # of iterations =  17
 
-     total cpu time spent up to now is       26.1 secs
+     total cpu time spent up to now is       20.2 secs
 
      total energy              =     -81.40299139 Ry
      estimated scf accuracy    <       0.01821925 Ry
@@ -277,7 +283,7 @@
      add environment contribution to local potential
      Polarization accuracy = 5.6E-06, # of iterations =  17
 
-     total cpu time spent up to now is       29.9 secs
+     total cpu time spent up to now is       24.1 secs
 
      total energy              =     -81.40731948 Ry
      estimated scf accuracy    <       0.00150414 Ry
@@ -293,7 +299,7 @@
      add environment contribution to local potential
      Polarization accuracy = 5.7E-06, # of iterations =  17
 
-     total cpu time spent up to now is       34.1 secs
+     total cpu time spent up to now is       27.9 secs
 
      total energy              =     -81.40771344 Ry
      estimated scf accuracy    <       0.00019683 Ry
@@ -309,7 +315,7 @@
      add environment contribution to local potential
      Polarization accuracy = 6.0E-06, # of iterations =  17
 
-     total cpu time spent up to now is       38.6 secs
+     total cpu time spent up to now is       31.8 secs
 
      total energy              =     -81.40777506 Ry
      estimated scf accuracy    <       0.00002056 Ry
@@ -324,7 +330,7 @@
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.0668 ev
 
-     total cpu time spent up to now is       39.9 secs
+     total cpu time spent up to now is       33.1 secs
 
      End of self-consistent calculation
 
@@ -363,54 +369,54 @@
 
      Total force =     0.348777     Total SCF correction =     0.001835
 
-     Writing output data file /home/simplogic86/Work/QE1/Environ/tests/../..//tempdir/pwscf.save/
  
-     init_run     :      8.78s CPU      9.31s WALL (       1 calls)
-     electrons    :     27.76s CPU     30.54s WALL (       1 calls)
-     forces       :     17.06s CPU     17.15s WALL (       1 calls)
+     init_run     :      4.22s CPU      4.77s WALL (       1 calls)
+     electrons    :     26.00s CPU     28.25s WALL (       1 calls)
+     forces       :      2.26s CPU      2.36s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.19s CPU      0.19s WALL (       1 calls)
-     potinit      :      0.54s CPU      0.61s WALL (       1 calls)
-     hinit0       :      7.52s CPU      7.76s WALL (       1 calls)
+     wfcinit      :      0.10s CPU      0.10s WALL (       1 calls)
+     potinit      :      0.51s CPU      0.54s WALL (       1 calls)
+     hinit0       :      3.07s CPU      3.43s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      1.74s CPU      1.81s WALL (       8 calls)
-     sum_band     :      3.39s CPU      4.05s WALL (       8 calls)
-     v_of_rho     :      3.77s CPU      4.17s WALL (       9 calls)
-     newd         :      2.47s CPU      3.34s WALL (       9 calls)
-     mix_rho      :      0.42s CPU      0.49s WALL (       8 calls)
+     c_bands      :      1.57s CPU      1.64s WALL (       8 calls)
+     sum_band     :      3.30s CPU      3.80s WALL (       8 calls)
+     v_of_rho     :      3.38s CPU      3.79s WALL (       9 calls)
+     newd         :      2.26s CPU      2.83s WALL (       9 calls)
+     mix_rho      :      0.41s CPU      0.41s WALL (       8 calls)
 
      Called by c_bands:
-     init_us_2    :      0.06s CPU      0.06s WALL (      17 calls)
-     regterg      :      1.61s CPU      1.67s WALL (       8 calls)
+     init_us_2    :      0.05s CPU      0.05s WALL (      17 calls)
+     init_us_2:cp :      0.05s CPU      0.05s WALL (      17 calls)
+     regterg      :      1.48s CPU      1.53s WALL (       8 calls)
 
      Called by *egterg:
      rdiaghg      :      0.01s CPU      0.01s WALL (      38 calls)
-     h_psi        :      1.62s CPU      1.68s WALL (      39 calls)
-     s_psi        :      0.04s CPU      0.04s WALL (      39 calls)
+     h_psi        :      1.42s CPU      1.47s WALL (      39 calls)
+     s_psi        :      0.03s CPU      0.03s WALL (      39 calls)
      g_psi        :      0.01s CPU      0.01s WALL (      30 calls)
 
      Called by h_psi:
-     h_psi:calbec :      0.04s CPU      0.04s WALL (      39 calls)
-     vloc_psi     :      1.54s CPU      1.60s WALL (      39 calls)
-     add_vuspsi   :      0.04s CPU      0.04s WALL (      39 calls)
+     h_psi:calbec :      0.03s CPU      0.03s WALL (      39 calls)
+     vloc_psi     :      1.34s CPU      1.39s WALL (      39 calls)
+     add_vuspsi   :      0.03s CPU      0.04s WALL (      39 calls)
 
      General routines
      calbec       :      0.05s CPU      0.05s WALL (      51 calls)
-     fft          :      1.74s CPU      1.79s WALL (      99 calls)
-     ffts         :      0.06s CPU      0.06s WALL (      17 calls)
-     fftw         :      1.28s CPU      1.33s WALL (     362 calls)
-     interpolate  :      0.25s CPU      0.26s WALL (       9 calls)
+     fft          :      1.62s CPU      1.87s WALL (      99 calls)
+     ffts         :      0.05s CPU      0.05s WALL (      17 calls)
+     fftw         :      1.12s CPU      1.17s WALL (     362 calls)
+     interpolate  :      0.22s CPU      0.22s WALL (       9 calls)
  
      Parallel routines
  
      Environ routines
  
-     PWSCF        :     53.68s CPU     57.08s WALL
+     PWSCF        :     32.54s CPU     35.49s WALL
 
  
-   This run was terminated on:  20:26:29   1Oct2021            
+   This run was terminated on:  20:17:58  22Apr2022            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -425,10 +431,10 @@
 %%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  total charge               =    -25.0000000
- center of charge           =      0.1910593    -0.0000030     0.1279620
+ center of charge           =      0.1036944    -0.0000075     0.0650154
  dipole                     =      0.0000000     0.0000000     0.0000000
- quadrupole (pc)            =    -79.0828051    -5.4513517  -105.8059620
- quadrupole (gauss)         =    -82.2078051    -8.5763517  -108.9309620
+ quadrupole (pc)            =    -79.2736207    -5.4513517  -105.9050187
+ quadrupole (gauss)         =    -82.3986207    -8.5763517  -109.0300187
 
    i | type | coordinates
  -----------------------------------------------------------------------
@@ -450,16 +456,16 @@
  system defined dimension   =              0
  system defined axis        =              3
 
- system center              =      0.1910593    -0.0000030     0.1279620
- system width               =      4.0428509
+ system center              =      0.1036944    -0.0000075     0.0650154
+ system width               =      4.0527608
 
 %%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  total charge               =    -25.0000000
- center of charge           =      0.1910593    -0.0000030     0.1279620
+ center of charge           =      0.1036944    -0.0000075     0.0650154
  dipole                     =      0.0000000     0.0000000     0.0000000
- quadrupole (pc)            =    -79.0828051    -5.4513517  -105.8059620
- quadrupole (gauss)         =    -82.2078051    -8.5763517  -108.9309620
+ quadrupole (pc)            =    -79.2736207    -5.4513517  -105.9050187
+ quadrupole (gauss)         =    -82.3986207    -8.5763517  -109.0300187
 
    i | type | coordinates
  -----------------------------------------------------------------------
@@ -481,8 +487,8 @@
  system defined dimension   =              0
  system defined axis        =              3
 
- system center              =      0.1910593    -0.0000030     0.1279620
- system width               =      4.0428509
+ system center              =      0.1036944    -0.0000075     0.0650154
+ system width               =      4.0527608
 
 %%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -499,13 +505,13 @@
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- total number of charges    =             11
+ total number of charges    =             10
 
  total charge               =    -25.0000000
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- total number of charges    =             11
+ total number of charges    =             10
 
  total charge               =    -25.0000000
 
@@ -591,7 +597,7 @@
 
  density label              = vreference                                        
 
- integral of density        =  -0.6906738556E-12
+ integral of density        =  -0.6883053798E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -611,9 +617,9 @@
   12 |   0.340996E+00 |   0.171160E-04 |   0.583649E-05 |   0.292705E-04 |   0.148049E-02 |   0.100000E-04
   13 |   0.417108E+00 |   0.437619E-05 |   0.182534E-05 |   0.187556E-04 |   0.607863E-03 |   0.100000E-04
   14 |   0.362061E+00 |   0.283002E-05 |   0.102464E-05 |   0.116704E-04 |   0.235352E-03 |   0.100000E-04
-  15 |   0.394135E+00 |   0.963664E-06 |   0.379813E-06 |   0.711660E-05 |   0.875164E-04 |   0.100000E-04
+  15 |   0.394135E+00 |   0.963664E-06 |   0.379813E-06 |   0.711661E-05 |   0.875164E-04 |   0.100000E-04
   16 |   0.478358E+00 |   0.236431E-06 |   0.113099E-06 |   0.389159E-05 |   0.261697E-04 |   0.100000E-04
-  17 |   0.494575E+00 |   0.779835E-07 |   0.385687E-07 |   0.176210E-05 |   0.536545E-05 |   0.100000E-04
+  17 |   0.494575E+00 |   0.779835E-07 |   0.385687E-07 |   0.176210E-05 |   0.536546E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -621,7 +627,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =  -0.7109374817E-12
+ integral of density        =  -0.1049892683E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -633,7 +639,7 @@
 
  density label              = dvtot                                             
 
- integral of density        =  -0.4883357093E-12
+ integral of density        =  -0.1032297704E-11
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -663,7 +669,7 @@
 
  density label              = vreference                                        
 
- integral of density        =   0.4128384877E-12
+ integral of density        =  -0.1519771963E-13
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -695,7 +701,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =   0.4553394698E-12
+ integral of density        =  -0.1973927195E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -707,7 +713,7 @@
 
  density label              = dvtot                                             
 
- integral of density        =   0.7641418362E-12
+ integral of density        =  -0.6804330761E-12
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -737,7 +743,7 @@
 
  density label              = vreference                                        
 
- integral of density        =  -0.1135552557E-12
+ integral of density        =  -0.5835661172E-13
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -761,7 +767,7 @@
   14 |   0.392292E+00 |   0.267024E-05 |   0.104751E-05 |   0.113326E-04 |   0.221922E-03 |   0.100000E-04
   15 |   0.420027E+00 |   0.844464E-06 |   0.354698E-06 |   0.656649E-05 |   0.745093E-04 |   0.100000E-04
   16 |   0.412660E+00 |   0.255109E-06 |   0.105273E-06 |   0.386766E-05 |   0.258488E-04 |   0.100000E-04
-  17 |   0.272890E+00 |   0.184658E-06 |   0.503913E-07 |   0.239817E-05 |   0.993813E-05 |   0.100000E-04
+  17 |   0.272890E+00 |   0.184658E-06 |   0.503913E-07 |   0.239817E-05 |   0.993814E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -769,7 +775,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =  -0.9750225318E-13
+ integral of density        =   0.2671772268E-12
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -781,7 +787,7 @@
 
  density label              = dvtot                                             
 
- integral of density        =  -0.1032322376E-12
+ integral of density        =   0.1280601140E-12
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -811,7 +817,7 @@
 
  density label              = vreference                                        
 
- integral of density        =  -0.1491481835E-12
+ integral of density        =  -0.2289526593E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -843,7 +849,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =   0.4148780085E-12
+ integral of density        =  -0.6617258182E-12
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -855,7 +861,7 @@
 
  density label              = dvtot                                             
 
- integral of density        =  -0.6578688211E-13
+ integral of density        =  -0.1901627004E-12
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -885,7 +891,7 @@
 
  density label              = vreference                                        
 
- integral of density        =   0.1156605675E-12
+ integral of density        =   0.1637537842E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -909,7 +915,7 @@
   14 |   0.383971E+00 |   0.264168E-05 |   0.101433E-05 |   0.111955E-04 |   0.216586E-03 |   0.100000E-04
   15 |   0.419151E+00 |   0.853676E-06 |   0.357820E-06 |   0.641857E-05 |   0.711902E-04 |   0.100000E-04
   16 |   0.454613E+00 |   0.215183E-06 |   0.978253E-07 |   0.357620E-05 |   0.220998E-04 |   0.100000E-04
-  17 |   0.454188E+00 |   0.710353E-07 |   0.322634E-07 |   0.180124E-05 |   0.560644E-05 |   0.100000E-04
+  17 |   0.454188E+00 |   0.710353E-07 |   0.322634E-07 |   0.180124E-05 |   0.560643E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -917,7 +923,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =   0.4817216584E-12
+ integral of density        =  -0.3868510450E-12
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -929,7 +935,7 @@
 
  density label              = dvtot                                             
 
- integral of density        =   0.9309405099E-12
+ integral of density        =   0.1157962615E-12
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -959,7 +965,7 @@
 
  density label              = vreference                                        
 
- integral of density        =  -0.1635564112E-12
+ integral of density        =  -0.4415891521E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -983,7 +989,7 @@
   14 |   0.381893E+00 |   0.266384E-05 |   0.101730E-05 |   0.112217E-04 |   0.217599E-03 |   0.100000E-04
   15 |   0.417581E+00 |   0.865622E-06 |   0.361467E-06 |   0.643952E-05 |   0.716558E-04 |   0.100000E-04
   16 |   0.453515E+00 |   0.217781E-06 |   0.987672E-07 |   0.359583E-05 |   0.223431E-04 |   0.100000E-04
-  17 |   0.452214E+00 |   0.720284E-07 |   0.325723E-07 |   0.181549E-05 |   0.569550E-05 |   0.100000E-04
+  17 |   0.452214E+00 |   0.720284E-07 |   0.325723E-07 |   0.181549E-05 |   0.569549E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -991,7 +997,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =  -0.1322267398E-11
+ integral of density        =  -0.3394815293E-13
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1003,7 +1009,7 @@
 
  density label              = dvtot                                             
 
- integral of density        =  -0.1268614843E-11
+ integral of density        =  -0.2154655055E-14
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1033,7 +1039,7 @@
 
  density label              = vreference                                        
 
- integral of density        =  -0.6401463721E-12
+ integral of density        =  -0.7728468071E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1057,7 +1063,7 @@
   14 |   0.381451E+00 |   0.266704E-05 |   0.101734E-05 |   0.112285E-04 |   0.217866E-03 |   0.100000E-04
   15 |   0.416796E+00 |   0.870355E-06 |   0.362760E-06 |   0.644235E-05 |   0.717187E-04 |   0.100000E-04
   16 |   0.451441E+00 |   0.219694E-06 |   0.991790E-07 |   0.361034E-05 |   0.225237E-04 |   0.100000E-04
-  17 |   0.434003E+00 |   0.765948E-07 |   0.332424E-07 |   0.186971E-05 |   0.604075E-05 |   0.100000E-04
+  17 |   0.434003E+00 |   0.765948E-07 |   0.332424E-07 |   0.186971E-05 |   0.604074E-05 |   0.100000E-04
 
  Charges are converged, EXIT
 
@@ -1065,7 +1071,7 @@
 
  density label              = velectrostatic                                    
 
- integral of density        =  -0.4917218895E-12
+ integral of density        =   0.4036277485E-12
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1077,7 +1083,7 @@
 
  density label              = dvtot                                             
 
- integral of density        =  -0.4171210702E-12
+ integral of density        =   0.8440018232E-12
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1107,19 +1113,19 @@
 
  density label              = dvtot                                             
 
- integral of density        =  -0.4171210702E-12
+ integral of density        =   0.8440018232E-12
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = vreference                                        
 
- integral of density        =  -0.6401463721E-12
+ integral of density        =  -0.7728468071E-12
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  density label              = velectrostatic                                    
 
- integral of density        =  -0.4917218895E-12
+ integral of density        =   0.4036277485E-12
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

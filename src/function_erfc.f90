@@ -85,18 +85,21 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function(this, density, zero)
+    SUBROUTINE density_of_function(this, density, zero, ir, vals, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), INTENT(IN) :: this
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
+        CLASS(environ_function_erfc), INTENT(INOUT) :: this
         TYPE(environ_density), INTENT(INOUT) :: density
         !
-        INTEGER :: i
-        LOGICAL :: physical
+        INTEGER, OPTIONAL, INTENT(OUT) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:), r_vals(:, :), dist_vals(:)
+        !
+        INTEGER :: i, count
+        LOGICAL :: physical, storing
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: local(:)
         !
@@ -114,6 +117,20 @@ CONTAINS
             density%of_r = this%volume
         ELSE IF (PRESENT(zero)) THEN
             IF (zero) density%of_r = 0.D0
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(ir)) THEN
+            !
+            IF (.NOT. PRESENT(vals) .OR. &
+                .NOT. PRESENT(r_vals) .OR. &
+                .NOT. PRESENT(dist_vals)) &
+                CALL io%error(sub_name, "Missing value arrays", 1)
+            !
+            storing = .TRUE.
+        ELSE
+            storing = .FALSE.
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -140,6 +157,8 @@ CONTAINS
             ALLOCATE (local(cell%nnr))
             local = 0.D0
             !
+            count = 1
+            !
             DO i = 1, cell%ir_end
                 !
                 CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
@@ -148,9 +167,21 @@ CONTAINS
                 IF (.NOT. physical) CYCLE
                 !
                 dist = SQRT(r2)
+                !
+                IF (dist > 5.D0 * spread + width) CYCLE
+                !
                 arg = (dist - width) / spread
                 !
                 local(i) = environ_erfc(arg) ! compute error function
+                !
+                IF (storing) THEN
+                    ir(count) = i
+                    vals(count) = density%of_r(i) + scale * local(i)
+                    r_vals(count, :) = r
+                    dist_vals(count) = dist
+                    count = count + 1
+                END IF
+                !
             END DO
             !
             !----------------------------------------------------------------------------
@@ -176,18 +207,21 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir, vals, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:, :)
         !
-        INTEGER :: i
-        LOGICAL :: physical
+        INTEGER :: i, imax, irs
+        LOGICAL :: physical, stored
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
@@ -203,6 +237,22 @@ CONTAINS
         !
         IF (PRESENT(zero)) THEN
             IF (zero) gradient%of_r = 0.D0
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(ir)) THEN
+            !
+            IF (.NOT. PRESENT(vals) .OR. &
+                .NOT. PRESENT(r_vals) .OR. &
+                .NOT. PRESENT(dist_vals)) &
+                CALL io%error(sub_name, "Missing value arrays", 1)
+            !
+            imax = SIZE(ir)
+            stored = .TRUE.
+        ELSE
+            imax = gradient%cell%nnr
+            stored = .FALSE.
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -229,18 +279,38 @@ CONTAINS
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
             !
-            DO i = 1, cell%ir_end
+            DO i = 1, imax
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                IF (stored) THEN
+                    !
+                    IF (ir(i) == -1) CYCLE
+                    !
+                    irs = ir(i)
+                ELSE
+                    irs = i
+                END IF
                 !
-                IF (.NOT. physical) CYCLE
+                IF (stored) THEN
+                    r = r_vals(i, :)
+                    dist = dist_vals(i)
+                ELSE
+                    !
+                    CALL cell%get_min_distance(irs, dim, axis, pos, r, r2, physical)
+                    ! compute minimum distance using minimum image convention
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    dist = SQRT(r2)
+                END IF
                 !
-                dist = SQRT(r2)
+                IF (dist > 5.D0 * spread + width) CYCLE
+                !
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) gradlocal(:, i) = -EXP(-arg**2) * r / dist
+                IF (dist > func_tol) gradlocal(:, irs) = -EXP(-arg**2) * r / dist
                 ! compute gradient of error function
+                !
+                IF (stored) vals(i, :) = gradient%of_r(:, irs) + gradlocal(:, irs) * scale
                 !
             END DO
             !
@@ -254,18 +324,21 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function(this, laplacian, zero)
+    SUBROUTINE laplacian_of_function(this, laplacian, zero, ir, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
+        !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
-        INTEGER :: i
-        LOGICAL :: physical
+        INTEGER :: i, imax, irs
+        LOGICAL :: physical, stored
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: lapllocal(:)
         !
@@ -281,6 +354,21 @@ CONTAINS
         !
         IF (PRESENT(zero)) THEN
             IF (zero) laplacian%of_r = 0.D0
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(ir)) THEN
+            !
+            IF (.NOT. PRESENT(r_vals) .OR. &
+                .NOT. PRESENT(dist_vals)) &
+                CALL io%error(sub_name, "Missing value arrays", 1)
+            !
+            imax = SIZE(ir)
+            stored = .TRUE.
+        ELSE
+            imax = laplacian%cell%nnr
+            stored = .FALSE.
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -307,14 +395,32 @@ CONTAINS
             ALLOCATE (lapllocal(cell%nnr))
             lapllocal = 0.D0
             !
-            DO i = 1, cell%ir_end
+            DO i = 1, imax
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                IF (stored) THEN
+                    !
+                    IF (ir(i) == -1) CYCLE
+                    !
+                    irs = ir(i)
+                ELSE
+                    irs = i
+                END IF
                 !
-                IF (.NOT. physical) CYCLE
+                IF (stored) THEN
+                    r = r_vals(i, :)
+                    dist = dist_vals(i)
+                ELSE
+                    !
+                    CALL cell%get_min_distance(irs, dim, axis, pos, r, r2, physical)
+                    ! compute minimum distance using minimum image convention
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    dist = SQRT(r2)
+                END IF
                 !
-                dist = SQRT(r2)
+                IF (dist > 5.D0 * spread + width) CYCLE
+                !
                 arg = (dist - width) / spread
                 !
                 !------------------------------------------------------------------------
@@ -325,17 +431,17 @@ CONTAINS
                 CASE (0)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(i) = -EXP(-arg**2) * &
-                                       (1.D0 / dist - arg / spread) * 2.D0
+                        lapllocal(irs) = -EXP(-arg**2) * &
+                                         (1.D0 / dist - arg / spread) * 2.D0
                     !
                 CASE (1)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(i) = -EXP(-arg**2) * &
-                                       (1.D0 / dist - 2.D0 * arg / spread)
+                        lapllocal(irs) = -EXP(-arg**2) * &
+                                         (1.D0 / dist - 2.D0 * arg / spread)
                     !
                 CASE (2)
-                    lapllocal(i) = EXP(-arg**2) * arg / spread * 2.D0
+                    lapllocal(irs) = EXP(-arg**2) * arg / spread * 2.D0
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, "Unexpected system dimensions", 1)
@@ -354,18 +460,21 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function(this, hessian, zero)
+    SUBROUTINE hessian_of_function(this, hessian, zero, ir, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
+        !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
-        INTEGER :: i, j, k
-        LOGICAL :: physical
+        INTEGER :: i, j, k, imax, irs
+        LOGICAL :: physical, stored
         REAL(DP) :: r(3), r2, scale, dist, arg, tmp, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: hesslocal(:, :, :)
         !
@@ -381,6 +490,21 @@ CONTAINS
         !
         IF (PRESENT(zero)) THEN
             IF (zero) hessian%of_r = 0.D0
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(ir)) THEN
+            !
+            IF (.NOT. PRESENT(r_vals) .OR. &
+                .NOT. PRESENT(dist_vals)) &
+                CALL io%error(sub_name, "Missing value arrays", 1)
+            !
+            imax = SIZE(ir)
+            stored = .TRUE.
+        ELSE
+            imax = hessian%cell%nnr
+            stored = .FALSE.
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -407,14 +531,32 @@ CONTAINS
             ALLOCATE (hesslocal(3, 3, cell%nnr))
             hesslocal = 0.D0
             !
-            DO i = 1, cell%ir_end
+            DO i = 1, imax
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                IF (stored) THEN
+                    !
+                    IF (ir(i) == -1) CYCLE
+                    !
+                    irs = ir(i)
+                ELSE
+                    irs = i
+                END IF
                 !
-                IF (.NOT. physical) CYCLE
+                IF (stored) THEN
+                    r = r_vals(i, :)
+                    dist = dist_vals(i)
+                ELSE
+                    !
+                    CALL cell%get_min_distance(irs, dim, axis, pos, r, r2, physical)
+                    ! compute minimum distance using minimum image convention
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    dist = SQRT(r2)
+                END IF
                 !
-                dist = SQRT(r2)
+                IF (dist > 5.D0 * spread + width) CYCLE
+                !
                 arg = (dist - width) / spread
                 !
                 !------------------------------------------------------------------------
@@ -429,7 +571,7 @@ CONTAINS
                             !
                             IF (j == k) tmp = tmp + dist
                             !
-                            hesslocal(j, k, i) = -EXP(-arg**2) * tmp / dist**2
+                            hesslocal(j, k, irs) = -EXP(-arg**2) * tmp / dist**2
                         END DO
                         !
                     END DO
@@ -448,18 +590,21 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE derivative_of_function(this, derivative, zero)
+    SUBROUTINE derivative_of_function(this, derivative, zero, ir, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_function_erfc), INTENT(IN) :: this
+        !
         LOGICAL, INTENT(IN), OPTIONAL :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
         TYPE(environ_density), INTENT(INOUT) :: derivative
         !
-        INTEGER :: i
-        LOGICAL :: physical
+        INTEGER :: i, imax, irs
+        LOGICAL :: physical, stored
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: derivlocal(:)
         !
@@ -475,6 +620,21 @@ CONTAINS
         !
         IF (PRESENT(zero)) THEN
             IF (zero) derivative%of_r = 0.D0
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(ir)) THEN
+            !
+            IF (.NOT. PRESENT(r_vals) .OR. &
+                .NOT. PRESENT(dist_vals)) &
+                CALL io%error(sub_name, "Missing value arrays", 1)
+            !
+            imax = SIZE(ir)
+            stored = .TRUE.
+        ELSE
+            imax = derivative%cell%nnr
+            stored = .FALSE.
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -499,18 +659,38 @@ CONTAINS
             !
             ALLOCATE (derivlocal(cell%nnr))
             derivlocal = 0.D0
+            !
             integral = 0.D0
             !
-            DO i = 1, cell%ir_end
+            DO i = 1, imax
                 !
-                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
+                IF (stored) THEN
+                    !
+                    IF (ir(i) == -1) CYCLE
+                    !
+                    irs = ir(i)
+                ELSE
+                    irs = i
+                END IF
                 !
-                IF (.NOT. physical) CYCLE
+                IF (stored) THEN
+                    r = r_vals(i, :)
+                    dist = dist_vals(i)
+                ELSE
+                    !
+                    CALL cell%get_min_distance(irs, dim, axis, pos, r, r2, physical)
+                    ! compute minimum distance using minimum image convention
+                    !
+                    IF (.NOT. physical) CYCLE
+                    !
+                    dist = SQRT(r2)
+                END IF
                 !
-                dist = SQRT(r2)
+                IF (dist > 5.D0 * spread + width) CYCLE
+                !
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) derivlocal(i) = -EXP(-arg**2)
+                IF (dist > func_tol) derivlocal(irs) = -EXP(-arg**2)
                 !
                 integral = integral + environ_erfc(arg)
             END DO

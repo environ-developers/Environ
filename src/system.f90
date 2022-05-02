@@ -333,7 +333,7 @@ CONTAINS
 1003    FORMAT(/, " system defined dimension   = ", I14, /, &
                 " system defined axis        = ", I14)
         !
-1004    FORMAT(/, " system center              = ", 3F14.7, /, &
+1004    FORMAT(/, " system center of mass      = ", 3F14.7, /, &
                 " system width               = ", F14.7)
         !
         !--------------------------------------------------------------------------------

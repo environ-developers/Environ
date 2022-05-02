@@ -313,6 +313,9 @@ CONTAINS
         sc_permittivity = 1.D0
         sc_carrier_density = 0.D0
         !
+        sc_electrode_chg = 0.D0
+        sc_chg_thr = 1.D-5
+        !
         env_external_charges = 0
         env_dielectric_regions = 0
         !
@@ -333,10 +336,8 @@ CONTAINS
         softness = 0.5D0
         solvationrad = -3.D0
         !
-        stype = 2
         rhomax = 0.005
         rhomin = 0.0001
-        tbeta = 4.8
         !
         corespread = -0.5D0
         !
@@ -365,7 +366,6 @@ CONTAINS
         !
         electrolyte_rhomax = 0.005D0
         electrolyte_rhomin = 0.0001D0
-        electrolyte_tbeta = 4.8D0
         !
         electrolyte_alpha = 1.D0
         electrolyte_softness = 0.5D0
@@ -488,6 +488,10 @@ CONTAINS
         !
         CALL env_mp_bcast(sc_carrier_density, io%node, io%comm)
         !
+        CALL env_mp_bcast(sc_electrode_chg, io%node, io%comm)
+        !
+        CALL env_mp_bcast(sc_chg_thr, io%node, io%comm)
+        !
         CALL env_mp_bcast(env_external_charges, io%node, io%comm)
         !
         CALL env_mp_bcast(env_dielectric_regions, io%node, io%comm)
@@ -504,13 +508,9 @@ CONTAINS
         !
         CALL env_mp_bcast(solvent_mode, io%node, io%comm)
         !
-        CALL env_mp_bcast(stype, io%node, io%comm)
-        !
         CALL env_mp_bcast(rhomax, io%node, io%comm)
         !
         CALL env_mp_bcast(rhomin, io%node, io%comm)
-        !
-        CALL env_mp_bcast(tbeta, io%node, io%comm)
         !
         CALL env_mp_bcast(radius_mode, io%node, io%comm)
         !
@@ -559,8 +559,6 @@ CONTAINS
         CALL env_mp_bcast(electrolyte_rhomax, io%node, io%comm)
         !
         CALL env_mp_bcast(electrolyte_rhomin, io%node, io%comm)
-        !
-        CALL env_mp_bcast(electrolyte_tbeta, io%node, io%comm)
         !
         CALL env_mp_bcast(electrolyte_alpha, io%node, io%comm)
         !
@@ -841,15 +839,11 @@ CONTAINS
         !
         IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'solvent_mode', solvent_mode)
         !
-        IF (stype > 2) CALL io%error(sub_name, "stype out of range", 1)
-        !
         IF (rhomax < 0.0_DP) CALL io%error(sub_name, "rhomax out of range", 1)
         !
         IF (rhomin < 0.0_DP) CALL io%error(sub_name, "rhomin out of range", 1)
         !
         IF (rhomax < rhomin) CALL io%error(sub_name, "Inconsistent rhomax and rhomin", 1)
-        !
-        IF (tbeta < 0.0_DP) CALL io%error(sub_name, "tbeta out of range", 1)
         !
         allowed = .FALSE.
         !
@@ -921,9 +915,6 @@ CONTAINS
         IF (electrolyte_rhomax < electrolyte_rhomin) &
             CALL io%error(sub_name, &
                           "Inconsistent electrolyte_rhomax and electrolyte_rhomin", 1)
-        !
-        IF (electrolyte_tbeta < 0.0_DP) &
-            CALL io%error(sub_name, "electrolyte_tbeta out of range", 1)
         !
         IF (electrolyte_alpha <= 0.0_DP) &
             CALL io%error(sub_name, "electrolyte_alpha out of range", 1)
@@ -1265,8 +1256,8 @@ CONTAINS
             SELECT CASE (environ_type)
                 !
             CASE ('water') ! SCCS for neutrals
-                env_surface_tension = 50.D0
-                env_pressure = -0.35D0
+                env_surface_tension = 47.9D0
+                env_pressure = -0.36D0
                 rhomax = 0.005
                 rhomin = 0.0001
                 !
@@ -1326,7 +1317,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Electrolyte checks
         !
-        IF (TRIM(pbc_correction) == 'gcs') THEN
+        SELECT CASE (pbc_correction)
+            !
+        CASE ('gcs', 'ms-gcs')
             !
             IF (electrolyte_distance == 0.0_DP) &
                 CALL io%error(sub_name, &
@@ -1340,11 +1333,15 @@ CONTAINS
                 !
             END IF
             !
-        END IF
+        END SELECT
         !
         IF (env_electrolyte_ntyp > 0) THEN
             !
-            IF (TRIM(pbc_correction) /= 'gcs') THEN
+            SELECT CASE (pbc_correction)
+                !
+            CASE ('gcs', 'ms-gcs')
+                !
+            CASE DEFAULT
                 !
                 IF (electrolyte_linearized) THEN
                     !
@@ -1370,7 +1367,7 @@ CONTAINS
                     !
                 END IF
                 !
-            END IF
+            END SELECT
             !
         END IF
         !
@@ -1423,9 +1420,9 @@ CONTAINS
             !
             IF (problem == 'none') problem = 'generalized'
             !
-            IF (TRIM(pbc_correction) /= 'gcs') THEN
-                IF (solver == 'none') solver = 'cg'
-            ELSE
+            SELECT CASE (pbc_correction)
+                !
+            CASE ('gcs', 'ms-gcs')
                 !
                 IF (solver /= 'fixed-point') THEN
                     solver = 'fixed-point'
@@ -1434,7 +1431,10 @@ CONTAINS
                     !
                 END IF
                 !
-            END IF
+            CASE DEFAULT
+                IF (solver == 'none') solver = 'cg'
+                !
+            END SELECT
             !
         ELSE
             !

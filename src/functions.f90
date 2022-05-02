@@ -72,7 +72,6 @@ MODULE class_functions
         !
         PROCEDURE, PRIVATE :: create => create_environ_functions
         PROCEDURE :: init => init_environ_functions
-        PROCEDURE :: copy => copy_environ_functions
         PROCEDURE :: update => update_environ_functions
         PROCEDURE :: destroy => destroy_environ_functions
         !
@@ -134,7 +133,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: f_type
         INTEGER, DIMENSION(n), INTENT(IN) :: f_dim, f_axis
         REAL(DP), DIMENSION(n), INTENT(IN) :: f_width, f_spread, f_volume
-        REAL(DP), TARGET, INTENT(IN) :: f_pos(3, n)
+        REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: f_pos(3, n)
         !
         CLASS(environ_functions), INTENT(INOUT) :: this
         !
@@ -210,52 +209,6 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_functions(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_functions), INTENT(IN) :: this
-        !
-        CLASS(environ_functions), INTENT(OUT) :: copy
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'copy_environ_functions'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ALLOCATED(this%array)) &
-            CALL io%error(sub_name, "Trying to copy an empty object", 1)
-        !
-        !--------------------------------------------------------------------------------
-        ! Cast function as concrete type
-        !
-        SELECT CASE (this%f_type)
-            !
-        CASE (1)
-            ALLOCATE (environ_function_gaussian :: copy%array(this%number))
-            !
-        CASE (2, 3, 4)
-            ALLOCATE (environ_function_erfc :: copy%array(this%number))
-            !
-        CASE DEFAULT
-            CALL io%error(sub_name, "Unexpected function type", 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, this%number
-            CALL this%array(i)%copy(copy%array(i))
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_functions
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE destroy_environ_functions(this)
         !--------------------------------------------------------------------------------
         !
@@ -296,7 +249,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_functions), INTENT(IN) :: this
+        CLASS(environ_functions), INTENT(INOUT) :: this
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
         TYPE(environ_density), INTENT(INOUT) :: density

@@ -46,6 +46,9 @@ MODULE class_environ
     USE class_gradient
     !
     USE class_boundary
+    USE class_boundary_electronic
+    USE class_boundary_ionic
+    USE class_boundary_system
     USE class_charges
     USE class_dielectric
     USE class_electrolyte
@@ -87,7 +90,7 @@ MODULE class_environ
         !--------------------------------------------------------------------------------
         ! Details of the continuum interface
         !
-        TYPE(environ_boundary) :: solvent
+        CLASS(environ_boundary), ALLOCATABLE :: solvent
         !
         !--------------------------------------------------------------------------------
         ! Response properties
@@ -191,7 +194,8 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE init_environ_base(this, nat, ntyp, ityp, zv, label, number, weight, &
+                                 only_boundary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -199,7 +203,10 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label(ntyp)
+        INTEGER, OPTIONAL, INTENT(IN) :: number(ntyp)
+        REAL(DP), OPTIONAL, INTENT(IN) :: weight(ntyp)
+        LOGICAL, OPTIONAL, INTENT(IN) :: only_boundary
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
@@ -207,9 +214,13 @@ CONTAINS
         !
         CALL this%create()
         !
-        CALL this%init_potential()
+        IF (.NOT. PRESENT(only_boundary)) THEN
+            CALL this%init_potential()
+        ELSE
+            this%setup%lelectrostatic = .FALSE.
+        END IF
         !
-        CALL this%init_physical(nat, ntyp, atom_label, ityp, zv)
+        CALL this%init_physical(nat, ntyp, ityp, zv, label, number, weight)
         !
         this%initialized = .TRUE.
         !
@@ -328,7 +339,7 @@ CONTAINS
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
-        REAL(DP) :: local_pos(3)
+        REAL(DP) :: local_pos(3), ext_pos(3, 2)
         !
         TYPE(environ_setup), POINTER :: setup
         !
@@ -338,6 +349,8 @@ CONTAINS
         !
         this%system_ions%lupdate = .TRUE.
         this%environment_ions%lupdate = .TRUE.
+        !
+        setup%niter_ionic = setup%niter_ionic + 1
         !
         !--------------------------------------------------------------------------------
         ! Update system ions parameters
@@ -409,10 +422,27 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! External charges rely on the environment cell, which is defined
-        ! with respect to the system origin
+        ! Update externals positions
+        ! Note: if using ms-gcs, set positions of Helmholtz planes
         !
-        IF (setup%lexternals) CALL this%externals%update()
+        IF (setup%lexternals) THEN
+            !
+            IF (setup%niter_ionic == 1) THEN
+                !
+                IF (setup%lmsgcs) THEN
+                    extcharge_pos = 0.D0
+                    extcharge_pos(3, 1) = MINVAL(this%system_ions%tau(3, :)) - 15.1178D0
+                    extcharge_pos(3, 2) = MAXVAL(this%system_ions%tau(3, :)) + 15.1178D0
+                END IF
+                !
+                CALL this%externals%functions%update(env_external_charges, &
+                                                     extcharge_pos)
+                !
+            END IF
+            !
+            CALL this%externals%update()
+            !
+        END IF
         !
         IF (setup%lelectrostatic .OR. setup%lconfine) THEN
             !
@@ -705,7 +735,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_physical(this, nat, ntyp, atom_label, ityp, zv)
+    SUBROUTINE environ_init_physical(this, nat, ntyp, ityp, zv, label, number, weight)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -713,12 +743,15 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label(ntyp)
+        INTEGER, OPTIONAL, INTENT(IN) :: number(ntyp)
+        REAL(DP), OPTIONAL, INTENT(IN) :: weight(ntyp)
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
+        !
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_physical'
         !
@@ -753,15 +786,15 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Ions
         !
-        CALL this%system_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
-                                   corespread, solvationrad, radius_mode, &
-                                   setup%lsoftcavity, setup%lsmearedions, &
-                                   setup%lcoredensity, system_cell)
+        CALL this%system_ions%init(nat, ntyp, ityp, zv, atomicspread, corespread, &
+                                   solvationrad, radius_mode, setup%lsoftcavity, &
+                                   setup%lsmearedions, setup%lcoredensity, system_cell, &
+                                   label, number, weight)
         !
-        CALL this%environment_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
-                                        corespread, solvationrad, radius_mode, &
-                                        setup%lsoftcavity, setup%lsmearedions, &
-                                        setup%lcoredensity, environment_cell)
+        CALL this%environment_ions%init(nat, ntyp, ityp, zv, atomicspread, corespread, &
+                                        solvationrad, radius_mode, setup%lsoftcavity, &
+                                        setup%lsmearedions, setup%lcoredensity, &
+                                        environment_cell, label, number, weight)
         !
         !--------------------------------------------------------------------------------
         ! Electrons
@@ -805,12 +838,43 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! External charges
         !
+        IF (setup%lmsgcs) THEN
+            !
+            !----------------------------------------------------------------------------
+            ! If ms-gcs calculation, add helmholtz planes
+            !
+            setup%lexternals = .TRUE.
+            env_external_charges = 2
+            !
+            IF (ALLOCATED(extcharge_dim) .OR. &
+                ALLOCATED(extcharge_axis) .OR. &
+                ALLOCATED(extcharge_charge) .OR. &
+                ALLOCATED(extcharge_spread) .OR. &
+                ALLOCATED(extcharge_pos)) &
+                CALL io%error(sub_name, "ms-gcs does not support user-defined external charges", 1)
+            !
+            ALLOCATE (extcharge_dim(env_external_charges))
+            ALLOCATE (extcharge_axis(env_external_charges))
+            ALLOCATE (extcharge_charge(env_external_charges))
+            ALLOCATE (extcharge_spread(env_external_charges))
+            ALLOCATE (extcharge_pos(3, env_external_charges))
+            !
+            extcharge_dim(1) = 2
+            extcharge_axis(1) = 3
+            extcharge_spread(1) = 0.25
+            extcharge_charge(1) = 0.0
+            !
+            extcharge_dim(2) = 2
+            extcharge_axis(2) = 3
+            extcharge_spread(2) = 0.25
+            extcharge_charge(2) = 0.0
+        END IF
+        !
         IF (setup%lexternals) THEN
             !
             CALL this%externals%init(env_external_charges, extcharge_dim, &
-                                     extcharge_axis, extcharge_pos, &
-                                     extcharge_spread, extcharge_charge, &
-                                     environment_cell)
+                                     extcharge_axis, extcharge_spread, &
+                                     extcharge_charge, environment_cell)
             !
             CALL this%environment_charges%add(externals=this%externals)
             !
@@ -825,15 +889,65 @@ CONTAINS
         !
         IF (setup%lsolvent) THEN
             !
-            CALL this%solvent%init( &
-                setup%lgradient, setup%need_factsqrt, setup%lsurface, &
-                solvent_mode, stype, rhomax, rhomin, tbeta, env_static_permittivity, &
-                alpha, softness, solvent_distance, solvent_spread, solvent_radius, &
-                radial_scale, radial_spread, filling_threshold, filling_spread, &
-                field_aware, field_factor, field_asymmetry, field_max, field_min, &
-                this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%outer_container, deriv_method, &
-                environment_cell, 'solvent')
+            !----------------------------------------------------------------------------
+            ! Casting and general setup
+            !
+            SELECT CASE (solvent_mode)
+                !
+            CASE ('electronic', 'full')
+                ALLOCATE (environ_boundary_electronic :: this%solvent)
+                !
+            CASE ('ionic')
+                ALLOCATE (environ_boundary_ionic :: this%solvent)
+                !
+            CASE ('system')
+                ALLOCATE (environ_boundary_system :: this%solvent)
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+                !
+            END SELECT
+            !
+            CALL this%solvent%pre_init( &
+                solvent_mode, setup%lgradient, setup%need_factsqrt, setup%lsurface, &
+                setup%outer_container, deriv_method, environment_cell, 'solvent')
+            !
+            !----------------------------------------------------------------------------
+            ! Boundary awareness
+            !
+            IF (solvent_radius > 0.D0) &
+                CALL this%solvent%init_solvent_aware(solvent_radius, radial_scale, &
+                                                     radial_spread, filling_threshold, &
+                                                     filling_spread)
+            !
+            IF (field_aware) &
+                CALL this%solvent%init_field_aware(field_factor, field_asymmetry, &
+                                                   field_max, field_min)
+            !
+            !----------------------------------------------------------------------------
+            ! Specific setup
+            !
+            SELECT TYPE (solvent => this%solvent)
+                !
+            TYPE IS (environ_boundary_electronic)
+                !
+                CALL solvent%init(rhomax, rhomin, this%environment_electrons, &
+                                  this%environment_ions)
+                !
+            TYPE IS (environ_boundary_ionic)
+                !
+                CALL solvent%init(alpha, softness, this%environment_ions, &
+                                  this%environment_electrons)
+                !
+            TYPE IS (environ_boundary_system)
+                !
+                CALL solvent%init(solvent_distance, solvent_spread, &
+                                  this%environment_system)
+                !
+            CLASS DEFAULT
+                CALL io%error(sub_name, "Unrecognized boundary mode", 1)
+                !
+            END SELECT
             !
         END IF
         !
@@ -843,8 +957,8 @@ CONTAINS
         IF (setup%lelectrolyte) THEN
             !
             CALL this%electrolyte%init( &
-                env_electrolyte_ntyp, electrolyte_mode, stype, electrolyte_rhomax, &
-                electrolyte_rhomin, electrolyte_tbeta, env_static_permittivity, &
+                env_electrolyte_ntyp, electrolyte_mode, electrolyte_rhomax, &
+                electrolyte_rhomin, env_static_permittivity, &
                 electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
                 filling_threshold, filling_spread, field_aware, field_factor, &
@@ -865,7 +979,8 @@ CONTAINS
             CALL this%semiconductor%init(temperature, sc_permittivity, &
                                          sc_carrier_density, sc_electrode_chg, &
                                          sc_distance, sc_spread, sc_chg_thr, &
-                                         this%environment_system, environment_cell)
+                                         setup%lmsgcs, this%environment_system, &
+                                         environment_cell)
             !
             CALL this%environment_charges%add(semiconductor=this%semiconductor)
             !

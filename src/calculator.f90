@@ -44,6 +44,9 @@ MODULE class_calculator
     USE class_density
     USE class_gradient
     !
+    USE class_boundary_electronic
+    USE class_boundary_ionic
+    !
     USE env_write_cube
     !
     !------------------------------------------------------------------------------------
@@ -226,15 +229,12 @@ CONTAINS
                 IF (main%solvent%solvent_aware) &
                     CALL main%solvent%sa_de_dboundary(de_dboundary)
                 !
-                ! if field-aware interface correct the potential
-                IF (main%solvent%field_aware) THEN
-                    CALL main%solvent%fa_de_drho(de_dboundary, main%vsoftcavity)
-                ELSE
+                SELECT TYPE (solvent => main%solvent)
                     !
-                    main%vsoftcavity%of_r = de_dboundary%of_r * main%solvent%dscaled%of_r
-                    ! multiply by derivative of the boundary w.r.t electronic density
+                TYPE IS (environ_boundary_electronic)
+                    main%vsoftcavity%of_r = de_dboundary%of_r * solvent%dscaled%of_r
                     !
-                END IF
+                END SELECT
                 !
             END IF
             !
@@ -248,20 +248,14 @@ CONTAINS
                 IF (main%electrolyte%boundary%solvent_aware) &
                     CALL main%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
-                ! if field-aware interface correct the potential
-                IF (main%electrolyte%boundary%field_aware) THEN
+                SELECT TYPE (boundary => main%electrolyte%boundary)
                     !
-                    CALL main%electrolyte%boundary%fa_de_drho(de_dboundary, &
-                                                              main%vsoftcavity)
+                TYPE IS (environ_boundary_electronic)
                     !
-                ELSE
+                    main%vsoftcavity%of_r = main%vsoftcavity%of_r + &
+                                            de_dboundary%of_r * boundary%dscaled%of_r
                     !
-                    ! multiply for the derivative of the boundary w.r.t electronic density
-                    main%vsoftcavity%of_r = &
-                        main%vsoftcavity%of_r + &
-                        de_dboundary%of_r * main%electrolyte%boundary%dscaled%of_r
-                    !
-                END IF
+                END SELECT
                 !
             END IF
             !
@@ -318,7 +312,7 @@ CONTAINS
         main%econfine = 0.D0
         main%eelectrolyte = 0.D0
         !
-        setup%niter = setup%niter + 1
+        setup%niter_scf = setup%niter_scf + 1
         !
         !--------------------------------------------------------------------------------
         ! If electrostatic is on, compute electrostatic energy
@@ -450,8 +444,6 @@ CONTAINS
                     CALL main%solvent%sa_de_dboundary(de_dboundary)
                 !
                 IF (main%solvent%field_aware) CALL main%solvent%ion_field_partial()
-                ! if field-aware, compute partial derivatives of field fluxes w.r.t
-                ! ionic positions
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
@@ -460,7 +452,6 @@ CONTAINS
                     !
                     CALL main%solvent%dboundary_dions(i, partial)
                     !
-                    ! if field-aware, correct the derivative of the interface function
                     IF (main%solvent%field_aware) &
                         CALL main%solvent%fa_dboundary_dions(i, partial)
                     !
@@ -481,9 +472,8 @@ CONTAINS
                 IF (main%electrolyte%boundary%solvent_aware) &
                     CALL main%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
-                IF (main%solvent%field_aware) CALL main%solvent%ion_field_partial()
-                ! if field-aware, compute partial derivatives of field fluxes w.r.t
-                ! ionic positions
+                IF (main%electrolyte%boundary%field_aware) &
+                    CALL main%electrolyte%boundary%ion_field_partial()
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
@@ -492,9 +482,8 @@ CONTAINS
                     !
                     CALL main%electrolyte%boundary%dboundary_dions(i, partial)
                     !
-                    ! if field-aware, correct the derivative of the interface function
-                    IF (main%solvent%field_aware) &
-                        CALL main%solvent%fa_dboundary_dions(i, partial)
+                    IF (main%electrolyte%boundary%field_aware) &
+                        CALL main%electrolyte%boundary%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)
@@ -595,7 +584,13 @@ CONTAINS
                     CALL main%optical%dv_dboundary(main%velectrostatic, &
                                                    dvelectrostatic, dv_dboundary)
                 !
-                dvsoftcavity%of_r = dv_dboundary%of_r * main%solvent%dscaled%of_r
+                SELECT TYPE (solvent => main%solvent)
+                    !
+                TYPE IS (environ_boundary_electronic)
+                    dvsoftcavity%of_r = dv_dboundary%of_r * solvent%dscaled%of_r
+                    !
+                END SELECT
+                !
             END IF
             !
             CALL setup%mapping%to_small(dvsoftcavity, aux)

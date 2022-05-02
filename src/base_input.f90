@@ -141,7 +141,7 @@ MODULE env_base_input
     ! the environment cell is (2*nrep+1) times the system cell along the three axis
     !
     REAL(DP) :: system_pos(3) = 0.D0 ! specified for finite-difference debugging
-    ! if not specified, system is fixed on center of charge
+    ! if not specified, system is fixed on center of mass
     !
     !------------------------------------------------------------------------------------
     ! Modification of electrostatic embedding (e.g. PBC correction)
@@ -250,11 +250,6 @@ MODULE env_base_input
     !=---------------------------------------------------------------------------------=!
     !
     ! Soft boundary (electronic) parameters
-    !
-    INTEGER :: stype = 2 ! type of switching functions used in the solvation models
-    ! 0: original Fattebert-Gygi
-    ! 1: ultrasoft switching function (only exponential part used for non-electrostatic)
-    ! 2: ultrasoft switching function as defined in Andreussi et al. JCP 2012
     !
     !------------------------------------------------------------------------------------
     ! Rigid boundary (ionic) parameters
@@ -389,9 +384,7 @@ MODULE env_base_input
     ! first parameter of the sw function, roughly corresponding to the density
     ! threshold of the solvation model
     !
-    REAL(DP) :: rhomin = 0.0001D0 ! second parameter of the sw function when stype=1 or 2
-    !
-    REAL(DP) :: tbeta = 4.8D0 ! second parameter of the sw function when stype=0
+    REAL(DP) :: rhomin = 0.0001D0 ! second parameter of the sw function
     !
     !------------------------------------------------------------------------------------
     ! Rigid solvent boundary (ionic) parameters
@@ -428,10 +421,7 @@ MODULE env_base_input
     ! to the density threshold of the ionic countercharge.
     !
     REAL(DP) :: electrolyte_rhomin = 0.0001D0
-    ! second parameter of the Stern sw function when stype=1 or 2
-    !
-    REAL(DP) :: electrolyte_tbeta = 4.8D0
-    ! second parameter of the Stern sw function when stype=0
+    ! second parameter of the Stern sw function
     !
     !------------------------------------------------------------------------------------
     ! Rigid Stern boundary (ionic) parameters
@@ -481,13 +471,13 @@ MODULE env_base_input
     !------------------------------------------------------------------------------------
     !
     NAMELIST /boundary/ &
-        solvent_mode, radius_mode, alpha, softness, solvationrad, stype, rhomax, &
-        rhomin, tbeta, corespread, solvent_distance, solvent_spread, solvent_radius, &
+        solvent_mode, radius_mode, alpha, softness, solvationrad, rhomax, &
+        rhomin, corespread, solvent_distance, solvent_spread, solvent_radius, &
         radial_scale, radial_spread, filling_threshold, filling_spread, field_aware, &
         field_factor, field_asymmetry, field_max, field_min, electrolyte_mode, &
         electrolyte_distance, electrolyte_spread, electrolyte_rhomax, &
-        electrolyte_rhomin, electrolyte_tbeta, electrolyte_alpha, &
-        electrolyte_softness, deriv_method, deriv_core, sc_distance, sc_spread
+        electrolyte_rhomin, electrolyte_alpha, electrolyte_softness, deriv_method, &
+        deriv_core, sc_distance, sc_spread
     !
     !=---------------------------------------------------------------------------------=!
 !     ELECTROSTATIC Namelist Input Parameters
@@ -680,9 +670,9 @@ MODULE env_base_input
     ! Periodic correction keywords
     !
     CHARACTER(LEN=80) :: pbc_correction = 'none'
-    CHARACTER(LEN=80) :: pbc_correction_allowed(4)
+    CHARACTER(LEN=80) :: pbc_correction_allowed(5)
     !
-    DATA pbc_correction_allowed/'none', 'parabolic', 'gcs', 'ms'/
+    DATA pbc_correction_allowed/'none', 'parabolic', 'gcs', 'ms', 'ms-gcs'/
     !
     ! type of periodic boundary condition correction to be used
     !
@@ -690,7 +680,9 @@ MODULE env_base_input
     !
     ! gcs       = Gouy-Chapman-Stern correction for electrolyte
     !
-    ! ms        = mott-schottky correction for semiconductor
+    ! ms        = Mott-Schottky correction for semiconductor
+    !
+    ! ms-gcs    = Mott-Schottky combined with Gouy-Chapman-Stern
     !
     INTEGER :: pbc_dim = -3 ! dimensionality of the simulation cell
     ! periodic boundary conditions on 3/2/1/0 sides of the cell

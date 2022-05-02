@@ -206,6 +206,7 @@ USE kinds,            ONLY : DP\
 USE mp_bands,         ONLY : intra_bgrp_comm\
 USE cell_base,        ONLY : at, alat\
 USE input_parameters, ONLY : nat, ntyp, atom_label\
+USE uspp_param,       ONLY : upf\
 USE ions_base,        ONLY : ityp, zv\
 USE gvect,            ONLY : gcutm\
 USE environ_api,      ONLY : environ\
@@ -237,7 +238,10 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL environ%setup%init_numerical()\
       !\
-      CALL environ%main%init(nat, ntyp, atom_label, ityp, zv)\
+      ! upf%psd (size of ntyp) are the atom labels read\
+      ! directly from the pseudopotential files\
+      !\
+      CALL environ%main%init(nat, ntyp, ityp, zv, label=upf%psd)\
       !\
   END IF\
 !Environ patch

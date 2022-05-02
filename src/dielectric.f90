@@ -55,6 +55,7 @@ MODULE class_dielectric
     USE class_gradient
     !
     USE class_boundary
+    USE class_boundary_electronic
     !
     !------------------------------------------------------------------------------------
     !
@@ -84,7 +85,7 @@ MODULE class_dielectric
         !
         !--------------------------------------------------------------------------------
         !
-        TYPE(environ_boundary), POINTER :: boundary => NULL()
+        CLASS(environ_boundary), POINTER :: boundary => NULL()
         ! boundary is the pointer to the object controlling the interface
         ! between the QM and the continuum region
         !
@@ -194,7 +195,7 @@ CONTAINS
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: need_gradient, need_factsqrt, need_auxiliary
-        TYPE(environ_boundary), TARGET, INTENT(IN) :: boundary
+        CLASS(environ_boundary), TARGET, INTENT(IN) :: boundary
         INTEGER, INTENT(IN) :: nregions
         TYPE(environ_cell), INTENT(IN) :: cell
         !
@@ -463,27 +464,10 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute epsilon(r) and its derivative wrt boundary
             !
-            SELECT CASE (this%boundary%b_type)
+            SELECT TYPE (boundary => this%boundary)
                 !
-            CASE (0, 2)
-                eps = 1.D0 + (const - 1.D0) * (1.D0 - scal)
-                deps = (1.D0 - const)
-                dlogeps = deps / eps
+            TYPE IS (environ_boundary_electronic)
                 !
-                IF (this%need_factsqrt) d2eps = 0.D0
-                !
-                IF (this%nregions > 0) THEN
-                    deps_dback = 1.D0 - scal
-                    dlogeps_dback = deps_dback / eps
-                    !
-                    IF (this%need_factsqrt) THEN
-                        d2eps_dback2 = 0.D0
-                        d2eps_dbackdbound = -1.D0
-                    END IF
-                    !
-                END IF
-                !
-            CASE (1)
                 eps = EXP(LOG(const) * (1.D0 - scal))
                 deps = -eps * LOG(const)
                 dlogeps = -LOG(const)
@@ -504,8 +488,24 @@ CONTAINS
                     !
                 END IF
                 !
-            CASE DEFAULT
-                CALL io%error(sub_name, "Unexpected boundary type", 1)
+            CLASS DEFAULT
+                !
+                eps = 1.D0 + (const - 1.D0) * (1.D0 - scal)
+                deps = (1.D0 - const)
+                dlogeps = deps / eps
+                !
+                IF (this%need_factsqrt) d2eps = 0.D0
+                !
+                IF (this%nregions > 0) THEN
+                    deps_dback = 1.D0 - scal
+                    dlogeps_dback = deps_dback / eps
+                    !
+                    IF (this%need_factsqrt) THEN
+                        d2eps_dback2 = 0.D0
+                        d2eps_dbackdbound = -1.D0
+                    END IF
+                    !
+                END IF
                 !
             END SELECT
             !

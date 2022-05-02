@@ -72,13 +72,16 @@ MODULE class_setup
     TYPE, PUBLIC :: environ_setup
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: has_numerical_setup = .FALSE.
+        !
         !--------------------------------------------------------------------------------
         ! Main flags
         !
         LOGICAL :: restart = .FALSE.
         REAL(DP) :: threshold = 0.0_DP
         INTEGER :: nskip = 0
-        INTEGER :: niter = 0
+        INTEGER :: niter_scf = 0
+        INTEGER :: niter_ionic = 0
         INTEGER :: nrep = 1
         !
         !--------------------------------------------------------------------------------
@@ -103,6 +106,7 @@ MODULE class_setup
         LOGICAL :: lregions = .FALSE.
         LOGICAL :: lelectrolyte = .FALSE.
         LOGICAL :: lsemiconductor = .FALSE.
+        LOGICAL :: lmsgcs = .FALSE.
         LOGICAL :: lperiodic = .FALSE.
         LOGICAL :: ldoublecell = .FALSE.
         LOGICAL :: ltddfpt = .FALSE.
@@ -195,6 +199,7 @@ MODULE class_setup
         PROCEDURE :: get_nnt
         PROCEDURE :: get_nri
         PROCEDURE :: is_tddfpt
+        PROCEDURE :: is_msgcs
         PROCEDURE :: is_restart
         PROCEDURE :: has_solvent
         PROCEDURE :: has_electrostatics
@@ -219,17 +224,17 @@ MODULE class_setup
     END TYPE environ_setup
     !------------------------------------------------------------------------------------
     !
-    CHARACTER(LEN=256) :: bibliography(4)
+    CHARACTER(LEN=256) :: bibliography(7)
     !
     DATA bibliography/ &
-        '"O. Andreussi, I. Dabo and N. Marzari, &
-        &J. Chem. Phys. 136, 064102 (2012)"', &
-        '"I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, &
-        &J. Chem. Phys. 142, 034111 (2015)"', &
-        '"O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
-        &J. Chem. Theory Comput. 15, 1996 (2019)"', &
-        '"F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, &
-        &J. Chem. Phys. 150, 041722 (2019)"'/
+        "O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)", &
+        "I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)", &
+        "O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
+        &J. Chem. Theory Comput. 15, 1996 (2019)", &
+        "F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, J. Chem. Phys. 150, 041722 (2019)", &
+        "M. Truscott, O. Andreussi, J. Phys. Chem. B, 123, 16, 3513–3524 (2019)", &
+        "Q. Campbell and I. Dabo, Phys. Rev. B 95, 205308 (2017)", &
+        "Q. Campbell, D. Fisher and I. Dabo, Phys. Rev. Mat. 3, 015404 (2019)"/
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -261,7 +266,8 @@ CONTAINS
         this%restart = .FALSE.
         this%threshold = 0.0_DP
         this%nskip = 0
-        this%niter = 0
+        this%niter_scf = 0
+        this%niter_ionic = 0
         this%nrep = 1
         this%static_permittivity = 0.0_DP
         this%optical_permittivity = 0.0_DP
@@ -301,6 +307,7 @@ CONTAINS
         this%need_gradient = .FALSE.
         this%need_factsqrt = .FALSE.
         this%need_auxiliary = .FALSE.
+        this%has_numerical_setup = .FALSE.
         !
         NULLIFY (this%environment_cell)
         !
@@ -449,6 +456,8 @@ CONTAINS
         CALL this%set_core_containers(use_internal_pbc_corr)
         !
         CALL this%set_electrostatics()
+        !
+        this%has_numerical_setup = .TRUE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_numerical_base
@@ -704,6 +713,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    LOGICAL FUNCTION is_msgcs(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(IN) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        is_msgcs = this%lmsgcs
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION is_msgcs
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     LOGICAL FUNCTION is_restart(this)
         !--------------------------------------------------------------------------------
         !
@@ -838,6 +864,11 @@ CONTAINS
             this%lperiodic = .TRUE.
             this%lsemiconductor = .TRUE.
             !
+        CASE ('ms-gcs') ! mott-schottky + gouy-chapman-stern
+            this%lperiodic = .TRUE.
+            this%lsemiconductor = .TRUE.
+            this%lmsgcs = .TRUE.
+            !
         CASE DEFAULT
             CALL io%error(sub_name, "Unexpected correction type", 1)
             !
@@ -914,7 +945,8 @@ CONTAINS
                         this%lconfine
         !
         this%lelectrostatic = this%ldielectric .OR. this%lelectrolyte .OR. &
-                              this%lexternals .OR. this%lperiodic .OR. field_aware
+                              this%lexternals .OR. this%lperiodic .OR. field_aware .OR. &
+                              env_electrostatic
         !
         this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
                                                  solvent_mode == 'full' .OR. &
@@ -1341,57 +1373,70 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Citations
         !
-        WRITE (io%unit, 1001) TRIM(bibliography(1))
+        WRITE (io%unit, 1001)
+        !
+        WRITE (io%unit, 1002) TRIM(bibliography(1))
+        !
+        IF (this%ltddfpt) WRITE (io%unit, 1002) TRIM(bibliography(2))
+        !
+        IF (solvent_radius > 0.D0) WRITE (io%unit, 1002) TRIM(bibliography(3))
+        !
+        IF (this%lelectrolyte) WRITE (io%unit, 1002) TRIM(bibliography(4))
+        !
+        IF (field_aware) WRITE (io%unit, 1002) TRIM(bibliography(5))
+        !
+        IF (this%lsemiconductor) WRITE (io%unit, 1002) TRIM(bibliography(6))
+        !
+        IF (this%lmsgcs) WRITE (io%unit, 1002) TRIM(bibliography(7))
+        !
+        WRITE (io%unit, 1003)
+        !
+        CALL io%divider(.TRUE.)
         !
         !--------------------------------------------------------------------------------
         ! General parameters
         !
-        WRITE (io%unit, 1002)
+        WRITE (io%unit, 1004)
         !
-        WRITE (io%unit, 1003) environ_thr
+        WRITE (io%unit, 1005) environ_thr
         !
         IF (env_static_permittivity > 1.D0) THEN
-            WRITE (io%unit, 1004) env_static_permittivity
+            WRITE (io%unit, 1006) env_static_permittivity
             !
-            IF (this%ltddfpt) WRITE (io%unit, 1005) env_optical_permittivity
+            IF (this%ltddfpt) WRITE (io%unit, 1007) env_optical_permittivity
             !
         END IF
         !
         IF (this%surface_tension > 0.D0) &
-            WRITE (io%unit, 1006) env_surface_tension, this%surface_tension
+            WRITE (io%unit, 1008) env_surface_tension, this%surface_tension
         !
         IF (this%pressure /= 0.D0) &
-            WRITE (io%unit, 1007) env_pressure, this%pressure
+            WRITE (io%unit, 1009) env_pressure, this%pressure
         !
         !--------------------------------------------------------------------------------
         ! Boundary parameters
         !
         IF (this%lsolvent) THEN
-            WRITE (io%unit, 1008)
-            WRITE (io%unit, 1009) TRIM(solvent_mode)
-            WRITE (io%unit, 1010) TRIM(deriv_method)
+            WRITE (io%unit, 1010)
+            WRITE (io%unit, 1011) TRIM(solvent_mode)
+            WRITE (io%unit, 1012) TRIM(deriv_method)
             !
-            IF (this%lelectrolyte) WRITE (io%unit, 1011) TRIM(electrolyte_deriv_method)
+            IF (this%lelectrolyte) WRITE (io%unit, 1013) TRIM(electrolyte_deriv_method)
             !
-            WRITE (io%unit, 1012) TRIM(deriv_core)
+            WRITE (io%unit, 1014) TRIM(deriv_core)
             !
-            IF (stype == 0) THEN
-                WRITE (io%unit, 1013) 'Fatteber-Gygi'
-                WRITE (io%unit, 1014) (rhomax + rhomin) * 0.5_DP, tbeta
-            ELSE
-                WRITE (io%unit, 1013) 'SCCS'
-                WRITE (io%unit, 1015) rhomax, rhomin
-            END IF
+            WRITE (io%unit, 1015) 'SCCS'
+            WRITE (io%unit, 1016) rhomax, rhomin
             !
             IF (solvent_mode == 'ionic') THEN
-                WRITE (io%unit, 1016) TRIM(radius_mode), softness, alpha
+                WRITE (io%unit, 1017) TRIM(radius_mode), softness, alpha
             END IF
             !
-            IF (solvent_radius > 0.D0) WRITE (io%unit, 1017)
+            IF (solvent_radius > 0.D0) WRITE (io%unit, 1018)
             !
             IF (field_aware) THEN
-                WRITE (io%unit, 1018)
-                WRITE (io%unit, 1019) field_factor, field_asymmetry, field_min, field_max
+                WRITE (io%unit, 1019)
+                WRITE (io%unit, 1020) field_factor, field_asymmetry, field_min, field_max
             END IF
             !
         END IF
@@ -1400,18 +1445,18 @@ CONTAINS
         ! Electrostatic Summary
         !
         IF (this%lelectrostatic) THEN
-            WRITE (io%unit, 1020)
+            WRITE (io%unit, 1021)
             !
-            WRITE (io%unit, 1021) &
+            WRITE (io%unit, 1022) &
                 TRIM(problem), TRIM(solver), TRIM(auxiliary), TRIM(core)
             !
             IF (inner_solver /= 'none') THEN
-                WRITE (io%unit, 1022)
-                WRITE (io%unit, 1023) TRIM(inner_solver), TRIM(inner_core)
+                WRITE (io%unit, 1023)
+                WRITE (io%unit, 1024) TRIM(inner_solver), TRIM(inner_core)
             END IF
             !
             IF (this%lperiodic) &
-                WRITE (io%unit, 1024) TRIM(pbc_correction), TRIM(pbc_core)
+                WRITE (io%unit, 1025) TRIM(pbc_correction), TRIM(pbc_core)
             !
         END IF
         !
@@ -1420,66 +1465,66 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
 1000    FORMAT(34X, "Environ Setup Summary")
-!
-1001    FORMAT(5X, "Please cite", /, 5X, A77, /, &
-               5X, "in publications or presentations arising from this work.")
         !
-1002    FORMAT(/, 5X, "Parameters", /, 5X, 10('='),/)
+1001    FORMAT(5X, "Please cite",/)
         !
-1003    FORMAT(5X, "compensation onset threshold      = ", E24.4)
+1002    FORMAT(10X, A)
         !
-1004    FORMAT(5X, "static permittivity               = ", F24.2)
+1003    FORMAT(/, 5X, "in publications or presentations arising from this work.")
         !
-1005    FORMAT(5X, "optical permittivity              = ", F24.4)
+1004    FORMAT(5X, "Parameters", /, 5X, 10('='),/)
         !
-1006    FORMAT(5X, "surface tension in input (dyn/cm) = ", F24.2, /, &
+1005    FORMAT(5X, "compensation onset threshold      = ", E24.4)
+        !
+1006    FORMAT(5X, "static permittivity               = ", F24.2)
+        !
+1007    FORMAT(5X, "optical permittivity              = ", F24.4)
+        !
+1008    FORMAT(5X, "surface tension in input (dyn/cm) = ", F24.2, /, &
                5X, "surface tension in internal units = ", E24.4)
         !
-1007    FORMAT(5X, "external pressure in input (GPa)  = ", F24.2, /, &
+1009    FORMAT(5X, "external pressure in input (GPa)  = ", F24.2, /, &
                5X, "external pressure in inter. units = ", E24.4)
         !
-1008    FORMAT(/, 5X, "Solvent Boundary", /, 5X, 16('='),/)
+1010    FORMAT(/, 5X, "Solvent Boundary", /, 5X, 16('='),/)
         !
-1009    FORMAT(5X, "solvent mode                      = ", A24)
+1011    FORMAT(5X, "solvent mode                      = ", A24)
         !
-1010    FORMAT(5X, "derivatives method                = ", A24)
-1011    FORMAT(5X, "electrolyte derivatives method    = ", A24)
-1012    FORMAT(5X, "numerical core for derivatives    = ", A24)
+1012    FORMAT(5X, "derivatives method                = ", A24)
+1013    FORMAT(5X, "electrolyte derivatives method    = ", A24)
+1014    FORMAT(5X, "numerical core for derivatives    = ", A24)
         !
-1013    FORMAT(5X, "switching function adopted        = ", A24)
+1015    FORMAT(5X, "switching function adopted        = ", A24)
         !
-1014    FORMAT(5X, "solvation density threshold       = ", E24.4, /, &
-               5X, "smoothness exponent (2 x beta)    = ", F24.2)
-        !
-1015    FORMAT(5X, "density limit for vacuum region   = ", E24.4, /, &
+1016    FORMAT(5X, "density limit for vacuum region   = ", E24.4, /, &
                5X, "density limit for bulk solvent    = ", E24.4)
         !
-1016    FORMAT(5X, "soft-sphere radius mode           = ", A24, /, &
+1017    FORMAT(5X, "soft-sphere radius mode           = ", A24, /, &
                5X, "soft-sphere softness              = ", F24.2, /, &
                5X, "alpha                             = ", F24.2)
         !
-1017    FORMAT(5X, "interface is solvent aware")
+1018    FORMAT(5X, "interface is solvent aware")
         !
-1018    FORMAT(5X, "interface is field aware")
+1019    FORMAT(5X, "interface is field aware")
         !
-1019    FORMAT(5X, "field aware factor                = ", F24.2, /, &
+1020    FORMAT(5X, "field aware factor                = ", F24.2, /, &
                5X, "asymmetry of field-awareness      = ", F24.2, /, &
                5X, "field limit for no correction     = ", F24.2, /, &
                5X, "field limit for full correction   = ", F24.2)
         !
-1020    FORMAT(/, 5X, "Electrostatic Setup", /, 5X, 19('='),/)
+1021    FORMAT(/, 5X, "Electrostatic Setup", /, 5X, 19('='),/)
         !
-1021    FORMAT(5X, "electrostatic problem to solve    = ", A24, /, &
+1022    FORMAT(5X, "electrostatic problem to solve    = ", A24, /, &
                5X, "numerical solver adopted          = ", A24, /, &
                5X, "type of auxiliary density adopted = ", A24, /, &
                5X, "numerical core for poisson        = ", A24)
         !
-1022    FORMAT(5X, "adopting a nested solver scheme")
+1023    FORMAT(5X, "adopting a nested solver scheme")
         !
-1023    FORMAT(5X, "inner solver                      = ", A24, /, &
+1024    FORMAT(5X, "inner solver                      = ", A24, /, &
                5X, "inner core                        = ", A24)
         !
-1024    FORMAT(5X, "type of pbc corrections           = ", A24, /, &
+1025    FORMAT(5X, "type of pbc corrections           = ", A24, /, &
                5X, "numerical core for corrections    = ", A24)
         !
         !--------------------------------------------------------------------------------

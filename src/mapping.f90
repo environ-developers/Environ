@@ -193,13 +193,13 @@ CONTAINS
         !
         IF (PRESENT(pos)) THEN
             tmp = MATMUL(this%small%bg, pos)
-            origin = NINT(tmp * small_n) ! center of charge
+            origin = NINT(tmp * small_n) ! center of mass
         ELSE
             origin = 0
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Compute shift placing center of charge at center of small cell
+        ! Compute shift placing center of mass at center of small cell
         ! (Minimizes potential cutting of DFT densities)
         !
         center = NINT(small_n / 2.D0)
@@ -220,7 +220,7 @@ CONTAINS
             IF (.NOT. physical) CYCLE
             !
             !----------------------------------------------------------------------------
-            ! Shift center of charge to center of small cell
+            ! Shift center of mass to center of small cell
             !
             ijk = ijk + shift
             ijk = ijk - FLOOR(DBLE(ijk) / small_n) * small_n ! enforce periodicity

@@ -42,15 +42,12 @@ MODULE environ_api
     USE class_setup
     !
     USE environ_input, ONLY: read_environ_input
-    USE class_iontype, ONLY: get_element
     !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     PRIVATE
-    !
-    PUBLIC :: get_atom_labels
     !
     !------------------------------------------------------------------------------------
     !>
@@ -83,22 +80,12 @@ MODULE environ_api
         !
         PROCEDURE :: calc_potential
         !
-        PROCEDURE :: get_coords_from_grid
-        !
         PROCEDURE, PRIVATE :: map_to_gridx
         !
         PROCEDURE :: destroy => destroy_interface
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_interface
-    !------------------------------------------------------------------------------------
-    !
-    INTERFACE get_atom_labels
-        MODULE PROCEDURE &
-            get_atom_labels_from_atomic_numbers, &
-            get_atom_labels_from_atomic_weights
-    END INTERFACE get_atom_labels
-    !
     !------------------------------------------------------------------------------------
     !
     TYPE(environ_interface), PUBLIC :: environ
@@ -217,11 +204,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%main%setup)) CALL io%destroy_error(sub_name)
-        !
-        IF (.NOT. ASSOCIATED(this%calc%main)) CALL io%destroy_error(sub_name)
-        !
-        IF (.NOT. ASSOCIATED(this%clean%main)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%main%setup) .OR. &
+            .NOT. ASSOCIATED(this%calc%main) .OR. &
+            .NOT. ASSOCIATED(this%clean%main)) THEN
+            !
+            CALL io%warning("interface not initialized - skipping cleanup", 1006)
+            !
+            RETURN
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         !
@@ -472,113 +463,6 @@ CONTAINS
 #endif
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_potential
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                             INPUT PROCESSING ROUTINES
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE get_atom_labels_from_atomic_numbers(number, label)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: number(:)
-        !
-        CHARACTER(LEN=*), INTENT(OUT) :: label(:)
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'get_atom_labels_from_atomic_numbers'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (SIZE(label) /= COUNT(number /= 0)) &
-            CALL io%error(sub_name, "Mismatch in array size", 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, SIZE(number)
-            label(i) = get_element(number(i))
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE get_atom_labels_from_atomic_numbers
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE get_atom_labels_from_atomic_weights(weight, label)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: weight(:)
-        !
-        CHARACTER(LEN=*), INTENT(OUT) :: label(:)
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: sub_name = 'get_atom_labels_from_atomic_weights'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (SIZE(label) /= COUNT(weight /= 0.D0)) &
-            CALL io%error(sub_name, "Mismatch in array size", 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        DO i = 1, SIZE(weight)
-               label(i) = get_element(weight(i))
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE get_atom_labels_from_atomic_weights
-    !------------------------------------------------------------------------------------
-    !>
-    !! Convert grid points to physical coordinates
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE get_coords_from_grid(this, coords)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_interface), INTENT(IN) :: this
-        !
-        REAL(DP), INTENT(INOUT) :: coords(:, :)
-        !
-        INTEGER :: ir
-        !
-        REAL(DP) :: r(3)
-        LOGICAL :: physical
-        !
-        CHARACTER(LEN=80) :: sub_name = 'get_coords_from_grid'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ALL(SHAPE(coords) == (/3, this%setup%system_cell%nnt/))) &
-            CALL io%error(sub_name, "Wrong size of array", 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        coords = 0.D0
-        !
-        DO ir = 1, this%setup%system_cell%nntx
-            !
-            CALL this%setup%system_cell%ir2r(ir, r, physical)
-            !
-            IF (.NOT. physical) CYCLE
-            !
-            coords(:, ir) = r
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE get_coords_from_grid
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
