@@ -433,11 +433,10 @@ CONTAINS
                     extcharge_pos = 0.D0
                     extcharge_pos(3, 1) = MINVAL(this%system_ions%tau(3, :)) - 15.1178D0
                     extcharge_pos(3, 2) = MAXVAL(this%system_ions%tau(3, :)) + 15.1178D0
-                    !
-                    CALL this%externals%functions%update(env_external_charges, &
-                                                         extcharge_pos)
-                    !
                 END IF
+                !
+                CALL this%externals%functions%update(env_external_charges, &
+                                                     extcharge_pos)
                 !
             END IF
             !
