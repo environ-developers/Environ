@@ -318,13 +318,15 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP) :: rho(this%setup%system_cell%nntx)
-        REAL(DP) :: aux(this%setup%system_cell%nnr)
+        REAL(DP), ALLOCATABLE :: rho(:)
+        REAL(DP), ALLOCATABLE :: aux(:)
         !
         !--------------------------------------------------------------------------------
         ! On certain machines, the FFT-grid dimensions are performance-optimized. If
         ! on such a machine, map incoming density (given on physical grid points) onto
         ! the optimized grid.
+        !
+        ALLOCATE (rho(this%setup%system_cell%nntx))
         !
 #if defined(__LINUX_ESSL)||defined(__SX6)
         CALL this%map_to_gridx(rho_in, rho)
@@ -334,6 +336,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Scatter density to processors
+        !
+        ALLOCATE (aux(this%setup%system_cell%nnr))
         !
 #if defined(__MPI)
         IF (PRESENT(lscatter)) THEN
@@ -370,11 +374,13 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP) :: aux(this%setup%system_cell%nnr)
+        REAL(DP), ALLOCATABLE :: aux(:)
         !
         CHARACTER(LEN=80) :: local_label = 'mbx_charges'
         !
         !--------------------------------------------------------------------------------
+        !
+        ALLOCATE (aux(this%setup%system_cell%nnr))
         !
 #if defined(__MPI)
         IF (PRESENT(lscatter)) THEN
@@ -435,15 +441,19 @@ CONTAINS
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
-        REAL(DP), INTENT(OUT) :: potential(this%setup%system_cell%nnt)
+        REAL(DP), ALLOCATABLE, INTENT(OUT) :: potential(:)
         !
-        REAL(DP) :: aux(this%setup%system_cell%nnr)
+        REAL(DP), ALLOCATABLE :: aux(:)
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%calc%potential(update, local_verbose)
         !
+        ALLOCATE (aux(this%setup%system_cell%nnr))
+        !
         aux = this%main%dvtot%of_r
+        !
+        ALLOCATE (potential(this%setup%system_cell%nnt))
         !
 #if defined(__MPI)
         IF (PRESENT(lgather)) THEN
@@ -479,21 +489,31 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_interface), INTENT(IN) :: this
-        REAL(DP), INTENT(IN) :: array_in(this%setup%system_cell%nnt)
+        CLASS(environ_interface), TARGET, INTENT(IN) :: this
+        REAL(DP), INTENT(IN) :: array_in(:)
         !
-        REAL(DP), INTENT(OUT) :: array_out(this%setup%system_cell%nntx)
+        REAL(DP), ALLOCATABLE, INTENT(OUT) :: array_out(:)
         !
         INTEGER :: ir, i, j, k
         LOGICAL :: physical
+        !
+        INTEGER, POINTER :: nntx
         !
         CHARACTER(LEN=80) :: routine = 'map_to_gridx'
         !
         !--------------------------------------------------------------------------------
         !
+        nntx => this%setup%system_cell%nntx
+        !
+        IF (SIZE(array_in) /= nntx) CALL io%error(routine, "wrong input array size", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ALLOCATE (array_out(nntx))
+        !
         array_out = 0.D0
         !
-        DO ir = 1, this%setup%system_cell%nntx
+        DO ir = 1, nntx
             !
             CALL this%setup%system_cell%ir2ijk(ir, i, j, k, physical)
             !
