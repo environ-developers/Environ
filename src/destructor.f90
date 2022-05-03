@@ -144,7 +144,12 @@ CONTAINS
             !
             IF (setup%lstatic) CALL main%static%destroy()
             !
-            IF (setup%lelectrolyte) CALL main%electrolyte%destroy()
+            IF (setup%lelectrolyte) THEN
+                !
+                CALL main%electrolyte%destroy()
+                !
+                DEALLOCATE (main%electrolyte%boundary)
+            END IF
             !
             IF (setup%lsemiconductor) CALL main%semiconductor%destroy()
             !
@@ -209,7 +214,12 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            IF (setup%lsolvent) CALL main%solvent%destroy()
+            IF (setup%lsolvent) THEN
+                !
+                CALL main%solvent%destroy()
+                !
+                DEALLOCATE (main%solvent)
+            END IF
             !
             !----------------------------------------------------------------------------
             !

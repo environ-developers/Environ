@@ -750,7 +750,6 @@ CONTAINS
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
-        !
         CHARACTER(LEN=80) :: routine = 'environ_init_physical'
         !
         !--------------------------------------------------------------------------------
