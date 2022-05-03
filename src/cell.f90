@@ -632,6 +632,43 @@ CONTAINS
     END SUBROUTINE ir2ijk
     !------------------------------------------------------------------------------------
     !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE ir2coords(this, ir, coords, physical)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: ir
+        !
+        REAL(DP), INTENT(OUT) :: coords(3)
+        LOGICAL, INTENT(OUT) :: physical
+        !
+        INTEGER :: i, j, k, l
+        !
+        !--------------------------------------------------------------------------------
+        !
+        coords = 0.D0
+        !
+        CALL this%ir2ijk(ir, i, j, k, physical)
+        !
+        IF (.NOT. physical) RETURN
+        !
+        DO l = 1, 3
+            !
+            coords(l) = DBLE(i) * this%in1 * this%at(l, 1) + &
+                        DBLE(j) * this%in2 * this%at(l, 2) + &
+                        DBLE(k) * this%in3 * this%at(l, 3)
+            !
+        END DO
+        !
+        coords = coords + this%origin
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE ir2coords
+    !------------------------------------------------------------------------------------
+    !>
     !! Map array onto parallelization-optimized grid
     !!
     !------------------------------------------------------------------------------------
@@ -793,43 +830,6 @@ CONTAINS
     !                               PRIVATE HELPER METHODS
     !
     !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE ir2coords(this, ir, coords, physical)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_cell), INTENT(IN) :: this
-        INTEGER, INTENT(IN) :: ir
-        !
-        REAL(DP), INTENT(OUT) :: coords(3)
-        LOGICAL, INTENT(OUT) :: physical
-        !
-        INTEGER :: i, j, k, l
-        !
-        !--------------------------------------------------------------------------------
-        !
-        coords = 0.D0
-        !
-        CALL this%ir2ijk(ir, i, j, k, physical)
-        !
-        IF (.NOT. physical) RETURN
-        !
-        DO l = 1, 3
-            !
-            coords(l) = DBLE(i) * this%in1 * this%at(l, 1) + &
-                        DBLE(j) * this%in2 * this%at(l, 2) + &
-                        DBLE(k) * this%in3 * this%at(l, 3)
-            !
-        END DO
-        !
-        coords = coords + this%origin
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE ir2coords
     !------------------------------------------------------------------------------------
     !>
     !!
