@@ -1,5 +1,5 @@
 
-     Program PWSCF v.7.0 starts on  2Apr2022 at 11:46:52 
+     Program PWSCF v.7.0 starts on  3May2022 at  7:46:57 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -13,8 +13,8 @@
      Parallel version (MPI), running on     1 processors
 
      MPI processes distributed on     1 nodes
-     22218 MiB available memory on the printing compute node when the environment starts
- 
+     19216 MiB available memory on the printing compute node when the environment starts
+
      Waiting for input...
      Reading input from standard input
 
@@ -22,7 +22,7 @@
      Max number of different atomic species (ntypx) = 10
      Max number of k-points (npk) =  40000
      Max angular momentum in pseudopotentials (lmaxx) =  4
- 
+
      Reading input from environ.in:
      * using ionic solvent mode
      * setting boundary derivatives method to SSCS default
@@ -30,18 +30,18 @@
      WARNING: atomic wfc #  2 for atom typeSi has zero norm
      WARNING: atomic wfc #  2 for atom typeSi has zero norm
      file O_PBE_USPP.UPF: wavefunction(s)  2S renormalized
- 
+
      Subspace diagonalization in iterative solution of the eigenvalue problem:
      a serial algorithm will be used
 
- 
+
      G-vector sticks info
      --------------------
      sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
      Sum         889     475    139                47263    18425    2965
- 
+
      Using Slab Decomposition
- 
+
 
 
      bravais-lattice index     =            4
@@ -60,14 +60,18 @@
                            (   1   4   3   4   0   0   0)
 
      ================================================================================
- 
+
                                   Environ Setup Summary
 
      ================================================================================
- 
+
      Please cite
-         "O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)"
+
+          O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)
+
      in publications or presentations arising from this work.
+
+     ================================================================================
 
      Parameters
      ==========
@@ -97,7 +101,7 @@
      numerical core for poisson        =                      fft
 
      ================================================================================
- 
+
 
      celldm(1)=   9.286303  celldm(2)=   0.000000  celldm(3)=   2.200200
      celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
@@ -108,9 +112,9 @@
                a(3) = (   0.000000   0.000000   2.200200 )  
 
      reciprocal axes: (cart. coord. in units 2 pi/alat)
-               b(1) = (  1.000000  0.577350  0.000000 )  
+               b(1) = (  1.000000  0.577350 -0.000000 )  
                b(2) = (  0.000000  1.154701  0.000000 )  
-               b(3) = (  0.000000  0.000000  0.454504 )  
+               b(3) = (  0.000000 -0.000000  0.454504 )  
 
 
      PseudoPot. # 1 for Si read from file:
@@ -193,6 +197,9 @@ Environ Warning (1005): wrong integral of erfc function
 Environ Warning (1005): wrong integral of erfc function
 
 
+Environ Warning (1005): wrong integral of erfc function
+
+
      Initial potential from superposition of free atoms
 
      starting charge      45.3753, renormalised to      48.0000
@@ -200,7 +207,7 @@ Environ Warning (1005): wrong integral of erfc function
      negative rho (up, down):  1.151E-04 0.000E+00
      Starting wfcs are   60 randomized atomic wfcs
 
-     total cpu time spent up to now is        1.2 secs
+     total cpu time spent up to now is        1.4 secs
 
      Self-consistent Calculation
 
@@ -213,12 +220,12 @@ Environ Warning (1005): wrong integral of erfc function
      add environment contribution to local potential
      Polarization accuracy = 6.7E-06, # of iterations =  29
 
-     total cpu time spent up to now is        2.0 secs
+     total cpu time spent up to now is        2.2 secs
 
      total energy              =    -214.85188126 Ry
      estimated scf accuracy    <       0.49248340 Ry
      electrostatic embedding   =       0.00000000 Ry
-     correction to one-el term =       0.00000000 Ry
+     correction to one-el term =      -0.00000000 Ry
 
      iteration #  2     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -229,12 +236,12 @@ Environ Warning (1005): wrong integral of erfc function
      add environment contribution to local potential
      Polarization accuracy = 7.0E-06, # of iterations =  29
 
-     total cpu time spent up to now is        2.7 secs
+     total cpu time spent up to now is        2.8 secs
 
-     total energy              =    -214.98515651 Ry
-     estimated scf accuracy    <       0.21381953 Ry
-     electrostatic embedding   =      -0.08873749 Ry
-     correction to one-el term =      -1.13059394 Ry
+     total energy              =    -214.98515653 Ry
+     estimated scf accuracy    <       0.21381952 Ry
+     electrostatic embedding   =      -0.08873751 Ry
+     correction to one-el term =      -1.13059488 Ry
 
      iteration #  3     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -245,12 +252,12 @@ Environ Warning (1005): wrong integral of erfc function
      add environment contribution to local potential
      Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        3.3 secs
+     total cpu time spent up to now is        3.4 secs
 
-     total energy              =    -215.03329376 Ry
-     estimated scf accuracy    <       0.02683001 Ry
-     electrostatic embedding   =      -0.17045164 Ry
-     correction to one-el term =      -1.06923428 Ry
+     total energy              =    -215.03329377 Ry
+     estimated scf accuracy    <       0.02683002 Ry
+     electrostatic embedding   =      -0.17045163 Ry
+     correction to one-el term =      -1.06923508 Ry
 
      iteration #  4     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -259,14 +266,14 @@ Environ Warning (1005): wrong integral of erfc function
      negative rho (up, down):  1.365E-03 0.000E+00
 
      add environment contribution to local potential
-     Polarization accuracy = 7.1E-06, # of iterations =  29
+     Polarization accuracy = 7.2E-06, # of iterations =  29
 
-     total cpu time spent up to now is        3.8 secs
+     total cpu time spent up to now is        3.9 secs
 
-     total energy              =    -215.03745891 Ry
+     total energy              =    -215.03745892 Ry
      estimated scf accuracy    <       0.00743323 Ry
-     electrostatic embedding   =      -0.17659201 Ry
-     correction to one-el term =      -1.23914459 Ry
+     electrostatic embedding   =      -0.17659202 Ry
+     correction to one-el term =      -1.23914530 Ry
 
      iteration #  5     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -275,14 +282,14 @@ Environ Warning (1005): wrong integral of erfc function
      negative rho (up, down):  1.409E-03 0.000E+00
 
      add environment contribution to local potential
-     Polarization accuracy = 7.2E-06, # of iterations =  29
+     Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        4.4 secs
+     total cpu time spent up to now is        4.7 secs
 
-     total energy              =    -215.03917865 Ry
-     estimated scf accuracy    <       0.00129588 Ry
-     electrostatic embedding   =      -0.19658818 Ry
-     correction to one-el term =      -1.38213532 Ry
+     total energy              =    -215.03917862 Ry
+     estimated scf accuracy    <       0.00129587 Ry
+     electrostatic embedding   =      -0.19658815 Ry
+     correction to one-el term =      -1.38213400 Ry
 
      iteration #  6     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -291,14 +298,14 @@ Environ Warning (1005): wrong integral of erfc function
      negative rho (up, down):  1.356E-03 0.000E+00
 
      add environment contribution to local potential
-     Polarization accuracy = 7.2E-06, # of iterations =  29
+     Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        5.1 secs
+     total cpu time spent up to now is        5.3 secs
 
      total energy              =    -215.03963979 Ry
      estimated scf accuracy    <       0.00024484 Ry
      electrostatic embedding   =      -0.20389881 Ry
-     correction to one-el term =      -1.42644120 Ry
+     correction to one-el term =      -1.42644066 Ry
 
      iteration #  7     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -309,12 +316,12 @@ Environ Warning (1005): wrong integral of erfc function
      add environment contribution to local potential
      Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        5.6 secs
+     total cpu time spent up to now is        5.8 secs
 
-     total energy              =    -215.03975101 Ry
+     total energy              =    -215.03975104 Ry
      estimated scf accuracy    <       0.00000911 Ry
-     electrostatic embedding   =      -0.20457746 Ry
-     correction to one-el term =      -1.50342375 Ry
+     electrostatic embedding   =      -0.20457751 Ry
+     correction to one-el term =      -1.50342552 Ry
 
      iteration #  8     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -325,12 +332,12 @@ Environ Warning (1005): wrong integral of erfc function
      add environment contribution to local potential
      Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        6.3 secs
+     total cpu time spent up to now is        6.4 secs
 
-     total energy              =    -215.03977642 Ry
+     total energy              =    -215.03977643 Ry
      estimated scf accuracy    <       0.00000482 Ry
      electrostatic embedding   =      -0.20409986 Ry
-     correction to one-el term =      -1.49961457 Ry
+     correction to one-el term =      -1.49961558 Ry
 
      iteration #  9     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -341,12 +348,12 @@ Environ Warning (1005): wrong integral of erfc function
      add environment contribution to local potential
      Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        6.8 secs
+     total cpu time spent up to now is        7.0 secs
 
-     total energy              =    -215.03978897 Ry
+     total energy              =    -215.03978895 Ry
      estimated scf accuracy    <       0.00000096 Ry
      electrostatic embedding   =      -0.20467127 Ry
-     correction to one-el term =      -1.50451586 Ry
+     correction to one-el term =      -1.50451549 Ry
 
      iteration # 10     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -357,12 +364,12 @@ Environ Warning (1005): wrong integral of erfc function
      add environment contribution to local potential
      Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        7.4 secs
+     total cpu time spent up to now is        7.5 secs
 
      total energy              =    -215.03979452 Ry
      estimated scf accuracy    <       0.00000014 Ry
-     electrostatic embedding   =      -0.20462458 Ry
-     correction to one-el term =      -1.50377170 Ry
+     electrostatic embedding   =      -0.20462457 Ry
+     correction to one-el term =      -1.50377158 Ry
 
      iteration # 11     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -371,14 +378,14 @@ Environ Warning (1005): wrong integral of erfc function
      negative rho (up, down):  1.226E-03 0.000E+00
 
      add environment contribution to local potential
-     Polarization accuracy = 7.2E-06, # of iterations =  29
+     Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        8.0 secs
+     total cpu time spent up to now is        8.1 secs
 
-     total energy              =    -215.03979732 Ry
+     total energy              =    -215.03979730 Ry
      estimated scf accuracy    <       0.00000002 Ry
-     electrostatic embedding   =      -0.20471932 Ry
-     correction to one-el term =      -1.50314623 Ry
+     electrostatic embedding   =      -0.20471930 Ry
+     correction to one-el term =      -1.50314580 Ry
 
      iteration # 12     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
@@ -389,22 +396,22 @@ Environ Warning (1005): wrong integral of erfc function
      add environment contribution to local potential
      Polarization accuracy = 7.1E-06, # of iterations =  29
 
-     total cpu time spent up to now is        8.6 secs
+     total cpu time spent up to now is        8.7 secs
 
-     total energy              =    -215.03979857 Ry
+     total energy              =    -215.03979862 Ry
      estimated scf accuracy    <          2.0E-09 Ry
-     electrostatic embedding   =      -0.20470515 Ry
-     correction to one-el term =      -1.50223159 Ry
+     electrostatic embedding   =      -0.20470521 Ry
+     correction to one-el term =      -1.50223396 Ry
 
      iteration # 13     ecut=    20.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  4.09E-12,  avg # of iterations =  4.0
+     ethr =  4.11E-12,  avg # of iterations =  4.0
 
      negative rho (up, down):  1.222E-03 0.000E+00
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.6723 ev
 
-     total cpu time spent up to now is        9.1 secs
+     total cpu time spent up to now is        9.2 secs
 
      End of self-consistent calculation
 
@@ -417,15 +424,15 @@ Environ Warning (1005): wrong integral of erfc function
 
           k = 0.0000-0.5774 0.0000 (  2290 PWs)   bands (ev):
 
-   -21.7834 -21.0205 -20.6346 -20.3496 -17.7983 -17.7825 -10.9261  -9.4461
-    -8.5006  -8.1123  -5.8427  -5.7378  -5.1082  -4.8556  -4.6875  -4.5432
+   -21.7835 -21.0205 -20.6346 -20.3496 -17.7983 -17.7825 -10.9261  -9.4461
+    -8.5007  -8.1123  -5.8427  -5.7378  -5.1082  -4.8556  -4.6875  -4.5432
     -4.0145  -3.7974  -3.6157  -3.2806  -2.0215  -1.9685  -1.7404  -1.6793
      1.5326   1.7052   5.5069   5.6782   6.2305   6.5801
 
           k = 0.5000-0.2887 0.0000 (  2290 PWs)   bands (ev):
 
    -21.4936 -21.0622 -20.9372 -20.3972 -17.7909 -17.7708 -10.1545  -9.6105
-    -9.1186  -7.7976  -5.7996  -5.7403  -5.0852  -4.6496  -4.5841  -4.4377
+    -9.1186  -7.7976  -5.7997  -5.7403  -5.0852  -4.6496  -4.5841  -4.4377
     -4.3763  -4.0390  -3.6284  -3.4321  -2.1129  -1.9681  -1.7369  -1.6907
      1.1424   1.2347   5.3457   6.2217   6.4781   6.6670
 
@@ -438,68 +445,68 @@ Environ Warning (1005): wrong integral of erfc function
 
      the Fermi energy is    -0.5422 ev
 
-!    total energy              =    -215.03979986 Ry
-     estimated scf accuracy    <          7.9E-10 Ry
+!    total energy              =    -215.03979985 Ry
+     estimated scf accuracy    <          8.0E-10 Ry
      smearing contrib. (-TS)   =       0.00012742 Ry
-     internal energy E=F+TS    =    -215.03992728 Ry
+     internal energy E=F+TS    =    -215.03992727 Ry
 
      The total energy is F=E-TS. E is the sum of the following terms:
-     one-electron contribution =    -417.69710925 Ry
-     hartree contribution      =     225.78899935 Ry
-     xc contribution           =     -49.77400429 Ry
+     one-electron contribution =    -417.69711200 Ry
+     hartree contribution      =     225.78900526 Ry
+     xc contribution           =     -49.77400508 Ry
      ewald contribution        =      28.34908311 Ry
-     electrostatic embedding   =      -0.20471342 Ry
-     correction to one-el term =      -1.50218277 Ry
+     electrostatic embedding   =      -0.20471340 Ry
+     correction to one-el term =      -1.50218515 Ry
 
      convergence has been achieved in  13 iterations
 
- 
-     init_run     :      1.01s CPU      1.04s WALL (       1 calls)
-     electrons    :      7.82s CPU      7.88s WALL (       1 calls)
+
+     init_run     :      0.97s CPU      1.11s WALL (       1 calls)
+     electrons    :      7.75s CPU      7.79s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.21s CPU      0.21s WALL (       1 calls)
-     potinit      :      0.07s CPU      0.07s WALL (       1 calls)
-     hinit0       :      0.69s CPU      0.70s WALL (       1 calls)
+     wfcinit      :      0.21s CPU      0.22s WALL (       1 calls)
+     potinit      :      0.15s CPU      0.18s WALL (       1 calls)
+     hinit0       :      0.57s CPU      0.62s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      4.24s CPU      4.27s WALL (      13 calls)
-     sum_band     :      1.23s CPU      1.23s WALL (      13 calls)
-     v_of_rho     :      0.44s CPU      0.44s WALL (      14 calls)
-     newd         :      0.40s CPU      0.40s WALL (      14 calls)
+     c_bands      :      3.97s CPU      3.99s WALL (      13 calls)
+     sum_band     :      1.13s CPU      1.13s WALL (      13 calls)
+     v_of_rho     :      0.53s CPU      0.55s WALL (      14 calls)
+     newd         :      0.44s CPU      0.45s WALL (      14 calls)
      mix_rho      :      0.05s CPU      0.05s WALL (      13 calls)
 
      Called by c_bands:
      init_us_2    :      0.07s CPU      0.07s WALL (     108 calls)
      init_us_2:cp :      0.07s CPU      0.07s WALL (     108 calls)
-     cegterg      :      4.02s CPU      4.04s WALL (      52 calls)
+     cegterg      :      3.83s CPU      3.84s WALL (      52 calls)
 
      Called by *egterg:
-     cdiaghg      :      0.17s CPU      0.17s WALL (     219 calls)
-     h_psi        :      3.29s CPU      3.30s WALL (     223 calls)
-     s_psi        :      0.17s CPU      0.17s WALL (     223 calls)
-     g_psi        :      0.01s CPU      0.01s WALL (     167 calls)
+     cdiaghg      :      0.16s CPU      0.16s WALL (     219 calls)
+     h_psi        :      3.14s CPU      3.15s WALL (     223 calls)
+     s_psi        :      0.15s CPU      0.15s WALL (     223 calls)
+     g_psi        :      0.02s CPU      0.02s WALL (     167 calls)
 
      Called by h_psi:
-     h_psi:calbec :      0.18s CPU      0.18s WALL (     223 calls)
-     vloc_psi     :      2.92s CPU      2.94s WALL (     223 calls)
-     add_vuspsi   :      0.17s CPU      0.17s WALL (     223 calls)
+     h_psi:calbec :      0.17s CPU      0.17s WALL (     223 calls)
+     vloc_psi     :      2.79s CPU      2.81s WALL (     223 calls)
+     add_vuspsi   :      0.16s CPU      0.16s WALL (     223 calls)
 
      General routines
-     calbec       :      0.23s CPU      0.23s WALL (     275 calls)
+     calbec       :      0.21s CPU      0.21s WALL (     275 calls)
      fft          :      0.14s CPU      0.14s WALL (     179 calls)
-     ffts         :      0.01s CPU      0.01s WALL (      27 calls)
-     fftw         :      3.12s CPU      3.14s WALL (   10104 calls)
-     interpolate  :      0.02s CPU      0.02s WALL (      14 calls)
- 
-     Parallel routines
- 
-     Environ routines
- 
-     PWSCF        :      9.01s CPU      9.12s WALL
+     ffts         :      0.01s CPU      0.03s WALL (      27 calls)
+     fftw         :      2.92s CPU      2.94s WALL (   10104 calls)
+     interpolate  :      0.02s CPU      0.04s WALL (      14 calls)
 
- 
-   This run was terminated on:  11:47: 1   2Apr2022            
+     Parallel routines
+
+     Environ routines
+
+     PWSCF        :      8.99s CPU      9.19s WALL
+
+
+   This run was terminated on:   7:47: 6   3May2022            
 
 =------------------------------------------------------------------------------=
    JOB DONE.

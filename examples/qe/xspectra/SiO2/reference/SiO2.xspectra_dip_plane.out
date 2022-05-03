@@ -1,5 +1,5 @@
 
-     Program XSpectra v.7.0 starts on  2Apr2022 at 11:47: 2 
+     Program XSpectra v.7.0 starts on  3May2022 at  7:47: 6 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -13,8 +13,8 @@
      Parallel version (MPI), running on     1 processors
 
      MPI processes distributed on     1 nodes
-     22224 MiB available memory on the printing compute node when the environment starts
- 
+     19212 MiB available memory on the printing compute node when the environment starts
+
 
      -------------------------------------------------------------------------
                     __  ____                 _
@@ -44,7 +44,7 @@
         => complete calculation: Lanczos + spectrum plot
 
      filecore (core-wavefunction file): Si.wfc              
- 
+
      main plot parameters:
         cut_occ_states: TRUE
         gamma_mode:  constant
@@ -57,7 +57,7 @@
      Fermi level determined from SCF save directory (SiO2.save)
      NB: For an insulator (SCF calculated with occupations="fixed")
          the Fermi level will be placed at the position of HOMO.
- 
+
      WARNING: variable ef_r is obsolete
 
      -------------------------------------------------------------------------
@@ -77,14 +77,14 @@
      Any further DFT definition will be discarded
      Please, verify this is what you really want
 
- 
+
      G-vector sticks info
      --------------------
      sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
      Sum         889     475    139                47263    18425    2965
- 
+
      Using Slab Decomposition
- 
+
 
      negative rho (up, down):  1.222E-03 0.000E+00
      Reading collected, re-writing distributed wavefunctions
@@ -108,7 +108,7 @@
 
 Environ Warning (1006): interface not initialized - skipping cleanup
 
- 
+
      Reading input from environ.in:
      * Environ restarting
      * using ionic solvent mode
@@ -116,14 +116,18 @@ Environ Warning (1006): interface not initialized - skipping cleanup
      
 
      ================================================================================
- 
+
                                   Environ Setup Summary
 
      ================================================================================
- 
+
      Please cite
-         "O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)"
+
+          O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)
+
      in publications or presentations arising from this work.
+
+     ================================================================================
 
      Parameters
      ==========
@@ -153,15 +157,15 @@ Environ Warning (1006): interface not initialized - skipping cleanup
      numerical core for poisson        =                      fft
 
      ================================================================================
- 
- 
+
+
      G-vector sticks info
      --------------------
      sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
      Sum         889     475    163                47263    18425    3531
- 
+
      Using Slab Decomposition
- 
+
 
 
      bravais-lattice index     =            4
@@ -177,14 +181,18 @@ Environ Warning (1006): interface not initialized - skipping cleanup
                            (   1   4   3   4   0   0   0)
 
      ================================================================================
- 
+
                                   Environ Setup Summary
 
      ================================================================================
- 
+
      Please cite
-         "O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)"
+
+          O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)
+
      in publications or presentations arising from this work.
+
+     ================================================================================
 
      Parameters
      ==========
@@ -214,7 +222,7 @@ Environ Warning (1006): interface not initialized - skipping cleanup
      numerical core for poisson        =                      fft
 
      ================================================================================
- 
+
 
      celldm(1)=   9.286303  celldm(2)=   0.000000  celldm(3)=   2.200200
      celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
@@ -225,9 +233,9 @@ Environ Warning (1006): interface not initialized - skipping cleanup
                a(3) = (   0.000000   0.000000   2.200200 )  
 
      reciprocal axes: (cart. coord. in units 2 pi/alat)
-               b(1) = (  1.000000  0.577350  0.000000 )  
+               b(1) = (  1.000000  0.577350 -0.000000 )  
                b(2) = (  0.000000  1.154701  0.000000 )  
-               b(3) = (  0.000000  0.000000  0.454504 )  
+               b(3) = (  0.000000 -0.000000  0.454504 )  
 
 
      PseudoPot. # 1 for Si read from file:
@@ -310,6 +318,9 @@ Environ Warning (1005): wrong integral of erfc function
 Environ Warning (1005): wrong integral of erfc function
 
 
+Environ Warning (1005): wrong integral of erfc function
+
+
      The potential is recalculated from file :
 
 
@@ -335,7 +346,7 @@ Environ Warning (1005): wrong integral of erfc function
         PAW proj 1: r_paw(l= 0)= 3.60  (1.5*r_cut)
         PAW proj 2: r_paw(l= 0)= 3.60  (1.5*r_cut)
         PAW proj 5: r_paw(l= 2)= 3.00  (1.5*r_cut)
- 
+
         NB: The calculation will not necessary use all these r_paw values.
             - For a edge in the electric-dipole approximation,
               only the r_paw(l=1) values are used.
@@ -370,19 +381,19 @@ Environ Warning (1005): wrong integral of erfc function
         initial vector of the Lanczos basis (|tilde{phi}_abs> normalized)
         | For PAW proj. (l=1) #1: radial matrix element =   0.026695735
         | For PAW proj. (l=1) #2: radial matrix element =   0.024893931
- 
+
         |-------------------------------------------------------------
         ! k-point #     1:  ( 0.0000,  0.0000,  0.0000),  0.5000,   1
         |-------------------------------------------------------------
  okvan= T
         |   Norm of the initial Lanczos vector: 0.14418589E-01
         |   Estimated error at iter     50:   1.00209203
-        |   Estimated error at iter    100:   0.13976030
-        |   Estimated error at iter    150:   0.02972226
-        |   Estimated error at iter    200:   0.01024265
-        |   Estimated error at iter    250:   0.00354800
-        |   Estimated error at iter    300:   0.00183312
-        !   => CONVERGED at iter    350 with error=  0.00068033
+        |   Estimated error at iter    100:   0.13976026
+        |   Estimated error at iter    150:   0.02973148
+        |   Estimated error at iter    200:   0.01027321
+        |   Estimated error at iter    250:   0.00338157
+        |   Estimated error at iter    300:   0.00159737
+        !   => CONVERGED at iter    350 with error=  0.00072451
         |-------------------------------------------------------------
         ! k-point #     2:  ( 0.0000,  0.5774,  0.0000),  0.5000,   1
         |-------------------------------------------------------------
@@ -390,35 +401,35 @@ Environ Warning (1005): wrong integral of erfc function
         |   Norm of the initial Lanczos vector: 0.14419590E-01
         |   Estimated error at iter     50:   1.00198326
         |   Estimated error at iter    100:   0.11120864
-        |   Estimated error at iter    150:   0.02213344
-        |   Estimated error at iter    200:   0.00699028
-        |   Estimated error at iter    250:   0.00486125
-        |   Estimated error at iter    300:   0.00131982
-        !   => CONVERGED at iter    350 with error=  0.00061542
+        |   Estimated error at iter    150:   0.02184607
+        |   Estimated error at iter    200:   0.00707592
+        |   Estimated error at iter    250:   0.00491178
+        |   Estimated error at iter    300:   0.00128602
+        !   => CONVERGED at iter    350 with error=  0.00053201
         |-------------------------------------------------------------
         ! k-point #     3:  ( 0.5000,  0.2887,  0.0000),  0.5000,   1
         |-------------------------------------------------------------
  okvan= T
         |   Norm of the initial Lanczos vector: 0.14419586E-01
         |   Estimated error at iter     50:   1.00223964
-        |   Estimated error at iter    100:   0.08324236
-        |   Estimated error at iter    150:   0.02437464
-        |   Estimated error at iter    200:   0.00646555
-        |   Estimated error at iter    250:   0.00381890
-        |   Estimated error at iter    300:   0.00133659
-        !   => CONVERGED at iter    350 with error=  0.00062432
+        |   Estimated error at iter    100:   0.08324238
+        |   Estimated error at iter    150:   0.02436825
+        |   Estimated error at iter    200:   0.00655242
+        |   Estimated error at iter    250:   0.00383588
+        |   Estimated error at iter    300:   0.00134876
+        !   => CONVERGED at iter    350 with error=  0.00062895
         |-------------------------------------------------------------
         ! k-point #     4:  ( 0.5000,  0.8660,  0.0000),  0.5000,   1
         |-------------------------------------------------------------
  okvan= T
         |   Norm of the initial Lanczos vector: 0.14417343E-01
-        |   Estimated error at iter     50:   1.00179434
-        |   Estimated error at iter    100:   0.08861858
-        |   Estimated error at iter    150:   0.02021754
-        |   Estimated error at iter    200:   0.00711832
-        |   Estimated error at iter    250:   0.00561365
-        |   Estimated error at iter    300:   0.00147236
-        !   => CONVERGED at iter    350 with error=  0.00062029
+        |   Estimated error at iter     50:   1.00179435
+        |   Estimated error at iter    100:   0.08861857
+        |   Estimated error at iter    150:   0.02020032
+        |   Estimated error at iter    200:   0.00713842
+        |   Estimated error at iter    250:   0.00563078
+        |   Estimated error at iter    300:   0.00147545
+        !   => CONVERGED at iter    350 with error=  0.00062970
 
      Results of STEP 1 successfully written in x_save_file
      x_save_file name: 
@@ -443,8 +454,8 @@ Environ Warning (1005): wrong integral of erfc function
 
      ... End STEP 2 ...
 
-     xanes        :      5.47s CPU      5.57s WALL (       1 calls)
- 
+     xanes        :      5.48s CPU      5.60s WALL (       1 calls)
+
      Environ routines
 
      -------------------------------------------------------------------------
