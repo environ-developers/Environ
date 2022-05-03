@@ -152,7 +152,7 @@ for mol in HO H2O H3O; do
    ecutrho = $ecutrho
    ecutwfc = $ecutwfc
    ibrav = 1
-   smearing = $smearing
+   smearing = '$smearing'
    degauss = $degauss
    celldm(1) = 20
    nat = $nat
@@ -247,7 +247,7 @@ EOF
   auxiliary = 'none'
   pbc_correction = 'parabolic'
   pbc_dim = 0
-  solver = $solver
+  solver = '$solver'
   tol = $tol
 /
 EOF
