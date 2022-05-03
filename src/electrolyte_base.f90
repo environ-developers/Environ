@@ -139,7 +139,7 @@ CONTAINS
         CLASS(environ_electrolyte_base), INTENT(INOUT) :: this
         !
         INTEGER :: i
-        REAL(DP) :: neutral, sumcbulk, sum_cz2, arg, KT
+        REAL(DP) :: neutral, sumcbulk, sum_cz2, KT
         !
         CHARACTER(LEN=80) :: routine = 'init_environ_electrolyte_base'
         !

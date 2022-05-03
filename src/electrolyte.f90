@@ -260,8 +260,6 @@ CONTAINS
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
-        INTEGER :: ityp
-        !
         CHARACTER(LEN=80) :: routine = 'update_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------

@@ -206,7 +206,7 @@ CONTAINS
         !
         CHARACTER(LEN=3), ALLOCATABLE :: labels(:)
         REAL(DP), DIMENSION(:), ALLOCATABLE :: atomic_spreads, core_spreads
-        REAL(DP), DIMENSION(:), ALLOCATABLE :: solvation_radii, ionic_charges
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: ionic_charges
         !
         CLASS(*), POINTER :: id
         !
@@ -326,9 +326,7 @@ CONTAINS
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
         INTEGER :: i
-        INTEGER :: dim, axis
-        REAL(DP) :: charge, spread
-        REAL(DP) :: pos(3)
+        !
         REAL(DP) :: tot_weight
         !
         CHARACTER(LEN=80) :: routine = 'update_environ_ions'

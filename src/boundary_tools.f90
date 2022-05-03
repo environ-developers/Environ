@@ -161,9 +161,8 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: partial
         !
-        INTEGER :: ii, j, k, idx
+        INTEGER :: j, k
         !
-        REAL(DP) :: bound_val
         TYPE(environ_density) :: denlocal
         !
         CHARACTER(LEN=80) :: routine = 'calc_partial_of_boundary'
@@ -210,10 +209,9 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         !
-        INTEGER :: i, idx
+        INTEGER :: i
         TYPE(environ_cell), POINTER :: cell
         TYPE(environ_gradient) :: partial
-        REAL(DP) :: bound_val
         !
         !--------------------------------------------------------------------------------
         !
@@ -250,11 +248,10 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: lapl
         !
-        INTEGER :: i, j, k, ii, idx
+        INTEGER :: i, j, k
         TYPE(environ_cell), POINTER :: cell
         TYPE(environ_density) :: tmp, tmp2
         TYPE(environ_gradient) :: gradloc1, gradloc2
-        REAL(DP) :: bound_val
         !
         !--------------------------------------------------------------------------------
         !
@@ -326,11 +323,10 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: lapl, dsurf
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         !
-        INTEGER :: i, j, k, l, m, ii, idx
+        INTEGER :: i, j, k, l, m
         TYPE(environ_cell), POINTER :: cell
         TYPE(environ_density) :: dens, denlocal
         TYPE(environ_gradient) :: partial, grad1, grad2
-        REAL(DP) :: bound_val
         !
         !--------------------------------------------------------------------------------
         !
@@ -485,7 +481,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: lapl
         !
-        INTEGER :: i, j, k, l, idx
+        INTEGER :: i, j, k, idx
         TYPE(environ_cell), POINTER :: cell
         REAL(DP) :: bound_val, g(3)
         !
@@ -508,15 +504,15 @@ CONTAINS
                 lapl%of_r(j) = lapl%of_r(j) + &
                                (laploc(i)%of_r(j) / bound_val * scal%of_r(j))
                 !
-                DO l = 1, 3
+                DO k = 1, 3
                     !
                     lapl%of_r(j) = &
                         lapl%of_r(j) - &
-                        ((g(l)**2 / bound_val**2) * scal%of_r(j))
+                        ((g(k)**2 / bound_val**2) * scal%of_r(j))
                     !
                     lapl%of_r(j) = &
                         lapl%of_r(j) + &
-                        (grad%of_r(l, j) * g(l) / bound_val)
+                        (grad%of_r(k, j) * g(k) / bound_val)
                     !
                 END DO
                 !

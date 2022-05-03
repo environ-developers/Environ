@@ -524,7 +524,7 @@ CONTAINS
         TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
         INTEGER :: i, j, k
-        REAL(DP) :: total, totaux, delta_qm, delta_en, kT, factor, arg
+        REAL(DP) :: totaux, delta_qm, delta_en, kT, factor, arg
         TYPE(environ_density) :: residual, rhotot, denominator, rhoaux, cfactor
         !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0

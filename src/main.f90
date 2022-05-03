@@ -339,8 +339,6 @@ CONTAINS
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
-        REAL(DP) :: local_pos(3), ext_pos(3, 2)
-        !
         TYPE(environ_setup), POINTER :: setup
         !
         !--------------------------------------------------------------------------------

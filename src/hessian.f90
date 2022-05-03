@@ -276,7 +276,6 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        REAL(DP) :: integral
         TYPE(environ_density) :: dens
         !
         CHARACTER(LEN=80) :: routine = 'print_environ_hessian'

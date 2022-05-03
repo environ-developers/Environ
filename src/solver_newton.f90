@@ -223,7 +223,7 @@ CONTAINS
         TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
         INTEGER :: i, j, k, l
-        REAL(DP) :: totaux, delta_qm, delta_en, kT, z, arg
+        REAL(DP) :: totaux, delta_qm, delta_en, kT, arg
         !
         TYPE(environ_density) :: residual, rhotot, numerator, denominator, &
                                  cfactor, rhoaux, screening

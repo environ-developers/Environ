@@ -159,7 +159,7 @@ CONTAINS
         !
         INTEGER :: i, j
         INTEGER :: max_ntyp
-        REAL(DP) :: charge, dist
+        REAL(DP) :: dist
         REAL(DP) :: tot_weight
         !
         CHARACTER(LEN=80) :: routine = 'update_environ_system'
