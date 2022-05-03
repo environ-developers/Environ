@@ -197,7 +197,7 @@ MODULE class_setup
         PROCEDURE :: get_threshold
         PROCEDURE :: get_nskip
         PROCEDURE :: get_nnt
-        PROCEDURE :: get_nri
+        PROCEDURE :: get_nr
         PROCEDURE :: get_coords
         PROCEDURE :: is_tddfpt
         PROCEDURE :: is_msgcs
@@ -677,7 +677,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    INTEGER FUNCTION get_nri(this, i)
+    INTEGER FUNCTION get_nr(this, i)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -685,14 +685,14 @@ CONTAINS
         CLASS(environ_setup), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: i
         !
-        CHARACTER(LEN=80) :: routine = 'get_nri'
+        CHARACTER(LEN=80) :: routine = 'get_nr'
         !
         !--------------------------------------------------------------------------------
         !
-        get_nri = this%system_cell%nr(i)
+        get_nr = this%system_cell%nr(i)
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION get_nri
+    END FUNCTION get_nr
     !------------------------------------------------------------------------------------
     !>
     !!
