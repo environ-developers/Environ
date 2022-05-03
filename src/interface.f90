@@ -80,8 +80,6 @@ MODULE environ_api
         !
         PROCEDURE :: calc_potential
         !
-        PROCEDURE, PRIVATE :: map_to_gridx
-        !
         PROCEDURE :: destroy => destroy_interface
         !
         !--------------------------------------------------------------------------------
@@ -329,7 +327,7 @@ CONTAINS
         ALLOCATE (rho(this%setup%system_cell%nntx))
         !
 #if defined(__LINUX_ESSL)||defined(__SX6)
-        CALL this%map_to_gridx(rho_in, rho)
+        CALL this%setup%system_cell%map_to_gridx(rho_in, rho)
 #else
         rho = rho_in
 #endif
@@ -473,57 +471,6 @@ CONTAINS
 #endif
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_potential
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                               PRIVATE HELPER METHODS
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !! Map array onto parallelization-optimized grid
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE map_to_gridx(this, array_in, array_out)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_interface), TARGET, INTENT(IN) :: this
-        REAL(DP), INTENT(IN) :: array_in(:)
-        !
-        REAL(DP), ALLOCATABLE, INTENT(OUT) :: array_out(:)
-        !
-        INTEGER :: ir, i, j, k
-        LOGICAL :: physical
-        !
-        INTEGER, POINTER :: nntx
-        !
-        CHARACTER(LEN=80) :: routine = 'map_to_gridx'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        nntx => this%setup%system_cell%nntx
-        !
-        IF (SIZE(array_in) /= nntx) CALL io%error(routine, "wrong input array size", 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        ALLOCATE (array_out(nntx))
-        !
-        array_out = 0.D0
-        !
-        DO ir = 1, nntx
-            !
-            CALL this%setup%system_cell%ir2ijk(ir, i, j, k, physical)
-            !
-            IF (.NOT. physical) CYCLE
-            !
-            array_out(ir) = array_in(ir)
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE map_to_gridx
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

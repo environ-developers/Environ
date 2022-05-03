@@ -126,6 +126,7 @@ MODULE class_cell
         PROCEDURE :: get_min_distance
         PROCEDURE :: ir2ijk
         PROCEDURE :: ir2coords
+        PROCEDURE :: map_to_gridx
         PROCEDURE :: planar_average
         PROCEDURE :: running_average
         !
@@ -629,6 +630,51 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE ir2ijk
+    !------------------------------------------------------------------------------------
+    !>
+    !! Map array onto parallelization-optimized grid
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE map_to_gridx(this, array_in, array_out)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), TARGET, INTENT(IN) :: this
+        REAL(DP), INTENT(IN) :: array_in(:)
+        !
+        REAL(DP), ALLOCATABLE, INTENT(OUT) :: array_out(:)
+        !
+        INTEGER :: ir, i, j, k
+        LOGICAL :: physical
+        !
+        INTEGER, POINTER :: nntx
+        !
+        CHARACTER(LEN=80) :: routine = 'map_to_gridx'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        nntx => this%nntx
+        !
+        IF (SIZE(array_in) /= nntx) CALL io%error(routine, "wrong input array size", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ALLOCATE (array_out(nntx))
+        !
+        array_out = 0.D0
+        !
+        DO ir = 1, nntx
+            !
+            CALL this%ir2ijk(ir, i, j, k, physical)
+            !
+            IF (.NOT. physical) CYCLE
+            !
+            array_out(ir) = array_in(ir)
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE map_to_gridx
     !------------------------------------------------------------------------------------
     !>
     !!
