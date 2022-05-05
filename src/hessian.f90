@@ -76,6 +76,7 @@ MODULE class_hessian
         PROCEDURE :: destroy => destroy_environ_hessian
         !
         PROCEDURE :: scalar_product => scalar_product_environ_hessian
+        PROCEDURE :: trace => environ_hessian_trace
         !
         PROCEDURE :: printout => print_environ_hessian
         !
@@ -163,15 +164,9 @@ CONTAINS
         !
         CLASS(environ_hessian), INTENT(INOUT) :: this
         !
-        INTEGER, POINTER :: ir_end
-        !
         !--------------------------------------------------------------------------------
         !
-        ir_end => this%cell%ir_end
-        !
-        this%laplacian%of_r(1:ir_end) = this%of_r(1, 1, 1:ir_end) + &
-                                        this%of_r(2, 2, 1:ir_end) + &
-                                        this%of_r(3, 3, 1:ir_end)
+        this%laplacian%of_r = this%trace()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_hessian_laplacian
@@ -248,6 +243,27 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE scalar_product_environ_hessian
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION environ_hessian_trace(this) RESULT(trace)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_hessian), INTENT(IN) :: this
+        !
+        REAL(DP), ALLOCATABLE :: trace(:)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ALLOCATE (trace(this%cell%nnr))
+        !
+        trace = this%of_r(1, 1, :) + this%of_r(2, 2, :) + this%of_r(3, 3, :)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION environ_hessian_trace
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
