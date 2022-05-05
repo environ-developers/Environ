@@ -988,7 +988,7 @@ CONTAINS
         !
         this%lsmearedions = this%lelectrostatic
         this%lboundary = this%lsolvent .OR. this%lelectrolyte
-        this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa')
+        this%lgradient = this%ldielectric .OR. field_aware
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_derived_flags
