@@ -165,6 +165,11 @@ MODULE class_boundary
         PROCEDURE :: solvent_aware_boundary
         !
         !--------------------------------------------------------------------------------
+        ! Shared helper methods
+        !
+        PROCEDURE :: compute_boundary_derivatives_fft
+        !
+        !--------------------------------------------------------------------------------
         ! Private helpers
         !
         PROCEDURE :: convolution => compute_convolution_deriv
@@ -906,6 +911,50 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE solvent_aware_boundary
     !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE compute_boundary_derivatives_fft(this, density, hessian)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_density), INTENT(IN) :: density
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        TYPE(environ_hessian), INTENT(INOUT) :: hessian
+        !
+        CHARACTER(LEN=80) :: routine = 'compute_boundary_derivatives_fft'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (derivatives => this%cores%derivatives, &
+                   grad => this%gradient, &
+                   lapl => this%laplacian, &
+                   dsurf => this%dsurface)
+            !
+            !----------------------------------------------------------------------------
+            ! Note:
+            ! - `hessian_fft` also computes the gradient
+            ! - `calc_dsurface` computes the laplacian (if needed) from the hessian
+            !
+            IF (this%need_hessian) THEN
+                !
+                CALL this%calc_dsurface(density, grad, lapl, hessian, dsurf)
+                !
+                RETURN
+                !
+            END IF
+            !
+            IF (this%need_laplacian) CALL derivatives%laplacian(density, lapl)
+            !
+            IF (this%need_gradient) CALL derivatives%gradient(density, grad)
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE compute_boundary_derivatives_fft
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
     !                               PRIVATE HELPER METHODS
@@ -976,8 +1025,7 @@ CONTAINS
         !
         CALL this%cores%derivatives%hessian(dens, grad, hess)
         !
-        IF (this%need_laplacian) &
-            lapl%of_r = hess%of_r(1, 1, :) + hess%of_r(2, 2, :) + hess%of_r(3, 3, :)
+        IF (this%need_laplacian) lapl%of_r = hess%trace()
         !
         CALL calc_dsurface_no_pre(dens%cell, grad%of_r, hess%of_r, dsurf%of_r)
         !

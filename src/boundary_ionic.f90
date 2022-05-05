@@ -507,12 +507,7 @@ CONTAINS
             SELECT CASE (this%derivatives_method)
                 !
             CASE ('fft')
-                !
-                IF (ng .AND. .NOT. nh) CALL derivatives%gradient(scal, grad)
-                !
-                IF (nl .AND. .NOT. nh) CALL derivatives%laplacian(scal, lapl)
-                !
-                IF (nh) CALL this%calc_dsurface(scal, grad, lapl, hess, dsurf)
+                CALL this%compute_boundary_derivatives_fft(scal, hess)
                 !
             CASE ('highmem')
                 !
