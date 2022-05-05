@@ -348,8 +348,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => denloc%cell, &
-                   deriv => this%deriv, &
                    derivatives => this%cores%derivatives, &
+                   ng => this%need_gradient, &
+                   nl => this%need_laplacian, &
+                   nh => this%need_hessian, &
                    rho => denloc%of_r, &
                    scal => this%scaled, &
                    dscal => this%dscaled, &
@@ -369,7 +371,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute boundary derivatives, if needed
             !
-            IF (deriv >= 3) THEN
+            IF (nh) THEN
                 !
                 IF (this%solvent_aware) THEN
                     hessloc => this%hessian
@@ -386,19 +388,19 @@ CONTAINS
                 !
             CASE ('fft')
                 !
-                IF (deriv == 1 .OR. deriv == 2) CALL derivatives%gradient(scal, grad)
+                IF (ng .AND. .NOT. nh) CALL derivatives%gradient(scal, grad)
                 !
-                IF (deriv == 2) CALL derivatives%laplacian(scal, lapl)
+                IF (nl .AND. .NOT. nh) CALL derivatives%laplacian(scal, lapl)
                 !
-                IF (deriv == 3) CALL this%calc_dsurface(scal, grad, lapl, hessloc, dsurf)
+                IF (nh) CALL this%calc_dsurface(scal, grad, lapl, hessloc, dsurf)
                 !
             CASE ('chain')
                 !
-                IF (deriv == 1 .OR. deriv == 2) CALL derivatives%gradient(denloc, grad)
+                IF (ng .AND. .NOT. nh) CALL derivatives%gradient(denloc, grad)
                 !
-                IF (deriv == 2) CALL derivatives%laplacian(denloc, lapl)
+                IF (nl .AND. .NOT. nh) CALL derivatives%laplacian(denloc, lapl)
                 !
-                IF (deriv == 3) THEN
+                IF (nh) THEN
                     !
                     CALL this%calc_dsurface(denloc, grad, lapl, hessloc, dsurf)
                     !
@@ -420,13 +422,13 @@ CONTAINS
                     !
                 END IF
                 !
-                IF (deriv > 1) &
+                IF (nl) &
                     lapl%of_r = lapl%of_r * dscal%of_r + &
                                 (grad%of_r(1, :)**2 + &
                                  grad%of_r(2, :)**2 + &
                                  grad%of_r(3, :)**2) * d2scal%of_r
                 !
-                IF (deriv >= 1) THEN
+                IF (ng) THEN
                     !
                     DO i = 1, 3
                         grad%of_r(i, :) = grad%of_r(i, :) * dscal%of_r
@@ -444,14 +446,14 @@ CONTAINS
             !
             this%volume = scal%integrate()
             !
-            IF (deriv >= 1) THEN
+            IF (ng) THEN
                 !
                 CALL grad%update_modulus()
                 !
                 this%surface = grad%modulus%integrate()
             END IF
             !
-            IF (deriv >= 3 .AND. .NOT. this%solvent_aware) CALL hessloc%destroy()
+            IF (nh .AND. .NOT. this%solvent_aware) CALL hessloc%destroy()
             !
         END ASSOCIATE
         !

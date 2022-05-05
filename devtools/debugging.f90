@@ -133,7 +133,7 @@ CONTAINS
             localbound%scaled%of_r = localbound%scaled%of_r + epsilon * delta%of_r
             localbound%volume = localbound%scaled%integrate()
             !
-            IF (localbound%deriv .GE. 1) THEN
+            IF (localbound%need_gradient) THEN
                 !
                 localbound%gradient%of_r = localbound%gradient%of_r + &
                                            epsilon * graddelta%of_r
@@ -160,7 +160,7 @@ CONTAINS
             localbound%scaled%of_r = localbound%scaled%of_r - epsilon * delta%of_r
             localbound%volume = localbound%scaled%integrate()
             !
-            IF (localbound%deriv .GE. 1) THEN
+            IF (localbound%need_gradient) THEN
                 !
                 localbound%gradient%of_r = localbound%gradient%of_r - &
                                            epsilon * graddelta%of_r

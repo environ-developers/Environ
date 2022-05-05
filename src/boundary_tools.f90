@@ -308,8 +308,8 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dsurface_of_boundary_highmem(n, hessloc, grad, lapl, hess, dsurf, &
-                                                 ir, vals, grad_vals)
+    SUBROUTINE calc_dsurface_of_boundary_highmem(n, hessloc, grad, hess, dsurf, ir, &
+                                                 vals, grad_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -320,7 +320,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
-        TYPE(environ_density), INTENT(INOUT) :: lapl, dsurf
+        TYPE(environ_density), INTENT(INOUT) :: dsurf
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         !
         INTEGER :: i, j, k, l, m
@@ -330,7 +330,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        cell => lapl%cell
+        cell => grad%cell
         !
         CALL dens%init(cell)
         !
@@ -390,8 +390,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Final operations
-        !
-        lapl%of_r = hess%of_r(1, 1, :) + hess%of_r(2, 2, :) + hess%of_r(3, 3, :)
         !
         CALL calc_dsurface_no_pre(cell, grad%of_r, hess%of_r, dsurf%of_r)
         !
@@ -526,8 +524,8 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dsurface_of_boundary_lowmem(n, hessloc, grad, lapl, hess, scal, &
-                                                dsurf, ir, vals, grad_vals)
+    SUBROUTINE calc_dsurface_of_boundary_lowmem(n, hessloc, grad, hess, scal, dsurf, &
+                                                ir, vals, grad_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -540,7 +538,6 @@ CONTAINS
         INTEGER, INTENT(IN) :: ir(:, :)
         REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
-        TYPE(environ_density), INTENT(INOUT) :: lapl
         TYPE(environ_density), INTENT(INOUT) :: dsurf
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         !
@@ -550,7 +547,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        cell => lapl%cell
+        cell => grad%cell
         !
         DO i = 1, n
             !
@@ -590,8 +587,6 @@ CONTAINS
             END DO
             !
         END DO
-        !
-        lapl%of_r = hess%of_r(1, 1, :) + hess%of_r(2, 2, :) + hess%of_r(3, 3, :)
         !
         CALL calc_dsurface_no_pre(cell, grad%of_r, hess%of_r, dsurf%of_r)
         !

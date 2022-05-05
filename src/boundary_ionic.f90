@@ -452,8 +452,10 @@ CONTAINS
         ASSOCIATE (cell => this%scaled%cell, &
                    nss => this%soft_spheres%number, &
                    soft_spheres => this%soft_spheres%array, &
-                   deriv => this%deriv, &
                    derivatives => this%cores%derivatives, &
+                   ng => this%need_gradient, &
+                   nl => this%need_laplacian, &
+                   nh => this%need_hessian, &
                    scal => this%scaled, &
                    grad => this%gradient, &
                    lapl => this%laplacian, &
@@ -489,7 +491,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Generate boundary derivatives, if needed
             !
-            IF (deriv == 3) THEN
+            IF (nh) THEN
                 !
                 IF (this%solvent_aware) THEN
                     hess => this%hessian
@@ -506,125 +508,135 @@ CONTAINS
                 !
             CASE ('fft')
                 !
-                IF (deriv == 1 .OR. deriv == 2) CALL derivatives%gradient(scal, grad)
+                IF (ng .AND. .NOT. nh) CALL derivatives%gradient(scal, grad)
                 !
-                IF (deriv == 2) CALL derivatives%laplacian(scal, lapl)
+                IF (nl .AND. .NOT. nh) CALL derivatives%laplacian(scal, lapl)
                 !
-                IF (deriv == 3) CALL this%calc_dsurface(scal, grad, lapl, hess, dsurf)
+                IF (nh) CALL this%calc_dsurface(scal, grad, lapl, hess, dsurf)
                 !
             CASE ('highmem')
                 !
-                IF (deriv >= 1) CALL gradlocal%init(cell)
+                IF (ng) CALL gradlocal%init(cell)
                 !
-                IF (deriv == 2) ALLOCATE (laplloc(nss))
+                IF (nl .AND. .NOT. nh) ALLOCATE (laplloc(nss))
                 !
-                IF (deriv == 3) ALLOCATE (hessloc(nss))
+                IF (nh) ALLOCATE (hessloc(nss))
                 !
                 !------------------------------------------------------------------------
                 ! Compute and temporarily store soft spheres derivatives
                 !
                 DO i = 1, nss
                     !
-                    IF (deriv == 2) CALL laplloc(i)%init(cell)
+                    IF (nl .AND. .NOT. nh) CALL laplloc(i)%init(cell)
                     !
-                    IF (deriv == 3) CALL hessloc(i)%init(cell)
+                    IF (nh) CALL hessloc(i)%init(cell)
                     !
-                    IF (deriv >= 1) &
+                    IF (ng) &
                         CALL soft_spheres(i)%gradient(gradlocal, .TRUE., ir_nz(i, :), &
                                                       grad_nz(i, :, :), r(i, :, :), &
                                                       dist(i, :))
                     !
-                    IF (deriv == 2) &
+                    IF (nl .AND. .NOT. nh) &
                         CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., ir_nz(i, :), &
                                                        r(i, :, :), dist(i, :))
                     !
-                    IF (deriv == 3) &
+                    IF (nh) &
                         CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., ir_nz(i, :), &
                                                      r(i, :, :), dist(i, :))
                     !
                 END DO
                 !
-                IF (deriv == 1 .OR. deriv == 2) &
+                IF (ng .AND. .NOT. nh) &
                     CALL gradient_of_boundary(nss, grad, ir_nz, den_nz, grad_nz)
                 !
-                IF (deriv == 2) &
+                IF (nl .AND. .NOT. nh) &
                     CALL laplacian_of_boundary(nss, laplloc, lapl, ir_nz, den_nz, grad_nz)
                 !
-                IF (deriv == 3) &
-                    CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, dsurf, &
-                                              ir_nz, den_nz, grad_nz)
+                IF (nh) THEN
+                    !
+                    CALL dsurface_of_boundary(nss, hessloc, grad, hess, dsurf, ir_nz, &
+                                              den_nz, grad_nz)
+                    !
+                    IF (nl) lapl%of_r = hess%trace()
+                    !
+                END IF
                 !
                 DO i = 1, nss
                     !
-                    IF (deriv == 2) CALL laplloc(i)%destroy()
+                    IF (nl .AND. .NOT. nh) CALL laplloc(i)%destroy()
                     !
-                    IF (deriv == 3) CALL hessloc(i)%destroy()
+                    IF (nh) CALL hessloc(i)%destroy()
                     !
                 END DO
                 !
-                IF (deriv >= 1) CALL gradlocal%destroy()
+                IF (ng) CALL gradlocal%destroy()
                 !
-                IF (deriv == 2) DEALLOCATE (laplloc)
+                IF (nl .AND. .NOT. nh) DEALLOCATE (laplloc)
                 !
-                IF (deriv == 3) DEALLOCATE (hessloc)
+                IF (nh) DEALLOCATE (hessloc)
                 !
             CASE ('lowmem')
                 !
-                IF (deriv >= 1) CALL gradlocal%init(cell)
+                IF (ng) CALL gradlocal%init(cell)
                 !
-                IF (deriv == 2) ALLOCATE (laplloc(nss))
+                IF (nl .AND. .NOT. nh) ALLOCATE (laplloc(nss))
                 !
-                IF (deriv == 3) ALLOCATE (hessloc(nss))
+                IF (nh) ALLOCATE (hessloc(nss))
                 !
                 !------------------------------------------------------------------------
                 ! Compute and store soft spheres derivatives
                 !
                 DO i = 1, nss
                     !
-                    IF (deriv == 2) CALL laplloc(i)%init(cell)
+                    IF (nl .AND. .NOT. nh) CALL laplloc(i)%init(cell)
                     !
-                    IF (deriv == 3) CALL hessloc(i)%init(cell)
+                    IF (nh) CALL hessloc(i)%init(cell)
                     !
-                    IF (deriv >= 1) &
+                    IF (ng) &
                         CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
                                                       ir_nz(i, :), grad_nz(i, :, :), &
                                                       r(i, :, :), dist(i, :))
                     !
-                    IF (deriv == 2) &
+                    IF (nl .AND. .NOT. nh) &
                         CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
                                                        ir_nz(i, :), r(i, :, :), &
                                                        dist(i, :))
                     !
-                    IF (deriv == 3) &
+                    IF (nh) &
                         CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
                                                      ir_nz(i, :), r(i, :, :), dist(i, :))
                     !
                 END DO
                 !
-                IF (deriv >= 1) &
+                IF (ng) &
                     CALL gradient_of_boundary(nss, scal, grad, ir_nz, den_nz, grad_nz)
                 !
-                IF (deriv == 2) &
+                IF (nl .AND. .NOT. nh) &
                     CALL laplacian_of_boundary(nss, laplloc, scal, grad, lapl, ir_nz, &
                                                den_nz, grad_nz)
                 !
-                IF (deriv == 3) &
-                    CALL dsurface_of_boundary(nss, hessloc, grad, lapl, hess, scal, &
-                                              dsurf, ir_nz, den_nz, grad_nz)
+                IF (nh) THEN
+                    !
+                    CALL dsurface_of_boundary(nss, hessloc, grad, hess, scal, dsurf, &
+                                              ir_nz, den_nz, grad_nz)
+                    !
+                    IF (nl) lapl%of_r = hess%trace()
+                    !
+                END IF
                 !
                 DO i = 1, nss
                     !
-                    IF (deriv == 2) CALL laplloc(i)%destroy()
+                    IF (nl .AND. .NOT. nh) CALL laplloc(i)%destroy()
                     !
-                    IF (deriv == 3) CALL hessloc(i)%destroy()
+                    IF (nh) CALL hessloc(i)%destroy()
                     !
                 END DO
                 !
-                IF (deriv >= 1) CALL gradlocal%destroy()
+                IF (ng) CALL gradlocal%destroy()
                 !
-                IF (deriv == 2) DEALLOCATE (laplloc)
+                IF (nl .AND. .NOT. nh) DEALLOCATE (laplloc)
                 !
-                IF (deriv == 3) DEALLOCATE (hessloc)
+                IF (nh) DEALLOCATE (hessloc)
                 !
             CASE DEFAULT
                 CALL io%error(routine, "Unexpected derivatives method", 1)
@@ -637,7 +649,7 @@ CONTAINS
             scal%of_r = 1.D0 - scal%of_r
             this%volume = scal%integrate()
             !
-            IF (deriv >= 1) THEN
+            IF (ng) THEN
                 grad%of_r = -grad%of_r
                 this%has_stored_gradient = .TRUE.
                 !
@@ -645,9 +657,9 @@ CONTAINS
                 !
                 this%surface = grad%modulus%integrate()
                 !
-                IF (deriv >= 2) lapl%of_r = -lapl%of_r
+                IF (nl) lapl%of_r = -lapl%of_r
                 !
-                IF (deriv == 3) THEN
+                IF (nh) THEN
                     dsurf%of_r = -dsurf%of_r
                     !
                     IF (this%solvent_aware) THEN

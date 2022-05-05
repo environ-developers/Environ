@@ -258,8 +258,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => this%scaled%cell, &
-                   deriv => this%deriv, &
                    derivatives => this%cores%derivatives, &
+                   ng => this%need_gradient, &
+                   nl => this%need_laplacian, &
+                   nh => this%need_hessian, &
                    simple => this%simple, &
                    scal => this%scaled, &
                    grad => this%gradient, &
@@ -274,7 +276,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Generate boundary derivatives, if needed
             !
-            IF (deriv >= 3) THEN
+            IF (nh) THEN
                 !
                 IF (this%solvent_aware) THEN
                     hessloc => this%hessian
@@ -291,21 +293,23 @@ CONTAINS
                 !
             CASE ('fft')
                 !
-                IF (deriv == 1 .OR. deriv == 2) CALL derivatives%gradient(scal, grad)
+                IF (ng .AND. .NOT. nh) CALL derivatives%gradient(scal, grad)
                 !
-                IF (deriv == 2) CALL derivatives%laplacian(scal, lapl)
+                IF (nl .AND. .NOT. nh) CALL derivatives%laplacian(scal, lapl)
                 !
-                IF (deriv == 3) CALL this%calc_dsurface(scal, grad, lapl, hessloc, dsurf)
+                IF (nh) CALL this%calc_dsurface(scal, grad, lapl, hessloc, dsurf)
                 !
             CASE ('chain')
                 !
-                IF (deriv >= 1) CALL simple%gradient(grad, .TRUE.)
+                IF (ng) CALL simple%gradient(grad, .TRUE.)
                 !
-                IF (deriv >= 2) CALL simple%laplacian(lapl, .TRUE.)
+                IF (nl .AND. .NOT. nh) CALL simple%laplacian(lapl, .TRUE.)
                 !
-                IF (deriv >= 3) THEN
+                IF (nh) THEN
                     !
                     CALL simple%hessian(hessloc, .TRUE.)
+                    !
+                    IF (nl) lapl%of_r = hessloc%trace()
                     !
                     CALL calc_dsurface_no_pre(cell, grad%of_r, hessloc%of_r, dsurf%of_r)
                     !
@@ -316,7 +320,7 @@ CONTAINS
                 !
             END SELECT
             !
-            IF (deriv >= 3) THEN
+            IF (nh) THEN
                 !
                 IF (.NOT. this%solvent_aware) THEN
                     !
@@ -329,7 +333,7 @@ CONTAINS
             !
             this%volume = scal%integrate()
             !
-            IF (deriv >= 1) THEN
+            IF (ng) THEN
                 !
                 CALL grad%update_modulus()
                 !

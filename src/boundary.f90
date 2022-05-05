@@ -82,9 +82,15 @@ MODULE class_boundary
         TYPE(environ_density) :: scaled ! scaled switching function of interface
         ! varying from 1 (QM region) to 0 (environment region)
         !
-        INTEGER :: deriv = 0
+        LOGICAL :: need_gradient = .FALSE.
         TYPE(environ_gradient) :: gradient
+        !
+        LOGICAL :: need_laplacian = .FALSE.
         TYPE(environ_density) :: laplacian
+        !
+        LOGICAL :: need_hessian = .FALSE.
+        TYPE(environ_hessian) :: hessian
+        !
         TYPE(environ_density) :: dsurface
         !
         !--------------------------------------------------------------------------------
@@ -105,8 +111,6 @@ MODULE class_boundary
         LOGICAL :: solvent_aware = .FALSE.
         TYPE(environ_function_erfc) :: solvent_probe
         REAL(DP) :: filling_threshold, filling_spread
-        !
-        TYPE(environ_hessian) :: hessian
         !
         TYPE(environ_density) :: local
         TYPE(environ_density) :: probe
@@ -230,8 +234,11 @@ CONTAINS
         this%mode = ''
         this%update_status = 0
         !
-        this%deriv = 0
         this%derivatives_method = ''
+        !
+        this%need_gradient = .FALSE.
+        this%need_laplacian = .FALSE.
+        this%need_hessian = .FALSE.
         !
         this%volume = 0.D0
         this%surface = 0.D0
@@ -286,13 +293,9 @@ CONTAINS
         !
         IF (PRESENT(label)) this%label = label
         !
-        IF (need_hessian) THEN
-            this%deriv = 3
-        ELSE IF (need_laplacian) THEN
-            this%deriv = 2
-        ELSE IF (need_gradient) THEN
-            this%deriv = 1
-        END IF
+        this%need_hessian = need_hessian
+        this%need_laplacian = need_laplacian
+        this%need_gradient = need_gradient .OR. need_laplacian .OR. need_hessian
         !
         this%cores => cores
         this%derivatives_method = deriv_method
@@ -301,11 +304,14 @@ CONTAINS
         !
         CALL this%scaled%init(cell, 'boundary_'//this%label)
         !
-        IF (this%deriv >= 1) CALL this%gradient%init(cell, 'gradboundary_'//this%label)
+        IF (this%need_gradient) &
+            CALL this%gradient%init(cell, 'gradboundary_'//this%label)
         !
-        IF (this%deriv >= 2) CALL this%laplacian%init(cell, 'laplboundary_'//this%label)
+        IF (this%need_laplacian) &
+            CALL this%laplacian%init(cell, 'laplboundary_'//this%label)
         !
-        IF (this%deriv >= 3) CALL this%dsurface%init(cell, 'dsurface_'//this%label)
+        IF (this%need_hessian) &
+            CALL this%dsurface%init(cell, 'dsurface_'//this%label)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pre_init_environ_boundary
@@ -346,7 +352,7 @@ CONTAINS
         !
         CALL this%dfilling%init(this%cell, 'dfilling_'//this%label)
         !
-        IF (this%deriv >= 3) &
+        IF (this%need_hessian) &
             CALL this%hessian%init(this%cell, 'hessboundary_'//this%label)
         !
         !--------------------------------------------------------------------------------
@@ -418,11 +424,11 @@ CONTAINS
         !
         CALL this%scaled%destroy()
         !
-        IF (this%deriv >= 1) CALL this%gradient%destroy()
+        IF (this%need_gradient) CALL this%gradient%destroy()
         !
-        IF (this%deriv >= 2) CALL this%laplacian%destroy()
+        IF (this%need_laplacian) CALL this%laplacian%destroy()
         !
-        IF (this%deriv >= 3) CALL this%dsurface%destroy()
+        IF (this%need_hessian) CALL this%dsurface%destroy()
         !
         IF (this%solvent_aware) THEN
             !
@@ -434,7 +440,7 @@ CONTAINS
             !
             CALL this%dfilling%destroy()
             !
-            IF (this%deriv >= 3) CALL this%hessian%destroy()
+            IF (this%need_hessian) CALL this%hessian%destroy()
             !
             DEALLOCATE (this%solvent_probe%pos)
         END IF
@@ -720,9 +726,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => this%scaled%cell, &
-                   deriv => this%deriv, &
                    derivatives => this%cores%derivatives, &
-                   derivatives_method => this%derivatives_method, &
+                   deriv_method => this%derivatives_method, &
+                   ng => this%need_gradient, &
+                   nl => this%need_laplacian, &
+                   nh => this%need_hessian, &
                    thr => this%filling_threshold, &
                    spr => this%filling_spread, &
                    fill => this%filling, &
@@ -739,7 +747,7 @@ CONTAINS
             !
             CALL fillfrac%init(cell)
             !
-            IF (deriv >= 2 .AND. derivatives_method /= 'fft') CALL d2fill%init(cell)
+            IF (nl .OR. nh .AND. deriv_method /= 'fft') CALL d2fill%init(cell)
             !
             !----------------------------------------------------------------------------
             ! Step 0: save local interface function for later use
@@ -770,7 +778,7 @@ CONTAINS
                 fill%of_r(i) = 1.D0 - sfunct2(fillfrac%of_r(i), thr, spr)
                 dfill%of_r(i) = -dsfunct2(fillfrac%of_r(i), thr, spr)
                 !
-                IF (deriv >= 2 .AND. derivatives_method /= 'fft') &
+                IF (nl .OR. nh .AND. deriv_method /= 'fft') &
                     d2fill%of_r(i) = -d2sfunct2(fillfrac%of_r(i), thr, spr)
                 !
             END DO
@@ -783,36 +791,36 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Step 5: compute boundary derivatives, if needed
             !
-            SELECT CASE (derivatives_method)
+            SELECT CASE (deriv_method)
                 !
             CASE ('fft')
                 !
-                IF (deriv == 1 .OR. deriv == 2) CALL derivatives%gradient(scal, grad)
+                IF (ng .AND. .NOT. nh) CALL derivatives%gradient(scal, grad)
                 !
-                IF (deriv == 2) CALL derivatives%laplacian(scal, lapl)
+                IF (nl .AND. .NOT. nh) CALL derivatives%laplacian(scal, lapl)
 
-                IF (deriv == 3) CALL this%calc_dsurface(scal, grad, lapl, hess, dsurf)
+                IF (nh) CALL this%calc_dsurface(scal, grad, lapl, hess, dsurf)
                 !
             CASE ('chain', 'highmem', 'lowmem')
                 !
                 !------------------------------------------------------------------------
                 ! Allocate local fields for derivatives of convolution
                 !
-                IF (deriv >= 1) CALL gradloc%init(cell)
+                IF (ng) CALL gradloc%init(cell)
                 !
-                IF (deriv >= 2) CALL laplloc%init(cell)
+                IF (nl) CALL laplloc%init(cell)
                 !
-                IF (deriv >= 3) CALL hessloc%init(cell)
+                IF (nh) CALL hessloc%init(cell)
                 !
                 !------------------------------------------------------------------------
                 ! Compute derivative of convolution with probe
                 !
-                IF (deriv > 1) CALL this%convolution(deriv, gradloc, laplloc, hessloc)
+                IF (nl .OR. nh) CALL this%convolution(gradloc, laplloc, hessloc)
                 !
                 !------------------------------------------------------------------------
                 ! Update derivatives of interface function in reverse order
                 !
-                IF (deriv >= 3) THEN
+                IF (nh) THEN
                     !
                     DO i = 1, 3
                         !
@@ -835,7 +843,7 @@ CONTAINS
                     !
                 END IF
                 !
-                IF (deriv >= 2) THEN
+                IF (nl) THEN
                     !
                     CALL denloc%init(cell)
                     !
@@ -855,7 +863,7 @@ CONTAINS
                     !
                 END IF
                 !
-                IF (deriv >= 1) THEN
+                IF (ng) THEN
                     !
                     DO i = 1, 3
                         !
@@ -872,8 +880,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Recompute dsurface, if needed
                 !
-                IF (deriv >= 3) &
-                    CALL calc_dsurface_no_pre(cell, grad%of_r, hess%of_r, dsurf%of_r)
+                IF (nh) CALL calc_dsurface_no_pre(cell, grad%of_r, hess%of_r, dsurf%of_r)
                 !
             CASE DEFAULT
                 CALL io%error(routine, "Unexpected derivatives method", 1)
@@ -885,7 +892,7 @@ CONTAINS
             !
             this%volume = scal%integrate()
             !
-            IF (deriv >= 1) THEN
+            IF (ng) THEN
                 !
                 CALL grad%update_modulus()
                 !
@@ -908,13 +915,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE compute_convolution_deriv(this, deriv, grad, lapl, hess)
+    SUBROUTINE compute_convolution_deriv(this, grad, lapl, hess)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_boundary), INTENT(IN) :: this
-        INTEGER, INTENT(IN) :: deriv
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         TYPE(environ_density), INTENT(INOUT) :: lapl
@@ -924,12 +930,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (deriv <= 0) RETURN
+        IF (.NOT. this%need_gradient) RETURN
         !
         ASSOCIATE (derivatives => this%cores%derivatives, &
                    probe => this%probe)
             !
-            IF (deriv >= 1) THEN
+            IF (this%need_gradient) THEN
                 !
                 CALL derivatives%convolution(probe, this%gradient, grad)
                 !
@@ -937,9 +943,11 @@ CONTAINS
                 !
             END IF
             !
-            IF (deriv >= 2) CALL derivatives%convolution(probe, this%laplacian, lapl)
+            IF (this%need_laplacian) &
+                CALL derivatives%convolution(probe, this%laplacian, lapl)
             !
-            IF (deriv >= 3) CALL derivatives%convolution(probe, this%hessian, hess)
+            IF (this%need_hessian) &
+                CALL derivatives%convolution(probe, this%hessian, hess)
             !
         END ASSOCIATE
         !
@@ -968,7 +976,8 @@ CONTAINS
         !
         CALL this%cores%derivatives%hessian(dens, grad, hess)
         !
-        lapl%of_r = hess%of_r(1, 1, :) + hess%of_r(2, 2, :) + hess%of_r(3, 3, :)
+        IF (this%need_laplacian) &
+            lapl%of_r = hess%of_r(1, 1, :) + hess%of_r(2, 2, :) + hess%of_r(3, 3, :)
         !
         CALL calc_dsurface_no_pre(dens%cell, grad%of_r, hess%of_r, dsurf%of_r)
         !
@@ -991,11 +1000,11 @@ CONTAINS
         !
         this%volume = this%scaled%integrate()
         !
-        IF (this%deriv >= 1) this%gradient%of_r = -this%gradient%of_r
+        IF (this%need_gradient) this%gradient%of_r = -this%gradient%of_r
         !
-        IF (this%deriv >= 2) this%laplacian%of_r = -this%laplacian%of_r
+        IF (this%need_laplacian) this%laplacian%of_r = -this%laplacian%of_r
         !
-        IF (this%deriv >= 3) THEN
+        IF (this%need_hessian) THEN
             this%dsurface%of_r = -this%dsurface%of_r
             !
             IF (this%solvent_aware) this%hessian%of_r = -this%hessian%of_r
@@ -1052,7 +1061,7 @@ CONTAINS
             IF (io%lnode) THEN
                 WRITE (local_unit, 1102) this%volume
                 !
-                IF (this%deriv >= 1) WRITE (local_unit, 1103) this%surface
+                IF (this%need_gradient) WRITE (local_unit, 1103) this%surface
                 !
             END IF
             !
@@ -1087,15 +1096,15 @@ CONTAINS
             !
             IF (local_verbose >= 5) THEN
                 !
-                IF (this%deriv >= 1) &
+                IF (this%need_gradient) &
                     CALL this%gradient%printout(passed_verbose, debug_verbose, &
                                                 local_unit)
                 !
-                IF (this%deriv >= 2) &
+                IF (this%need_laplacian) &
                     CALL this%laplacian%printout(passed_verbose, debug_verbose, &
                                                  local_unit)
                 !
-                IF (this%deriv == 3) &
+                IF (this%need_hessian) &
                     CALL this%dsurface%printout(passed_verbose, debug_verbose, &
                                                 local_unit)
                 !
