@@ -38,8 +38,10 @@ MODFLAGS = $(BASEMOD_FLAGS)
 
 DRIVER_OBJS = cmdline_args.o parsers.o prog_utils.o programs.o driver.o 
 
+ENVIRON_LIBS = -L$(TOPDIR)/libs -lenvsrc -lenvfft -lenvutil
+
 driver: driver.o
-	@ $(LD) $(LDFLAGS) -o $@ $(DRIVER_OBJS) ../libs/* $(ENVLIBS)
+	@ $(LD) $(LDFLAGS) -o $@ $(DRIVER_OBJS) $(ENVIRON_LIBS) $(ENVLIBS)
 
 help:
 	@ echo
