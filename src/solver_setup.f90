@@ -162,7 +162,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%solver)) CALL io%destroy_error(routine)
+        IF (.NOT. ASSOCIATED(this%solver)) RETURN
         !
         !--------------------------------------------------------------------------------
         !

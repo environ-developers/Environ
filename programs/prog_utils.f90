@@ -102,8 +102,9 @@ CONTAINS
             CALL environ%setup%init_cell(io%comm, at, nr=nr)
         END IF
         !
-        IF (.NOT. PRESENT(only_boundary)) &
-            CALL environ%setup%init_numerical(use_internal_pbc_corr)
+        !IF (.NOT. PRESENT(only_boundary)) &
+        CALL environ%setup%init_numerical(use_internal_pbc_corr, &
+                               only_boundary=only_boundary)
         !
         CALL environ%main%init(nat, ntyp, ityp, zv, &
                                number=species, &

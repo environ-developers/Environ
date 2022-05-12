@@ -431,12 +431,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr)
+    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr, only_boundary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
+        LOGICAL, OPTIONAL, INTENT(IN) :: only_boundary
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
@@ -456,7 +457,8 @@ CONTAINS
         !
         CALL this%set_core_containers(use_internal_pbc_corr)
         !
-        CALL this%set_electrostatics()
+        IF (.NOT. PRESENT(only_boundary)) &
+                               CALL this%set_electrostatics()
         !
         this%has_numerical_setup = .TRUE.
         !
