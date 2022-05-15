@@ -244,11 +244,21 @@ CONTAINS
         !
         ASSOCIATE (setup => this%main%setup)
             !
-            IF (setup%has_numerical_setup) THEN
+            IF (setup%lelectrostatic) THEN
                 !
                 CALL setup%outer%destroy()
                 !
                 CALL setup%reference%destroy()
+                !
+            END IF
+            !
+            IF (setup%has_numerical_setup) THEN
+                !
+                CALL setup%reference_container%destroy()
+                !
+                CALL setup%outer_container%destroy()
+                !
+                IF (setup%need_inner) CALL setup%inner_container%destroy()
                 !
             END IF
             !

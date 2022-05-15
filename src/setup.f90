@@ -431,13 +431,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr, only_boundary)
+    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
-        LOGICAL, OPTIONAL, INTENT(IN) :: only_boundary
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
@@ -457,8 +456,7 @@ CONTAINS
         !
         CALL this%set_core_containers(use_internal_pbc_corr)
         !
-        IF (.NOT. PRESENT(only_boundary)) &
-                               CALL this%set_electrostatics()
+        IF (this%lelectrostatic) CALL this%set_electrostatics()
         !
         this%has_numerical_setup = .TRUE.
         !
@@ -699,7 +697,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    FUNCTION get_coords(this, nnr) RESULT (coords)
+    FUNCTION get_coords(this, nnr) RESULT(coords)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -968,8 +966,8 @@ CONTAINS
                         this%lconfine
         !
         this%lelectrostatic = this%ldielectric .OR. this%lelectrolyte .OR. &
-                              this%lexternals .OR. this%lperiodic .OR. field_aware .OR. &
-                              env_electrostatic
+                              this%lexternals .OR. this%lperiodic .OR. field_aware .AND. &
+                              .NOT. no_electrostatics
         !
         this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
                                                  solvent_mode == 'full' .OR. &
@@ -1041,19 +1039,9 @@ CONTAINS
         CHARACTER(LEN=80) :: routine = 'init_environ_core_containers'
         !
         !--------------------------------------------------------------------------------
-        ! Calling program reference core
-        !
-        CALL this%reference_container%init('system', &
-                                           elect_core=this%ref_fft, &
-                                           inter_corr=use_internal_pbc_corr)
-        !
-        !--------------------------------------------------------------------------------
         ! Environment core containers
         !
         CALL this%outer_container%init('environment', inter_corr=use_internal_pbc_corr)
-        !
-        IF (this%need_inner) &
-            CALL this%inner_container%init('inner', inter_corr=use_internal_pbc_corr)
         !
         !--------------------------------------------------------------------------------
         ! Derivatives core
@@ -1078,6 +1066,19 @@ CONTAINS
         ! Electrostatic cores
         !
         IF (this%lelectrostatic) THEN
+            !
+            !----------------------------------------------------------------------------
+            ! Calling program reference core container
+            !
+            CALL this%reference_container%init('system', &
+                                               elect_core=this%ref_fft, &
+                                               inter_corr=use_internal_pbc_corr)
+            !
+            !----------------------------------------------------------------------------
+            ! Inner core container
+            !
+            IF (this%need_inner) &
+                CALL this%inner_container%init('inner', inter_corr=use_internal_pbc_corr)
             !
             !----------------------------------------------------------------------------
             ! Outer core

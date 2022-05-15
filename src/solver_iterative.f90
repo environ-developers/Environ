@@ -156,13 +156,15 @@ CONTAINS
         !
         IF (.NOT. ASSOCIATED(this%direct)) CALL io%destroy_error(routine)
         !
-        !--------------------------------------------------------------------------------
+        IF (.NOT. ASSOCIATED(this%cores)) CALL io%destroy_error(routine)
         !
-        CALL this%destroy_cores()
+        !--------------------------------------------------------------------------------
         !
         CALL this%direct%destroy()
         !
         NULLIFY (this%direct)
+        !
+        NULLIFY (this%cores)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_solver_iterative

@@ -68,7 +68,6 @@ MODULE class_solver_direct
         !
         PROCEDURE, PRIVATE :: create_solver_direct
         PROCEDURE :: init => init_solver_direct
-        PROCEDURE :: destroy => destroy_solver_direct
         !
         PROCEDURE :: poisson_charges
         PROCEDURE :: poisson_density
@@ -132,25 +131,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solver_direct
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_solver_direct(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(solver_direct), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: routine = 'destroy_solver_direct'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%destroy_cores()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_solver_direct
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

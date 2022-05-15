@@ -148,6 +148,8 @@ MODULE env_base_input
     !
     LOGICAL :: env_electrostatic = .FALSE. ! flag electrostatic namelist reading
     !
+    LOGICAL :: no_electrostatics = .FALSE. ! suppress electrostatic calculation
+    !
     REAL(DP), ALLOCATABLE :: atomicspread(:)
     ! atomic charge density gaussian spread (a.u.)
     !

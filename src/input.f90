@@ -163,8 +163,7 @@ CONTAINS
         CALL env_mp_bcast(ios, io%node, io%comm)
         !
         IF (ios /= 0) &
-            CALL io%error(routine, &
-                          "Missing or erroneous BOUNDARY namelist", ABS(ios))
+            CALL io%error(routine, "Missing or erroneous BOUNDARY namelist", ABS(ios))
         !
         CALL boundary_bcast() ! broadcast &BOUNDARY variables
         !
@@ -455,6 +454,8 @@ CONTAINS
         CALL env_mp_bcast(system_pos, io%node, io%comm)
         !
         CALL env_mp_bcast(env_electrostatic, io%node, io%comm)
+        !
+        CALL env_mp_bcast(no_electrostatics, io%node, io%comm)
         !
         CALL env_mp_bcast(atomicspread, io%node, io%comm)
         !
