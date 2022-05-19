@@ -289,6 +289,7 @@ CONTAINS
         system_pos = 0.D0
         !
         env_electrostatic = .FALSE.
+        no_electrostatics = .FALSE.
         atomicspread = -0.5D0
         !
         env_static_permittivity = 1.D0
@@ -690,6 +691,8 @@ CONTAINS
         IF (sc_permittivity > 1.D0) need_electrostatics = .TRUE.
         !
         IF (sc_carrier_density > 0) need_electrostatics = .TRUE.
+        !
+        IF (no_electrostatics) need_electrostatics = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END FUNCTION need_electrostatics
