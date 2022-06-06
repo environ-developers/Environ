@@ -233,8 +233,7 @@ CONTAINS
         !
         IF (.NOT. calc_energy) reduce_cell = .TRUE.
         !
-        CALL init_environ_from_cube(environ, &
-                                    reduce_cell=reduce_cell)
+        CALL init_environ_from_cube(environ, reduce_cell=reduce_cell)
         !
         !--------------------------------------------------------------------------------
         !
