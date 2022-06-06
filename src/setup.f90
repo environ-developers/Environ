@@ -965,9 +965,9 @@ CONTAINS
         this%lsolvent = this%ldielectric .OR. this%lsurface .OR. this%lvolume .OR. &
                         this%lconfine
         !
-        this%lelectrostatic = this%ldielectric .OR. this%lelectrolyte .OR. &
-                              this%lexternals .OR. this%lperiodic .OR. field_aware
-        IF (no_electrostatics) this%lelectrostatic = .FALSE.
+        this%lelectrostatic = (this%ldielectric .OR. this%lelectrolyte .OR. &
+                              this%lexternals .OR. this%lperiodic .OR. field_aware) &
+                              .AND. (.NOT. no_electrostatics)
         !
         this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
                                                  solvent_mode == 'full' .OR. &
