@@ -68,9 +68,7 @@ MODULE class_solver
         !
         PROCEDURE, PRIVATE :: create => create_solver
         PROCEDURE :: set_cores => set_solver_cores
-        PROCEDURE :: destroy_cores => destroy_solver_cores
-        !
-        PROCEDURE(destroy_solver), DEFERRED :: destroy
+        PROCEDURE :: destroy => destroy_solver
         !
         !--------------------------------------------------------------------------------
         ! Direct
@@ -116,13 +114,6 @@ MODULE class_solver
         !--------------------------------------------------------------------------------
     END TYPE electrostatic_solver
     !------------------------------------------------------------------------------------
-    !
-    ABSTRACT INTERFACE
-        SUBROUTINE destroy_solver(this)
-            IMPORT electrostatic_solver
-            CLASS(electrostatic_solver), INTENT(INOUT) :: this
-        END SUBROUTINE
-    END INTERFACE
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -182,7 +173,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_solver_cores(this)
+    SUBROUTINE destroy_solver(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -193,16 +184,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cores)) RETURN
+        IF (.NOT. ASSOCIATED(this%cores)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
-        !
-        CALL this%cores%destroy()
         !
         NULLIFY (this%cores)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_solver_cores
+    END SUBROUTINE destroy_solver
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

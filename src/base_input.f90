@@ -148,6 +148,8 @@ MODULE env_base_input
     !
     LOGICAL :: env_electrostatic = .FALSE. ! flag electrostatic namelist reading
     !
+    LOGICAL :: no_electrostatics = .FALSE. ! suppress electrostatic calculation
+    !
     REAL(DP), ALLOCATABLE :: atomicspread(:)
     ! atomic charge density gaussian spread (a.u.)
     !
@@ -238,7 +240,7 @@ MODULE env_base_input
     NAMELIST /environ/ &
         environ_debug, environ_restart, verbose, environ_thr, environ_nskip, env_ecut, &
         environ_type, system_ntyp, system_dim, system_axis, env_nrep, system_pos, &
-        env_electrostatic, atomicspread, env_static_permittivity, &
+        env_electrostatic, no_electrostatics, atomicspread, env_static_permittivity, &
         env_optical_permittivity, env_surface_tension, env_pressure, env_confine, &
         env_electrolyte_ntyp, cion, cionmax, rion, zion, temperature, &
         electrolyte_linearized, electrolyte_entropy, sc_permittivity, &
