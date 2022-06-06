@@ -59,12 +59,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_from_cube(environ, rho, reduce_cell, only_boundary)
+    SUBROUTINE init_environ_from_cube(environ, rho, reduce_cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, OPTIONAL, INTENT(IN) :: reduce_cell, only_boundary
+        LOGICAL, OPTIONAL, INTENT(IN) :: reduce_cell
         !
         TYPE(environ_interface), INTENT(INOUT) :: environ
         REAL(DP), ALLOCATABLE, OPTIONAL, INTENT(OUT) :: rho(:)
@@ -102,12 +102,9 @@ CONTAINS
             CALL environ%setup%init_cell(io%comm, at, nr=nr)
         END IF
         !
-        IF (.NOT. PRESENT(only_boundary)) &
-            CALL environ%setup%init_numerical(use_internal_pbc_corr)
+        CALL environ%setup%init_numerical(use_internal_pbc_corr)
         !
-        CALL environ%main%init(nat, ntyp, ityp, zv, &
-                               number=species, &
-                               only_boundary=only_boundary)
+        CALL environ%main%init(nat, ntyp, ityp, zv, number=species)
         !
         CALL environ%main%update_ions(nat, tau, origin)
         !
