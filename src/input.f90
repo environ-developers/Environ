@@ -652,7 +652,7 @@ CONTAINS
         !
         IF (env_optical_permittivity > 1.D0) need_boundary = .TRUE.
         !
-        IF (env_surface_tension > 0.D0) need_boundary = .TRUE.
+        IF (env_surface_tension /= 0.D0) need_boundary = .TRUE.
         !
         IF (env_pressure /= 0.D0) need_boundary = .TRUE.
         !
@@ -761,9 +761,6 @@ CONTAINS
         !
         IF (env_optical_permittivity < 1.0_DP) &
             CALL io%error(routine, "env_optical_permittivity out of range", 1)
-        !
-        IF (env_surface_tension < 0.0_DP) &
-            CALL io%error(routine, "env_surface_tension out of range", 1)
         !
         IF (temperature < 0.0_DP) CALL io%error(routine, "temperature out of range", 1)
         !

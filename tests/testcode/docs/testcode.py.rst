@@ -38,7 +38,7 @@ diff
 make-benchmarks
     create a new set of benchmarks and update the :ref:`userconfig` file with
     the new benchmark id.  Also runs the 'run' action unless the 'compare'
-    action is also given.
+    action or 'recheck' action is also given.
 recheck
     compare set of test outputs from a previous testcode run against
     benchmark outputs and rerun any failed tests.
@@ -70,6 +70,9 @@ Options
     set to use that value, or in the format program_name=value, which affects
     only the specified program.  Only relevant to the run action.  Default: exe
     variable set for each program listed in the :ref:`userconfig` file.
+-f, --first-run
+    Run tests that were not were not run in the previous testcode run.  Only
+    relevant to the recheck action.  Default: False.
 -i, --insert
     Insert the new benchmark into the existing list of benchmarks in userconfig
     rather than overwriting it.  Only relevant to the make-benchmarks action.
