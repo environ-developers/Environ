@@ -89,6 +89,11 @@ MODULE env_base_input
     !
     INTEGER :: environ_nskip = 1 ! # steps to skip before starting add. pot. computation
     !
+    LOGICAL :: lvolume = .FALSE.
+    LOGICAL :: lsurface = .FALSE.
+    ! flags used to print out the surface and volume continuum solvation values
+    ! lsurface also turns on the need for the gradient of the boundary
+    !
     !------------------------------------------------------------------------------------
     ! Energy cutoff used for internal FFT-grid generation
     !
@@ -245,7 +250,7 @@ MODULE env_base_input
         env_electrolyte_ntyp, cion, cionmax, rion, zion, temperature, &
         electrolyte_linearized, electrolyte_entropy, sc_permittivity, &
         sc_carrier_density, sc_electrode_chg, sc_chg_thr, env_external_charges, &
-        env_dielectric_regions
+        env_dielectric_regions, lsurface, lvolume
     !
     !=---------------------------------------------------------------------------------=!
 !     BOUNDARY Namelist Input Parameters
