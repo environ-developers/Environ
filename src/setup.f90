@@ -915,7 +915,7 @@ CONTAINS
         !
         factor = 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
         this%surface_tension = env_surface_tension * factor
-        this%lsurface = this%surface_tension > 0.D0
+        this%lsurface = this%surface_tension /= 0.D0
         !
         factor = 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
         this%pressure = env_pressure * factor
@@ -1431,7 +1431,7 @@ CONTAINS
             !
         END IF
         !
-        IF (this%surface_tension > 0.D0) &
+        IF (this%surface_tension /= 0.D0) &
             WRITE (io%unit, 1008) env_surface_tension, this%surface_tension
         !
         IF (this%pressure /= 0.D0) &
