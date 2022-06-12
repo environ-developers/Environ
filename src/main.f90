@@ -1098,10 +1098,15 @@ CONTAINS
             !
         END SELECT
         !
-        IF (lvolume .OR. lsurface) WRITE(unit, *) ''
-        IF (lvolume) WRITE(unit, 1011) this%solvent%volume
-        IF (lsurface) WRITE(unit, 1012) this%solvent%surface
-        IF (lvolume .OR. lsurface) WRITE(unit, *) ''
+        IF (lvolume .OR. lsurface) THEN
+            WRITE(unit, *) ''
+            !
+            IF (lvolume) WRITE(unit, 1011) this%solvent%volume
+            !
+            IF (lsurface) WRITE(unit, 1012) this%solvent%surface
+            !
+            WRITE(unit, *) ''
+        END IF
         !
         !--------------------------------------------------------------------------------
         !
@@ -1118,8 +1123,8 @@ CONTAINS
 1009    FORMAT("     electrolyte free energy = ", F14.5, " Hartree a.u.")
 1010    FORMAT("          confinement energy = ", F14.5, " Hartree a.u.")
         !
-1011    FORMAT(5X, "Total volume of the QM region: ", F18.8)
-1012    FORMAT(5X, "Total surface of the QM region: ", F17.8)
+1011    FORMAT(5X, "Total volume of the QM region = ", F18.8)
+1012    FORMAT(5X, "Total surface of the QM region = ", F17.8)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_energies

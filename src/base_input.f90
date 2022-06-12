@@ -89,11 +89,6 @@ MODULE env_base_input
     !
     INTEGER :: environ_nskip = 1 ! # steps to skip before starting add. pot. computation
     !
-    LOGICAL :: lvolume = .FALSE.
-    LOGICAL :: lsurface = .FALSE.
-    ! flags used to print out the surface and volume continuum solvation values
-    ! lsurface also turns on the need for the gradient of the boundary
-    !
     !------------------------------------------------------------------------------------
     ! Energy cutoff used for internal FFT-grid generation
     !
@@ -239,6 +234,13 @@ MODULE env_base_input
     !
     INTEGER :: env_dielectric_regions = 0
     ! number of fixed dielectric regions in the calculation
+    !
+    !------------------------------------------------------------------------------------
+    ! Flags for printing out the surface and volume continuum solvation values
+    ! lsurface triggers computation of the boundary gradient
+    !
+    LOGICAL :: lvolume = .FALSE.
+    LOGICAL :: lsurface = .FALSE.
     !
     !------------------------------------------------------------------------------------
     !
