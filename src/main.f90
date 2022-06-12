@@ -212,7 +212,7 @@ CONTAINS
         !
         CALL this%create()
         !
-        IF (this%setup%lelectrostatic) CALL this%init_potential()
+        CALL this%init_potential()
         !
         CALL this%init_physical(nat, ntyp, ityp, zv, label, number, weight)
         !
