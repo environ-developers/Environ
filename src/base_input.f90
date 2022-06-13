@@ -236,6 +236,13 @@ MODULE env_base_input
     ! number of fixed dielectric regions in the calculation
     !
     !------------------------------------------------------------------------------------
+    ! Flags for printing out the surface and volume continuum solvation values
+    ! lsurface triggers computation of the boundary gradient
+    !
+    LOGICAL :: lvolume = .FALSE.
+    LOGICAL :: lsurface = .FALSE.
+    !
+    !------------------------------------------------------------------------------------
     !
     NAMELIST /environ/ &
         environ_debug, environ_restart, verbose, environ_thr, environ_nskip, env_ecut, &
@@ -245,7 +252,7 @@ MODULE env_base_input
         env_electrolyte_ntyp, cion, cionmax, rion, zion, temperature, &
         electrolyte_linearized, electrolyte_entropy, sc_permittivity, &
         sc_carrier_density, sc_electrode_chg, sc_chg_thr, env_external_charges, &
-        env_dielectric_regions
+        env_dielectric_regions, lsurface, lvolume
     !
     !=---------------------------------------------------------------------------------=!
 !     BOUNDARY Namelist Input Parameters

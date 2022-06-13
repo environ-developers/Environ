@@ -915,11 +915,11 @@ CONTAINS
         !
         factor = 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
         this%surface_tension = env_surface_tension * factor
-        this%lsurface = this%surface_tension /= 0.D0
+        this%lsurface = this%surface_tension /= 0.D0 .OR. lsurface
         !
         factor = 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
         this%pressure = env_pressure * factor
-        this%lvolume = this%pressure /= 0.D0
+        this%lvolume = this%pressure /= 0.D0 .OR. lvolume
         !
         this%confine = env_confine
         this%lconfine = this%confine /= 0.D0
@@ -988,7 +988,7 @@ CONTAINS
         !
         this%lsmearedions = this%lelectrostatic
         this%lboundary = this%lsolvent .OR. this%lelectrolyte
-        this%lgradient = this%ldielectric .OR. field_aware
+        this%lgradient = this%ldielectric .OR. field_aware .OR. lsurface
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_derived_flags

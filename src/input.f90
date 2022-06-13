@@ -277,6 +277,12 @@ CONTAINS
         environ_thr = 1.D-1
         environ_nskip = 1
         !
+        env_electrostatic = .FALSE.
+        no_electrostatics = .FALSE.
+        !
+        lsurface = .FALSE.
+        lvolume = .FALSE.
+        !
         env_ecut = 0.D0
         !
         environ_type = 'input'
@@ -288,8 +294,6 @@ CONTAINS
         env_nrep = 0
         system_pos = 0.D0
         !
-        env_electrostatic = .FALSE.
-        no_electrostatics = .FALSE.
         atomicspread = -0.5D0
         !
         env_static_permittivity = 1.D0
@@ -457,6 +461,10 @@ CONTAINS
         CALL env_mp_bcast(env_electrostatic, io%node, io%comm)
         !
         CALL env_mp_bcast(no_electrostatics, io%node, io%comm)
+        !
+        CALL env_mp_bcast(lvolume, io%node, io%comm)
+        !
+        CALL env_mp_bcast(lsurface, io%node, io%comm)
         !
         CALL env_mp_bcast(atomicspread, io%node, io%comm)
         !
@@ -665,6 +673,8 @@ CONTAINS
         IF (sc_permittivity > 1.D0) need_boundary = .TRUE.
         !
         IF (sc_carrier_density > 0) need_boundary = .TRUE.
+        !
+        IF (lsurface .OR. lvolume) need_boundary = .TRUE.
         !
         !--------------------------------------------------------------------------------
     END FUNCTION need_boundary
