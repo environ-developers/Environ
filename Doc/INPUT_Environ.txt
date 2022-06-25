@@ -135,6 +135,15 @@ NAMELIST: &ENVIRON
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
+   Variable:       env_ecut
+   
+   Type:           REAL
+   Default:        0.D0
+   Description:    Cutoff value (Ry) used to derive the G-vector cutoff on Environ's internal FFT-grid.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
    Variable:       env_electrolyte_ntyp
    
    Type:           INTEGER
@@ -154,7 +163,17 @@ NAMELIST: &ENVIRON
                    embedding keyword (env_static_permittivity, env_electrolyte_ntyp) will turn this keyword on.
                    One needs to turn on this keyword explicitly to activate electrostatic embedding effects
                    that do not have a specific activation keyword, such as for PBC correction schemes.
-   Status:         REQUIRED
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       no_electrostatics
+   
+   Type:           LOGICAL
+   Default:        .FALSE.
+   Description:    Suppress electrostatic calculation. This prevents initialization of unnecessary
+                   quantities such as certain potentials.
+   Status:         OPTIONAL
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
@@ -389,6 +408,24 @@ NAMELIST: &ENVIRON
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
+   Variable:       sc_electrode_chg
+   
+   Type:           REAL
+   Default:        0.D0
+   Description:    The total charge on the electrode (e).
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       sc_chg_thr
+   
+   Type:           REAL
+   Default:        1.D-4
+   Description:    Threshold for the outer loop of charge optimization.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
    Variable:       system_axis
    
    Type:           INTEGER
@@ -449,6 +486,24 @@ NAMELIST: &ENVIRON
    Type:           REAL
    Default:        1.D0
    Description:    Valence of ionic countercharge.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       lvolume
+   
+   Type:           LOGICAL
+   Default:        .FALSE.
+   Description:    Print boundary volume at each step.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       lsurface
+   
+   Type:           LOGICAL
+   Default:        .FALSE.
+   Description:    Print boundary surface at each step (triggers computation of boundary gradient).
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -980,7 +1035,7 @@ NAMELIST: &ELECTROSTATIC
                    
                    DEFAULT:
                    
-                   IF (solver .EQ. 'fixed-point') THEN
+                   IF (solver .EQ. 'fixed-point')
                        auxiliary = 'full'
                    ELSE
                        auxiliary = 'none'
@@ -1030,6 +1085,27 @@ NAMELIST: &ELECTROSTATIC
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
+   Variable:       inner_problem
+   
+   Type:           CHARACTER
+   Default:        see below
+   Description:    Type of electrostatic problem for inner loop in nested algorithms.
+                   
+                   'generalized' : generalized poisson equation.
+                   'linpb'       : linearized poisson-boltzmann equation (debye-huckel).
+                   
+                   DEFAULT:
+                   
+                   IF (inner_solver .NE. 'none')
+                       IF (solver .EQ. 'fixed-point')
+                           IF (auxiliary == 'ioncc')
+                               inner_problem = 'generalized'
+                       IF (solver .EQ. 'newton')
+                           inner_problem = 'linpb'
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
    Variable:       inner_solver
    
    Type:           CHARACTER
@@ -1044,8 +1120,8 @@ NAMELIST: &ELECTROSTATIC
                    
                    DEFAULT:
                    
-                   IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                       IF (.NOT. electrolyte_linearized) THEN
+                   IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                       IF (.NOT. electrolyte_linearized)
                            inner_solver = 'cg'
                        ELSE
                            inner_solver = 'none'
@@ -1200,13 +1276,13 @@ NAMELIST: &ELECTROSTATIC
                    
                    DEFAULT:
                    
-                   IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                       IF (electrolyte_linearized) THEN
-                           IF (cionmax > 0.D0 .OR. rion > 0.D0) THEN
+                   IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                       IF (electrolyte_linearized)
+                           IF (cionmax > 0.D0 .OR. rion > 0.D0)
                                problem = 'linmodpb'
                            ELSE
                                problem = 'linpb'
-                   ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
+                   ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0)
                        problem = 'generalized'
                    ELSE
                        problem = 'poisson'
@@ -1256,13 +1332,13 @@ NAMELIST: &ELECTROSTATIC
                    
                    DEFAULT:
                    
-                   IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                       IF (electrolyte_linearized) THEN
+                   IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                       IF (electrolyte_linearized)
                            solver = 'cg'
                        ELSE
                            solver = 'newton'
-                   ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
-                       IF (pbc_correction .NE. 'gcs') THEN
+                   ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0)
+                       IF (pbc_correction .NE. 'gcs')
                            solver = 'cg'
                        ELSE
                            solver = 'fixed-point'
@@ -1491,4 +1567,4 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Sat Dec 18 11:16:21 CST 2021
+This file has been created by helpdoc utility on Sat Jun 25 10:08:41 CDT 2022

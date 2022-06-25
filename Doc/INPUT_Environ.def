@@ -147,7 +147,16 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             One needs to turn on this keyword explicitly to activate electrostatic embedding effects
             that do not have a specific activation keyword, such as for PBC correction schemes.
             }
-            status { REQUIRED }
+            status { OPTIONAL }
+        }
+
+        var no_electrostatics -type LOGICAL {
+            default { .FALSE. }
+            info {
+            Suppress electrostatic calculation. This prevents initialization of unnecessary
+            quantities such as certain potentials.
+            }
+            status { OPTIONAL }
         }
         
         var env_external_charges -type INTEGER {
@@ -369,6 +378,22 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { OPTIONAL }
         }
 
+        var sc_electrode_chg -type REAL {
+            default { 0.D0 }
+            info {
+            The total charge on the electrode (e).
+            }
+            status { OPTIONAL }
+        }
+
+        var sc_chg_thr -type REAL {
+            default { 1.D-4 }
+            info {
+            Threshold for the outer loop of charge optimization.
+            }
+            status { OPTIONAL }
+        }
+
         var system_axis -type INTEGER {
             default { 3 }
             info {
@@ -423,6 +448,22 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             default { 1.D0 }
             info {
             Valence of ionic countercharge.
+            }
+            status { OPTIONAL }
+        }
+
+        var lvolume -type LOGICAL {
+            default { .FALSE. }
+            info {
+            Print boundary volume at each step.
+            }
+            status { OPTIONAL }
+        }
+
+        var lsurface -type LOGICAL {
+            default { .FALSE. }
+            info {
+            Print boundary surface at each step (triggers computation of boundary gradient).
             }
             status { OPTIONAL }
         }
@@ -912,7 +953,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
 
-            IF (solver .EQ. 'fixed-point') THEN
+            IF (solver .EQ. 'fixed-point')
                 auxiliary = 'full'
             ELSE
                 auxiliary = 'none'
@@ -958,6 +999,26 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { OPTIONAL }
         }
 
+        var inner_problem -type CHARACTER {
+            default { see below }
+            info {
+            Type of electrostatic problem for inner loop in nested algorithms.
+
+            'generalized' : generalized poisson equation.
+            'linpb'       : linearized poisson-boltzmann equation (debye-huckel).
+
+            DEFAULT:
+
+            IF (inner_solver .NE. 'none')
+                IF (solver .EQ. 'fixed-point')
+                    IF (auxiliary == 'ioncc') 
+                        inner_problem = 'generalized'
+                IF (solver .EQ. 'newton')
+                    inner_problem = 'linpb'
+            }
+            status { OPTIONAL }
+        }
+
         var inner_solver -type CHARACTER {
             default { see below }
             info {
@@ -971,8 +1032,8 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
 
-            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                IF (.NOT. electrolyte_linearized) THEN 
+            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                IF (.NOT. electrolyte_linearized) 
                     inner_solver = 'cg'
                 ELSE
                     inner_solver = 'none'
@@ -1116,13 +1177,13 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
 
-            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                IF (electrolyte_linearized) THEN
-                    IF (cionmax > 0.D0 .OR. rion > 0.D0) THEN
+            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                IF (electrolyte_linearized)
+                    IF (cionmax > 0.D0 .OR. rion > 0.D0)
                         problem = 'linmodpb' 
                     ELSE
                         problem = 'linpb'
-            ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
+            ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0)
                 problem = 'generalized'
             ELSE
                 problem = 'poisson'
@@ -1169,13 +1230,13 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
             
-            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                IF (electrolyte_linearized) THEN
+            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                IF (electrolyte_linearized)
                     solver = 'cg'
                 ELSE
                     solver = 'newton'
-            ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
-                IF (pbc_correction .NE. 'gcs') THEN
+            ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0)
+                IF (pbc_correction .NE. 'gcs')
                     solver = 'cg'
                 ELSE
                     solver = 'fixed-point'
