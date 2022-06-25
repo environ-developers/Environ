@@ -1007,7 +1007,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%lfft_system = .TRUE.
+        IF (this%lelectrostatic) this%lfft_system = .TRUE.
         !
         IF (this%lboundary .OR. this%lelectrostatic) THEN
             IF (deriv_core == 'fft') this%lfft_environment = .TRUE.

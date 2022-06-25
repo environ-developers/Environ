@@ -254,7 +254,7 @@ CONTAINS
             !
             IF (setup%has_numerical_setup) THEN
                 !
-                CALL setup%reference_container%destroy()
+                IF (setup%lelectrostatic) CALL setup%reference_container%destroy()
                 !
                 CALL setup%outer_container%destroy()
                 !
