@@ -50,6 +50,6 @@ libsdir:
 	@ test -d ../libs || mkdir ../libs
 
 clean:
-	@ /bin/rm -f *.o *.a *.d *.i *~ *_tmp.f90 *.mod *.L
+	@ /bin/rm -f *.o *.a *.d *.i *~ *_tmp.f90 *.mod *.L *.i90
 
 include make.depend

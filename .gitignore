@@ -26,6 +26,9 @@ make.depend
 *.mod
 *.smod
 
+# Fortran linter files
+*.i90
+
 # Compiled Static libraries
 *.lai
 *.la

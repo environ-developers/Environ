@@ -47,7 +47,7 @@ libsdir:
 	@ test -d ../libs || mkdir ../libs
 
 clean:
-	@ /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90 *.x
+	@ /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90 *.x *.i90
 
 include make.depend
 
