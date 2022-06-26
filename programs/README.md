@@ -1,9 +1,6 @@
 # Environ stand-alone programs
 
-This directory holds two stand-alone programs:
-
-1. `tester.f90` to test new developments
-2. `driver.f90` to run custom calculations using Environ
+`driver.f90` to run custom calculations using Environ
 
 The driver is a minimal program designed to call custom routines for custom Environ runs. <br> Users may report interest in additional custom functionality by providing calculation detail <br> to olivieroandreussi@unt.edu or by forking the Environ repo and submitting a pull request <br> for the custom code.
 
@@ -62,3 +59,7 @@ Computes environment contributions to properties of a "frozen" density given as 
     1     charge    13.450000   11.220000   11.500000
     1     charge    10.560000   10.660000   11.500000
   ```
+
+## `descriptors`
+
+### Requirements
