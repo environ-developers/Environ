@@ -18,7 +18,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Pre-compilation" href="optional_QE_comp.html" />
+    <link rel="next" title="Environ installation" href="Environ_install.html" />
     <link rel="prev" title="Obtaining source files" href="obtaining_files.html" /> 
 </head>
 
@@ -49,7 +49,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="optional_QE_comp.html">Pre-compilation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Environ_install.html">Environ installation</a></li>
 </ul>
 </li>
@@ -94,19 +93,45 @@
 <h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline"></a></h1>
 <section id="qe">
 <h2>QE<a class="headerlink" href="#qe" title="Permalink to this headline"></a></h2>
-<p>Quantum-ESPRESSO uses a <strong class="command">configure</strong> script to detect compilers and libraries necessary for compilation. To configure the environment, run the following command from the QE root directory</p>
+<section id="make">
+<h3>make<a class="headerlink" href="#make" title="Permalink to this headline"></a></h3>
+<p>QE can use its <strong class="command">configure</strong> script to detect compilers and libraries
+necessary for compilation. To configure the environment, run the following
+command from the QE root directory</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">configure</span>
 </pre></div>
 </div>
-<p>For additional flags for fine-tuning the configuration process, check out the <a class="reference external" href="https://www.quantum-espresso.org/Doc/user_guide/">QE docs</a>.</p>
+<p>For additional flags for fine-tuning the configuration process,
+check out the <a class="reference external" href="https://www.quantum-espresso.org/Doc/user_guide/">QE docs</a>.</p>
+</section>
+<section id="cmake">
+<h3>cmake<a class="headerlink" href="#cmake" title="Permalink to this headline"></a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using <cite>cmake</cite>, Environ must be pre-compiled. See <a class="reference internal" href="install_3.html"><span class="doc">Environ v3.0 and up</span></a> compilation instructions</p>
+</div>
+<p>Alternatively, one can use QE’s <cite>cmake</cite> installation process. If chosen,
+create a new build directory in QE root, and inside it, run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cmake</span> <span class="o">-</span><span class="n">DCMAKE_Fortran_COMPILER</span><span class="o">=&lt;...&gt;</span> <span class="o">-</span><span class="n">DCMAKE_C_COMPILER</span><span class="o">=&lt;...&gt;</span> <span class="o">-</span><span class="n">DENVIRON_ROOT</span><span class="o">=&lt;</span><span class="n">absolute_path_to_Environ</span><span class="o">&gt;</span> <span class="o">..</span>
+</pre></div>
+</div>
+<p>For additional information on the cmake installation process,
+check out the <a class="reference external" href="https://gitlab.com/QEF/q-e/-/wikis/Developers/CMake-build-system">QE cmake guide</a></p>
+</section>
 </section>
 <section id="environ-v2-0-and-up">
 <h2>Environ <span class="guilabel">v2.0</span> and up<a class="headerlink" href="#environ-v2-0-and-up" title="Permalink to this headline"></a></h2>
-<p>The <strong class="command">configure</strong> script was adopted in the recent Environ <span class="guilabel">v2.0</span> release. To configure Environ, run the same command from the Environ root directory</p>
+<p>The <strong class="command">configure</strong> script was adopted in the recent Environ
+<span class="guilabel">v2.0</span> release. To configure Environ, run the same command from
+the Environ root directory</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">configure</span>
 </pre></div>
 </div>
 <p>making sure to use the same compiler flags and libraries.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If using cmake to compile QE, modify the ESPRESSO_ROOT variable in the following files to reflect the build directory: Environ/tests/environment, Environ/examples/qe/environment</p>
+</div>
 </section>
 </section>
 
@@ -115,7 +140,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="obtaining_files.html" class="btn btn-neutral float-left" title="Obtaining source files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="optional_QE_comp.html" class="btn btn-neutral float-right" title="Pre-compilation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Environ_install.html" class="btn btn-neutral float-right" title="Environ installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

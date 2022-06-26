@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation instructions &mdash; Environ  documentation</title>
+  <title>Environ v2.0 - v3.0 &mdash; Environ  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,8 +18,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Preliminary steps" href="preliminary_steps.html" />
-    <link rel="prev" title="Welcome to Environ’s documentation!" href="../index.html" /> 
+    <link rel="next" title="Environ v1.0 - v2.0" href="install_1_2.html" />
+    <link rel="prev" title="Environ v3.0 and up" href="install_3.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -39,9 +39,18 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation instructions</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="install.html">Installation instructions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="preliminary_steps.html">Preliminary steps</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Environ_install.html">Environ installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Environ_install.html">Environ installation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="install_3.html">Environ <span class="guilabel">v3.0</span> and up</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Environ <span class="guilabel">v2.0</span> - <span class="guilabel">v3.0</span></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#uninstalling">Uninstalling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="install_1_2.html">Environ <span class="guilabel">v1.0</span> - <span class="guilabel">v2.0</span></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
@@ -69,9 +78,11 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Installation instructions</li>
+          <li><a href="install.html">Installation instructions</a> &raquo;</li>
+          <li><a href="Environ_install.html">Environ installation</a> &raquo;</li>
+      <li>Environ <span class="guilabel">v2.0</span> - <span class="guilabel">v3.0</span></li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/install/install.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/install/install_2.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -79,58 +90,49 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="installation-instructions">
-<h1>Installation instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline"></a></h1>
-<p>The following sections cover downloading, configuring,
-and installing Quantum-ESPRESSO (QE) and Environ.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="preliminary_steps.html">Preliminary steps</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="obtaining_files.html">Obtaining source files</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="obtaining_files.html#qe">QE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="obtaining_files.html#environ">Environ</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="configuring_install.html">Configuration</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="configuring_install.html#qe">QE</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="configuring_install.html#make">make</a></li>
-<li class="toctree-l4"><a class="reference internal" href="configuring_install.html#cmake">cmake</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="configuring_install.html#environ-v2-0-and-up">Environ <span class="guilabel">v2.0</span> and up</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Environ_install.html">Environ installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install_3.html">Environ <span class="guilabel">v3.0</span> and up</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="install_3.html#installing">Installing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="install_3.html#uninstalling">Uninstalling</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="install_2.html">Environ <span class="guilabel">v2.0</span> - <span class="guilabel">v3.0</span></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="install_2.html#installing">Installing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="install_2.html#uninstalling">Uninstalling</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="install_1_2.html">Environ <span class="guilabel">v1.0</span> - <span class="guilabel">v2.0</span></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="install_1_2.html#installing">Installing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="install_1_2.html#uninstalling">Uninstalling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="install_1_2.html#known-issues">Known Issues</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+  <section id="environ-v2-0-v3-0">
+<h1>Environ <span class="guilabel">v2.0</span> - <span class="guilabel">v3.0</span><a class="headerlink" href="#environ-v2-0-v3-0" title="Permalink to this headline"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Run the following commands from the Environ root directory.</p>
 </div>
+<section id="installing">
+<h2>Installing<a class="headerlink" href="#installing" title="Permalink to this headline"></a></h2>
+<ol class="arabic">
+<li><p>install Environ</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">install</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>select the QE package you wish to work with</p></li>
+<li><p>select the number of cores for parallel compilation (default = 1)</p></li>
+</ol>
+</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If issues arise, try compiling in serial.</p>
+</div>
+</section>
+<section id="uninstalling">
+<h2>Uninstalling<a class="headerlink" href="#uninstalling" title="Permalink to this headline"></a></h2>
+<p>To uninstall Environ, run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">uninstall</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>enter <strong class="command">y</strong> to proceed</p></li>
+<li><p>when prompted for, enter <strong class="command">y</strong> to uninstall QE (optional)</p></li>
+</ol>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to Environ’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="preliminary_steps.html" class="btn btn-neutral float-right" title="Preliminary steps" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="install_3.html" class="btn btn-neutral float-left" title="Environ v3.0 and up" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="install_1_2.html" class="btn btn-neutral float-right" title="Environ v1.0 - v2.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -6,10 +6,8 @@
 Environ installation
 ====================
 
-The process has been modified greatly in the recent :guilabel:`v2.0` release, both for installing and uninstalling Environ. Please follow the links matching your working version.
-
 .. toctree::
 
-   new_install
-   old_install
-   
+   install_3
+   install_2
+   install_1_2
