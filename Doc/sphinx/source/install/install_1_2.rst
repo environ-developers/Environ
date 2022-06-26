@@ -4,8 +4,8 @@
    Updated by Edan Bainglass on Mon Oct 5 2021.
 
 
-Environ :guilabel:`v1.0` up to :guilabel:`v2.0`
-===============================================
+Environ :guilabel:`v1.0` - :guilabel:`v2.0`
+===========================================
 
 .. note:: Run the following commands from the QE root directory.
 

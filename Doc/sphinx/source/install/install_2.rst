@@ -3,8 +3,8 @@
    Contains installation instructions.
 
 
-Environ :guilabel:`v2.0` and up
-===============================
+Environ :guilabel:`v2.0` - :guilabel:`v3.0`
+===========================================
 
 .. note:: Run the following commands from the Environ root directory.
 
@@ -16,7 +16,7 @@ Installing
       make install
 
    1. select the QE package you wish to work with
-   
+
    2. select the number of cores for parallel compilation (default = 1)
 
 .. note:: If issues arise, try compiling in serial.

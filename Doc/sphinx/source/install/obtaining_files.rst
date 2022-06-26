@@ -1,5 +1,6 @@
 .. Environ documentation installation instructions.
    Created by Edan Bainglass on Mon Oct 5 2021.
+   Updated by Edan Bainglass on Sun Jun 26 2022.
    Contains installation instructions.
 
 
@@ -9,39 +10,35 @@ Obtaining source files
 QE
 --
 
-1. clone the repository and checkout :guilabel:`qe-6.3` (or later) ::
+Clone the repository and checkout the relevant QE version (see note below) ::
 
       git clone https://gitlab.com/QEF/q-e
-      git checkout qe-6.3
+      git checkout <tag>
 
-or
-
-1. download a qe-6.3 archive (or later) from the `QE releases`_ page
-2. unpack the archive ::
+or download the relevant version's archive from the `QE releases`_ page
+and unpack the archive using ::
 
       tar zxvf qe-X.Y.Z.tar.gz
 
-   or, if your :command:`tar` doesn't recognize the :guilabel:`z` flag ::
+or, if your :command:`tar` doesn't recognize the :guilabel:`z` flag ::
 
       gunzip -c qe-X.Y.Z.tar.gz | tar xvf -
+
+.. note::
+      Environ :guilabel:`v3.0` supports QE :guilabel:`qe-7.1` and up. Prior Environ versions support QE :guilabel:`qe-6.3` - :guilabel:`qe-7.0`
 
 Environ
 -------
 
-1. clone the Environ repository into the QE root directory ::
+Clone the Environ repository ::
 
       git clone https://github.com/environ-developers/Environ.git
 
-or
+or download an archive from the `Environ releases`_ page
+and follow the above directions to unpack the archive
 
-1. download an archive from the `Environ releases`_ page
-2. unpack the archive inside the QE root directory ::
-
-      tar zxvf qe-X.Y.Z.tar.gz
-
-   or, if your :command:`tar` doesn't recognize the :guilabel:`z` flag ::
-
-      gunzip -c qe-X.Y.Z.tar.gz | tar xvf -
+.. note::
+      Environ versions prior to :guilabel:`v3.0` require Environ root to be placed inside QE root
 
 .. _QE releases: https://github.com/QEF/q-e/releases
 .. _Environ releases: https://github.com/environ-developers/Environ/releases
