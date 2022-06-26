@@ -66,11 +66,20 @@ avail:
 	@ echo
 	@ echo "  Computes environment contributions to properties of a \"frozen\" density given as a cube file"
 	@ echo
+	@ echo "descriptors"
+	@ echo
+	@ echo "  An Environ calculation of the Soft-Sphere interface function surface, volume, and local surface"
+	@ echo "  and volume. Additionally, the forces due to the interface function and energy contributions can"
+	@ echo "  be calculated"
+	@ echo 
+	@ echo "  For fine calculation control, see the README file or check out https://environ.readthedocs.io"
+	@ echo
 	
 usage:
 	@ echo
 	@ case "$(name)" in \
-	  	from_cube) usage='driver -n name-of-calculation -i input-file -c cube-file';; \
+	  	from_cube) usage='driver -n from_cube -i input-file -c cube-file';; \
+	  	descriptors) usage='driver -n descriptors -i input-file -c cube-file';; \
 		*) usage='make usage name=name-of-calculation';; \
 	  esac; \
 	  echo Usage: $$usage
