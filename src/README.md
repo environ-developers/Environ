@@ -2,6 +2,16 @@
 
     Primary codebase for Environ.
 
+### Changes in v3.0
+
+---
+
+- Added API for use by host software
+- Made atom species input more flexible (now by label, number, or weight)
+- Redesigned boundaries in OOP hierarchal structure
+- Improved performance when using soft spheres (ionic boundary)
+- Added ms-gcs functionality
+
 ### Changes in v2.0
 
 ---
