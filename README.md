@@ -107,7 +107,7 @@ From QE root:
 If using cmake, modify the ESPRESSO_ROOT variable in the following files to reflect the build dir:
 
 - Environ/tests/environment
-- Environ/examples/environment
+- Environ/examples/qe/environment
 
 #
 
