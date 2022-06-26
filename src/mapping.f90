@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -34,7 +34,7 @@ MODULE class_mapping
     USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_base_scatter, ONLY: env_scatter_grid, env_gather_grid
+    USE env_scatter_mod, ONLY: env_scatter_grid, env_gather_grid
     !
     USE environ_param, ONLY: DP
     !
@@ -72,9 +72,10 @@ MODULE class_mapping
         PROCEDURE :: update => update_environ_mapping
         PROCEDURE :: destroy => destroy_environ_mapping
         !
-        PROCEDURE, PRIVATE :: &
-            map_small_to_large_real, map_small_to_large_density, &
-            map_large_to_small_real, map_large_to_small_density
+        PROCEDURE, PRIVATE :: map_small_to_large_real
+        PROCEDURE, PRIVATE :: map_small_to_large_density
+        PROCEDURE, PRIVATE :: map_large_to_small_real
+        PROCEDURE, PRIVATE :: map_large_to_small_density
         !
         GENERIC :: to_large => map_small_to_large_real, map_small_to_large_density
         GENERIC :: to_small => map_large_to_small_real, map_large_to_small_density
@@ -104,13 +105,20 @@ CONTAINS
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_mapping'
+        CHARACTER(LEN=80) :: routine = 'create_environ_mapping'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%large)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%large)) CALL io%create_error(routine)
         !
-        IF (ASSOCIATED(this%small)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%small)) CALL io%create_error(routine)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%nrep = 0
+        !
+        NULLIFY (this%large)
+        NULLIFY (this%small)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_mapping
@@ -156,12 +164,12 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN), OPTIONAL :: pos(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: pos(3)
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
+        INTEGER :: ir
         LOGICAL :: physical
-        INTEGER :: ir, ipol
         INTEGER, DIMENSION(3) :: small_n, large_n, center, origin, shift, ijk
         REAL(DP) :: tmp(3)
         !
@@ -185,13 +193,13 @@ CONTAINS
         !
         IF (PRESENT(pos)) THEN
             tmp = MATMUL(this%small%bg, pos)
-            origin = NINT(tmp * small_n) ! center of charge
+            origin = NINT(tmp * small_n) ! center of mass
         ELSE
             origin = 0
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Compute shift placing center of charge at center of small cell
+        ! Compute shift placing center of mass at center of small cell
         ! (Minimizes potential cutting of DFT densities)
         !
         center = NINT(small_n / 2.D0)
@@ -212,7 +220,7 @@ CONTAINS
             IF (.NOT. physical) CYCLE
             !
             !----------------------------------------------------------------------------
-            ! Shift center of charge to center of small cell
+            ! Shift center of mass to center of small cell
             !
             ijk = ijk + shift
             ijk = ijk - FLOOR(DBLE(ijk) / small_n) * small_n ! enforce periodicity
@@ -245,13 +253,13 @@ CONTAINS
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_mapping'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_mapping'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%small)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%small)) CALL io%destroy_error(routine)
         !
-        IF (.NOT. ASSOCIATED(this%large)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%large)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -283,19 +291,19 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: flarge(nlarge)
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_real'
+        CHARACTER(LEN=80) :: routine = 'map_small_to_large_real'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= this%small%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
+            CALL io%error(routine, "Wrong dimension of small cell", 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of large cell', 1)
+            CALL io%error(routine, "Wrong dimension of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -307,11 +315,11 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Copy small cell to corresponding gridpoints in the full large cell
             !
-            ALLOCATE (auxlarge(this%large%ntot))
+            ALLOCATE (auxlarge(this%large%nnt))
             auxlarge = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) auxlarge(this%map(ir)) = fsmall(ir)
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) auxlarge(this%map(i)) = fsmall(i)
             END DO
             !
 #if defined(__MPI)
@@ -341,19 +349,19 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: flarge
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_density'
+        CHARACTER(LEN=80) :: routine = 'map_small_to_large_density'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL io%error(sub_name, 'Mismatch of small cell', 1)
+            CALL io%error(routine, "Mismatch of small cell", 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL io%error(sub_name, 'Mismatch of large cell', 1)
+            CALL io%error(routine, "Mismatch of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -365,11 +373,11 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Copy small cell to corresponding gridpoints in the full large cell
             !
-            ALLOCATE (auxlarge(this%large%ntot))
+            ALLOCATE (auxlarge(this%large%nnt))
             auxlarge = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) auxlarge(this%map(ir)) = fsmall%of_r(ir)
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) auxlarge(this%map(i)) = fsmall%of_r(i)
             END DO
             !
 #if defined(__MPI)
@@ -400,19 +408,19 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: fsmall(nsmall)
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_real'
+        CHARACTER(LEN=80) :: routine = 'map_large_to_small_real'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= this%small%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
+            CALL io%error(routine, "Wrong dimension of small cell", 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL io%error(sub_name, 'Wrong dimension of large cell', 1)
+            CALL io%error(routine, "Wrong dimension of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -424,7 +432,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Copy portion of large cell to corresponding gridpoints in the small cell
             !
-            ALLOCATE (auxlarge(this%large%ntot))
+            ALLOCATE (auxlarge(this%large%nnt))
             auxlarge = 0.D0
 #if defined(__MPI)
             CALL env_gather_grid(this%large%dfft, flarge, auxlarge)
@@ -436,8 +444,8 @@ CONTAINS
 #endif
             fsmall = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) fsmall(ir) = auxlarge(this%map(ir))
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) fsmall(i) = auxlarge(this%map(i))
             END DO
             !
             DEALLOCATE (auxlarge)
@@ -459,19 +467,19 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: fsmall
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_density'
+        CHARACTER(LEN=80) :: routine = 'map_large_to_small_density'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL io%error(sub_name, 'Mismatch of small cell', 1)
+            CALL io%error(routine, "Mismatch of small cell", 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL io%error(sub_name, 'Mismatch of large cell', 1)
+            CALL io%error(routine, "Mismatch of large cell", 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -483,7 +491,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Copy portion of large cell to corresponding gridpoints in the small cell
             !
-            ALLOCATE (auxlarge(this%large%ntot))
+            ALLOCATE (auxlarge(this%large%nnt))
             auxlarge = 0.D0
             !
 #if defined(__MPI)
@@ -496,8 +504,8 @@ CONTAINS
 #endif
             fsmall%of_r = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) fsmall%of_r(ir) = auxlarge(this%map(ir))
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) fsmall%of_r(i) = auxlarge(this%map(i))
             END DO
             !
             DEALLOCATE (auxlarge)
@@ -526,11 +534,11 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_mapping), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_mapping'
+        CHARACTER(LEN=80) :: routine = 'print_environ_mapping'
         !
         !--------------------------------------------------------------------------------
         !
@@ -576,13 +584,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' MAPPING ', 67('%'))
+1000    FORMAT(/, 4('%'), " MAPPING ", 67('%'))
 !
-1001    FORMAT(/, ' number of replicas (x,y,z) = ', 3I14)
+1001    FORMAT(/, " number of replicas (x,y,z) = ", 3I14)
 !
-1002    FORMAT(/, ' cell origins:', /, &
-                ' system                     = ', 3F14.7, /, &
-                ' environment                = ', 3F14.7)
+1002    FORMAT(/, " cell origins:", /, &
+                " system                     = ", 3F14.7, /, &
+                " environment                = ", 3F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_mapping

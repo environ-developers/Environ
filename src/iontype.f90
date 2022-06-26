@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -54,6 +54,7 @@ MODULE class_iontype
         INTEGER :: atmnum
         CHARACTER(LEN=3) :: label
         REAL(DP) :: zv
+        REAL(DP) :: weight
         REAL(DP) :: atomicspread
         REAL(DP) :: corespread
         REAL(DP) :: solvationrad
@@ -62,16 +63,23 @@ MODULE class_iontype
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_iontype
         PROCEDURE :: init => init_environ_iontype
-        PROCEDURE :: set_defaults => set_iontype_defaults
+        !
+        PROCEDURE, PRIVATE :: set_id => set_iontype_id
+        PROCEDURE, PRIVATE :: set_defaults => set_iontype_defaults
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_iontype
     !------------------------------------------------------------------------------------
     !
+    INTERFACE get_element
+        MODULE PROCEDURE get_element_by_number, get_element_by_weight
+    END INTERFACE get_element
+    !
     !------------------------------------------------------------------------------------
     !
-    CHARACTER(LEN=2) :: elements(92)
+    CHARACTER(LEN=3) :: elements(92)
     !
     REAL(DP), DIMENSION(92) :: pauling_radii, bondi_radii, UFF_diameters, &
                                MUFF_diameters, weights
@@ -156,32 +164,66 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_iontype(this, index, atom_label, zv, radius_mode, &
-                                    atomicspread, corespread, solvationrad, &
-                                    lsoftcavity, lsmearedions)
+    SUBROUTINE create_environ_iontype(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_iontype), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'create_environ_iontype'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%index = 0
+        this%atmnum = 0
+        this%label = ''
+        this%zv = 0.D0
+        this%weight = 0.D0
+        this%atomicspread = 0.D0
+        this%corespread = 0.D0
+        this%solvationrad = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_iontype
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_environ_iontype(this, index, id, zv, radius_mode, atomicspread, &
+                                    corespread, solvationrad, lsoftcavity, &
+                                    lsmearedions)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        CLASS(*), INTENT(IN) :: id
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         REAL(DP), INTENT(IN) :: zv, atomicspread, corespread, solvationrad
         LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_iontype'
+        CHARACTER(LEN=80) :: routine = 'init_environ_iontype'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%set_defaults(index, atom_label, radius_mode)
+        CALL this%create()
+        !
+        CALL this%set_id(id)
+        !
+        CALL this%set_defaults(index, radius_mode)
         !
         this%zv = -zv
         !
         IF (atomicspread > 0) this%atomicspread = atomicspread
         !
-        IF (corespread > 0) this%corespread = corespread
+        IF (this%label == 'H') THEN
+            this%corespread = 1.D-10
+        ELSE IF (corespread > 0) THEN
+            this%corespread = corespread
+        END IF
         !
         IF (solvationrad > 0) this%solvationrad = solvationrad
         !
@@ -189,14 +231,14 @@ CONTAINS
         ! If cavity is defined exclusively on ions, check that radius is not zero
         !
         IF (.NOT. lsoftcavity .AND. (this%solvationrad == 0.D0)) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           'Missing solvation radius for one of the atom types', 1)
         !
         !--------------------------------------------------------------------------------
         ! If using smeared ions, check that spread is not zero
         !
         IF (lsmearedions .AND. (this%atomicspread == 0.D0)) &
-            CALL io%error(sub_name, &
+            CALL io%error(routine, &
                           'Missing atomic spread for one of the atom types', 1)
         !
         !--------------------------------------------------------------------------------
@@ -211,31 +253,60 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_iontype_defaults(this, index, label, radius_mode)
+    SUBROUTINE set_iontype_id(this, id)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(*), INTENT(IN) :: id
+        !
+        CLASS(environ_iontype), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'set_iontype_id'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT TYPE (id)
+            !
+        TYPE IS (CHARACTER(LEN=*)) ! label
+            this%label = id
+            this%atmnum = get_atmnum(id)
+            !
+        TYPE IS (INTEGER) ! number
+            this%label = get_element(id)
+            this%atmnum = id
+            !
+        TYPE IS (REAL(DP)) ! weight
+            this%label = get_element(id)
+            this%atmnum = get_atmnum(this%label)
+            !
+        CLASS DEFAULT
+            !
+        END SELECT
+        !
+        this%weight = weights(this%atmnum)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_iontype_id
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_iontype_defaults(this, index, radius_mode)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
-        CHARACTER(LEN=3), INTENT(IN) :: label
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_iontype_defaults'
+        CHARACTER(LEN=80) :: routine = 'set_iontype_defaults'
         !
         !--------------------------------------------------------------------------------
         !
         this%index = index
-        this%label = label
-        this%atmnum = get_atmnum(label)
-        !
-        IF (this%atmnum == 0) &
-            CALL io%error(sub_name, &
-                          'Cannot assign the atom type associated &
-                          &with input label', 1)
-        !
-        ! this%weight = weights(this%atmnum) ! #TODO future work
         !
         this%atomicspread = 0.5D0
         this%corespread = 0.5D0
@@ -255,7 +326,7 @@ CONTAINS
             this%solvationrad = MUFF_diameters(this%atmnum) * 0.5_DP
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unknown radius_mode', 1)
+            CALL io%error(routine, "Unknown radius_mode", 1)
             !
         END SELECT
         !
@@ -265,8 +336,6 @@ CONTAINS
     END SUBROUTINE set_iontype_defaults
     !------------------------------------------------------------------------------------
     !>
-    !! original version by O. Andreussi (MIT)
-    !! modified by Edan Bainglass (UNT)
     !!
     !------------------------------------------------------------------------------------
     FUNCTION get_atmnum(label)
@@ -274,10 +343,12 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=3), INTENT(IN) :: label
+        CHARACTER(LEN=*), INTENT(IN) :: label
         !
         INTEGER :: i, get_atmnum
         CHARACTER(LEN=2) :: lowcase_label
+        !
+        CHARACTER(LEN=80) :: routine = 'get_atmnum'
         !
         !--------------------------------------------------------------------------------
         !
@@ -296,8 +367,79 @@ CONTAINS
             !
         END DO
         !
+        IF (get_atmnum == 0) &
+            CALL io%error(routine, &
+                          'Cannot assign the atom type associated with input label', 1)
+        !
         !--------------------------------------------------------------------------------
     END FUNCTION get_atmnum
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    CHARACTER(LEN=3) FUNCTION get_element_by_number(number) RESULT(label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: number
+        !
+        CHARACTER(LEN=80) :: routine = 'get_element_by_number'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (number < 1 .OR. number > SIZE(elements)) THEN
+            WRITE (io%unit, '(/, 5X, "Atomic number = ", I10)') number
+            !
+            CALL io%error(routine, "Atomic number out of bounds", 1)
+            !
+        END IF
+        !
+        label = elements(number)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_element_by_number
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    CHARACTER(LEN=3) FUNCTION get_element_by_weight(weight) RESULT(label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: weight
+        !
+        INTEGER :: i, index
+        !
+        CHARACTER(LEN=80) :: routine = 'get_element_by_weight'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        index = -1
+        !
+        DO i = 1, SIZE(weights)
+            !
+            IF (ABS(weights(i) - weight) < 1.D-2) THEN
+                index = i
+                !
+                EXIT
+                !
+            END IF
+            !
+        END DO
+        !
+        IF (index < 0) THEN
+            WRITE (io%unit, '(/, 5X, "Atomic weight = ", F9.5)') weight
+            !
+            CALL io%error(routine, "Wrong atomic weight", 1)
+            !
+        END IF
+        !
+        label = elements(index)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_element_by_weight
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -315,18 +457,19 @@ CONTAINS
     !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_iontypes(this, ntyp, verbose, debug_verbose, unit)
+    SUBROUTINE print_environ_iontypes(iontype, ntyp, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: ntyp
-        TYPE(environ_iontype), INTENT(IN) :: this(ntyp)
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        TYPE(environ_iontype), INTENT(IN) :: iontype(ntyp)
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
-        INTEGER :: base_verbose, local_verbose, local_unit, ityp
+        INTEGER :: i
+        INTEGER :: base_verbose, local_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_iontypes'
+        CHARACTER(LEN=80) :: routine = 'print_environ_iontypes'
         !
         !--------------------------------------------------------------------------------
         !
@@ -374,24 +517,24 @@ CONTAINS
             IF (local_verbose < 3) THEN
                 WRITE (local_unit, 1002) ! table headers
                 !
-                DO ityp = 1, ntyp
+                DO i = 1, ntyp
                     !
                     WRITE (local_unit, 1003) &
-                        this(ityp)%index, this(ityp)%label, &
-                        this(ityp)%atmnum, this(ityp)%zv
+                        iontype(i)%index, iontype(i)%label, &
+                        iontype(i)%atmnum, iontype(i)%zv
                     !
                 END DO
                 !
             ELSE
                 WRITE (local_unit, 1004) ! table headers
                 !
-                DO ityp = 1, ntyp
+                DO i = 1, ntyp
                     !
                     WRITE (local_unit, 1005) &
-                        this(ityp)%index, this(ityp)%label, &
-                        this(ityp)%atmnum, this(ityp)%zv, &
-                        this(ityp)%atomicspread, this(ityp)%corespread, &
-                        this(ityp)%solvationrad
+                        iontype(i)%index, iontype(i)%label, &
+                        iontype(i)%atmnum, iontype(i)%zv, &
+                        iontype(i)%atomicspread, iontype(i)%corespread, &
+                        iontype(i)%solvationrad
                     !
                 END DO
                 !
@@ -406,19 +549,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' IONTYPES ', 66('%'))
-1001    FORMAT(/, ' IONTYPES', /, ' ========')
+1000    FORMAT(/, 4('%'), " IONTYPES ", 66('%'))
+1001    FORMAT(/, " IONTYPES", /, " ========")
         !
-1002    FORMAT(/, '               atomic', /, &
-                '   i | label | number | charge', /, 1X, 29('-'))
+1002    FORMAT(/, "               atomic", /, &
+                "   i | label | number | charge", /, 1X, 29('-'))
         !
-1003    FORMAT(1X, I3, ' | ', A5, ' | ', I6, ' | ', F6.2)
+1003    FORMAT(1X, I3, " | ", A5, " | ", I6, " | ", F6.2)
 !
-1004    FORMAT(/, '               atomic            atomic    core    solvation', /, &
-                '   i | label | number | charge | spread | spread |    radius', /, &
+1004    FORMAT(/, "               atomic            atomic    core    solvation", /, &
+                "   i | label | number | charge | spread | spread |    radius", /, &
                 1X, 59('-'))
 !
-1005    FORMAT(1X, I3, ' | ', A5, ' | ', I6, 3(' | ', F6.2), ' |', F10.2)
+1005    FORMAT(1X, I3, " | ", A5, " | ", I6, 3(" | ", F6.2), " |", F10.2)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_iontypes

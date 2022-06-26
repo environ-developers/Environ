@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -32,6 +32,16 @@
 !! by Environ modules and defined on the three-dimensional real-space
 !! domain, together with the routines to handle the derived data type and
 !! to generate the functions from their parameters.
+!!
+!! Common method parameters:
+!!
+!! - zero      (LOGICAL) -> zero out register 
+!! - ir       *(INTEGER) -> indices of points of interest
+!! - vals        *(REAL) -> values of points of interest
+!! - r_vals      *(REAL) -> displacements of points of interest
+!! - dist_vals   *(REAL) -> distances of points of interest
+!! 
+!! * OPTIONAL
 !!
 !----------------------------------------------------------------------------------------
 MODULE class_function
@@ -72,45 +82,18 @@ MODULE class_function
         !
         PROCEDURE, PRIVATE :: create => create_environ_function
         PROCEDURE :: init => init_environ_function
-        PROCEDURE :: copy => copy_environ_function
         PROCEDURE :: destroy => destroy_environ_function
         !
-        PROCEDURE(get_density), DEFERRED :: density
-        PROCEDURE(get_gradient), DEFERRED :: gradient
-        PROCEDURE(get_laplacian), DEFERRED :: laplacian
-        PROCEDURE(get_hessian), DEFERRED :: hessian
+        PROCEDURE :: density => density_of_function
+        PROCEDURE :: gradient => gradient_of_function
+        PROCEDURE :: laplacian => laplacian_of_function
+        PROCEDURE :: hessian => hessian_of_function
+        PROCEDURE :: derivative => derivative_of_function
+        !
+        PROCEDURE :: quad_corr => quadrapole_corrections
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function
-    !------------------------------------------------------------------------------------
-    !
-    ABSTRACT INTERFACE
-        SUBROUTINE get_density(this, density, zero)
-            IMPORT environ_function, environ_density
-            CLASS(environ_function), TARGET, INTENT(IN) :: this
-            LOGICAL, INTENT(IN), OPTIONAL :: zero
-            TYPE(environ_density), TARGET, INTENT(INOUT) :: density
-        END SUBROUTINE
-        SUBROUTINE get_gradient(this, gradient, zero)
-            IMPORT environ_function, environ_gradient
-            CLASS(environ_function), TARGET, INTENT(IN) :: this
-            LOGICAL, INTENT(IN), OPTIONAL :: zero
-            TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
-        END SUBROUTINE
-        SUBROUTINE get_laplacian(this, laplacian, zero)
-            IMPORT environ_function, environ_density
-            CLASS(environ_function), TARGET, INTENT(IN) :: this
-            LOGICAL, INTENT(IN), OPTIONAL :: zero
-            TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
-        END SUBROUTINE
-        SUBROUTINE get_hessian(this, hessian, zero)
-            IMPORT environ_function, environ_hessian
-            CLASS(environ_function), TARGET, INTENT(IN) :: this
-            LOGICAL, INTENT(IN), OPTIONAL :: zero
-            TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
-        END SUBROUTINE
-    END INTERFACE
-    !
     !------------------------------------------------------------------------------------
     !
     REAL(DP), PUBLIC, PARAMETER :: func_tol = 1.D-10
@@ -135,11 +118,22 @@ CONTAINS
         !
         CLASS(environ_function), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_function'
+        CHARACTER(LEN=80) :: routine = 'create_environ_function'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%pos)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%pos)) CALL io%create_error(routine)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%f_type = 0
+        this%axis = 0
+        this%dim = 0
+        this%width = 0.D0
+        this%spread = 0.D0
+        this%volume = 0.D0
+        !
+        NULLIFY (this%pos)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_function
@@ -147,15 +141,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_function(this, type_in, axis, dim_in, width, spread_in, &
-                                     volume_in, pos)
+    SUBROUTINE init_environ_function(this, f_type, f_axis, f_dim, f_width, f_spread, &
+                                     f_volume, f_pos)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: type_in, dim_in, axis
-        REAL(DP), INTENT(IN) :: width, spread_in, volume_in
-        REAL(DP), TARGET, INTENT(IN), OPTIONAL :: pos(:)
+        INTEGER, INTENT(IN) :: f_type, f_dim, f_axis
+        REAL(DP), INTENT(IN) :: f_width, f_spread, f_volume
+        REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: f_pos(:)
         !
         CLASS(environ_function), INTENT(INOUT) :: this
         !
@@ -163,15 +157,15 @@ CONTAINS
         !
         CALL this%create()
         !
-        this%f_type = type_in
-        this%dim = dim_in
-        this%axis = axis
-        this%spread = spread_in
-        this%width = width
-        this%volume = volume_in
+        this%f_type = f_type
+        this%dim = f_dim
+        this%axis = f_axis
+        this%spread = f_spread
+        this%width = f_width
+        this%volume = f_volume
         !
-        IF (PRESENT(pos)) THEN
-            this%pos => pos
+        IF (PRESENT(f_pos)) THEN
+            this%pos => f_pos
         ELSE
             ALLOCATE (this%pos(3))
             this%pos = 0.D0
@@ -183,28 +177,6 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_function(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_function), INTENT(IN) :: this
-        !
-        CLASS(environ_function), INTENT(OUT) :: copy
-        !
-        CHARACTER(LEN=80) :: sub_name = 'copy_environ_function'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL copy%init(this%f_type, this%axis, this%dim, this%width, this%spread, &
-                       this%volume, this%pos)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_function
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE destroy_environ_function(this)
         !--------------------------------------------------------------------------------
         !
@@ -212,11 +184,11 @@ CONTAINS
         !
         CLASS(environ_function), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_function'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_function'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%pos)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%pos)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -224,6 +196,160 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_function
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  FUNCTION METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE density_of_function(this, density, zero, ir, vals, r_vals, dist_vals)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        !
+        CLASS(environ_function), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: density
+        !
+        INTEGER, OPTIONAL, INTENT(OUT) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:), r_vals(:, :), dist_vals(:)
+        !
+        CHARACTER(LEN=80) :: routine = 'density_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(routine, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE density_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir, vals, r_vals, dist_vals)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), INTENT(IN) :: this
+        !
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
+        !
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        !
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:, :)
+        !
+        CHARACTER(LEN=80) :: routine = 'gradient_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(routine, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE gradient_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE laplacian_of_function(this, laplacian, zero, ir, r_vals, dist_vals)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), INTENT(IN) :: this
+        !
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
+        !
+        TYPE(environ_density), INTENT(INOUT) :: laplacian
+        !
+        CHARACTER(LEN=80) :: routine = 'laplacian_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(routine, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE laplacian_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE hessian_of_function(this, hessian, zero, ir, r_vals, dist_vals)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), INTENT(IN) :: this
+        !
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
+        !
+        TYPE(environ_hessian), INTENT(INOUT) :: hessian
+        !
+        CHARACTER(LEN=80) :: routine = 'hessian_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(routine, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE hessian_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE derivative_of_function(this, derivative, zero, ir, r_vals, dist_vals)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), INTENT(IN) :: this
+        !
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
+        !
+        TYPE(environ_density), INTENT(INOUT) :: derivative
+        !
+        CHARACTER(LEN=80) :: routine = 'derivative_of_function'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(routine, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE derivative_of_function
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    REAL(DP) FUNCTION quadrapole_corrections(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function), INTENT(IN) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'quadrapole_corrections'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        quadrapole_corrections = 0.D0
+        !
+        CALL io%error(routine, "Not implemented", 1)
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION quadrapole_corrections
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

@@ -1,0 +1,24 @@
+ &ENVIRON
+   ! reparamatrization input file
+   environ_type = 'input'
+   env_ecut = 10
+   env_static_permittivity = 78.3D0
+   env_optical_permittivity = 1.776D0
+   env_surface_tension = 50.0D0
+   env_pressure = -0.35D0
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode = 'ionic'
+   softness = 0.8D0
+   alpha = 1.24D0
+   radius_mode = 'muff'
+   !
+ /
+ &ELECTROSTATIC
+   !
+   tol = 1.0d-5
+   !
+ /
+

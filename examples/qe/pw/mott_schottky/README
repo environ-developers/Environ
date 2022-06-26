@@ -1,0 +1,31 @@
+This example shows how to use pw.x to model a charged slab embedded in a semiconductor. 
+In particular, the electrical diffuse layer is 
+modeled as a classical charge distribution, as obtained from the solution of 
+the Poisson-Boltzmann equation under Mott-Schottky (MS) condidtions. 
+
+The calculation is a single SCF calculation of a Si slab. The surrounding
+semiconductor is treated as a continuum dielectric according to the Self-consistent
+Continuum Solvation (SCCS) model of O. Andreussi, I. Dabo and N. Marzari,
+J. Chem. Phys. 136, 064102 (2012). 
+
+The example compares different doping densities as
+described in XX. 
+The following doping densities are considered here:
+ 1D.16, 1D.17, 1D.18 cm^-3 
+
+As the doping density increases less distance and potential drop is needed
+to compensate the high charge region of the explicit slab.
+
+A planar error-function-shaped 2D function is employed 
+to define the semiconductor cavity.
+
+Only open boundary conditions are allowed for the calculations including the
+electrolyte. The real-space quadratic correction of the electrostatic
+potential (pbc_correcton='parabolic', see I. Dabo et al. Phys. Rev. B 77, 
+115139 (2008)) is required. The method has been coupled to the SCCS model 
+in order to remove PBC in simulations of partially periodic systems in the 
+presence of a continuum solvent, as described by O. Andreussi and N. Marzari 
+Phys. Rev. B 90 245101 (2014).
+
+A rough explanation of the different electrolyte-related keywords is provided 
+in the run_example.sh file.

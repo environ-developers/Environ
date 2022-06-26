@@ -1,0 +1,72 @@
+ Warning: Only a single CPU will be used!
+
+     Program TDDFPT_PP v.7.0 starts on  3May2022 at  7:51: 7 
+
+     This program is part of the open-source Quantum ESPRESSO suite
+     for quantum simulation of materials; please cite
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
+         "P. Giannozzi et al., J. Chem. Phys. 152 154105 (2020);
+          URL http://www.quantum-espresso.org", 
+     in publications or presentations arising from this work. More details at
+     http://www.quantum-espresso.org/quote
+
+     Parallel version (MPI), running on     1 processors
+
+     MPI processes distributed on     1 nodes
+     19187 MiB available memory on the printing compute node when the environment starts
+
+
+     Reading   3000 Lanczos steps for direction 1
+       3000 steps will be considered
+
+
+     Reading   3000 Lanczos steps for direction 2
+       3000 steps will be considered
+
+
+     Reading   3000 Lanczos steps for direction 3
+       3000 steps will be considered
+
+
+     Polarization direction:1
+     Lanczos coefficients:
+     Average =    13.02594041
+     Average oscillation amplitude =     0.39186135
+
+     Polarization direction:2
+     Lanczos coefficients:
+     Average =    13.02546079
+     Average oscillation amplitude =     0.39218273
+
+     Polarization direction:3
+     Lanczos coefficients:
+     Average =    13.02537244
+     Average oscillation amplitude =     0.39013739
+
+     Data ready, starting to calculate observables...
+
+     Broadening =      0.01000000 Ry
+
+     Output file name: CH4_vacuum.plot_chi.
+
+     Output file name for the oscillator strength S  CH4_vacuum.plot_S.da
+
+     chi_i_j: dipole polarizability tensor  in units of e^2*a_0^2/energy
+
+     S: oscillator strength in units of 1/energy
+
+     S(\hbar \omega) = 2m/( 3 \pi e^2 \hbar)  \omega sum_j chi_j_j
+
+     S(\hbar \omega) satisfies the f-sum rule:  \int_0^\infty dE S(E) = N_el 
+
+     Functions are reported in \hbar.\omega  Energy unit is (Ry)
+
+     TDDFPT_PP    :     14.29s CPU     14.39s WALL
+
+
+   This run was terminated on:   7:51:21   3May2022            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=

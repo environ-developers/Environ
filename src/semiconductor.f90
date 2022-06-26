@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -43,6 +43,7 @@ MODULE class_semiconductor
     USE class_function_erfc
     USE class_functions
     !
+    USE class_semiconductor_base
     USE class_system
     !
     !------------------------------------------------------------------------------------
@@ -60,25 +61,20 @@ MODULE class_semiconductor
         !
         LOGICAL :: lupdate = .FALSE.
         !
-        REAL(DP) :: temperature
-        REAL(DP) :: permittivity
-        REAL(DP) :: carrier_density
-        REAL(DP) :: electrode_charge
-        REAL(DP) :: charge_threshold
+        TYPE(environ_semiconductor_base) :: base
         !
-        REAL(DP) :: slab_charge = 0.D0
-        REAL(DP) :: charge = 0.D0
-        REAL(DP) :: flatband_fermi = 0.D0
-        REAL(DP) :: bulk_sc_fermi = 0.D0
-        REAL(DP) :: surf_area_per_sq_cm = 0.D0
+        !--------------------------------------------------------------------------------
         !
         TYPE(environ_function_erfc) :: simple
         TYPE(environ_density) :: density
+        !
+        REAL(DP) :: charge = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_semiconductor
         PROCEDURE :: init => init_environ_semiconductor
         PROCEDURE :: update => update_environ_semiconductor
         PROCEDURE :: destroy => destroy_environ_semiconductor
@@ -101,10 +97,30 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_semiconductor(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_semiconductor), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'create_environ_semiconductor'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%charge = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_semiconductor
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_semiconductor(this, temperature, sc_permittivity, &
                                           sc_carrier_density, sc_electrode_chg, &
                                           sc_distance, sc_spread, sc_chg_thr, &
-                                          system, cell)
+                                          need_flatband, system, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -112,29 +128,25 @@ CONTAINS
         REAL(DP), INTENT(IN) :: temperature, sc_permittivity, sc_electrode_chg, &
                                 sc_carrier_density, sc_distance, sc_spread, sc_chg_thr
         !
-        TYPE(environ_system), TARGET, INTENT(IN) :: system
+        LOGICAL, INTENT(IN) :: need_flatband
+        !
+        TYPE(environ_system), INTENT(IN) :: system
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: local_label = 'semiconductor'
-        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%density%init(cell, local_label)
+        CALL this%create()
         !
-        CALL this%simple%init(4, system%axis, system%dim, sc_distance, sc_spread, &
-                              1.D0, system%pos)
+        CALL this%base%init(temperature, sc_permittivity, sc_carrier_density, &
+                            sc_electrode_chg, sc_distance, sc_spread, sc_chg_thr, &
+                            need_flatband, cell%nr(3))
         !
-        this%temperature = temperature
-        this%permittivity = sc_permittivity
-        this%carrier_density = sc_carrier_density
+        CALL this%density%init(cell, 'semiconductor')
         !
-        this%carrier_density = this%carrier_density * 1.48D-25
-        ! convert carrier density to units of (bohr)^-3
-        !
-        this%electrode_charge = sc_electrode_chg
-        this%charge_threshold = sc_chg_thr
+        CALL this%simple%init(3, system%axis, system%dim, sc_distance, sc_spread, &
+                              1.D0, system%com)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor
@@ -171,11 +183,15 @@ CONTAINS
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_semiconductor'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_semiconductor'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%density%destroy()
+        !
+        CALL this%simple%destroy()
+        !
+        CALL this%base%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_semiconductor
@@ -201,12 +217,14 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_semiconductor), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        CLASS(environ_semiconductor), TARGET, INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_semiconductor'
+        TYPE(environ_semiconductor_base), POINTER :: base
+        !
+        CHARACTER(LEN=80) :: routine = 'print_environ_semiconductor'
         !
         !--------------------------------------------------------------------------------
         !
@@ -242,14 +260,16 @@ CONTAINS
             local_unit = io%debug_unit
         END IF
         !
+        base => this%base
+        !
         IF (local_verbose >= 1) THEN
             !
             IF (io%lnode) THEN
                 WRITE (local_unit, 1000)
                 !
                 WRITE (local_unit, 1001) &
-                    this%carrier_density / BOHR_RADIUS_CM**3, this%temperature, &
-                    this%permittivity
+                    base%carrier_density / BOHR_RADIUS_CM**3, base%temperature, &
+                    base%permittivity
                 !
                 WRITE (local_unit, 1002) this%charge
             END IF
@@ -263,14 +283,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' SEMICONDUCTOR ', 64('%'))
+1000    FORMAT(/, 4('%'), " SEMICONDUCTOR ", 64('%'))
         !
-1001    FORMAT(/, ' Mott-Schottky:', /, &
-                ' dopant concent.    (cm^-3) = ', E18.4, /, &
-                ' semiconductor temp.    (K) = ', F14.1, /, &
-                ' dielectric constant        = ', F14.2)
+1001    FORMAT(/, " Mott-Schottky:", /, &
+                " dopant concent.    (cm^-3) = ", E18.4, /, &
+                " semiconductor temp.    (K) = ", F14.1, /, &
+                " dielectric constant        = ", F14.2)
         !
-1002    FORMAT(/, ' total semiconductor charge = ', F14.7)
+1002    FORMAT(/, " total semiconductor charge = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_semiconductor

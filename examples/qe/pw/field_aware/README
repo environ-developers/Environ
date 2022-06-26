@@ -1,0 +1,17 @@
+
+This example shows how to use pw.x to calculate the electrostatic
+solvation energy for a water molecule in water using a field-aware
+soft sphere interface defined by the electrostatic field at the
+interface normal and the atomic positions, according to
+M Truscott, O Andreussi, J. Phys. Chem. B 2019, 123, 16, 3513–3524
+
+The field_aware keyword is required to turn on field-aware effects
+and is implemented for the "soft-spheres" interface model
+as described in G. Fisicaro, L. Genovese, O. Andreussi, S. Mandal,
+N.N. Nair, N. Marzari, and S.Goedecker, J. Chem. Theor. Comput. 13, 3829 (2017).
+
+Mind that the parabolic correction (or point-countercharge method)
+is used for both the calculation in vacuum and in the solvent.
+
+A rough explanation of the different keywords of the solvation model is 
+in the run_example.sh file.

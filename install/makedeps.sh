@@ -6,14 +6,14 @@
 #
 #----------------------------------------------------------------------------------------
 #
-#     This file is part of Environ version 2.0
+#     This file is part of Environ version 3.0
 #
-#     Environ 2.0 is free software: you can redistribute it and/or modify
+#     Environ 3.0 is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 2 of the License, or
 #     (at your option) any later version.
 #
-#     Environ 2.0 is distributed in the hope that it will be useful,
+#     Environ 3.0 is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more detail, either the file
@@ -49,7 +49,7 @@ export LC_ALL
 cd "$(echo "$0" | sed 's/\(.*\)\/.*/\1/')" || exit # extract pathname
 TOPDIR=$(pwd)
 
-dirs="utils FFTs src"
+dirs="UtilXlib FFTXlib src"
 
 for dir in $dirs; do
 
@@ -60,14 +60,14 @@ for dir in $dirs; do
         cd "$TOPDIR"/../"$dir" || exit
 
         case "$dir" in
-        FFTs) DEPENDS="$DEPENDS ../utils" ;;
-        src) DEPENDS="$DEPENDS ../utils ../FFTs" ;;
+        FFTXlib) DEPENDS="$DEPENDS ../UtilXlib" ;;
+        src) DEPENDS="$DEPENDS ../UtilXlib ../FFTXlib" ;;
         esac
 
         "$TOPDIR"/moduledep.sh "$DEPENDS" >make.depend
 
         # list of all system modules
-        sysdeps="iso_c_binding ifcore"
+        sysdeps="iso_c_binding iso_fortran_env ifcore"
 
         # list of all external library modules or include files
         libdeps="mpi omp_lib mkl_dfti mkl_dfti.f90 fftw3.f03 fftw3.f"

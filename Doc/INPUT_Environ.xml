@@ -129,6 +129,15 @@ position, and permittivities of each region need to be specified in the DIELECTR
          <status> REQUIRED
          </status>
       </var>
+      <var name="env_ecut" type="REAL" >
+         <default> 0.D0
+         </default>
+         <info>
+Cutoff value (Ry) used to derive the G-vector cutoff on Environ&apos;s internal FFT-grid.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <var name="env_electrolyte_ntyp" type="INTEGER" >
          <default> 0
          </default>
@@ -149,7 +158,17 @@ embedding keyword (env_static_permittivity, env_electrolyte_ntyp) will turn this
 One needs to turn on this keyword explicitly to activate electrostatic embedding effects
 that do not have a specific activation keyword, such as for PBC correction schemes.
          </info>
-         <status> REQUIRED
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="no_electrostatics" type="LOGICAL" >
+         <default> .FALSE.
+         </default>
+         <info>
+Suppress electrostatic calculation. This prevents initialization of unnecessary
+quantities such as certain potentials.
+         </info>
+         <status> OPTIONAL
          </status>
       </var>
       <var name="env_external_charges" type="INTEGER" >
@@ -382,6 +401,24 @@ Dielectric permittivity of the semiconductor.
          <status> OPTIONAL
          </status>
       </var>
+      <var name="sc_electrode_chg" type="REAL" >
+         <default> 0.D0
+         </default>
+         <info>
+The total charge on the electrode (e).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="sc_chg_thr" type="REAL" >
+         <default> 1.D-4
+         </default>
+         <info>
+Threshold for the outer loop of charge optimization.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <var name="system_axis" type="INTEGER" >
          <default> 3
          </default>
@@ -443,6 +480,24 @@ Valence of ionic countercharge.
          <status> OPTIONAL
          </status>
       </dimension>
+      <var name="lvolume" type="LOGICAL" >
+         <default> .FALSE.
+         </default>
+         <info>
+Print boundary volume at each step.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="lsurface" type="LOGICAL" >
+         <default> .FALSE.
+         </default>
+         <info>
+Print boundary surface at each step (triggers computation of boundary gradient).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
    </namelist>
    <namelist name="BOUNDARY" >
       <label> This namelist is not needed if there are no embedding schemes requiring a continuum interface
@@ -483,7 +538,18 @@ core electrons, if this parameter affects the final results, a WARNING will be i
          <status> OPTIONAL
          </status>
       </dimension>
-      <var name="derivatives" type="CHARACTER" >
+      <var name="deriv_core" type="CHARACTER" >
+         <default> &apos;fft&apos;
+         </default>
+         <info>
+The choice of the core numerical methods to be exploited for computing derivatives.
+
+&apos;fft&apos; : fast Fourier transforms
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="deriv_method" type="CHARACTER" >
          <default> see below
          </default>
          <info>
@@ -511,6 +577,27 @@ solvent_mode .EQ. ionic             : &apos;lowmem&apos;
 Main parameter of ions-dependent interface function, corresponding to the homogeneous
 scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
 Used for the electrolyte interface.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="electrolyte_deriv_method" type="CHARACTER" >
+         <default> see below
+         </default>
+         <info>
+Specify the numerical approach used to compute derivatives of the electrolyte interface with respect
+to real-space coordinates or QM degrees of freedom.
+
+&apos;fft&apos;     : fast Fourier transform
+&apos;chain&apos;   : chain rule derivatives for as much as possible (and FFTs for the rest)
+&apos;highmem&apos; : analytic derivatives for soft-sphere computed by storing all spherical functions
+            and derivatives
+&apos;lowmem&apos;  : more efficient analytic derivatives
+
+DEFAULT:
+
+solvent_mode .EQ. electronic | full : &apos;chain&apos;
+solvent_mode .EQ. ionic             : &apos;lowmem&apos;
          </info>
          <status> OPTIONAL
          </status>
@@ -603,6 +690,52 @@ Used for the electrolyte interface.
          <info>
 Second parameter of the density-dependent interface function, when stype=0. Used for the
 electrolyte interface.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_aware" type="LOGICAL" >
+         <default> .FALSE.
+         </default>
+         <info>
+Switch to turn on the field-awareness scaling factor (only works with ionic boundary mode).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_factor" type="REAL" >
+         <default> 0.08D0
+         </default>
+         <info>
+Maximum scaling factor possible by the field-aware model.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_asymmetry" type="REAL" >
+         <default> -0.32D0
+         </default>
+         <info>
+Charge asymmetry factor. Positive values result in more field-awareness for positive charges,
+and vice-versa.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_max" type="REAL" >
+         <default> 6.D0
+         </default>
+         <info>
+Maximum flux value for switching function.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="field_min" type="REAL" >
+         <default> 2.D0
+         </default>
+         <info>
+Minimum flux value for switching function.
          </info>
          <status> OPTIONAL
          </status>
@@ -884,7 +1017,7 @@ The electrostatic problem is defined and solved in terms of the electrostatic po
 
 DEFAULT:
 
-IF (solver .EQ. &apos;fixed-point&apos;) THEN
+IF (solver .EQ. &apos;fixed-point&apos;)
     auxiliary = &apos;full&apos;
 ELSE
     auxiliary = &apos;none&apos;
@@ -897,6 +1030,17 @@ ELSE
          </default>
          <info>
 The choice of the core numerical methods to be exploited for the different operations.
+
+&apos;fft&apos; : fast Fourier transforms
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="inner_core" type="CHARACTER" >
+         <default> &apos;fft&apos;
+         </default>
+         <info>
+The choice of the core numerical methods to be exploited for nested electrostatics.
 
 &apos;fft&apos; : fast Fourier transforms
          </info>
@@ -923,6 +1067,27 @@ Same as mix, but refers to the inner loop in the electrostatic calculation
          <status> OPTIONAL
          </status>
       </var>
+      <var name="inner_problem" type="CHARACTER" >
+         <default> see below
+         </default>
+         <info>
+Type of electrostatic problem for inner loop in nested algorithms.
+
+&apos;generalized&apos; : generalized poisson equation.
+&apos;linpb&apos;       : linearized poisson-boltzmann equation (debye-huckel).
+
+DEFAULT:
+
+IF (inner_solver .NE. &apos;none&apos;)
+    IF (solver .EQ. &apos;fixed-point&apos;)
+        IF (auxiliary == &apos;ioncc&apos;)
+            inner_problem = &apos;generalized&apos;
+    IF (solver .EQ. &apos;newton&apos;)
+        inner_problem = &apos;linpb&apos;
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <var name="inner_solver" type="CHARACTER" >
          <default> see below
          </default>
@@ -937,8 +1102,8 @@ in the electrostatic problem (nested schemes only).
 
 DEFAULT:
 
-IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;) THEN
-    IF (.NOT. electrolyte_linearized) THEN
+IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;)
+    IF (.NOT. electrolyte_linearized)
         inner_solver = &apos;cg&apos;
     ELSE
         inner_solver = &apos;none&apos;
@@ -1014,6 +1179,17 @@ pbc_dim .EQ. 2 : specified axis is orthogonal to 2D plane.
          <status> OPTIONAL
          </status>
       </var>
+      <var name="pbc_core" type="CHARACTER" >
+         <default> &apos;1da&apos;
+         </default>
+         <info>
+The choice of the core numerical methods to be exploited for pbc corrections.
+
+&apos;1da&apos; : 1d-analytic
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <var name="pbc_correction" type="CHARACTER" >
          <default> &apos;none&apos;
          </default>
@@ -1082,13 +1258,13 @@ or modified version of an electrostatic problem.
 
 DEFAULT:
 
-IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;) THEN
-    IF (electrolyte_linearized) THEN
-        IF (cionmax &gt; 0.D0 .OR. rion &gt; 0.D0) THEN
+IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;)
+    IF (electrolyte_linearized)
+        IF (cionmax &gt; 0.D0 .OR. rion &gt; 0.D0)
             problem = &apos;linmodpb&apos;
         ELSE
             problem = &apos;linpb&apos;
-ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
+ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0)
     problem = &apos;generalized&apos;
 ELSE
     problem = &apos;poisson&apos;
@@ -1138,13 +1314,13 @@ Type of numerical solver used to get the solution of the electrostatic problem.
 
 DEFAULT:
 
-IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;) THEN
-    IF (electrolyte_linearized) THEN
+IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;)
+    IF (electrolyte_linearized)
         solver = &apos;cg&apos;
     ELSE
         solver = &apos;newton&apos;
-ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
-    IF (pbc_correction .NE. &apos;gcs&apos;) THEN
+ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0)
+    IF (pbc_correction .NE. &apos;gcs&apos;)
         solver = &apos;cg&apos;
     ELSE
         solver = &apos;fixed-point&apos;

@@ -1,0 +1,12 @@
+  Solver               = fixed-point 
+  Solvation Energy     = -6.7579156464 Kcal/mol
+  Cavitation Energy    =  3.4855149192 Kcal/mol
+  PV Energy            = -1.7643778536 Kcal/mol
+  Electrostatic Energy = -8.4790527120 Kcal/mol
+
+  Solver               = cg 
+  Solvation Energy     = -6.7587218040 Kcal/mol
+  Cavitation Energy    =  3.4855149192 Kcal/mol
+  PV Energy            = -1.7643747168 Kcal/mol
+  Electrostatic Energy = -8.4798620064 Kcal/mol
+
