@@ -6,6 +6,7 @@
    env_optical_permittivity = 1.776D0
    env_surface_tension = 50.0D0
    env_pressure = -0.35D0
+   no_electrostatics = .TRUE.
    !
  /
  &BOUNDARY
