@@ -167,14 +167,14 @@ of the slab. Using this technique we can realistically model the potential drop
 of a charged slab embedded within a semiconducting (or, with low enough carrier
 concentrations, insulating) region.
 
-Mott-Schottky + Guoy-Chapman-Stern (ms-gcs) model
+Mott-Schottky + Guoy-Chapman-Stern (MS-GCS) model
 -------------------------------------------------
 
 This option is currently only available in combination with Quantum Espresso > 7.1 .
 
 While the Mott-Schottky option assumes that the DFT slab is embedded within a
 semiconducting region on both sides, the Mott-Schottky + Guoy-Chapman-Stern model
-(MSGCS) assumes that the DFT slab instead represents the interface between
+(MS-GCS) assumes that the DFT slab instead represents the interface between
 a semiconductor on one side (MS) and a solution on the other (GCS).
 
 With this option, the user inputs the total charge on the electrode, which is defined
