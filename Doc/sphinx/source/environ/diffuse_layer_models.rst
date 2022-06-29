@@ -128,7 +128,7 @@ The idea is to essentially impose a space dependent maximum ionic concentration,
 representation of the electrolyte, verified by a comparison to experimental differential capacitance.
 
 Mott-Schottky (MS) model
------------------------
+------------------------
 
 We  can extend the functionality of the above methods to a charged slab embedded
 in a larger semiconducting system. In this instance the Poisson-Boltzmann
@@ -168,7 +168,7 @@ of a charged slab embedded within a semiconducting (or, with low enough carrier
 concentrations, insulating) region.
 
 Mott-Schottky + Guoy-Chapman-Stern (ms-gcs) model
------------------------
+-------------------------------------------------
 
 This option is currently only available in combination with Quantum Espresso > 7.1 .
 
