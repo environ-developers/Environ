@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -29,6 +30,9 @@
         <div class="wy-side-nav-search" >
             <a href="../index.html" class="icon icon-home"> Environ
           </a>
+              <div class="version">
+                3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -55,6 +59,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/continuum.html">Continuum</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/interface_models.html">Interface Models</a></li>
@@ -92,13 +97,13 @@
            <div itemprop="articleBody">
              
   <section id="environ-v1-0-v2-0">
-<h1>Environ <span class="guilabel">v1.0</span> - <span class="guilabel">v2.0</span><a class="headerlink" href="#environ-v1-0-v2-0" title="Permalink to this headline"></a></h1>
+<h1>Environ <span class="guilabel">v1.0</span> - <span class="guilabel">v2.0</span><a class="headerlink" href="#environ-v1-0-v2-0" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Run the following commands from the QE root directory.</p>
 </div>
 <section id="installing">
-<h2>Installing<a class="headerlink" href="#installing" title="Permalink to this headline"></a></h2>
+<h2>Installing<a class="headerlink" href="#installing" title="Permalink to this heading"></a></h2>
 <ol class="arabic">
 <li><p>run the script <strong class="command">addonpatch.sh</strong> with the -patch option</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">install</span><span class="o">/</span><span class="n">addsonpatch</span><span class="o">.</span><span class="n">sh</span> <span class="n">Environ</span> <span class="n">Environ</span><span class="o">/</span><span class="n">src</span> <span class="n">Modules</span> <span class="o">-</span><span class="n">patch</span>
@@ -123,7 +128,7 @@
 </ol>
 </section>
 <section id="uninstalling">
-<h2>Uninstalling<a class="headerlink" href="#uninstalling" title="Permalink to this headline"></a></h2>
+<h2>Uninstalling<a class="headerlink" href="#uninstalling" title="Permalink to this heading"></a></h2>
 <ol class="arabic">
 <li><p>run the QE script addsonpatch.sh with the -revert option</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">install</span><span class="o">/</span><span class="n">addsonpatch</span><span class="o">.</span><span class="n">sh</span> <span class="n">Environ</span> <span class="n">Environ</span><span class="o">/</span><span class="n">src</span> <span class="n">Modules</span> <span class="o">-</span><span class="n">revert</span>
@@ -148,7 +153,7 @@
 </ol>
 </section>
 <section id="known-issues">
-<h2>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline"></a></h2>
+<h2>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this heading"></a></h2>
 <p>In Environ <span class="guilabel">v1.0</span>, there is an issue with the installation procedure for codes different from pw.x. The problem seems to depend on the compiler, but it is present in the most common Intel Fortran compiler. The solution for this problem requires some work, which is described here, and will be fixed in future releases.</p>
 <p>There is some circular dependencies between Environ modules and PW modules, but since the linkers only look for the dependencies written at the time of the Environ installation, they will not be able to function as intended.</p>
 <p>To fix this, one can edit the Makefile manually, to add these PW dependencies, so that instead of:</p>

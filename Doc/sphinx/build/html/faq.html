@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -28,6 +29,9 @@
         <div class="wy-side-nav-search" >
             <a href="index.html" class="icon icon-home"> Environ
           </a>
+              <div class="version">
+                3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -40,6 +44,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install/install.html">Installation instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environ/overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environ/continuum.html">Continuum</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environ/interface_models.html">Interface Models</a></li>
@@ -80,12 +85,12 @@
            <div itemprop="articleBody">
              
   <section id="faq">
-<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline"></a></h1>
+<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this heading"></a></h1>
 <p>This section attempts to address Frequently Asked Questions regarding Environ. If your query does not
 relate to any of these sections, check out the Q&amp;A section on the website, which has instructions on joining
 the mailing group where you can chat with one of the developers.</p>
 <section id="converge-issues">
-<h2>Converge Issues<a class="headerlink" href="#converge-issues" title="Permalink to this headline"></a></h2>
+<h2>Converge Issues<a class="headerlink" href="#converge-issues" title="Permalink to this heading"></a></h2>
 <p>There are physical and/or numerical reasons for why a calculation may explode. The latter is easier to solve,
 by tuning some of the parameters in the input file. The former is a little more tricky to handle.</p>
 <p>Roughly speaking, in a calculation with Environ, one needs to include some extra terms to the Kohn-Sham
@@ -139,14 +144,14 @@ due to the larger cell.</p>
 designed to deal with some of these complex shapes.</p>
 </section>
 <section id="harris-foulkes-estimate">
-<h2>Harris-Foulkes Estimate<a class="headerlink" href="#harris-foulkes-estimate" title="Permalink to this headline"></a></h2>
+<h2>Harris-Foulkes Estimate<a class="headerlink" href="#harris-foulkes-estimate" title="Permalink to this heading"></a></h2>
 <p>The Harris-Foulkes estimate does not take into account the extra terms coming from Environ, as it would cost
 more than necessary for a quantity that is only used to have an estimate. As a matter of fact, also the SCF
 accuracy does not take into full account of the environment, but again it would need a secondary correction
 that would cost more than its utility.</p>
 </section>
 <section id="environ-total-energy-sum">
-<h2>Environ Total-Energy Sum<a class="headerlink" href="#environ-total-energy-sum" title="Permalink to this headline"></a></h2>
+<h2>Environ Total-Energy Sum<a class="headerlink" href="#environ-total-energy-sum" title="Permalink to this heading"></a></h2>
 <p>The energy output in an Environ calculation may be confusing in that the total energy is not the sum of the
 reported terms and it is not immediately clear what solvation energy means, but before going into the details
 of why, one point should be addressed. <code class="docutils literal notranslate"><span class="pre">dGsol</span></code>, and in particular <code class="docutils literal notranslate"><span class="pre">dGel</span></code>, are not quantities that you

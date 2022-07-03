@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environ v2.0 and up &mdash; Environ  documentation</title>
+  <title>Objects &mdash; Environ  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,12 +14,13 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Environ v1.0 up to v2.0" href="old_install.html" />
-    <link rel="prev" title="Environ installation" href="Environ_install.html" /> 
+    <link rel="next" title="Methods" href="methods.html" />
+    <link rel="prev" title="API" href="api.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -29,6 +30,9 @@
         <div class="wy-side-nav-search" >
             <a href="../index.html" class="icon icon-home"> Environ
           </a>
+              <div class="version">
+                3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -39,21 +43,19 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="install.html">Installation instructions</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="preliminary_steps.html">Preliminary steps</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optional_QE_comp.html">Pre-compilation</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="Environ_install.html">Environ installation</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Environ <span class="guilabel">v2.0</span> and up</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#installing">Installing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#uninstalling">Uninstalling</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="old_install.html">Environ <span class="guilabel">v1.0</span> up to <span class="guilabel">v2.0</span></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setup"><code class="docutils literal notranslate"><span class="pre">setup</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main"><code class="docutils literal notranslate"><span class="pre">main</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#calc"><code class="docutils literal notranslate"><span class="pre">calc</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#clean"><code class="docutils literal notranslate"><span class="pre">clean</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/continuum.html">Continuum</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/interface_models.html">Interface Models</a></li>
@@ -78,11 +80,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="install.html">Installation instructions</a> &raquo;</li>
-          <li><a href="Environ_install.html">Environ installation</a> &raquo;</li>
-      <li>Environ <span class="guilabel">v2.0</span> and up</li>
+          <li><a href="api.html">API</a> &raquo;</li>
+      <li>Objects</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/install/new_install.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/objects.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -90,40 +91,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="environ-v2-0-and-up">
-<h1>Environ <span class="guilabel">v2.0</span> and up<a class="headerlink" href="#environ-v2-0-and-up" title="Permalink to this headline"></a></h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Run the following commands from the Environ root directory.</p>
-</div>
-<section id="installing">
-<h2>Installing<a class="headerlink" href="#installing" title="Permalink to this headline"></a></h2>
-<ol class="arabic">
-<li><p>install Environ</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">install</span>
-</pre></div>
-</div>
-<ol class="arabic simple">
-<li><p>select the QE package you wish to work with</p></li>
-<li><p>select the number of cores for parallel compilation (default = 1)</p></li>
-</ol>
-</li>
-</ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If issues arise, try compiling in serial.</p>
-</div>
+  <section id="objects">
+<h1>Objects<a class="headerlink" href="#objects" title="Permalink to this heading"></a></h1>
+<p>Environ exposes the following class instances to provide host programs
+with greater flexibility of calculation. For more information on each
+class, please reference the provided links.</p>
+<hr class="docutils" />
+<section id="setup">
+<h2><code class="docutils literal notranslate"><span class="pre">setup</span></code><a class="headerlink" href="#setup" title="Permalink to this heading"></a></h2>
+<p>The setup class (<a class="reference external" href="https://github.com/environ-developers/Environ/blob/master/src/setup.f90">environ_setup</a>) contains calculation flags,
+simulation cells, and the numerical solvers and cores.</p>
 </section>
-<section id="uninstalling">
-<h2>Uninstalling<a class="headerlink" href="#uninstalling" title="Permalink to this headline"></a></h2>
-<p>To uninstall Environ, run</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">uninstall</span>
-</pre></div>
-</div>
-<ol class="arabic simple">
-<li><p>enter <strong class="command">y</strong> to proceed</p></li>
-<li><p>when prompted for, enter <strong class="command">y</strong> to uninstall QE (optional)</p></li>
-</ol>
+<section id="main">
+<h2><code class="docutils literal notranslate"><span class="pre">main</span></code><a class="headerlink" href="#main" title="Permalink to this heading"></a></h2>
+<p>The main class (<a class="reference external" href="https://github.com/environ-developers/Environ/blob/master/src/main.f90">environ_main</a>) contains the physical quantities
+of Environ, as well as calculated potentials and energies.</p>
+</section>
+<section id="calc">
+<h2><code class="docutils literal notranslate"><span class="pre">calc</span></code><a class="headerlink" href="#calc" title="Permalink to this heading"></a></h2>
+<p>The calculator class (<a class="reference external" href="https://github.com/environ-developers/Environ/blob/master/src/calculator.f90">environ_calculator</a>) contains the primary
+calculators to compute energies, potentials, and forces.</p>
+</section>
+<section id="clean">
+<h2><code class="docutils literal notranslate"><span class="pre">clean</span></code><a class="headerlink" href="#clean" title="Permalink to this heading"></a></h2>
+<p>The destructor class (<a class="reference external" href="https://github.com/environ-developers/Environ/blob/master/src/destructor.f90">environ_destructor</a>) contains methods to
+destroy any objects created in the process of a calculation.</p>
 </section>
 </section>
 
@@ -131,8 +123,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Environ_install.html" class="btn btn-neutral float-left" title="Environ installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="old_install.html" class="btn btn-neutral float-right" title="Environ v1.0 up to v2.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="api.html" class="btn btn-neutral float-left" title="API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="methods.html" class="btn btn-neutral float-right" title="Methods" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

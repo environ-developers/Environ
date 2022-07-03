@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -29,6 +30,9 @@
         <div class="wy-side-nav-search" >
             <a href="index.html" class="icon icon-home"> Environ
           </a>
+              <div class="version">
+                3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -41,6 +45,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install/install.html">Installation instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environ/overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environ/continuum.html">Continuum</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environ/interface_models.html">Interface Models</a></li>
@@ -79,14 +84,14 @@
            <div itemprop="articleBody">
              
   <section id="output-files">
-<h1>Output Files<a class="headerlink" href="#output-files" title="Permalink to this headline"></a></h1>
+<h1>Output Files<a class="headerlink" href="#output-files" title="Permalink to this heading"></a></h1>
 <p>Unlike Quantum-ESPRESSO, which parses the entire output into an XML file, Environ currently relies solely on
 the output file and an associated environ-debug file (if the appropriate verbosity is set in the input).
 The reason for this is that Environ is currently a plugin and does not overwrite or modify any of the base
 Quantum-ESPRESSO files. Hence any additional output is only currently printed out into the terminal (or piped
 into an output file), or in environ specific output files. This may be dealt with more elegantly in the future.</p>
 <section id="reading-and-automation">
-<h2>Reading and Automation<a class="headerlink" href="#reading-and-automation" title="Permalink to this headline"></a></h2>
+<h2>Reading and Automation<a class="headerlink" href="#reading-and-automation" title="Permalink to this heading"></a></h2>
 <p>When using Environ, it is more appropriate to rely on the direct output of the program. One can
 feed this into a file and parse that file, typically using grep on certain keywords, or using scripting.
 Users have developed post-processing tools for extracting information for personal use. These can be

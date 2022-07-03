@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pre-compilation &mdash; Environ  documentation</title>
+  <title>API &mdash; Environ  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,12 +14,13 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Environ installation" href="Environ_install.html" />
-    <link rel="prev" title="Configuration" href="configuring_install.html" /> 
+    <link rel="next" title="Objects" href="objects.html" />
+    <link rel="prev" title="6. Example: Electrolyte Solutions" href="../tutorial/example06.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -29,6 +30,9 @@
         <div class="wy-side-nav-search" >
             <a href="../index.html" class="icon icon-home"> Environ
           </a>
+              <div class="version">
+                3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -39,13 +43,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="install.html">Installation instructions</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="preliminary_steps.html">Preliminary steps</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Pre-compilation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Environ_install.html">Environ installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="objects.html">Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/continuum.html">Continuum</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environ/interface_models.html">Interface Models</a></li>
@@ -70,10 +74,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="install.html">Installation instructions</a> &raquo;</li>
-      <li>Pre-compilation</li>
+      <li>API</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/install/optional_QE_comp.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/api.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -81,21 +84,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pre-compilation">
-<h1>Pre-compilation<a class="headerlink" href="#pre-compilation" title="Permalink to this headline"></a></h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Optional for Environ <span class="guilabel">v2.0</span> and up.</p>
-</div>
-<p>The installation process of Environ <span class="guilabel">v2.0</span> (or later) will automatically pre-compile QE and will abort if any issues arise. However, if using an older version of Environ, QE pre-compilation is required at this stage. You may do so from the QE root directory with</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="o">&lt;</span><span class="n">package</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-<p>where <em>package</em> is any of the packages supported by Environ: pw, cp, tddfpt, or xspectra.
-If issues arise, solutions may be found in the <a class="reference external" href="https://www.quantum-espresso.org/Doc/user_guide/">QE docs</a> or on the <a class="reference external" href="https://www.quantum-espresso.org/forum">QE forum</a>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If QE is manually pre-compiled, Environ <span class="guilabel">v2.0</span> (or later) re-compilation of QE will proceed quickly.</p>
+  <section id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this heading"></a></h1>
+<p>Environ exposes an API that can be used by host programs to integrate
+Environ into their calculations. The following links describe the API’s
+exposed objects and methods.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="objects.html#setup"><code class="docutils literal notranslate"><span class="pre">setup</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="objects.html#main"><code class="docutils literal notranslate"><span class="pre">main</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="objects.html#calc"><code class="docutils literal notranslate"><span class="pre">calc</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="objects.html#clean"><code class="docutils literal notranslate"><span class="pre">clean</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="methods.html">Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#init-interface"><code class="docutils literal notranslate"><span class="pre">init_interface</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#init-io"><code class="docutils literal notranslate"><span class="pre">init_io</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#read-input"><code class="docutils literal notranslate"><span class="pre">read_input</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#destroy"><code class="docutils literal notranslate"><span class="pre">destroy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#update-cell"><code class="docutils literal notranslate"><span class="pre">update_cell</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#update-electrons"><code class="docutils literal notranslate"><span class="pre">update_electrons</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#get-verbosity"><code class="docutils literal notranslate"><span class="pre">get_verbosity</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#calc-potential"><code class="docutils literal notranslate"><span class="pre">calc_potential</span></code></a></li>
+</ul>
+</li>
+</ul>
 </div>
 </section>
 
@@ -103,8 +117,8 @@ If issues arise, solutions may be found in the <a class="reference external" hre
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="configuring_install.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Environ_install.html" class="btn btn-neutral float-right" title="Environ installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../tutorial/example06.html" class="btn btn-neutral float-left" title="6. Example: Electrolyte Solutions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="objects.html" class="btn btn-neutral float-right" title="Objects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

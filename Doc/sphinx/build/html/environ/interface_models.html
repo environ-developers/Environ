@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,6 +31,9 @@
         <div class="wy-side-nav-search" >
             <a href="../index.html" class="icon icon-home"> Environ
           </a>
+              <div class="version">
+                3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -42,6 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="continuum.html">Continuum</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Interface Models</a><ul>
@@ -82,7 +87,7 @@
            <div itemprop="articleBody">
              
   <section id="interface-models">
-<h1>Interface Models<a class="headerlink" href="#interface-models" title="Permalink to this headline"></a></h1>
+<h1>Interface Models<a class="headerlink" href="#interface-models" title="Permalink to this heading"></a></h1>
 <p>This page presents a more in-depth description of the interface models implemented in Environ, along
 with all revelant input parameters. Much of this text is structured to mirror a tutorial review on
 Continuum Embeddings, <a class="footnote-reference brackets" href="#id6" id="id1">1</a>.</p>
@@ -99,7 +104,7 @@ in discretization, where singularities and discontinuities are possible. We argu
 standpoint, it is more reasonable to work with a set of vector and scalar fields that share the same
 numerical domain.</p>
 <section id="self-consistent-sccs">
-<h2>Self-Consistent (SCCS)<a class="headerlink" href="#self-consistent-sccs" title="Permalink to this headline"></a></h2>
+<h2>Self-Consistent (SCCS)<a class="headerlink" href="#self-consistent-sccs" title="Permalink to this heading"></a></h2>
 <p>The SCCS model is described comprehensively in the 2012 publication <a class="footnote-reference brackets" href="#id7" id="id2">2</a>, we present here a summary of the
 theory and methodology behind the model.</p>
 <p>This model chooses to base the definition of the interface on the electronic density, which is a scalar
@@ -115,7 +120,7 @@ environment. This approach is based on the original model proposed by Fattebert 
 the max density bound and 0 with an input below the min density bound.</p>
 </section>
 <section id="soft-sphere-sscs">
-<h2>Soft-Sphere (SSCS)<a class="headerlink" href="#soft-sphere-sscs" title="Permalink to this headline"></a></h2>
+<h2>Soft-Sphere (SSCS)<a class="headerlink" href="#soft-sphere-sscs" title="Permalink to this heading"></a></h2>
 <p>The SSCS model is described comprehensively in the 2017 publication <a class="footnote-reference brackets" href="#id9" id="id4">4</a>, again, we present here a
 summary of the theory and methodology behind the model.</p>
 <p>This model choose to base the definition of the interface on the ionic positions, and takes a similar
@@ -125,7 +130,7 @@ spheres centered on the ionic positions, and scaled depending on the atom, with 
 scaling for parameterization.</p>
 </section>
 <section id="non-local-interfaces">
-<h2>Non-local interfaces<a class="headerlink" href="#non-local-interfaces" title="Permalink to this headline"></a></h2>
+<h2>Non-local interfaces<a class="headerlink" href="#non-local-interfaces" title="Permalink to this heading"></a></h2>
 <p>The SCCS model can be thought of as a local interface, the value of the interface function is solely
 dependent on the electronic density at that position. Likewise, the interface function of the soft-sphere
 is agnostic of the ‘bigger picture’. There are a number of limitations of this assumption. Firstly,
