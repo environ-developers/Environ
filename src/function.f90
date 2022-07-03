@@ -35,12 +35,12 @@
 !!
 !! Common method parameters:
 !!
-!! - zero      (LOGICAL) -> zero out register 
+!! - zero      (LOGICAL) -> zero out register
 !! - ir       *(INTEGER) -> indices of points of interest
 !! - vals        *(REAL) -> values of points of interest
 !! - r_vals      *(REAL) -> displacements of points of interest
 !! - dist_vals   *(REAL) -> distances of points of interest
-!! 
+!!
 !! * OPTIONAL
 !!
 !----------------------------------------------------------------------------------------
