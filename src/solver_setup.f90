@@ -117,8 +117,8 @@ CONTAINS
         !
         this%problem = 'poisson'
         !
-        NULLIFY (this%solver) 
-        NULLIFY (this%inner) 
+        NULLIFY (this%solver)
+        NULLIFY (this%inner)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_electrostatic_setup

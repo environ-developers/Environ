@@ -417,7 +417,7 @@ CONTAINS
                 rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
                 !
                 CALL this%direct%grad_poisson(rhotot, gradpoisson, electrolyte, &
-                                                semiconductor)
+                                              semiconductor)
                 !
                 CALL dielectric%gradlog%scalar_product(gradpoisson, residual)
                 !

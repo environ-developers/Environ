@@ -1099,13 +1099,13 @@ CONTAINS
         END SELECT
         !
         IF (lvolume .OR. lsurface) THEN
-            WRITE(unit, *) ''
+            WRITE (unit, *) ''
             !
-            IF (lvolume) WRITE(unit, 1011) this%solvent%volume
+            IF (lvolume) WRITE (unit, 1011) this%solvent%volume
             !
-            IF (lsurface) WRITE(unit, 1012) this%solvent%surface
+            IF (lsurface) WRITE (unit, 1012) this%solvent%surface
             !
-            WRITE(unit, *) ''
+            WRITE (unit, *) ''
         END IF
         !
         !--------------------------------------------------------------------------------
