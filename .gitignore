@@ -26,6 +26,9 @@ make.depend
 *.mod
 *.smod
 
+# Fortran linter files
+*.i90
+
 # Compiled Static libraries
 *.lai
 *.la
@@ -37,9 +40,14 @@ make.depend
 #*.out
 *.app
 *.x
+tester
+!tester/
+driver
+!driver/
 
-# Directories with results of examples
+# Examples
 results/
+environment
 
 # Emacs temporary backups
 *~
@@ -65,3 +73,6 @@ CRASH
 
 # Development files/folders
 .vscode/
+deploy
+*.tar.gz
+*.zip

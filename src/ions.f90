@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -47,7 +47,6 @@ MODULE class_ions
     USE class_cell
     USE class_density
     USE class_function
-    USE class_function_gaussian
     USE class_functions
     !
     USE class_iontype
@@ -68,7 +67,7 @@ MODULE class_ions
         LOGICAL :: lupdate = .FALSE.
         !
         INTEGER :: number = 0
-        REAL(DP) :: center(3) = 0.D0
+        REAL(DP) :: com(3) = 0.D0 ! center of mass
         !
         !--------------------------------------------------------------------------------
         ! Specifications of point-like ions
@@ -83,14 +82,14 @@ MODULE class_ions
         ! needed by electrostatic calculations
         !
         LOGICAL :: use_smeared_ions = .FALSE.
-        CLASS(environ_function), ALLOCATABLE :: smeared_ions(:)
+        TYPE(environ_functions) :: smeared_ions
         TYPE(environ_density) :: density
         !
         !--------------------------------------------------------------------------------
         ! Parameters of the density of core electrons
         !
         LOGICAL :: use_core_electrons = .FALSE.
-        CLASS(environ_function), ALLOCATABLE :: core_electrons(:)
+        TYPE(environ_functions) :: core_electrons
         TYPE(environ_density) :: core
         !
         REAL(DP) :: charge = 0.D0
@@ -100,8 +99,7 @@ MODULE class_ions
         REAL(DP) :: quadrupole_correction = 0.D0
         REAL(DP) :: selfenergy_correction = 0.D0
         !
-        REAL(DP) :: potential_shift ! due to Gaussian-spread description (if used)
-        ! #TODO set to zero?
+        REAL(DP) :: potential_shift = 0.D0 ! due to Gaussian-spread description (if used)
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -112,10 +110,9 @@ MODULE class_ions
         PROCEDURE :: update => update_environ_ions
         PROCEDURE :: destroy => destroy_environ_ions
         !
-        PROCEDURE :: &
-            convert_iontype_to_ion_array_char, &
-            convert_iontype_to_ion_array_integer, &
-            convert_iontype_to_ion_array_real
+        PROCEDURE :: convert_iontype_to_ion_array_char
+        PROCEDURE :: convert_iontype_to_ion_array_integer
+        PROCEDURE :: convert_iontype_to_ion_array_real
         !
         GENERIC :: get_iontype_array => &
             convert_iontype_to_ion_array_char, &
@@ -148,25 +145,21 @@ CONTAINS
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_ions'
+        CHARACTER(LEN=80) :: routine = 'create_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%tau)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%tau)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%ityp)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%ityp)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%iontype)) CALL io%create_error(sub_name)
-        !
-        IF (ALLOCATED(this%smeared_ions)) CALL io%create_error(sub_name)
-        !
-        IF (ALLOCATED(this%core_electrons)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%iontype)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
         this%lupdate = .FALSE.
         this%number = 0
-        this%center = 0.D0
+        this%com = 0.D0
         this%ntyp = 0
         this%use_smeared_ions = .FALSE.
         this%use_core_electrons = .FALSE.
@@ -186,9 +179,9 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions(this, nat, ntyp, atom_label, ityp, zv, atomicspread, &
-                                 corespread, solvationrad, radius_mode, lsoftcavity, &
-                                 lsmearedions, lcoredensity, cell)
+    SUBROUTINE init_environ_ions(this, nat, ntyp, ityp, zv, atomicspread, corespread, &
+                                 solvationrad, radius_mode, lsoftcavity, lsmearedions, &
+                                 lcoredensity, cell, label, number, weight)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -196,19 +189,28 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(ntyp)
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: atomicspread, corespread, solvationrad
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions, lcoredensity
         TYPE(environ_cell), INTENT(IN) :: cell
+        CHARACTER(LEN=*), OPTIONAL, TARGET, INTENT(IN) :: label(ntyp)
+        INTEGER, OPTIONAL, TARGET, INTENT(IN) :: number(ntyp)
+        REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: weight(ntyp)
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: local_label
+        INTEGER, DIMENSION(nat) :: axes, dims
+        REAL(DP) :: widths(nat)
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_ions'
+        CHARACTER(LEN=3), ALLOCATABLE :: labels(:)
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: atomic_spreads, core_spreads
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: ionic_charges
+        !
+        CLASS(*), POINTER :: id
+        !
+        CHARACTER(LEN=80) :: routine = 'init_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -230,11 +232,32 @@ CONTAINS
         !
         DO i = 1, ntyp
             !
-            CALL this%iontype(i)%init(i, atom_label(i), zv(i), radius_mode, &
-                                      atomicspread(i), corespread(i), solvationrad(i), &
-                                      lsoftcavity, lsmearedions)
+            IF (PRESENT(label)) THEN
+                id => label(i)
+            ELSE IF (PRESENT(number)) THEN
+                id => number(i)
+            ELSE IF (PRESENT(weight)) THEN
+                id => weight(i)
+            END IF
+            !
+            CALL this%iontype(i)%init(i, id, zv(i), radius_mode, atomicspread(i), &
+                                      corespread(i), solvationrad(i), lsoftcavity, &
+                                      lsmearedions)
             !
         END DO
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (lsmearedions .OR. lcoredensity) THEN
+            !
+            CALL this%get_iontype_array(labels, 'label')
+            !
+            CALL this%get_iontype_array(ionic_charges, 'zv')
+            !
+            axes = 1
+            dims = 0
+            widths = 0.0_DP
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Total ionic charge
@@ -247,23 +270,18 @@ CONTAINS
         ! Smeared ions
         !
         IF (lsmearedions) THEN
-            local_label = 'smeared_ions'
             !
-            CALL this%density%init(cell, local_label)
+            CALL this%density%init(cell, 'smeared_ions')
             !
             !----------------------------------------------------------------------------
             ! Build smeared ions from iontype data
             !
-            ALLOCATE (environ_function_gaussian :: this%smeared_ions(this%number))
+            CALL this%get_iontype_array(atomic_spreads, 'atomicspread')
             !
-            DO i = 1, this%number
-                !
-                CALL this%smeared_ions(i)%init( &
-                    1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%atomicspread, &
-                    this%iontype(this%ityp(i))%zv, this%tau(:, i))
-                !
-            END DO
+            CALL this%smeared_ions%init(this%number, 1, axes, dims, widths, &
+                                        atomic_spreads, ionic_charges, this%tau)
             !
+            DEALLOCATE (atomic_spreads)
         END IF
         !
         this%use_smeared_ions = lsmearedions
@@ -272,26 +290,19 @@ CONTAINS
         ! Core electrons
         !
         IF (lcoredensity) THEN
-            local_label = 'core_electrons'
             !
-            CALL this%core%init(cell, local_label)
+            CALL this%core%init(cell, 'core_electrons')
             !
             !----------------------------------------------------------------------------
             ! Build core electrons from iontype data
             !
-            ALLOCATE (environ_function_gaussian :: this%core_electrons(this%number))
+            CALL this%get_iontype_array(core_spreads, 'corespread')
             !
-            DO i = 1, this%number
-                !
-                IF (TRIM(this%iontype(this%ityp(i))%label) == 'H') &
-                    this%iontype(this%ityp(i))%corespread = 1.D-10
-                !
-                CALL this%core_electrons(i)%init( &
-                    1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%corespread, &
-                    -this%iontype(this%ityp(i))%zv, this%tau(:, i))
-                !
-            END DO
+            CALL this%core_electrons%init(this%number, 1, axes, dims, widths, &
+                                          core_spreads, -ionic_charges, this%tau)
+
             !
+            DEALLOCATE (core_spreads)
         END IF
         !
         this%use_core_electrons = lcoredensity
@@ -303,52 +314,53 @@ CONTAINS
     !! Update ionic positions and compute derived quantities
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_ions(this, nat, tau)
+    SUBROUTINE update_environ_ions(this, nat, tau, center)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
+        REAL(DP), OPTIONAL, INTENT(IN) :: center(3)
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
         INTEGER :: i
-        INTEGER :: dim, axis
-        REAL(DP) :: charge, spread
-        REAL(DP) :: pos(3)
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_ions'
+        REAL(DP) :: tot_weight
+        !
+        CHARACTER(LEN=80) :: routine = 'update_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%number /= nat) CALL io%error(sub_name, 'Mismatch in number of atoms', 1)
+        IF (this%number /= nat) CALL io%error(routine, "Mismatch in number of atoms", 1)
         !
         this%tau = tau ! update positions
         !
         !--------------------------------------------------------------------------------
-        ! Center of ionic charge used by three sub-modules
+        ! Center of mass used by three sub-modules
         !
-        this%center = 0.D0
-        !
-        DO i = 1, this%number
+        IF (PRESENT(center)) THEN
+            this%com = center
+        ELSE
+            this%com = 0.D0
+            tot_weight = 0.D0
             !
-            this%center(:) = this%center(:) + &
-                             this%tau(:, i) * this%iontype(this%ityp(i))%zv
+            DO i = 1, this%number
+                !
+                this%com = this%com + &
+                           this%tau(:, i) * this%iontype(this%ityp(i))%weight
+                !
+                tot_weight = tot_weight + this%iontype(this%ityp(i))%weight
+            END DO
             !
-        END DO
-        !
-        IF (ABS(this%charge) < 1.D-8) &
-            CALL io%error(sub_name, 'Ionic charge equal to zero', 1)
-        !
-        this%center = this%center / this%charge
+            this%com = this%com / tot_weight
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! If needed, generate a fictitious ion density using gaussians
         !
-        IF (this%use_smeared_ions) &
-            CALL density_of_functions(this%smeared_ions, this%number, &
-                                      this%density, .TRUE.)
+        IF (this%use_smeared_ions) CALL this%smeared_ions%density(this%density, .TRUE.)
         !
         !--------------------------------------------------------------------------------
         ! Compute quadrupole moment of point-like (and gaussian) nuclei
@@ -360,9 +372,9 @@ CONTAINS
         !
         DO i = 1, this%number
             !
-            this%quadrupole_pc(:) = this%quadrupole_pc(:) + &
-                                    this%iontype(this%ityp(i))%zv * &
-                                    ((this%tau(:, i) - this%center(:)))**2
+            this%quadrupole_pc = this%quadrupole_pc + &
+                                 this%iontype(this%ityp(i))%zv * &
+                                 ((this%tau(:, i) - this%com))**2
             !
             IF (this%use_smeared_ions) THEN
                 !
@@ -386,7 +398,7 @@ CONTAINS
             this%potential_shift = this%quadrupole_correction * &
                                    tpi * e2 / this%density%cell%omega
             !
-            this%quadrupole_gauss(:) = this%quadrupole_pc(:) + this%quadrupole_correction
+            this%quadrupole_gauss = this%quadrupole_pc + this%quadrupole_correction
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -407,7 +419,15 @@ CONTAINS
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_ions'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_ions'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ALLOCATED(this%ityp)) CALL io%destroy_error(routine)
+        !
+        IF (.NOT. ALLOCATED(this%iontype)) CALL io%destroy_error(routine)
+        !
+        IF (.NOT. ASSOCIATED(this%tau)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -415,7 +435,7 @@ CONTAINS
             !
             CALL this%density%destroy()
             !
-            CALL destroy_environ_functions(this%smeared_ions, this%number)
+            CALL this%smeared_ions%destroy()
             !
         END IF
         !
@@ -423,17 +443,9 @@ CONTAINS
             !
             CALL this%core%destroy()
             !
-            CALL destroy_environ_functions(this%core_electrons, this%number)
+            CALL this%core_electrons%destroy()
             !
         END IF
-        !
-        this%charge = 0.D0
-        !
-        IF (.NOT. ALLOCATED(this%ityp)) CALL io%destroy_error(sub_name)
-        !
-        IF (.NOT. ALLOCATED(this%iontype)) CALL io%destroy_error(sub_name)
-        !
-        IF (.NOT. ASSOCIATED(this%tau)) CALL io%destroy_error(sub_name)
         !
         DEALLOCATE (this%ityp)
         DEALLOCATE (this%iontype)
@@ -451,25 +463,36 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE convert_iontype_to_ion_array_char(this, array)
+    SUBROUTINE convert_iontype_to_ion_array_char(this, array, item)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_ions), INTENT(INOUT) :: this
-        CHARACTER(LEN=3), ALLOCATABLE, INTENT(INOUT) :: array(:)
+        CLASS(environ_ions), INTENT(IN) :: this
+        CHARACTER(LEN=*), INTENT(IN) :: item
+        !
+        CHARACTER(LEN=*), ALLOCATABLE, INTENT(OUT) :: array(:)
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'convert_iontype_to_ion_array_char'
+        CHARACTER(LEN=80) :: routine = 'convert_iontype_to_ion_array_char'
         !
         !--------------------------------------------------------------------------------
         !
         ALLOCATE (array(this%number))
         !
-        DO i = 1, this%number
-            array(i) = this%iontype(this%ityp(i))%label
-        END DO
+        SELECT CASE (TRIM(item))
+            !
+        CASE ('label')
+            !
+            DO i = 1, this%number
+                array(i) = this%iontype(this%ityp(i))%label
+            END DO
+            !
+        CASE DEFAULT
+            CALL io%error(routine, "Unexpected keyword", 1)
+            !
+        END SELECT
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convert_iontype_to_ion_array_char
@@ -482,14 +505,14 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=20), INTENT(IN) :: item
+        CLASS(environ_ions), INTENT(IN) :: this
+        CHARACTER(LEN=*), INTENT(IN) :: item
         !
-        CLASS(environ_ions), INTENT(INOUT) :: this
-        INTEGER, ALLOCATABLE, INTENT(INOUT) :: array(:)
+        INTEGER, ALLOCATABLE, INTENT(OUT) :: array(:)
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'convert_iontype_to_ion_array_integer'
+        CHARACTER(LEN=80) :: routine = 'convert_iontype_to_ion_array_integer'
         !
         !--------------------------------------------------------------------------------
         !
@@ -509,6 +532,9 @@ CONTAINS
                 array(i) = this%iontype(this%ityp(i))%atmnum
             END DO
             !
+        CASE DEFAULT
+            CALL io%error(routine, "Unexpected keyword", 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -522,14 +548,14 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=20), INTENT(IN) :: item
+        CLASS(environ_ions), INTENT(IN) :: this
+        CHARACTER(LEN=*), INTENT(IN) :: item
         !
-        CLASS(environ_ions), INTENT(INOUT) :: this
-        REAL(DP), ALLOCATABLE, INTENT(INOUT) :: array(:)
+        REAL(DP), ALLOCATABLE, INTENT(OUT) :: array(:)
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'convert_iontype_to_ion_array_real'
+        CHARACTER(LEN=80) :: routine = 'convert_iontype_to_ion_array_real'
         !
         !--------------------------------------------------------------------------------
         !
@@ -561,6 +587,9 @@ CONTAINS
                 array(i) = this%iontype(this%ityp(i))%solvationrad
             END DO
             !
+        CASE DEFAULT
+            CALL io%error(routine, "Unexpected keyword", 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -588,11 +617,11 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_ions), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit, i
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_ions'
+        CHARACTER(LEN=80) :: routine = 'print_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -634,7 +663,7 @@ CONTAINS
                 WRITE (local_unit, 1000)
                 !
                 WRITE (local_unit, 1001) &
-                    this%charge, this%center, this%dipole, this%quadrupole_pc
+                    this%charge, this%com, this%dipole, this%quadrupole_pc
                 !
                 IF (this%use_smeared_ions) &
                     WRITE (local_unit, 1002) this%quadrupole_gauss
@@ -657,9 +686,8 @@ CONTAINS
                     CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
                     !
                     IF (local_verbose >= 4) &
-                        CALL print_environ_functions(this%smeared_ions, this%number, &
-                                                     passed_verbose, debug_verbose, &
-                                                     local_unit)
+                        CALL this%smeared_ions%printout(passed_verbose, debug_verbose, &
+                                                        local_unit)
                     !
                 END IF
                 !
@@ -670,9 +698,8 @@ CONTAINS
                                                 local_unit)
                     !
                     IF (local_verbose >= 5) &
-                        CALL print_environ_functions(this%core_electrons, this%number, &
-                                                     passed_verbose, debug_verbose, &
-                                                     local_unit)
+                        CALL this%core_electrons%printout(passed_verbose, debug_verbose, &
+                                                          local_unit)
                     !
                 END IF
                 !
@@ -684,16 +711,16 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' IONS ', 70('%'))
+1000    FORMAT(/, 4('%'), " IONS ", 70('%'))
         !
-1001    FORMAT(/, ' total charge               = ', F14.7, /, &
-                ' center of charge           = ', 3F14.7, /, &
-                ' dipole                     = ', 3F14.7, /, &
-                ' quadrupole (pc)            = ', 3F14.7)
+1001    FORMAT(/, " total charge               = ", F14.7, /, &
+                " center of mass             = ", 3F14.7, /, &
+                " dipole                     = ", 3F14.7, /, &
+                " quadrupole (pc)            = ", 3F14.7)
         !
-1002    FORMAT(' quadrupole (gauss)         = ', 3F14.7)
+1002    FORMAT(" quadrupole (gauss)         = ", 3F14.7)
         !
-1003    FORMAT(/, '   i | type | coordinates', /, 1X, 71('-'))
+1003    FORMAT(/, "   i | type | coordinates", /, 1X, 71('-'))
         !
 1004    FORMAT(1X, I3, ' | ', I4, ' |                 ', 3F14.7)
         !
@@ -708,18 +735,18 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_ions), TARGET, INTENT(IN) :: this
+        CLASS(environ_ions), INTENT(IN) :: this
         !
-        INTEGER :: iat
+        INTEGER :: i
         !
         !--------------------------------------------------------------------------------
         ! Write cube cell data
         !
-        DO iat = 1, this%number
+        DO i = 1, this%number
             !
             WRITE (300, '(i5,4f12.6)') &
-                this%iontype(this%ityp(iat))%atmnum, 0.D0, &
-                this%tau(1, iat), this%tau(2, iat), this%tau(3, iat)
+                this%iontype(this%ityp(i))%atmnum, 0.D0, &
+                this%tau(1, i), this%tau(2, i), this%tau(3, i)
             !
         END DO
         !

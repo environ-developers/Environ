@@ -1,13 +1,13 @@
 # Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 
-### This file is part of Environ version 2.0
+### This file is part of Environ version 3.0
 
-    Environ 2.0 is free software: you can redistribute it and/or modify
+    Environ 3.0 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 2 of the License, or
     (at your option) any later version.
 
-    Environ 2.0 is distributed in the hope that it will be useful,
+    Environ 3.0 is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more detail, either the file
@@ -42,67 +42,81 @@
     - Environ compilation
     - QE patching, dependency updating, and recompilation
 
-    Note that Environ now uses its own FFTs and utils libraries modeled
+    Note that Environ now uses its own FFTXlib and UtilXlib libraries modeled
     respectively after the FFTXlib and UtilXlib libraries of QE 6.7
 
     If there are any problems with the QE compilation step, look for solutions
     on the PW-forum, or refer to the Quantum ESPRESSO documentation and/or website:
 
-# http://www.quantum-espresso.org/
+      http://www.quantum-espresso.org/
 
-# QE + Environ 2.0 Installation
+# QE + Environ 3.0 Installation
 
-    The following instructions refer to Environ 2.0 installed on QE >= 6.3
-    For previous versions of QE (namely QE-6.1.X and QE-6.2.X), please refer
-    to the instructions on the website:
+    The following instructions refer to Environ 3.0 installed on QE >= 7.1
+    For previous versions, please refer to the instructions on the website:
 
-# http://www.quantum-environ.org/installation.html
+      https://environ.readthedocs.io/en/latest/install/install.html
 
-From QE root:
+#
 
-1. configure QE installation with
-
-   - `./configure [--prefix=]`
-   - no prefix should be enough in most cases
-
-From Environ root: (placed in the QE root directory)
+From Environ root:
 
 1. configure Environ with
 
-   - `./configure`
-   - in most cases, no prefix should be enough
+   - `./configure --with-qe=<absolute_path_to_QE>`
+   - the script will attempt to find the necessary libraries/compilers
+     - if it fails, the user may need to manually modify `make.inc`
 
-2. install QE + Environ 2.0 with
+2. compile Environ with
 
-   - `make install`
+   - `make -jN compile`
+   - `N` = number of cores for compilation (default = 1)
+     - if issues arise, retry with `N` = 1
 
-     a) select QE package (pw, tddfpt, xspectra, or all)
-
-     - see QE documentation for package detail
-
-     b) select number of cores (for parallel compilation)
-
-     - if issues arise in parallel, run in serial (core=1)"
-
-   * NOTE: installation pre-compiles QE, compiles Environ, applies
-           Environ patches to QE, and re-compiles QE. This scheme is
-           not only safer in general, but also required for QE < 6.7
-           due to the use of iotk (see QE documentation for details)
-
-   * compilation will write logs to Environ/install at each step
-   * compilation will terminate if errors are detected at any step
-
-3. run executables with -environ flag, e.g.
-
-   - pw.x -environ < pw.in > pw.out
-
-# Uninstall QE + Environ 2.0
+#
 
 From QE root:
 
-1. uninstall QE + Environ 2.0 with
+# using make
 
-   - `make uninstall`
-   - (optional) uninstall QE
+1. configure QE with
+
+   - `./configure --with-environ=<absolute_path_to_Environ>`
+   - the script will attempt to find the necessary libraries/compilers
+     - if it fails, the user may need to manually modify `make.inc`
+
+2. compile desired QE package with
+
+   - `make -jN <package>`
+   - `N` = number of cores for compilation (default = 1)
+     - if issues arise, retry with `N = 1`
+   - Environ supports the following QE packages: PW, CP, TDDFPT, XSpectra, NEB
+
+# using cmake
+
+1. create and navigate to a new directory (`build/` is a common choice)
+2. generate build environment with
+
+   - `cmake -DCMAKE_Fortran_COMPILER=<...> -DCMAKE_C_COMPILER=<...> -DENVIRON_ROOT=<absolute_path_to_Environ> ..`
+   - more information can be found at https://gitlab.com/QEF/q-e/-/wikis/Developers/CMake-build-system
+
+3. compile desired QE package as described above
+
+#
+
+If using cmake, modify the ESPRESSO_ROOT variable in the following files to reflect the build dir:
+
+- Environ/tests/environment
+- Environ/examples/qe/environment
+
+#
+
+# Uninstall Environ 3.0
+
+From Environ root:
+
+- `make clean`
+
+- (OPTIONAL) `make veryclean` to also remove configuration files
 
 ---

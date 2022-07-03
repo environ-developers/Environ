@@ -22,7 +22,7 @@ benchmark [string]
 
         $ testcode.py make-benchmarks
 
-    The format of the benchmark files is'benchmark.out.ID.inp=INPUT_FILE.arg=ARGS'.  
+    The format of the benchmark files is'benchmark.out.ID.inp=INPUT_FILE.arg=ARGS'.
     The 'inp' and/or 'arg' section is not included if it is empty.
 
     Multiple benchmarks can be used by providing a space-separated list of IDs.  The first
@@ -54,11 +54,19 @@ ignore_fields [space-separated list of strings]
     Specify the fields (e.g. column headings in the output from the extraction
     program) to ignore.  This can be used to include, say, timing information
     in the test output for performance comparison without causing failure of
-    tests.  No default.
+    tests.  Spaces within a string can be escaped by quoting the string.  No
+    default.
 exe [string]
     Path to the program executable.  No default.
+extract_fn [string]
+    A python function (in the form module_name.function_name) which extracts
+    data from test and benchmark outputs for comparison.  See :ref:`verification`
+    for details.  If a space-separated pair of strings are given, the first is
+    appended to sys.path before the module is imported.  Otherwise the desired
+    module **must** exist on PYTHONPATH.  The feature requires python 2.7 or
+    python 3.1+.
 extract_args [string]
-    Arguments to supply to the extraction program.  Default: null string. 
+    Arguments to supply to the extraction program.  Default: null string.
 extract_cmd_template [string]
     Template of command used to extract data from output(s) with the following
     substitutions made:
@@ -84,10 +92,10 @@ extract_fmt [string]
     Format of the data returned by extraction program. See :ref:`verification`
     for more details.  Can only take values table or yaml.  Default: table.
 launch_parallel [string]
-    Command template used to run the test program in parallel.  tc.nprocs is
-    replaced with the number of processors a test uses (see run_cmd_template).
-    If tc.nprocs does not appear, then testcode has no control over the number
-    of processors a test is run on.  Default: mpirun -np tc.nprocs.
+    Command template inserted before run_cmd_template when running the test program in
+    parallel.  tc.nprocs is replaced with the number of processors a test uses (see
+    run_cmd_template).  If tc.nprocs does not appear, then testcode has no control over
+    the number of processors a test is run on.  Default: mpirun -np tc.nprocs.
 run_cmd_template [string]
     Template of command used to run the program on the test with the following
     substitutions made:
@@ -107,11 +115,11 @@ run_cmd_template [string]
         tc.nprocs
             replaced with the number of processors the test is run on.
 
-    Default: 'tc.program tc.args tc.input > tc.output 2> tc.error' in serial
-    and 'launch_command tc.program tc.args tc.input > tc.output 2> tc.error' in
-    parallel, where launch_command is specified above.  The parallel version is
-    only used if the number of processors to run a test on is greater than
-    zero.
+    Default: 'tc.program tc.args tc.input > tc.output 2> tc.error'.  The complete command
+    used to invoke the program is run_cmd_template in serial runs and launch_parallel
+    run_cmd_template in parallel runs, where launch_parallel is specified above.  The
+    parallel version is only used if the number of processors to run a test on is greater
+    than zero.
 skip_args [string]
     Arguments to supply to the program to test whether to skip the comparison
     of the test and benchmark.  Default: null string.
@@ -127,6 +135,8 @@ skip_cmd_template [string]
             replaced with skip_args.
         tc.test
             replaced with the filename of the test output.
+        tc.error
+            replaced with the filename for the error output.
 
     Default: tc.skip tc.args tc.test.
 skip_program [string]
@@ -150,8 +160,9 @@ vcs [string]
     requested interactively when benchmarks are produced.  Default: None.
 
 Most settings are optional and need only be set if certain functionality is
-required or the default is not appropriate.  Note that either data_tag or
-extract_program must be supplied.
+required or the default is not appropriate.  Note that at least one of data_tag,
+extract_fn or extract_program must be supplied and are used in that order of
+precedence.
 
 In addition, the following variables are used, if present, as default settings
 for all tests of this type:
@@ -163,7 +174,7 @@ for all tests of this type:
 * output (no default)
 * run_concurrent (defailt: false)
 * submit_template
- 
+
 See :ref:`jobconfig` for more details.
 
 All other settings are assumed to be paths to other versions of the program

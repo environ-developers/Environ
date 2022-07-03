@@ -10,7 +10,6 @@
  /
  &BOUNDARY
    !
-   derivatives = 'fft'   
-   stype = 1
+   deriv_method = 'fft'
    !
  /

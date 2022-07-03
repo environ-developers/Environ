@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -84,6 +84,9 @@ CONTAINS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE create_environ_electrons(this)
         !--------------------------------------------------------------------------------
         !
@@ -91,7 +94,7 @@ CONTAINS
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrons'
+        CHARACTER(LEN=80) :: routine = 'create_environ_electrons'
         !
         !--------------------------------------------------------------------------------
         !
@@ -105,25 +108,20 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrons(this, nelec, cell)
+    SUBROUTINE init_environ_electrons(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nelec
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: local_label = 'electrons'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
         !
-        CALL this%density%init(cell, local_label)
-        !
-        this%number = nelec
+        CALL this%density%init(cell, 'electrons')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrons
@@ -138,21 +136,19 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
-        !
-        REAL(DP), INTENT(IN), OPTIONAL :: nelec
+        REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
         REAL(DP), PARAMETER :: tol = 5.D-3
-        REAL(DP) :: charge
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_electrons'
+        CHARACTER(LEN=80) :: routine = 'update_environ_electrons'
         !
         !--------------------------------------------------------------------------------
         !
         ! check on dimensions
         IF (nnr /= this%density%cell%nnr) &
-            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+            CALL io%error(routine, "Mismatch in grid size", 1)
         !
         this%density%of_r = rho
         !
@@ -166,7 +162,7 @@ CONTAINS
         IF (PRESENT(nelec)) THEN
             !
             IF (ABS(this%charge - nelec) > tol) &
-                CALL io%error(sub_name, 'Mismatch in integrated electronic charge', 1)
+                CALL io%error(routine, "Mismatch in integrated electronic charge", 1)
             !
         END IF
         !
@@ -191,8 +187,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%density%destroy()
-        !
-        this%charge = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrons
@@ -219,11 +213,11 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_electrons), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_electrons'
+        CHARACTER(LEN=80) :: routine = 'print_environ_electrons'
         !
         !--------------------------------------------------------------------------------
         !
@@ -276,11 +270,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' ELECTRONS ', 65('%'))
+1000    FORMAT(/, 4('%'), " ELECTRONS ", 65('%'))
         !
-1001    FORMAT(/, ' number of electrons        = ', I14)
+1001    FORMAT(/, " number of electrons        = ", I14)
         !
-1002    FORMAT(/, ' total electronic charge    = ', F14.7)
+1002    FORMAT(/, " total electronic charge    = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_electrons

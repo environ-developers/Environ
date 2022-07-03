@@ -1,0 +1,36 @@
+This example shows how to use pw.x to model a charged semiconductor electrode
+in contact with a solution.
+
+
+In particular, the algorithm tries to determine the voltage for a given electrode
+away from the flatband potential as a function of charge on the electrode.
+The algorithm is trying to optimize the charge distribution between the surface states
+of the system (modeled here as the DFT slab) and the bulk semiconductor 
+which is modeled using a Mott-Schottky solution to the Poisson-Boltzmann equation.
+
+See 
+ Q. Campbell, D. Fisher, I. Dabo, Phys. Rev. Mater. 3 (1), 015404 (2019).
+and 
+ Q. Campbell and I. Dabo, Phys. Rev. B 95 (20), 205308 (2017).
+
+for full details. 
+
+In practice, the callculation runs similarly to an ionic relaxation, where multiple scf
+cycles are run, each step trying to optimize the charge distribution between the two
+regions such that the Fermi levels are close to equilibrium.
+
+The surrounding solution is treated as a continuum dielectric according to the Self-consistent
+Continuum Solvation (SCCS) model of O. Andreussi, I. Dabo and N. Marzari,
+J. Chem. Phys. 136, 064102 (2012). 
+
+
+Only open boundary conditions are allowed for the calculations including the
+electrolyte. The real-space quadratic correction of the electrostatic
+potential (see I. Dabo et al. Phys. Rev. B 77, 
+115139 (2008)) is used. The method has been coupled to the SCCS model 
+in order to remove PBC in simulations of partially periodic systems in the 
+presence of a continuum solvent, as described by O. Andreussi and N. Marzari 
+Phys. Rev. B 90 245101 (2014).
+
+A rough explanation of the different semiconductor-related keywords is provided 
+in the run_example.sh file.

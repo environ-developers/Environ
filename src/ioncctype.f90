@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -78,6 +78,9 @@ CONTAINS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE create_environ_ioncctype(this)
         !--------------------------------------------------------------------------------
         !
@@ -85,7 +88,7 @@ CONTAINS
         !
         CLASS(environ_ioncctype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_ioncctype'
+        CHARACTER(LEN=80) :: routine = 'create_environ_ioncctype'
         !
         !--------------------------------------------------------------------------------
         !
@@ -110,9 +113,9 @@ CONTAINS
         !
         CLASS(environ_ioncctype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: index_s, local_label
+        CHARACTER(LEN=80) :: index_s
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_ioncctype'
+        CHARACTER(LEN=80) :: routine = 'init_environ_ioncctype'
         !
         !--------------------------------------------------------------------------------
         !
@@ -126,13 +129,9 @@ CONTAINS
         !
         WRITE (index_s, '(I2.2)') index
         !
-        local_label = 'c_electrolyte_'//TRIM(index_s)
+        CALL this%c%init(cell, 'c_electrolyte_'//TRIM(index_s))
         !
-        CALL this%c%init(cell, local_label)
-        !
-        local_label = 'cfactor_electrolyte_'//TRIM(index_s)
-        !
-        CALL this%cfactor%init(cell, local_label)
+        CALL this%cfactor%init(cell, 'cfactor_electrolyte_'//TRIM(index_s))
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_ioncctype
@@ -147,7 +146,7 @@ CONTAINS
         !
         CLASS(environ_ioncctype), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_ioncctype'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_ioncctype'
         !
         !--------------------------------------------------------------------------------
         !

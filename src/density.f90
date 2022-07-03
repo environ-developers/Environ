@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -35,8 +35,8 @@ MODULE class_density
     USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_base_scatter, ONLY: env_gather_grid
-    USE env_types_fft, ONLY: env_fft_type_descriptor
+    USE env_scatter_mod, ONLY: env_gather_grid
+    USE env_fft_types, ONLY: env_fft_type_descriptor
     !
     USE environ_param, ONLY: DP
     !
@@ -79,7 +79,6 @@ MODULE class_density
         !
         PROCEDURE, PRIVATE :: create => create_environ_density
         PROCEDURE :: init => init_environ_density
-        PROCEDURE :: copy => copy_environ_density
         PROCEDURE :: destroy => destroy_environ_density
         !
         PROCEDURE :: multipoles => multipoles_environ_density
@@ -88,7 +87,8 @@ MODULE class_density
         PROCEDURE :: quadratic_mean => quadratic_mean_environ_density
         PROCEDURE :: scalar_product => scalar_product_environ_density
         !
-        PROCEDURE :: dipole_of_origin, quadrupole_of_origin
+        PROCEDURE :: dipole_of_origin
+        PROCEDURE :: quadrupole_of_origin
         !
         PROCEDURE :: printout => print_environ_density
         PROCEDURE :: write_cube => write_cube_density
@@ -118,13 +118,13 @@ CONTAINS
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_density'
+        CHARACTER(LEN=80) :: routine = 'create_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
+        IF (ALLOCATED(this%of_r)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -134,7 +134,7 @@ CONTAINS
         this%dipole = 0.D0
         this%quadrupole = 0.D0
         !
-        NULLIFY (this%cell) 
+        NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_density
@@ -148,11 +148,11 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_density'
+        CHARACTER(LEN=80) :: routine = 'init_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -171,44 +171,6 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_density(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_density), INTENT(IN) :: this
-        !
-        TYPE(environ_density), INTENT(OUT) :: copy
-        !
-        CHARACTER(LEN=80) :: sub_name = 'copy_environ_density'
-        !
-        INTEGER :: n
-        !
-        !--------------------------------------------------------------------------------
-        !
-        copy%cell => this%cell
-        !
-        copy%lupdate = this%lupdate
-        copy%label = this%label
-        copy%charge = this%charge
-        copy%dipole = this%dipole
-        copy%quadrupole = this%quadrupole
-        !
-        IF (ALLOCATED(this%of_r)) THEN
-            n = SIZE(this%of_r)
-            !
-            IF (ALLOCATED(copy%of_r)) DEALLOCATE (copy%of_r)
-            !
-            ALLOCATE (copy%of_r(n))
-            copy%of_r = this%of_r
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_density
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE destroy_environ_density(this)
         !--------------------------------------------------------------------------------
         !
@@ -216,13 +178,13 @@ CONTAINS
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_density'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(routine)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -242,57 +204,78 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE multipoles_environ_density(this, origin, monopole, dipole, quadrupole)
+    SUBROUTINE multipoles_environ_density(this, origin, monopole, dipole, quadrupole, &
+                                          ir, disps)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_density), TARGET, INTENT(IN) :: this
         REAL(DP), INTENT(IN) :: origin(3)
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: disps(:, :)
         !
         REAL(DP), INTENT(OUT) :: monopole
         REAL(DP), DIMENSION(3), INTENT(OUT) :: dipole, quadrupole
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        LOGICAL :: physical
-        INTEGER :: ir
+        INTEGER :: i, imax, irs
+        LOGICAL :: physical, stored
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
+        !
+        CHARACTER(LEN=80) :: routine = 'multipoles_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
         cell => this%cell
         !
-        monopole = 0.D0
+        monopole = this%integrate()
         dipole = 0.D0
         quadrupole = 0.D0
         !
-        DO ir = 1, cell%ir_end
+        IF (PRESENT(ir)) THEN
             !
-            CALL cell%get_min_distance(ir, 0, 3, origin, r, r2, physical)
-            ! compute minimum distance using minimum image convention
+            IF (.NOT. PRESENT(disps)) &
+                CALL io%error(routine, "Missing displacement values", 1)
             !
-            IF (.NOT. physical) CYCLE
+            imax = SIZE(ir)
+            stored = .TRUE.
+        ELSE
+            imax = cell%ir_end
+            stored = .FALSE.
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        DO i = 1, imax
             !
-            rhoir = this%of_r(ir)
+            IF (stored) THEN
+                irs = ir(i)
+                !
+                IF (irs == 0) CYCLE
+                !
+                r = disps(:, i)
+            ELSE
+                !
+                CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                irs = i
+            END IF
             !
-            !----------------------------------------------------------------------------
-            ! Multipoles
-            !
-            monopole = monopole + rhoir
+            rhoir = this%of_r(irs)
             dipole = dipole + rhoir * r
             quadrupole = quadrupole + rhoir * r**2
-            !
         END DO
-        !
-        CALL env_mp_sum(monopole, cell%dfft%comm)
         !
         CALL env_mp_sum(dipole, cell%dfft%comm)
         !
         CALL env_mp_sum(quadrupole, cell%dfft%comm)
         !
-        monopole = monopole * cell%domega
         dipole = dipole * cell%domega
         quadrupole = quadrupole * cell%domega
         !
@@ -300,7 +283,6 @@ CONTAINS
     END SUBROUTINE multipoles_environ_density
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION dipole_of_origin(this, origin) RESULT(dipole)
@@ -320,7 +302,6 @@ CONTAINS
     END FUNCTION dipole_of_origin
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION quadrupole_of_origin(this, origin) RESULT(quadrupole)
@@ -381,6 +362,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ir_end => this%cell%ir_end
+        !
         euclidean_norm = DOT_PRODUCT(this%of_r(1:ir_end), this%of_r(1:ir_end))
         !
         CALL env_mp_sum(euclidean_norm, this%cell%dfft%comm)
@@ -405,11 +387,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ir_end => this%cell%ir_end
+        !
         quadratic_mean = DOT_PRODUCT(this%of_r(1:ir_end), this%of_r(1:ir_end))
         !
         CALL env_mp_sum(quadratic_mean, this%cell%dfft%comm)
         !
-        quadratic_mean = SQRT(quadratic_mean / this%cell%ntot)
+        quadratic_mean = SQRT(quadratic_mean / this%cell%nnt)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION quadratic_mean_environ_density
@@ -425,18 +408,20 @@ CONTAINS
         CLASS(environ_density), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: density2
         !
-        !
         INTEGER, POINTER :: ir_end
         REAL(DP) :: scalar_product
         !
-        CHARACTER(LEN=80) :: fun_name = 'scalar_product_environ_density'
+        CHARACTER(LEN=80) :: routine = 'scalar_product_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell, density2%cell)) &
-            CALL io%error(fun_name, 'Operation on fields with inconsistent domains', 1)
+            CALL io%error(routine, "Operation on fields with inconsistent domains", 1)
+        !
+        !--------------------------------------------------------------------------------
         !
         ir_end => this%cell%ir_end
+        !
         scalar_product = DOT_PRODUCT(this%of_r(1:ir_end), density2%of_r(1:ir_end))
         !
         CALL env_mp_sum(scalar_product, this%cell%dfft%comm)
@@ -468,15 +453,15 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_density), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
-        LOGICAL, INTENT(IN), OPTIONAL :: lcube
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
+        LOGICAL, OPTIONAL, INTENT(IN) :: lcube
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
         LOGICAL :: print_cube = .TRUE.
         REAL(DP) :: integral
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_density'
+        CHARACTER(LEN=80) :: routine = 'print_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -543,12 +528,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' DENSITY ', 67('%'))
-1001    FORMAT(/, ' DENSITY', /, ' =======')
+1000    FORMAT(/, 4('%'), " DENSITY ", 67('%'))
+1001    FORMAT(/, " DENSITY", /, " =======")
         !
-1002    FORMAT(/, ' density label              = ', A50)
+1002    FORMAT(/, " density label              = ", A50)
         !
-1003    FORMAT(/, ' integral of density        = ', G18.10)
+1003    FORMAT(/, " integral of density        = ", G18.10)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_density
@@ -561,9 +546,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_density), TARGET, INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: idx
-        CHARACTER(LEN=100), INTENT(IN), OPTIONAL :: label
+        CLASS(environ_density), INTENT(IN) :: this
+        INTEGER, OPTIONAL, INTENT(IN) :: idx
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label
         !
         CHARACTER(LEN=100) :: filename, filemod, local_label
         !
@@ -610,7 +595,7 @@ CONTAINS
         !
         CLASS(environ_density), TARGET, INTENT(IN) :: this
         !
-        INTEGER :: ir, ir1, ir2, ir3
+        INTEGER :: i, j, k, l
         INTEGER :: count
         INTEGER :: nr1x, nr2x, nr3x
         INTEGER :: nr1, nr2, nr3
@@ -620,7 +605,7 @@ CONTAINS
         !
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
-        CHARACTER(LEN=80) :: sub_name = 'write_cube_density'
+        CHARACTER(LEN=80) :: routine = 'write_cube_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -653,14 +638,14 @@ CONTAINS
         !
         count = 0
         !
-        DO ir1 = 1, nr1
+        DO i = 1, nr1
             !
-            DO ir2 = 1, nr2
+            DO j = 1, nr2
                 !
-                DO ir3 = 1, nr3
+                DO k = 1, nr3
                     count = count + 1
-                    ir = ir1 + (ir2 - 1) * nr1 + (ir3 - 1) * nr1 * nr2
-                    tmp = DBLE(flocal(ir))
+                    l = i + (j - 1) * nr1 + (k - 1) * nr1 * nr2
+                    tmp = DBLE(flocal(l))
                     !
                     IF (ABS(tmp) < 1.D-99) tmp = 0.D0
                     !

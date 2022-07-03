@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -57,7 +57,7 @@ MODULE class_system
         INTEGER :: dim = 0
         INTEGER :: axis = 1
         REAL(DP) :: width = 0.D0
-        REAL(DP) :: pos(3) = 0.D0
+        REAL(DP) :: com(3) = 0.D0 ! center of mass
         !
         TYPE(environ_ions), POINTER :: ions => NULL()
         !
@@ -95,11 +95,11 @@ CONTAINS
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_system'
+        CHARACTER(LEN=80) :: routine = 'create_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%ions)) CALL io%create_error(routine)
         !
         !--------------------------------------------------------------------------------
         !
@@ -108,6 +108,7 @@ CONTAINS
         this%dim = 0
         this%axis = 0
         this%width = 0.D0
+        this%com = 0.D0
         !
         NULLIFY (this%ions)
         !
@@ -127,7 +128,7 @@ CONTAINS
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_system'
+        CHARACTER(LEN=80) :: routine = 'init_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
@@ -152,20 +153,20 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN), OPTIONAL :: pos(3)
+        REAL(DP), OPTIONAL, INTENT(IN) :: pos(3)
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        INTEGER :: i, icor, max_ntyp
-        REAL(DP) :: charge, dist
-        INTEGER, POINTER :: ityp
-        REAL(DP), POINTER :: zv
+        INTEGER :: i, j
+        INTEGER :: max_ntyp
+        REAL(DP) :: dist
+        REAL(DP) :: tot_weight
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_environ_system'
+        CHARACTER(LEN=80) :: routine = 'update_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
-        this%pos = 0.D0
+        this%com = 0.D0
         this%width = 0.D0
         !
         max_ntyp = this%ntyp
@@ -173,44 +174,41 @@ CONTAINS
         IF (this%ntyp == 0) max_ntyp = this%ions%ntyp
         !
         IF (PRESENT(pos)) THEN
-            this%pos = pos ! fixed position (debugging with finite-differences)
+            this%com = pos ! fixed position (debugging with finite-differences)
         ELSE
             !
             !----------------------------------------------------------------------------
-            ! Compute center of charge
+            ! Compute center of mass
             !
-            charge = 0.D0
+            tot_weight = 0.D0
             !
             DO i = 1, this%ions%number
-                ityp => this%ions%ityp(i)
                 !
-                IF (ityp > max_ntyp) CYCLE
+                IF (this%ions%ityp(i) > max_ntyp) CYCLE
                 !
-                zv => this%ions%iontype(ityp)%zv
-                charge = charge + zv
-                this%pos = this%pos + this%ions%tau(:, i) * zv
+                this%com = this%com + this%ions%tau(:, i) * &
+                           this%ions%iontype(this%ions%ityp(i))%weight
+                !
+                tot_weight = tot_weight + this%ions%iontype(this%ions%ityp(i))%weight
             END DO
             !
-            IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, 'System charge is zero', 1)
-            !
-            this%pos = this%pos / charge
+            this%com = this%com / tot_weight
         END IF
         !
         this%width = 0.D0
         !
         DO i = 1, this%ions%number
-            ityp => this%ions%ityp(i)
             !
-            IF (ityp > max_ntyp) CYCLE
+            IF (this%ions%ityp(i) > max_ntyp) CYCLE
             !
             dist = 0.D0
             !
-            DO icor = 1, 3
+            DO j = 1, 3
                 !
-                IF ((this%dim == 1 .AND. icor == this%axis) .OR. &
-                    (this%dim == 2 .AND. icor /= this%axis)) CYCLE
+                IF ((this%dim == 1 .AND. j == this%axis) .OR. &
+                    (this%dim == 2 .AND. j /= this%axis)) CYCLE
                 !
-                dist = dist + (this%ions%tau(icor, i) - this%pos(icor))**2
+                dist = dist + (this%ions%tau(j, i) - this%com(j))**2
             END DO
             !
             ! need to modify it into a smooth maximum to compute derivatives
@@ -237,11 +235,13 @@ CONTAINS
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_system'
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%ions)) CALL io%destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%ions)) CALL io%destroy_error(routine)
+        !
+        !--------------------------------------------------------------------------------
         !
         NULLIFY (this%ions)
         !
@@ -268,11 +268,11 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_system), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_system'
+        CHARACTER(LEN=80) :: routine = 'print_environ_system'
         !
         !--------------------------------------------------------------------------------
         !
@@ -316,7 +316,7 @@ CONTAINS
             END IF
             !
             WRITE (local_unit, 1003) this%dim, this%axis
-            WRITE (local_unit, 1004) this%pos, this%width
+            WRITE (local_unit, 1004) this%com, this%width
             !
         END IF
         !
@@ -324,17 +324,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' SYSTEM ', 68('%'))
+1000    FORMAT(/, 4('%'), " SYSTEM ", 68('%'))
 !
-1001    FORMAT(/, ' system is built from all present ionic types')
+1001    FORMAT(/, " system is built from all present ionic types")
 !
-1002    FORMAT(/, ' system is built from the first ', I3, ' ionic types')
+1002    FORMAT(/, " system is built from the first ", I3, " ionic types")
         !
-1003    FORMAT(/, ' system defined dimension   = ', I14, /, &
-                ' system defined axis        = ', I14)
+1003    FORMAT(/, " system defined dimension   = ", I14, /, &
+                " system defined axis        = ", I14)
         !
-1004    FORMAT(/, ' system center              = ', 3F14.7, /, &
-                ' system width               = ', F14.7)
+1004    FORMAT(/, " system center of mass      = ", 3F14.7, /, &
+                " system width               = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_system

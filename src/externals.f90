@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -68,7 +68,7 @@ MODULE class_externals
         !
         TYPE(environ_density) :: density
         !
-        CLASS(environ_function), ALLOCATABLE :: functions(:)
+        TYPE(environ_functions) :: functions
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -104,11 +104,7 @@ CONTAINS
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_externals'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ALLOCATED(this%functions)) CALL io%create_error(sub_name)
+        CHARACTER(LEN=80) :: routine = 'create_environ_externals'
         !
         !--------------------------------------------------------------------------------
         !
@@ -122,38 +118,27 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_externals(this, nexternals, dims, axes, pos, spreads, &
-                                      charges, cell)
+    SUBROUTINE init_environ_externals(this, n, dims, axes, spreads, charges, cell, pos)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nexternals
-        INTEGER, DIMENSION(nexternals), INTENT(IN) :: dims, axes
-        REAL(DP), DIMENSION(nexternals), INTENT(IN) :: spreads, charges
-        REAL(DP), INTENT(IN) :: pos(3, nexternals)
+        INTEGER, INTENT(IN) :: n
+        INTEGER, DIMENSION(n), INTENT(IN) :: dims, axes
+        REAL(DP), DIMENSION(n), INTENT(IN) :: spreads, charges
         TYPE(environ_cell), INTENT(IN) :: cell
+        REAL(DP), OPTIONAL, INTENT(IN) :: pos(3, n)
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
-        TYPE(environ_function_gaussian) :: fsrc
-        !
-        CHARACTER(LEN=80) :: local_label = 'externals'
-        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%create()
+        CALL this%density%init(cell, 'externals')
         !
-        CALL this%density%init(cell, local_label)
+        this%number = n
         !
-        this%number = nexternals
-        !
-        IF (this%number > 0) THEN
-            !
-            CALL init_environ_functions(this%functions, fsrc, nexternals, 1, axes, &
-                                        dims, spreads, spreads, -charges, pos)
-            !
-        END IF
+        IF (n > 0) &
+            CALL this%functions%init(n, 1, axes, dims, spreads, spreads, -charges, pos)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_externals
@@ -168,9 +153,12 @@ CONTAINS
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
-        !--------------------------------------------------------------------------------
+        CHARACTER(LEN=80) :: routine = 'update_environ_externals'
         !
-        CALL density_of_functions(this%functions, this%number, this%density, .TRUE.)
+        !--------------------------------------------------------------------------------
+        ! Update externals charge density
+        !
+        CALL this%functions%density(this%density, .TRUE.)
         !
         this%charge = this%density%integrate()
         !
@@ -196,7 +184,7 @@ CONTAINS
         !
         CALL this%density%destroy()
         !
-        CALL destroy_environ_functions(this%functions, this%number)
+        CALL this%functions%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_externals
@@ -223,11 +211,11 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_externals), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        INTEGER, OPTIONAL, INTENT(IN) :: verbose, debug_verbose, unit
         !
         INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_externals'
+        CHARACTER(LEN=80) :: routine = 'print_environ_externals'
         !
         !--------------------------------------------------------------------------------
         !
@@ -273,8 +261,7 @@ CONTAINS
             !
             IF (local_verbose >= 3) THEN
                 !
-                CALL print_environ_functions(this%functions, this%number, &
-                                             passed_verbose, debug_verbose, local_unit)
+                CALL this%functions%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
                 !
@@ -286,11 +273,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-1000    FORMAT(/, 4('%'), ' EXTERNALS ', 65('%'))
+1000    FORMAT(/, 4('%'), " EXTERNALS ", 65('%'))
         !
-1001    FORMAT(/, ' number of external charges = ', I14)
+1001    FORMAT(/, " number of external charges = ", I14)
         !
-1002    FORMAT(/, ' total external charge      = ', F14.7)
+1002    FORMAT(/, " total external charge      = ", F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_externals

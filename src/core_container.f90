@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -25,7 +25,6 @@
 !
 !----------------------------------------------------------------------------------------
 !>
-!! #TODO 1D_numeric, multigrid, bigdft
 !!
 !----------------------------------------------------------------------------------------
 MODULE class_core_container
@@ -33,7 +32,7 @@ MODULE class_core_container
     !
     USE class_io, ONLY: io
     !
-    USE class_core_numerical
+    USE class_core
     !
     !------------------------------------------------------------------------------------
     !
@@ -45,12 +44,21 @@ MODULE class_core_container
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, ABSTRACT, PUBLIC :: core_container
+    TYPE, PUBLIC :: core_container
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: type_
+        CHARACTER(LEN=80) :: label = ''
         !
-        CLASS(numerical_core), POINTER :: core => NULL()
+        LOGICAL :: internal_correction = .FALSE.
+        !
+        LOGICAL :: has_derivatives = .FALSE.
+        CLASS(environ_core), POINTER :: derivatives => NULL()
+        !
+        LOGICAL :: has_electrostatics = .FALSE.
+        CLASS(environ_core), POINTER :: electrostatics => NULL()
+        !
+        LOGICAL :: has_corrections = .FALSE.
+        CLASS(environ_core), POINTER :: corrections => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -59,6 +67,10 @@ MODULE class_core_container
         PROCEDURE, PRIVATE :: create => create_core_container
         PROCEDURE :: init => init_core_container
         PROCEDURE :: destroy => destroy_core_container
+        !
+        PROCEDURE :: set_derivatives
+        PROCEDURE :: set_electrostatics
+        PROCEDURE :: set_corrections
         !
         !--------------------------------------------------------------------------------
     END TYPE core_container
@@ -83,11 +95,27 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_core_container'
+        CHARACTER(LEN=80) :: routine = 'create_core_container'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%core)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(routine)
+        !
+        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(routine)
+        !
+        IF (ASSOCIATED(this%corrections)) CALL io%create_error(routine)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%label = ''
+        this%internal_correction = .FALSE.
+        this%has_derivatives = .FALSE.
+        this%has_electrostatics = .FALSE.
+        this%has_corrections = .FALSE.
+        !
+        NULLIFY (this%derivatives)
+        NULLIFY (this%electrostatics)
+        NULLIFY (this%corrections)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_container
@@ -95,24 +123,35 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_container(this, core, type_in)
+    SUBROUTINE init_core_container(this, label, deriv_core, elect_core, corr_core, &
+                                   inter_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(numerical_core), TARGET, INTENT(IN) :: core
-        CHARACTER(LEN=80), INTENT(IN) :: type_in
+        CHARACTER(LEN=*), INTENT(IN) :: label
+        CLASS(environ_core), OPTIONAL, INTENT(IN) :: deriv_core
+        CLASS(environ_core), OPTIONAL, INTENT(IN) :: elect_core
+        CLASS(environ_core), OPTIONAL, INTENT(IN) :: corr_core
+        LOGICAL, OPTIONAL, INTENT(IN) :: inter_corr
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_core_container'
+        CHARACTER(LEN=80) :: routine = 'init_core_container'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
         !
-        this%core => core
-        this%type_ = type_in
+        this%label = label
+        !
+        IF (PRESENT(elect_core)) CALL this%set_electrostatics(elect_core)
+        !
+        IF (PRESENT(deriv_core)) CALL this%set_derivatives(deriv_core)
+        !
+        IF (PRESENT(corr_core)) CALL this%set_corrections(corr_core)
+        !
+        IF (PRESENT(inter_corr)) this%internal_correction = inter_corr
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_core_container
@@ -127,20 +166,111 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_core_container'
+        CHARACTER(LEN=80) :: routine = 'destroy_core_container'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%core)) CALL io%destroy_error(sub_name)
+        IF (ASSOCIATED(this%derivatives)) THEN
+            !
+            CALL this%derivatives%destroy()
+            !
+            NULLIFY (this%derivatives)
+        END IF
         !
-        !--------------------------------------------------------------------------------
+        IF (ASSOCIATED(this%electrostatics)) THEN
+            !
+            CALL this%electrostatics%destroy()
+            !
+            NULLIFY (this%electrostatics)
+        END IF
         !
-        IF (ASSOCIATED(this%core%cell)) CALL this%core%destroy()
-        !
-        NULLIFY (this%core)
+        IF (ASSOCIATED(this%corrections)) THEN
+            !
+            CALL this%corrections%destroy()
+            !
+            NULLIFY (this%corrections)
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_container
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_derivatives(this, core)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_core), TARGET, INTENT(IN) :: core
+        !
+        CLASS(core_container), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'set_derivatives'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(routine)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%derivatives => core
+        this%has_derivatives = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_derivatives
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_electrostatics(this, core)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_core), TARGET, INTENT(IN) :: core
+        !
+        CLASS(core_container), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'set_electrostatics'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(routine)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%electrostatics => core
+        this%has_electrostatics = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_electrostatics
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_corrections(this, core)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_core), TARGET, INTENT(IN) :: core
+        !
+        CLASS(core_container), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'set_corrections'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%corrections)) CALL io%create_error(routine)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%corrections => core
+        this%has_corrections = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_corrections
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -37,11 +37,15 @@ MODULE class_calculator
     !
     USE environ_param, ONLY: DP
     !
+    USE class_environ
+    USE class_setup
+    !
     USE class_cell
     USE class_density
-    USE class_environ
     USE class_gradient
-    USE class_setup
+    !
+    USE class_boundary_electronic
+    USE class_boundary_ionic
     !
     USE env_write_cube
     !
@@ -58,30 +62,24 @@ MODULE class_calculator
     TYPE, PUBLIC :: environ_calculator
         !--------------------------------------------------------------------------------
         !
+        TYPE(environ_main), POINTER :: main => NULL()
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, NOPASS :: force => calc_fenviron
-        PROCEDURE, NOPASS :: energy => calc_eenviron
-        PROCEDURE, NOPASS :: denergy => calc_deenviron
-        PROCEDURE, NOPASS :: potential => calc_venviron
-        PROCEDURE, NOPASS :: dpotential => calc_dvenviron
+        PROCEDURE :: force => calc_fenviron
+        PROCEDURE :: energy => calc_eenviron
+        PROCEDURE :: denergy => calc_deenviron
+        PROCEDURE :: potential => calc_venviron
+        PROCEDURE :: dpotential => calc_dvenviron
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_calculator
     !------------------------------------------------------------------------------------
     !
-    TYPE(environ_calculator), PUBLIC :: calc
-    !
     !------------------------------------------------------------------------------------
 CONTAINS
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                                  GENERAL METHODS
-    !
-    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !! Calculates the Environ contribution to the local potential. All
@@ -89,26 +87,30 @@ CONTAINS
     !! all computed on the dense real-space grid and added to vtot.
     !
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_venviron(env, update, local_verbose)
+    SUBROUTINE calc_venviron(this, update, local_verbose)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: update
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+        INTEGER, OPTIONAL, INTENT(IN) :: local_verbose
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: env
+        CLASS(environ_calculator), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_density) :: aux
         TYPE(environ_density) :: de_dboundary
         !
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_venviron'
         !
         !--------------------------------------------------------------------------------
         !
-        setup => env%setup
+        CHARACTER(LEN=80) :: routine = 'calc_venviron'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        main => this%main
+        setup => main%setup
         !
         !--------------------------------------------------------------------------------
         ! If not updating, add old potentials and exit
@@ -117,23 +119,23 @@ CONTAINS
             !
             IF (PRESENT(local_verbose)) THEN
                 !
-                CALL write_cube(env%dvtot, env%system_ions, local_verbose)
+                CALL write_cube(main%dvtot, main%system_ions, local_verbose)
                 !
                 IF (setup%lelectrostatic) THEN
                     !
-                    CALL write_cube(env%vreference, env%system_ions, local_verbose)
+                    CALL write_cube(main%vreference, main%system_ions, local_verbose)
                     !
-                    CALL write_cube(env%velectrostatic, env%system_ions, local_verbose)
+                    CALL write_cube(main%velectrostatic, main%system_ions, local_verbose)
                     !
-                    CALL env%system_charges%printout(local_verbose)
+                    CALL main%system_charges%printout(local_verbose)
                     !
                 END IF
                 !
                 IF (setup%lconfine) &
-                    CALL write_cube(env%vconfine, env%system_ions, local_verbose)
+                    CALL write_cube(main%vconfine, main%system_ions, local_verbose)
                 !
                 IF (setup%lsoftcavity) &
-                    CALL write_cube(env%vsoftcavity, env%system_ions, local_verbose)
+                    CALL write_cube(main%vsoftcavity, main%system_ions, local_verbose)
                 !
             END IF
             !
@@ -144,7 +146,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! If updating, calculate new potentials
         !
-        env%dvtot%of_r = 0.D0
+        main%dvtot%of_r = 0.D0
         !
         CALL aux%init(setup%system_cell)
         !
@@ -157,24 +159,24 @@ CONTAINS
             ! Electrostatics is also computed inside the calling program,
             ! need to remove the reference #TODO to-be-decided
             !
-            CALL setup%reference%calc_v(env%system_charges, env%vreference)
+            CALL setup%reference%calc_v(main%system_charges, main%vreference)
             !
-            CALL write_cube(env%vreference, env%system_ions)
+            CALL write_cube(main%vreference, main%system_ions)
             !
-            CALL setup%outer%calc_v(env%environment_charges, env%velectrostatic)
+            CALL setup%outer%calc_v(main%environment_charges, main%velectrostatic)
             !
             ! IF (this%setup%lexternals) CALL this%environment_charges%update()
             ! #TODO keep for now until external tests are fully debugged
             !
-            CALL write_cube(env%velectrostatic, env%system_ions)
+            CALL write_cube(main%velectrostatic, main%system_ions)
             !
-            CALL setup%mapping%to_small(env%velectrostatic, aux)
+            CALL setup%mapping%to_small(main%velectrostatic, aux)
             !
-            env%dvtot%of_r = aux%of_r - env%vreference%of_r
+            main%dvtot%of_r = aux%of_r - main%vreference%of_r
             !
-            CALL env%environment_charges%of_potential(env%velectrostatic)
+            CALL main%environment_charges%of_potential(main%velectrostatic)
             !
-            CALL env%environment_charges%printout()
+            CALL main%environment_charges%printout()
             !
         END IF
         !
@@ -183,20 +185,20 @@ CONTAINS
         !
         IF (setup%lconfine) THEN
             !
-            CALL env%solvent%vconfine(setup%confine, env%vconfine)
+            CALL main%solvent%vconfine(setup%confine, main%vconfine)
             !
-            CALL write_cube(env%vconfine, env%system_ions)
+            CALL write_cube(main%vconfine, main%system_ions)
             !
-            CALL setup%mapping%to_small(env%vconfine, aux)
+            CALL setup%mapping%to_small(main%vconfine, aux)
             !
-            env%dvtot%of_r = env%dvtot%of_r + aux%of_r
+            main%dvtot%of_r = main%dvtot%of_r + aux%of_r
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Compute the total potential depending on the boundary
         !
         IF (setup%lsoftcavity) THEN
-            env%vsoftcavity%of_r = 0.D0
+            main%vsoftcavity%of_r = 0.D0
             !
             CALL de_dboundary%init(setup%environment_cell)
             !
@@ -205,67 +207,63 @@ CONTAINS
                 !
                 ! if surface tension greater than zero, calculate cavity contribution
                 IF (setup%lsurface) &
-                    CALL env%solvent%desurface_dboundary(setup%surface_tension, &
-                                                         de_dboundary)
+                    CALL main%solvent%desurface_dboundary(setup%surface_tension, &
+                                                          de_dboundary)
                 !
                 ! if external pressure different from zero, calculate PV contribution
                 IF (setup%lvolume) &
-                    CALL env%solvent%devolume_dboundary(setup%pressure, &
-                                                        de_dboundary)
+                    CALL main%solvent%devolume_dboundary(setup%pressure, &
+                                                         de_dboundary)
                 !
                 ! if confinement potential not zero, calculate confine contribution
                 IF (setup%lconfine) &
-                    CALL env%solvent%deconfine_dboundary(setup%confine, &
-                                                         env%environment_charges%electrons%density, &
-                                                         de_dboundary)
+                    CALL main%solvent%deconfine_dboundary(setup%confine, &
+                                                          main%environment_charges%electrons%density, &
+                                                          de_dboundary)
                 !
                 ! if dielectric embedding, calculate dielectric contribution
                 IF (setup%lstatic) &
-                    CALL env%static%de_dboundary(env%velectrostatic, de_dboundary)
+                    CALL main%static%de_dboundary(main%velectrostatic, de_dboundary)
                 !
                 ! if solvent-aware interface correct the potential
-                IF (env%solvent%solvent_aware) &
-                    CALL env%solvent%sa_de_dboundary(de_dboundary)
+                IF (main%solvent%solvent_aware) &
+                    CALL main%solvent%sa_de_dboundary(de_dboundary)
                 !
-                IF (env%solvent%field_aware) THEN
-                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
-                ELSE
+                SELECT TYPE (solvent => main%solvent)
                     !
-                    env%vsoftcavity%of_r = de_dboundary%of_r * env%solvent%dscaled%of_r
-                    ! multiply by derivative of the boundary w.r.t electronic density
+                TYPE IS (environ_boundary_electronic)
+                    main%vsoftcavity%of_r = de_dboundary%of_r * solvent%dscaled%of_r
                     !
-                END IF
+                END SELECT
                 !
             END IF
             !
             IF (setup%lsoftelectrolyte) THEN
                 de_dboundary%of_r = 0.D0
                 !
-                CALL env%electrolyte%de_dboundary(de_dboundary)
+                CALL main%electrolyte%de_dboundary(de_dboundary)
                 ! if electrolyte is present add its non-electrostatic contribution
                 !
                 ! if solvent-aware interface correct the potential
-                IF (env%electrolyte%boundary%solvent_aware) &
-                    CALL env%electrolyte%boundary%sa_de_dboundary(de_dboundary)
+                IF (main%electrolyte%boundary%solvent_aware) &
+                    CALL main%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
-                IF (env%electrolyte%boundary%field_aware) THEN
-                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
-                ELSE
+                SELECT TYPE (boundary => main%electrolyte%boundary)
                     !
-                    ! multiply for the derivative of the boundary w.r.t electronic density
-                    env%vsoftcavity%of_r = &
-                        env%vsoftcavity%of_r + &
-                        de_dboundary%of_r * env%electrolyte%boundary%dscaled%of_r
+                TYPE IS (environ_boundary_electronic)
                     !
-                END IF
+                    main%vsoftcavity%of_r = main%vsoftcavity%of_r + &
+                                            de_dboundary%of_r * boundary%dscaled%of_r
+                    !
+                END SELECT
                 !
             END IF
             !
-            CALL write_cube(env%vsoftcavity, env%system_ions)
+            CALL write_cube(main%vsoftcavity, main%system_ions)
             !
-            CALL setup%mapping%to_small(env%vsoftcavity, aux)
+            CALL setup%mapping%to_small(main%vsoftcavity, aux)
             !
-            env%dvtot%of_r = env%dvtot%of_r + aux%of_r
+            main%dvtot%of_r = main%dvtot%of_r + aux%of_r
             !
             CALL de_dboundary%destroy()
             !
@@ -273,7 +271,7 @@ CONTAINS
         !
         CALL aux%destroy()
         !
-        CALL write_cube(env%dvtot, env%system_ions, local_verbose)
+        CALL write_cube(main%dvtot, main%system_ions, local_verbose)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_venviron
@@ -284,63 +282,69 @@ CONTAINS
     !! energy computed as the sum of Kohn-Sham eigenvalues.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_eenviron(env, total_energy)
+    SUBROUTINE calc_eenviron(this, total_energy)
         !--------------------------------------------------------------------------------
         !
         ! USE embedding_confine, ONLY: calc_econfine #TODO to-be-decided
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: env
+        CLASS(environ_calculator), TARGET, INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: total_energy
         !
         REAL(DP) :: ereference
         !
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
+        !
+        CHARACTER(LEN=80) :: routine = 'calc_eenviron'
         !
         !--------------------------------------------------------------------------------
         !
-        setup => env%setup
+        main => this%main
+        setup => main%setup
         !
-        env%eelectrostatic = 0.D0
-        env%esurface = 0.D0
-        env%evolume = 0.D0
-        env%econfine = 0.D0
-        env%eelectrolyte = 0.D0
+        !--------------------------------------------------------------------------------
         !
-        setup%niter = setup%niter + 1
+        main%eelectrostatic = 0.D0
+        main%esurface = 0.D0
+        main%evolume = 0.D0
+        main%econfine = 0.D0
+        main%eelectrolyte = 0.D0
+        !
+        setup%niter_scf = setup%niter_scf + 1
         !
         !--------------------------------------------------------------------------------
         ! If electrostatic is on, compute electrostatic energy
         !
         IF (setup%lelectrostatic) THEN
             !
-            CALL setup%reference%calc_e(env%system_charges, env%vreference, ereference)
+            CALL setup%reference%calc_e(main%system_charges, main%vreference, ereference)
             !
-            CALL setup%outer%calc_e(env%environment_charges, env%velectrostatic, &
-                                    env%eelectrostatic)
+            CALL setup%outer%calc_e(main%environment_charges, main%velectrostatic, &
+                                    main%eelectrostatic)
             !
-            env%eelectrostatic = env%eelectrostatic - ereference
+            main%eelectrostatic = main%eelectrostatic - ereference
         END IF
         !
         !--------------------------------------------------------------------------------
         !
         ! if surface tension not zero, compute cavitation energy
         IF (setup%lsurface) &
-            CALL env%solvent%esurface(setup%surface_tension, env%esurface)
+            CALL main%solvent%esurface(setup%surface_tension, main%esurface)
         !
-        IF (setup%lvolume) CALL env%solvent%evolume(setup%pressure, env%evolume)
+        IF (setup%lvolume) CALL main%solvent%evolume(setup%pressure, main%evolume)
         ! if pressure not zero, compute PV energy
         !
         ! if confinement potential not zero compute confine energy
         IF (setup%lconfine) &
-            env%econfine = env%environment_electrons%density%scalar_product(env%vconfine)
+            main%econfine = main%environment_electrons%density%scalar_product(main%vconfine)
         !
         ! if electrolyte is present, calculate its non-electrostatic contribution
-        IF (setup%lelectrolyte) CALL env%electrolyte%energy(env%eelectrolyte)
+        IF (setup%lelectrolyte) CALL main%electrolyte%energy(main%eelectrolyte)
         !
-        total_energy = total_energy + env%eelectrostatic + env%esurface + &
-                       env%evolume + env%econfine + env%eelectrolyte
+        total_energy = total_energy + main%eelectrostatic + main%esurface + &
+                       main%evolume + main%econfine + main%eelectrolyte
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_eenviron
@@ -351,28 +355,32 @@ CONTAINS
     !! effect on the atomic forces.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_fenviron(env, nat, force_environ)
+    SUBROUTINE calc_fenviron(this, nat, force_environ)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nat
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: env
+        CLASS(environ_calculator), TARGET, INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: force_environ(3, nat)
         !
         INTEGER :: i
         TYPE(environ_density) :: de_dboundary
         TYPE(environ_gradient) :: partial
         !
+        REAL(DP), DIMENSION(3, nat) :: freference, felectrostatic
+        !
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: environment_cell
         !
-        REAL(DP), DIMENSION(3, nat) :: freference, felectrostatic
+        CHARACTER(LEN=80) :: routine = 'calc_fenviron'
         !
         !--------------------------------------------------------------------------------
         !
-        setup => env%setup
+        main => this%main
+        setup => main%setup
         environment_cell => setup%environment_cell
         !
         !--------------------------------------------------------------------------------
@@ -387,14 +395,14 @@ CONTAINS
             !
             IF (setup%ldoublecell) THEN
                 !
-                CALL setup%reference%calc_f(nat, env%system_charges, freference, &
+                CALL setup%reference%calc_f(nat, main%system_charges, freference, &
                                             setup%ldoublecell)
                 !
             ELSE
                 freference = 0.D0
             END IF
             !
-            CALL setup%outer%calc_f(nat, env%environment_charges, felectrostatic, &
+            CALL setup%outer%calc_f(nat, main%environment_charges, felectrostatic, &
                                     setup%ldoublecell)
             !
             force_environ = felectrostatic - freference
@@ -410,38 +418,42 @@ CONTAINS
             CALL partial%init(environment_cell)
             !
             IF (setup%lrigidsolvent) THEN
-                !
                 de_dboundary%of_r = 0.D0
                 !
                 ! if surface tension greater than zero, calculate cavity contribution
                 IF (setup%lsurface) &
-                    CALL env%solvent%desurface_dboundary(setup%surface_tension, &
-                                                         de_dboundary)
+                    CALL main%solvent%desurface_dboundary(setup%surface_tension, &
+                                                          de_dboundary)
                 !
                 ! if external pressure not zero, calculate PV contribution
                 IF (setup%lvolume) &
-                    CALL env%solvent%devolume_dboundary(setup%pressure, de_dboundary)
+                    CALL main%solvent%devolume_dboundary(setup%pressure, de_dboundary)
                 !
                 ! if confinement potential not zero, calculate confine contribution
                 IF (setup%lconfine) &
-                    CALL env%solvent%deconfine_dboundary(setup%confine, &
-                                                         env%environment_charges%electrons%density, &
-                                                         de_dboundary)
+                    CALL main%solvent%deconfine_dboundary(setup%confine, &
+                                                          main%environment_charges%electrons%density, &
+                                                          de_dboundary)
                 !
                 ! if dielectric embedding, calculate dielectric contribution
                 IF (setup%lstatic) &
-                    CALL env%static%de_dboundary(env%velectrostatic, de_dboundary)
+                    CALL main%static%de_dboundary(main%velectrostatic, de_dboundary)
                 !
                 ! if solvent-aware, correct the potential
-                IF (env%solvent%solvent_aware) &
-                    CALL env%solvent%sa_de_dboundary(de_dboundary)
+                IF (main%solvent%solvent_aware) &
+                    CALL main%solvent%sa_de_dboundary(de_dboundary)
+                !
+                IF (main%solvent%field_aware) CALL main%solvent%ion_field_partial()
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
                 !
                 DO i = 1, nat
                     !
-                    CALL env%solvent%dboundary_dions(i, partial)
+                    CALL main%solvent%dboundary_dions(i, partial)
+                    !
+                    IF (main%solvent%field_aware) &
+                        CALL main%solvent%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)
@@ -451,22 +463,27 @@ CONTAINS
             END IF
             !
             IF (setup%lrigidelectrolyte) THEN
-                !
                 de_dboundary%of_r = 0.D0
                 !
                 ! if electrolyte is present, add its non-electrostatic contribution
-                CALL env%electrolyte%de_dboundary(de_dboundary)
+                CALL main%electrolyte%de_dboundary(de_dboundary)
                 !
                 ! if solvent-aware, correct the potential
-                IF (env%electrolyte%boundary%solvent_aware) &
-                    CALL env%electrolyte%boundary%sa_de_dboundary(de_dboundary)
+                IF (main%electrolyte%boundary%solvent_aware) &
+                    CALL main%electrolyte%boundary%sa_de_dboundary(de_dboundary)
+                !
+                IF (main%electrolyte%boundary%field_aware) &
+                    CALL main%electrolyte%boundary%ion_field_partial()
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
                 !
                 DO i = 1, nat
                     !
-                    CALL env%electrolyte%boundary%dboundary_dions(i, partial)
+                    CALL main%electrolyte%boundary%dboundary_dions(i, partial)
+                    !
+                    IF (main%electrolyte%boundary%field_aware) &
+                        CALL main%electrolyte%boundary%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)
@@ -488,14 +505,14 @@ CONTAINS
     !! Calculates the Environ contribution to the response potential in TD calculations
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dvenviron(env, nnr, dv)
+    SUBROUTINE calc_dvenviron(this, nnr, dv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: env
+        CLASS(environ_calculator), TARGET, INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: dv(nnr)
         !
         TYPE(environ_density) :: aux
@@ -504,14 +521,20 @@ CONTAINS
         TYPE(environ_density) :: dvsoftcavity
         TYPE(environ_density) :: dv_dboundary
         !
+        TYPE(environ_main), POINTER :: main
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
+        CHARACTER(LEN=80) :: routine = 'calc_dvenviron'
+        !
         !--------------------------------------------------------------------------------
         !
-        setup => env%setup
+        main => this%main
+        setup => main%setup
         system_cell => setup%system_cell
         environment_cell => setup%environment_cell
+        !
+        !--------------------------------------------------------------------------------
         !
         IF (setup%optical_permittivity == 1.D0) RETURN
         !
@@ -530,15 +553,15 @@ CONTAINS
             !
             CALL dvreference%init(system_cell)
             !
-            CALL setup%reference%calc_v(env%system_response_charges, dvreference)
+            CALL setup%reference%calc_v(main%system_response_charges, dvreference)
             !
             CALL dvelectrostatic%init(environment_cell)
             !
-            CALL setup%outer%calc_v(env%environment_response_charges, dvelectrostatic)
+            CALL setup%outer%calc_v(main%environment_response_charges, dvelectrostatic)
             !
             CALL setup%mapping%to_small(dvelectrostatic, aux)
             !
-            dv(:) = dv(:) + aux%of_r(:) - dvreference%of_r(:)
+            dv = dv + aux%of_r - dvreference%of_r
             !
             CALL dvreference%destroy()
             !
@@ -558,15 +581,21 @@ CONTAINS
                 !
                 ! if dielectric embedding, calcultes dielectric contribution
                 IF (setup%loptical) &
-                    CALL env%optical%dv_dboundary(env%velectrostatic, &
-                                                  dvelectrostatic, dv_dboundary)
+                    CALL main%optical%dv_dboundary(main%velectrostatic, &
+                                                   dvelectrostatic, dv_dboundary)
                 !
-                dvsoftcavity%of_r = dv_dboundary%of_r * env%solvent%dscaled%of_r
+                SELECT TYPE (solvent => main%solvent)
+                    !
+                TYPE IS (environ_boundary_electronic)
+                    dvsoftcavity%of_r = dv_dboundary%of_r * solvent%dscaled%of_r
+                    !
+                END SELECT
+                !
             END IF
             !
             CALL setup%mapping%to_small(dvsoftcavity, aux)
             !
-            dv(:) = dv(:) + aux%of_r(:)
+            dv = dv + aux%of_r
             !
             CALL dv_dboundary%destroy()
             !
@@ -585,18 +614,24 @@ CONTAINS
     !! Calculates the energy corrections in PW calculations
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_deenviron(env, total_energy)
+    SUBROUTINE calc_deenviron(this, total_energy)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), INTENT(INOUT) :: env
+        CLASS(environ_calculator), TARGET, INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: total_energy
+        !
+        TYPE(environ_main), POINTER :: main
         !
         !--------------------------------------------------------------------------------
         !
-        env%deenviron = -env%system_electrons%density%scalar_product(env%dvtot)
-        total_energy = total_energy + env%deenviron
+        main => this%main
+        !
+        !--------------------------------------------------------------------------------
+        !
+        main%deenviron = -main%system_electrons%density%scalar_product(main%dvtot)
+        total_energy = total_energy + main%deenviron
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_deenviron

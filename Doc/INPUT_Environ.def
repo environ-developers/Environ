@@ -121,6 +121,14 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { REQUIRED }
         }
         
+        var env_ecut -type REAL {
+            default { 0.D0 }
+            info {
+                Cutoff value (Ry) used to derive the G-vector cutoff on Environ's internal FFT-grid.
+            }
+            status { OPTIONAL }
+        }
+
         var env_electrolyte_ntyp -type INTEGER {
             default { 0 }
             info {
@@ -139,7 +147,16 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             One needs to turn on this keyword explicitly to activate electrostatic embedding effects
             that do not have a specific activation keyword, such as for PBC correction schemes.
             }
-            status { REQUIRED }
+            status { OPTIONAL }
+        }
+
+        var no_electrostatics -type LOGICAL {
+            default { .FALSE. }
+            info {
+            Suppress electrostatic calculation. This prevents initialization of unnecessary
+            quantities such as certain potentials.
+            }
+            status { OPTIONAL }
         }
         
         var env_external_charges -type INTEGER {
@@ -361,6 +378,22 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { OPTIONAL }
         }
 
+        var sc_electrode_chg -type REAL {
+            default { 0.D0 }
+            info {
+            The total charge on the electrode (e).
+            }
+            status { OPTIONAL }
+        }
+
+        var sc_chg_thr -type REAL {
+            default { 1.D-4 }
+            info {
+            Threshold for the outer loop of charge optimization.
+            }
+            status { OPTIONAL }
+        }
+
         var system_axis -type INTEGER {
             default { 3 }
             info {
@@ -418,6 +451,22 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             }
             status { OPTIONAL }
         }
+
+        var lvolume -type LOGICAL {
+            default { .FALSE. }
+            info {
+            Print boundary volume at each step.
+            }
+            status { OPTIONAL }
+        }
+
+        var lsurface -type LOGICAL {
+            default { .FALSE. }
+            info {
+            Print boundary surface at each step (triggers computation of boundary gradient).
+            }
+            status { OPTIONAL }
+        }
     }
 
     namelist BOUNDARY {
@@ -458,7 +507,17 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { OPTIONAL }
         }
 
-        var derivatives -type CHARACTER {
+        var deriv_core -type CHARACTER {
+            default { 'fft' }
+            info {
+            The choice of the core numerical methods to be exploited for computing derivatives.
+
+            'fft' : fast Fourier transforms
+            }
+            status { OPTIONAL }
+        }
+
+        var deriv_method -type CHARACTER {
             default { see below }
             info {
             Specify the numerical approach used to compute derivatives of the continuum interface with respect
@@ -485,6 +544,27 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             Main parameter of ions-dependent interface function, corresponding to the homogeneous
             scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
             Used for the electrolyte interface.
+            }
+            status { OPTIONAL }
+        }
+        
+        var electrolyte_deriv_method -type CHARACTER {
+            default { see below }
+            info {
+            Specify the numerical approach used to compute derivatives of the electrolyte interface with respect
+            to real-space coordinates or QM degrees of freedom.
+
+            'fft'     : fast Fourier transform
+            'chain'   : chain rule derivatives for as much as possible (and FFTs for the rest)
+            'highmem' : analytic derivatives for soft-sphere computed by storing all spherical functions 
+                        and derivatives
+            'lowmem'  : more efficient analytic derivatives
+
+            DEFAULT:
+
+            solvent_mode .EQ. electronic | full : 'chain'
+            solvent_mode .EQ. ionic             : 'lowmem'
+
             }
             status { OPTIONAL }
         }
@@ -570,6 +650,47 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             info {
             Second parameter of the density-dependent interface function, when stype=0. Used for the
             electrolyte interface.
+            }
+            status { OPTIONAL }
+        }
+
+        var field_aware -type LOGICAL {
+            default { .FALSE. }
+            info {
+            Switch to turn on the field-awareness scaling factor (only works with ionic boundary mode).
+            }
+            status { OPTIONAL }
+        }
+
+        var field_factor -type REAL {
+            default { 0.08D0 }
+            info {
+            Maximum scaling factor possible by the field-aware model.
+            }
+            status { OPTIONAL }
+        }
+
+        var field_asymmetry -type REAL {
+            default { -0.32D0 }
+            info {
+            Charge asymmetry factor. Positive values result in more field-awareness for positive charges,
+            and vice-versa.
+            }
+            status { OPTIONAL }
+        }
+
+        var field_max -type REAL {
+            default { 6.D0 }
+            info {
+            Maximum flux value for switching function.
+            }
+            status { OPTIONAL }
+        }
+
+        var field_min -type REAL {
+            default { 2.D0 }
+            info {
+            Minimum flux value for switching function.
             }
             status { OPTIONAL }
         }
@@ -832,7 +953,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
 
-            IF (solver .EQ. 'fixed-point') THEN
+            IF (solver .EQ. 'fixed-point')
                 auxiliary = 'full'
             ELSE
                 auxiliary = 'none'
@@ -844,6 +965,16 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             default { 'fft' }
             info {
             The choice of the core numerical methods to be exploited for the different operations.
+
+            'fft' : fast Fourier transforms
+            }
+            status { OPTIONAL }
+        }
+
+        var inner_core -type CHARACTER {
+            default { 'fft' }
+            info {
+            The choice of the core numerical methods to be exploited for nested electrostatics.
 
             'fft' : fast Fourier transforms
             }
@@ -868,6 +999,26 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { OPTIONAL }
         }
 
+        var inner_problem -type CHARACTER {
+            default { see below }
+            info {
+            Type of electrostatic problem for inner loop in nested algorithms.
+
+            'generalized' : generalized poisson equation.
+            'linpb'       : linearized poisson-boltzmann equation (debye-huckel).
+
+            DEFAULT:
+
+            IF (inner_solver .NE. 'none')
+                IF (solver .EQ. 'fixed-point')
+                    IF (auxiliary == 'ioncc') 
+                        inner_problem = 'generalized'
+                IF (solver .EQ. 'newton')
+                    inner_problem = 'linpb'
+            }
+            status { OPTIONAL }
+        }
+
         var inner_solver -type CHARACTER {
             default { see below }
             info {
@@ -881,8 +1032,8 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
 
-            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                IF (.NOT. electrolyte_linearized) THEN 
+            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                IF (.NOT. electrolyte_linearized) 
                     inner_solver = 'cg'
                 ELSE
                     inner_solver = 'none'
@@ -952,6 +1103,16 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             status { OPTIONAL }
         }
         
+        var pbc_core -type CHARACTER {
+            default { '1da' }
+            info {
+            The choice of the core numerical methods to be exploited for pbc corrections.
+
+            '1da' : 1d-analytic
+            }
+            status { OPTIONAL }
+        }
+        
         var pbc_correction -type CHARACTER {
             default { 'none' }
             info {
@@ -1016,13 +1177,13 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
 
-            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                IF (electrolyte_linearized) THEN
-                    IF (cionmax > 0.D0 .OR. rion > 0.D0) THEN
+            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                IF (electrolyte_linearized)
+                    IF (cionmax > 0.D0 .OR. rion > 0.D0)
                         problem = 'linmodpb' 
                     ELSE
                         problem = 'linpb'
-            ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
+            ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0)
                 problem = 'generalized'
             ELSE
                 problem = 'poisson'
@@ -1069,13 +1230,13 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
             
-            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs') THEN
-                IF (electrolyte_linearized) THEN
+            IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. 'gcs')
+                IF (electrolyte_linearized)
                     solver = 'cg'
                 ELSE
                     solver = 'newton'
-            ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
-                IF (pbc_correction .NE. 'gcs') THEN
+            ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0)
+                IF (pbc_correction .NE. 'gcs')
                     solver = 'cg'
                 ELSE
                     solver = 'fixed-point'

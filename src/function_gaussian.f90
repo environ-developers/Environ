@@ -4,14 +4,14 @@
 !
 !----------------------------------------------------------------------------------------
 !
-!     This file is part of Environ version 2.0
+!     This file is part of Environ version 3.0
 !
-!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     Environ 3.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
 !
-!     Environ 2.0 is distributed in the hope that it will be useful,
+!     Environ 3.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !     GNU General Public License for more detail, either the file
@@ -56,10 +56,8 @@ MODULE class_function_gaussian
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: density => density_of_function_gaussian
-        PROCEDURE :: gradient => gradient_of_function_gaussian
-        PROCEDURE :: laplacian => laplacian_of_function_gaussian
-        PROCEDURE :: hessian => hessian_of_function_gaussian
+        PROCEDURE :: density => density_of_function
+        PROCEDURE :: gradient => gradient_of_function
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_gaussian
@@ -77,28 +75,41 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function_gaussian(this, density, zero)
+    SUBROUTINE density_of_function(this, density, zero, ir, vals, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_gaussian), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: density
+        CLASS(environ_function_gaussian), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: density
         !
+        INTEGER, OPTIONAL, INTENT(OUT) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:), r_vals(:, :), dist_vals(:)
+        !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
-        REAL(DP) :: r(3), r2, scale, spr2, length
+        REAL(DP) :: r(3), r2, scale, length
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function_gaussian'
+        CHARACTER(LEN=80) :: routine = 'density_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (ABS(this%volume) < func_tol) RETURN
+        !
+        IF (ABS(this%spread) < func_tol) &
+            CALL io%error(routine, "Wrong spread for Gaussian function", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) density%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => density%cell, &
                    pos => this%pos, &
@@ -107,12 +118,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (ABS(charge) < func_tol) RETURN
-            !
-            IF (ABS(spread) < func_tol) &
-                CALL io%error(sub_name, 'Wrong spread for Gaussian function', 1)
-            !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             SELECT CASE (dim)
                 !
@@ -128,25 +135,25 @@ CONTAINS
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Wrong value of dim', 1)
+                CALL io%error(routine, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
-            spr2 = spread**2
+            !----------------------------------------------------------------------------
             !
             ALLOCATE (local(cell%nnr))
             local = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                r2 = r2 / spr2
+                r2 = r2 / spread**2
                 !
-                IF (r2 <= exp_tol) local(ir) = EXP(-r2) ! compute Gaussian function
+                IF (r2 <= exp_tol) local(i) = EXP(-r2) ! compute Gaussian function
                 !
             END DO
             !
@@ -156,33 +163,50 @@ CONTAINS
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE density_of_function_gaussian
+    END SUBROUTINE density_of_function
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function_gaussian(this, gradient, zero)
+    SUBROUTINE gradient_of_function(this, gradient, zero, ir, vals, r_vals, dist_vals)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_gaussian), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        CLASS(environ_function_gaussian), INTENT(IN) :: this
         !
-        TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
+        LOGICAL, OPTIONAL, INTENT(IN) :: zero
+        INTEGER, OPTIONAL, INTENT(IN) :: ir(:)
+        REAL(DP), OPTIONAL, INTENT(IN) :: r_vals(:, :), dist_vals(:)
         !
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        REAL(DP), OPTIONAL, INTENT(OUT) :: vals(:, :)
+        !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
-        REAL(DP) :: r(3), r2, scale, spr2, length
+        REAL(DP) :: r(3), r2, scale, length
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
-        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function_gaussian'
+        CHARACTER(LEN=80) :: routine = 'gradient_of_function'
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (ABS(this%volume) < func_tol) RETURN
+        !
+        IF (ABS(this%spread) < func_tol) &
+            CALL io%error(routine, "Wrong spread for Gaussian function", 1)
+        !
+        IF (this%axis < 1 .OR. this%axis > 3) &
+            CALL io%error(routine, "Wrong value of axis", 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If called directly and not through a functions object, initialize the register
         !
         IF (PRESENT(zero)) THEN
             IF (zero) gradient%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => gradient%cell, &
                    pos => this%pos, &
@@ -191,12 +215,8 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (ABS(charge) < func_tol) RETURN
-            !
-            IF (ABS(spread) < func_tol) &
-                CALL io%error(sub_name, 'Wrong spread for Gaussian function', 1)
-            !
-            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !----------------------------------------------------------------------------
+            ! Set local parameters
             !
             SELECT CASE (dim)
                 !
@@ -212,27 +232,27 @@ CONTAINS
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Wrong value of dim', 1)
+                CALL io%error(routine, "Unexpected system dimensions", 1)
                 !
             END SELECT
             !
             scale = scale * 2.D0 / spread**2
             !
-            spr2 = spread**2
+            !----------------------------------------------------------------------------
             !
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                r2 = r2 / spr2
+                r2 = r2 / spread**2
                 !
-                IF (r2 <= exp_tol) gradlocal(:, ir) = -EXP(-r2) * r
+                IF (r2 <= exp_tol) gradlocal(:, i) = -EXP(-r2) * r
                 ! compute gradient of Gaussian function
                 !
             END DO
@@ -243,51 +263,7 @@ CONTAINS
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE gradient_of_function_gaussian
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function_gaussian(this, laplacian, zero)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_function_gaussian), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
-        !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
-        !
-        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function_gaussian'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL io%error(sub_name, 'Options not yet implemented', 1)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE laplacian_of_function_gaussian
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function_gaussian(this, hessian, zero)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_function_gaussian), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
-        !
-        TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
-        !
-        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function_gaussian'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL io%error(sub_name, 'Options not yet implemented', 1)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE hessian_of_function_gaussian
+    END SUBROUTINE gradient_of_function
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

@@ -1,0 +1,1091 @@
+
+     Program PWSCF v.7.0 starts on  3May2022 at  7:27:54 
+
+     This program is part of the open-source Quantum ESPRESSO suite
+     for quantum simulation of materials; please cite
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
+         "P. Giannozzi et al., J. Chem. Phys. 152 154105 (2020);
+          URL http://www.quantum-espresso.org", 
+     in publications or presentations arising from this work. More details at
+     http://www.quantum-espresso.org/quote
+
+     Parallel version (MPI), running on     1 processors
+
+     MPI processes distributed on     1 nodes
+     19227 MiB available memory on the printing compute node when the environment starts
+
+     Waiting for input...
+     Reading input from standard input
+Warning: card &CELL ignored
+Warning: card / ignored
+
+     Current dimensions of program PWSCF are:
+     Max number of different atomic species (ntypx) = 10
+     Max number of k-points (npk) =  40000
+     Max angular momentum in pseudopotentials (lmaxx) =  4
+
+     Reading input from environ.in:
+     * using ionic solvent mode
+     * setting boundary derivatives method to SSCS default
+     
+     file H.pbe-rrkjus.UPF: wavefunction(s)  1S renormalized
+     file O.pbe-rrkjus.UPF: wavefunction(s)  2S renormalized
+
+     Subspace diagonalization in iterative solution of the eigenvalue problem:
+     a serial algorithm will be used
+
+
+     G-vector sticks info
+     --------------------
+     sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+     Sum        9549    3809    949               701475   177509   22119
+
+     Using Slab Decomposition
+
+
+
+     bravais-lattice index     =            1
+     lattice parameter (alat)  =      20.0000  a.u.
+     unit-cell volume          =    8000.0000 (a.u.)^3
+     number of atoms/cell      =            3
+     number of atomic types    =            2
+     number of electrons       =         8.00
+     number of Kohn-Sham states=            4
+     kinetic-energy cutoff     =      30.0000  Ry
+     charge density cutoff     =     300.0000  Ry
+     scf convergence threshold =      5.0E-09
+     mixing beta               =       0.7000
+     number of iterations used =            8  plain     mixing
+     energy convergence thresh.=      1.0E-04
+     force convergence thresh. =      5.0E-03
+     Exchange-correlation= SLA  PW   PBE  PBE
+                           (   1   4   3   4   0   0   0)
+     nstep                     =           50
+
+
+     ================================================================================
+
+                                  Environ Setup Summary
+
+     ================================================================================
+
+     Please cite
+
+          O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)
+          M. Truscott, O. Andreussi, J. Phys. Chem. B, 123, 16, 3513–3524 (2019)
+
+     in publications or presentations arising from this work.
+
+     ================================================================================
+
+     Parameters
+     ==========
+
+     compensation onset threshold      =               0.1000E+00
+     static permittivity               =                    78.30
+     surface tension in input (dyn/cm) =                    50.00
+     surface tension in internal units =               0.6423E-04
+     external pressure in input (GPa)  =                    -0.35
+     external pressure in inter. units =              -0.2379E-04
+
+     Solvent Boundary
+     ================
+
+     solvent mode                      =                    ionic
+     derivatives method                =                   lowmem
+     numerical core for derivatives    =                      fft
+     switching function adopted        =                     SCCS
+     density limit for vacuum region   =               0.5000E-02
+     density limit for bulk solvent    =               0.1000E-03
+     soft-sphere radius mode           =                     muff
+     soft-sphere softness              =                     0.50
+     alpha                             =                     1.12
+     interface is field aware
+     field aware factor                =                     0.08
+     asymmetry of field-awareness      =                    -0.32
+     field limit for no correction     =                     2.00
+     field limit for full correction   =                     6.00
+
+     Electrostatic Setup
+     ===================
+
+     electrostatic problem to solve    =              generalized
+     numerical solver adopted          =                       cg
+     type of auxiliary density adopted =                     none
+     numerical core for poisson        =                      fft
+     type of pbc corrections           =                parabolic
+     numerical core for corrections    =                      1da
+
+     ================================================================================
+
+
+     celldm(1)=  20.000000  celldm(2)=   0.000000  celldm(3)=   0.000000
+     celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
+
+     crystal axes: (cart. coord. in units of alat)
+               a(1) = (   1.000000   0.000000   0.000000 )  
+               a(2) = (   0.000000   1.000000   0.000000 )  
+               a(3) = (   0.000000   0.000000   1.000000 )  
+
+     reciprocal axes: (cart. coord. in units 2 pi/alat)
+               b(1) = (  1.000000  0.000000  0.000000 )  
+               b(2) = (  0.000000  1.000000  0.000000 )  
+               b(3) = (  0.000000  0.000000  1.000000 )  
+
+
+     PseudoPot. # 1 for H  read from file:
+     MD5 check sum: 2d52a7f45632fd764c17cc6affed14c8
+     Pseudo is Ultrasoft, Zval =  1.0
+     Generated by new atomic code, or converted to UPF format
+     Using radial grid of 1061 points,  2 beta functions with: 
+                l(1) =   0
+                l(2) =   0
+     Q(r) pseudized with 0 coefficients 
+
+
+     PseudoPot. # 2 for O  read from file:
+     MD5 check sum: fadcf19ee70a498d3030e2e79cf929a4
+     Pseudo is Ultrasoft, Zval =  6.0
+     Generated by new atomic code, or converted to UPF format
+     Using radial grid of 1269 points,  4 beta functions with: 
+                l(1) =   0
+                l(2) =   0
+                l(3) =   1
+                l(4) =   1
+     Q(r) pseudized with 0 coefficients 
+
+
+     atomic species   valence    mass     pseudopotential
+        H              1.00     1.00800     H ( 1.00)
+        O              6.00    15.99900     O ( 1.00)
+
+      2 Sym. Ops. (no inversion) found
+
+
+                                    s                        frac. trans.
+
+      isym =  1     identity                                     
+
+ cryst.   s( 1) = (     1          0          0      )
+                  (     0          1          0      )
+                  (     0          0          1      )
+
+ cart.    s( 1) = (  1.0000000  0.0000000  0.0000000 )
+                  (  0.0000000  1.0000000  0.0000000 )
+                  (  0.0000000  0.0000000  1.0000000 )
+
+
+      isym =  2     inv. 180 deg rotation - cart. axis [0,0,1]   
+
+ cryst.   s( 2) = (     1          0          0      )
+                  (     0          1          0      )
+                  (     0          0         -1      )
+
+ cart.    s( 2) = (  1.0000000  0.0000000  0.0000000 )
+                  (  0.0000000  1.0000000  0.0000000 )
+                  (  0.0000000  0.0000000 -1.0000000 )
+
+
+     point group C_s (m)    
+     there are  2 classes
+     the character table:
+
+       E     s    
+A'     1.00  1.00
+A''    1.00 -1.00
+
+     the symmetry operations in each class and the name of the first element:
+
+     E        1
+          identity                                               
+     s        2
+          inv. 180 deg rotation - cart. axis [0,0,1]             
+
+   Cartesian axes
+
+     site n.     atom                  positions (alat units)
+         1           O   tau(   1) = (   0.5140000   0.5255000   0.5000000  )
+         2           H   tau(   2) = (   0.5935000   0.4785000   0.5000000  )
+         3           H   tau(   3) = (   0.4495000   0.4600000   0.5000000  )
+
+   Crystallographic axes
+
+     site n.     atom                  positions (cryst. coord.)
+         1           O   tau(   1) = (  0.5140000  0.5255000  0.5000000  )
+         2           H   tau(   2) = (  0.5935000  0.4785000  0.5000000  )
+         3           H   tau(   3) = (  0.4495000  0.4600000  0.5000000  )
+
+     number of k points=     1
+                       cart. coord. in units 2pi/alat
+        k(    1) = (   0.0000000   0.0000000   0.0000000), wk =   2.0000000
+
+                       cryst. coord.
+        k(    1) = (   0.0000000   0.0000000   0.0000000), wk =   2.0000000
+
+     Dense  grid:   701475 G-vectors     FFT dimensions: ( 120, 120, 120)
+
+     Smooth grid:   177509 G-vectors     FFT dimensions: (  72,  72,  72)
+
+     Dynamical RAM for                 wfc:       1.35 MB
+
+     Dynamical RAM for     wfc (w. buffer):       1.35 MB
+
+     Dynamical RAM for           str. fact:      21.41 MB
+
+     Dynamical RAM for           local pot:       0.00 MB
+
+     Dynamical RAM for          nlocal pot:       4.06 MB
+
+     Dynamical RAM for                qrad:       0.79 MB
+
+     Dynamical RAM for          rho,v,vnew:      71.66 MB
+
+     Dynamical RAM for               rhoin:      23.89 MB
+
+     Dynamical RAM for            rho*nmix:     171.26 MB
+
+     Dynamical RAM for           G-vectors:      41.49 MB
+
+     Dynamical RAM for          h,s,v(r/c):       0.00 MB
+
+     Dynamical RAM for          <psi|beta>:       0.00 MB
+
+     Dynamical RAM for                 psi:       2.71 MB
+
+     Dynamical RAM for                hpsi:       2.71 MB
+
+     Dynamical RAM for                spsi:       2.71 MB
+
+     Dynamical RAM for      wfcinit/wfcrot:       4.07 MB
+
+     Dynamical RAM for           addusdens:     481.66 MB
+
+     Dynamical RAM for          addusforce:     508.43 MB
+
+     Estimated static dynamical RAM per process >     262.69 MB
+
+     Estimated max dynamical RAM per process >     942.38 MB
+
+     Initial potential from superposition of free atoms
+
+     starting charge       7.8076, renormalised to       8.0000
+
+     negative rho (up, down):  7.946E-04 0.000E+00
+     Starting wfcs are    6 randomized atomic wfcs
+
+     total cpu time spent up to now is        6.3 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1642 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18358 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.00E-02,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.566E-04 0.000E+00
+
+     total cpu time spent up to now is       10.9 secs
+
+     total energy              =     -34.06009503 Ry
+     estimated scf accuracy    <       0.68552093 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     cavitation energy         =       0.01259932 Ry
+     PV energy                 =      -0.00607826 Ry
+     correction to one-el term =      -0.00000000 Ry
+
+     iteration #  2     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1750 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18318 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  8.57E-03,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.636E-03 0.000E+00
+
+     total cpu time spent up to now is       15.1 secs
+
+     total energy              =     -34.19731750 Ry
+     estimated scf accuracy    <       0.36396179 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     cavitation energy         =       0.01336962 Ry
+     PV energy                 =      -0.00665467 Ry
+     correction to one-el term =      -0.00000000 Ry
+
+     iteration #  3     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1756 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18309 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  4.55E-03,  avg # of iterations =  2.0
+
+     negative rho (up, down):  4.334E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       22.7 secs
+
+     total energy              =     -34.26008196 Ry
+     estimated scf accuracy    <       0.00828939 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     cavitation energy         =       0.01341217 Ry
+     PV energy                 =      -0.00668500 Ry
+     correction to one-el term =      -0.00000000 Ry
+
+     iteration #  4     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1761 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18260 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.04E-04,  avg # of iterations =  3.0
+
+     negative rho (up, down):  2.662E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       29.1 secs
+
+     total energy              =     -34.28563634 Ry
+     estimated scf accuracy    <       0.00662253 Ry
+     electrostatic embedding   =      -0.01967643 Ry
+     cavitation energy         =       0.01341445 Ry
+     PV energy                 =      -0.00668663 Ry
+     correction to one-el term =       0.08661198 Ry
+
+     iteration #  5     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1767 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18248 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  8.28E-05,  avg # of iterations =  1.0
+
+     negative rho (up, down):  1.826E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       36.8 secs
+
+     total energy              =     -34.28569904 Ry
+     estimated scf accuracy    <       0.00185488 Ry
+     electrostatic embedding   =      -0.02339498 Ry
+     cavitation energy         =       0.01341445 Ry
+     PV energy                 =      -0.00668663 Ry
+     correction to one-el term =       0.08953203 Ry
+
+     iteration #  6     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1772 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18240 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  2.32E-05,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.934E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       42.9 secs
+
+     total energy              =     -34.28670602 Ry
+     estimated scf accuracy    <       0.00020818 Ry
+     electrostatic embedding   =      -0.03154158 Ry
+     cavitation energy         =       0.01338321 Ry
+     PV energy                 =      -0.00666166 Ry
+     correction to one-el term =       0.15221394 Ry
+
+     iteration #  7     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1778 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18232 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  2.60E-06,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.082E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       50.4 secs
+
+     total energy              =     -34.28670462 Ry
+     estimated scf accuracy    <       0.00000553 Ry
+     electrostatic embedding   =      -0.02981053 Ry
+     cavitation energy         =       0.01339987 Ry
+     PV energy                 =      -0.00667497 Ry
+     correction to one-el term =       0.13720320 Ry
+
+     iteration #  8     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1783 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18227 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  6.92E-08,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.164E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       57.4 secs
+
+     total energy              =     -34.28669923 Ry
+     estimated scf accuracy    <       0.00000119 Ry
+     electrostatic embedding   =      -0.02967124 Ry
+     cavitation energy         =       0.01340210 Ry
+     PV energy                 =      -0.00667676 Ry
+     correction to one-el term =       0.13422346 Ry
+
+     iteration #  9     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1788 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18205 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.48E-08,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.167E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       63.7 secs
+
+     total energy              =     -34.28670141 Ry
+     estimated scf accuracy    <       0.00000012 Ry
+     electrostatic embedding   =      -0.02974091 Ry
+     cavitation energy         =       0.01340154 Ry
+     PV energy                 =      -0.00667631 Ry
+     correction to one-el term =       0.13491593 Ry
+
+     iteration # 10     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1794 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18185 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.53E-09,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.179E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       71.7 secs
+
+     total energy              =     -34.28670267 Ry
+     estimated scf accuracy    <       0.00000003 Ry
+     electrostatic embedding   =      -0.02977249 Ry
+     cavitation energy         =       0.01340120 Ry
+     PV energy                 =      -0.00667604 Ry
+     correction to one-el term =       0.13530883 Ry
+
+     iteration # 11     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1794 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18271 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  3.64E-10,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.175E-04 0.000E+00
+
+     the potential shift due to the Gaussian-smeared nuclei is    -0.0214 ev
+
+     total cpu time spent up to now is       75.0 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 ( 22119 PWs)   bands (ev):
+
+   -25.1713 -12.8947  -9.3685  -7.3250
+
+     occupation numbers 
+     1.0000   1.0000   1.0000   1.0000
+
+     highest occupied level (ev):    -7.3250
+
+!    total energy              =     -34.28670229 Ry
+     estimated scf accuracy    <          2.7E-10 Ry
+
+     The total energy is the sum of the following terms:
+     one-electron contribution =     -64.15355005 Ry
+     hartree contribution      =      33.50230472 Ry
+     xc contribution           =      -8.40659100 Ry
+     ewald contribution        =       4.65897432 Ry
+     electrostatic embedding   =      -0.02976069 Ry
+     cavitation energy         =       0.01340131 Ry
+     PV energy                 =      -0.00667613 Ry
+     correction to one-el term =       0.13519524 Ry
+
+     WARNING: you are using the parabolic pbc correction;
+              the potential shift above must be added to 
+              band and Fermi energies.
+
+     convergence has been achieved in  11 iterations
+     The dielectric solvent contribution to forces
+     atom    1 type  2   force =     0.03528319   -0.27270915    0.00000040
+     atom    2 type  1   force =     0.02787782   -0.03956462    0.00000007
+     atom    3 type  1   force =    -0.01574476   -0.04483818    0.00000007
+
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  2   force =     0.00584880    0.00665449    0.00000000
+     atom    2 type  1   force =     0.00640557    0.00052429    0.00000000
+     atom    3 type  1   force =    -0.01225437   -0.00717878    0.00000000
+     The non-local contrib.  to forces
+     atom    1 type  2   force =     0.29533853   -2.28152098    0.00000000
+     atom    2 type  1   force =    -0.17447526    0.09658600    0.00000000
+     atom    3 type  1   force =     0.14588339    0.14006366    0.00000000
+     The ionic contribution  to forces
+     atom    1 type  2   force =    -0.53482929    4.30556355    0.00000000
+     atom    2 type  1   force =     3.24976518   -1.75434632   -0.00000000
+     atom    3 type  1   force =    -2.71493589   -2.55121723    0.00000000
+     The local contribution  to forces
+     atom    1 type  2   force =     0.21062612   -1.74686329    0.00000000
+     atom    2 type  1   force =    -3.09619319    1.69566946    0.00000000
+     atom    3 type  1   force =     2.57311402    2.44663348    0.00000000
+     The core correction contribution to forces
+     atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
+     atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
+     atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
+     The Hubbard contrib.    to forces
+     atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
+     atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
+     atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
+     The SCF correction term to forces
+     atom    1 type  2   force =     0.00000045    0.00000403    0.00000000
+     atom    2 type  1   force =     0.00000122   -0.00000057    0.00000000
+     atom    3 type  1   force =    -0.00000093   -0.00000084    0.00000000
+
+     Total force =     0.017930     Total SCF correction =     0.000004
+
+     BFGS Geometry Optimization
+     Energy error            =      0.0E+00 Ry
+     Gradient error          =      1.2E-02 Ry/Bohr
+
+     number of scf cycles    =   1
+     number of bfgs steps    =   0
+
+     energy             new  =     -34.2867022859 Ry
+
+     new trust radius        =       0.0142022663 bohr
+     new conv_thr            =       0.0000000050 Ry
+
+
+ATOMIC_POSITIONS (bohr)
+O            10.2858487975       10.5166544928       10.0000000000
+H            11.8764055685        9.5705242873       10.0000000000
+H             8.9777456340        9.1928212199       10.0000000000
+
+
+
+     NEW-OLD atomic charge density approx. for the potential
+
+     negative rho (up, down):  3.687E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       94.5 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18390 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.00E-06,  avg # of iterations =  3.0
+
+     negative rho (up, down):  2.256E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      101.1 secs
+
+     total energy              =     -34.28658652 Ry
+     estimated scf accuracy    <       0.00019627 Ry
+     electrostatic embedding   =      -0.03001112 Ry
+     cavitation energy         =       0.01342489 Ry
+     PV energy                 =      -0.00669052 Ry
+     correction to one-el term =       0.13764757 Ry
+
+     iteration #  2     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18300 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  2.45E-06,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.296E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      108.8 secs
+
+     total energy              =     -34.28663222 Ry
+     estimated scf accuracy    <       0.00011763 Ry
+     electrostatic embedding   =      -0.02987715 Ry
+     cavitation energy         =       0.01342702 Ry
+     PV energy                 =      -0.00669223 Ry
+     correction to one-el term =       0.13561635 Ry
+
+     iteration #  3     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18296 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.47E-06,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.140E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      115.1 secs
+
+     total energy              =     -34.28665914 Ry
+     estimated scf accuracy    <       0.00000042 Ry
+     electrostatic embedding   =      -0.03001793 Ry
+     cavitation energy         =       0.01342549 Ry
+     PV energy                 =      -0.00669100 Ry
+     correction to one-el term =       0.13723512 Ry
+
+     iteration #  4     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18288 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  5.27E-09,  avg # of iterations =  3.0
+
+     negative rho (up, down):  2.147E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      123.2 secs
+
+     total energy              =     -34.28665970 Ry
+     estimated scf accuracy    <       0.00000037 Ry
+     electrostatic embedding   =      -0.03001281 Ry
+     cavitation energy         =       0.01342540 Ry
+     PV energy                 =      -0.00669094 Ry
+     correction to one-el term =       0.13742822 Ry
+
+     iteration #  5     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18283 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  4.67E-09,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.164E-04 0.000E+00
+
+     the potential shift due to the Gaussian-smeared nuclei is    -0.0214 ev
+
+     total cpu time spent up to now is      128.2 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 ( 22119 PWs)   bands (ev):
+
+   -25.0961 -12.8266  -9.3576  -7.3103
+
+     occupation numbers 
+     1.0000   1.0000   1.0000   1.0000
+
+     highest occupied level (ev):    -7.3103
+
+!    total energy              =     -34.28665925 Ry
+     estimated scf accuracy    <          2.8E-09 Ry
+
+     The total energy is the sum of the following terms:
+     one-electron contribution =     -63.99874583 Ry
+     hartree contribution      =      33.42918365 Ry
+     xc contribution           =      -8.39412739 Ry
+     ewald contribution        =       4.56296375 Ry
+     electrostatic embedding   =      -0.02998940 Ry
+     cavitation energy         =       0.01342555 Ry
+     PV energy                 =      -0.00669105 Ry
+     correction to one-el term =       0.13732147 Ry
+
+     WARNING: you are using the parabolic pbc correction;
+              the potential shift above must be added to 
+              band and Fermi energies.
+
+     convergence has been achieved in   5 iterations
+     The dielectric solvent contribution to forces
+     atom    1 type  2   force =     0.03465395   -0.27306863    0.00000041
+     atom    2 type  1   force =     0.02788622   -0.03955865    0.00000007
+     atom    3 type  1   force =    -0.01620071   -0.04486804    0.00000007
+
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  2   force =    -0.00739786   -0.01029242    0.00000000
+     atom    2 type  1   force =     0.00321436    0.00170587    0.00000000
+     atom    3 type  1   force =     0.00418350    0.00858655    0.00000000
+     The non-local contrib.  to forces
+     atom    1 type  2   force =     0.29476981   -2.27932226    0.00000000
+     atom    2 type  1   force =    -0.17315721    0.09645481    0.00000000
+     atom    3 type  1   force =     0.14087983    0.13460244    0.00000000
+     The ionic contribution  to forces
+     atom    1 type  2   force =    -0.57412566    4.24147321    0.00000000
+     atom    2 type  1   force =     3.22994939   -1.75546223    0.00000000
+     atom    3 type  1   force =    -2.65582373   -2.48601098   -0.00000000
+     The local contribution  to forces
+     atom    1 type  2   force =     0.23788021   -1.70161671    0.00000000
+     atom    2 type  1   force =    -3.08088034    1.69804907    0.00000000
+     atom    3 type  1   force =     2.53591234    2.40264181    0.00000000
+     The core correction contribution to forces
+     atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
+     atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
+     atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
+     The Hubbard contrib.    to forces
+     atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
+     atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
+     atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
+     The SCF correction term to forces
+     atom    1 type  2   force =     0.00000929    0.00002216    0.00000000
+     atom    2 type  1   force =     0.00000174    0.00000304   -0.00000000
+     atom    3 type  1   force =     0.00000122    0.00000151    0.00000000
+
+     Total force =     0.016283     Total SCF correction =     0.000024
+     Energy error            =      4.3E-05 Ry
+     Gradient error          =      1.0E-02 Ry/Bohr
+
+     number of scf cycles    =   2
+     number of bfgs steps    =   1
+
+     energy             old  =     -34.2867022859 Ry
+     energy             new  =     -34.2866592530 Ry
+
+     CASE: energy            _new > energy            _old
+
+     new trust radius        =       0.0062628503 bohr
+     new conv_thr            =       0.0000000050 Ry
+
+
+ATOMIC_POSITIONS (bohr)
+O            10.2825791759       10.5129344678       10.0000000000
+H            11.8728246982        9.5702311978       10.0000000000
+H             8.9845961259        9.1968343344       10.0000000000
+
+
+
+     NEW-OLD atomic charge density approx. for the potential
+
+     negative rho (up, down):  4.254E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      150.8 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18379 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.00E-06,  avg # of iterations =  3.0
+
+     negative rho (up, down):  2.609E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      157.3 secs
+
+     total energy              =     -34.28672403 Ry
+     estimated scf accuracy    <       0.00006012 Ry
+     electrostatic embedding   =      -0.02984322 Ry
+     cavitation energy         =       0.01341237 Ry
+     PV energy                 =      -0.00668302 Ry
+     correction to one-el term =       0.13593370 Ry
+
+     iteration #  2     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18295 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  7.51E-07,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.428E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      164.6 secs
+
+     total energy              =     -34.28674409 Ry
+     estimated scf accuracy    <       0.00003522 Ry
+     electrostatic embedding   =      -0.02992243 Ry
+     cavitation energy         =       0.01341123 Ry
+     PV energy                 =      -0.00668210 Ry
+     correction to one-el term =       0.13702613 Ry
+
+     iteration #  3     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18291 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  4.40E-07,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.207E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      170.8 secs
+
+     total energy              =     -34.28674763 Ry
+     estimated scf accuracy    <       0.00000012 Ry
+     electrostatic embedding   =      -0.02984380 Ry
+     cavitation energy         =       0.01341206 Ry
+     PV energy                 =      -0.00668277 Ry
+     correction to one-el term =       0.13614779 Ry
+
+     iteration #  4     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18283 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.53E-09,  avg # of iterations =  3.0
+
+     negative rho (up, down):  2.181E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is      178.5 secs
+
+     total energy              =     -34.28674764 Ry
+     estimated scf accuracy    <       0.00000010 Ry
+     electrostatic embedding   =      -0.02984473 Ry
+     cavitation energy         =       0.01341210 Ry
+     PV energy                 =      -0.00668279 Ry
+     correction to one-el term =       0.13605995 Ry
+
+     iteration #  5     ecut=    30.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+
+---- Real-time Memory Report at c_bands before calling an iterative solver
+          1807 MiB given to the printing process from OS
+             0 MiB allocation reported by mallinfo(arena+hblkhd)
+         18277 MiB available memory on the node where the printing process lives
+------------------
+     ethr =  1.29E-09,  avg # of iterations =  2.0
+
+     negative rho (up, down):  2.170E-04 0.000E+00
+
+     the potential shift due to the Gaussian-smeared nuclei is    -0.0214 ev
+
+     total cpu time spent up to now is      182.1 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 ( 22119 PWs)   bands (ev):
+
+   -25.1377 -12.8644  -9.3635  -7.3183
+
+     occupation numbers 
+     1.0000   1.0000   1.0000   1.0000
+
+     highest occupied level (ev):    -7.3183
+
+!    total energy              =     -34.28674793 Ry
+     estimated scf accuracy    <          1.2E-09 Ry
+
+     The total energy is the sum of the following terms:
+     one-electron contribution =     -64.08511859 Ry
+     hartree contribution      =      33.47007411 Ry
+     xc contribution           =      -8.40108728 Ry
+     ewald contribution        =       4.61639226 Ry
+     electrostatic embedding   =      -0.02985651 Ry
+     cavitation energy         =       0.01341202 Ry
+     PV energy                 =      -0.00668274 Ry
+     correction to one-el term =       0.13611879 Ry
+
+     WARNING: you are using the parabolic pbc correction;
+              the potential shift above must be added to 
+              band and Fermi energies.
+
+     convergence has been achieved in   5 iterations
+     The dielectric solvent contribution to forces
+     atom    1 type  2   force =     0.03500492   -0.27283613    0.00000040
+     atom    2 type  1   force =     0.02788140   -0.03955948    0.00000007
+     atom    3 type  1   force =    -0.01594579   -0.04484782    0.00000007
+
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  2   force =    -0.00015722   -0.00096857    0.00000000
+     atom    2 type  1   force =     0.00498364    0.00102793    0.00000000
+     atom    3 type  1   force =    -0.00482642   -0.00005936    0.00000000
+     The non-local contrib.  to forces
+     atom    1 type  2   force =     0.29499678   -2.28057935    0.00000000
+     atom    2 type  1   force =    -0.17389329    0.09652865    0.00000000
+     atom    3 type  1   force =     0.14365970    0.13763147    0.00000000
+     The ionic contribution  to forces
+     atom    1 type  2   force =    -0.55238052    4.27700243    0.00000000
+     atom    2 type  1   force =     3.24101185   -1.75484883   -0.00000000
+     atom    3 type  1   force =    -2.68863133   -2.52215360    0.00000000
+     The local contribution  to forces
+     atom    1 type  2   force =     0.22279951   -1.72670615    0.00000000
+     atom    2 type  1   force =    -3.08944173    1.69673534    0.00000000
+     atom    3 type  1   force =     2.55666826    2.42713783    0.00000000
+     The core correction contribution to forces
+     atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
+     atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
+     atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
+     The Hubbard contrib.    to forces
+     atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
+     atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
+     atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
+     The SCF correction term to forces
+     atom    1 type  2   force =    -0.00000262   -0.00002469    0.00000000
+     atom    2 type  1   force =     0.00000070   -0.00000309   -0.00000000
+     atom    3 type  1   force =    -0.00000197   -0.00000258   -0.00000000
+
+     Total force =     0.007082     Total SCF correction =     0.000025
+     Energy error            =      4.6E-05 Ry
+     Gradient error          =      5.0E-03 Ry/Bohr
+
+     bfgs converged in   3 scf cycles and   1 bfgs steps
+     (criteria: energy <  1.0E-04 Ry, force <  5.0E-03 Ry/Bohr)
+
+     End of BFGS Geometry Optimization
+
+     Final energy             =     -34.2867479287 Ry
+
+Begin final coordinates
+
+ATOMIC_POSITIONS (bohr)
+O            10.2825791759       10.5129344678       10.0000000000
+H            11.8728246982        9.5702311978       10.0000000000
+H             8.9845961259        9.1968343344       10.0000000000
+End final coordinates
+
+
+
+
+     init_run     :      5.49s CPU      6.24s WALL (       1 calls)
+     electrons    :    119.58s CPU    133.71s WALL (       3 calls)
+     update_pot   :      1.37s CPU      1.57s WALL (       2 calls)
+     forces       :     34.47s CPU     36.25s WALL (       3 calls)
+
+     Called by init_run:
+     wfcinit      :      0.05s CPU      0.05s WALL (       1 calls)
+     wfcinit:atom :      0.00s CPU      0.00s WALL (       1 calls)
+     wfcinit:wfcr :      0.04s CPU      0.04s WALL (       1 calls)
+     potinit      :      2.17s CPU      2.57s WALL (       1 calls)
+     hinit0       :      2.38s CPU      2.51s WALL (       1 calls)
+
+     Called by electrons:
+     c_bands      :      2.26s CPU      2.62s WALL (      21 calls)
+     sum_band     :      9.32s CPU     11.68s WALL (      21 calls)
+     v_of_rho     :     12.37s CPU     13.44s WALL (      24 calls)
+     v_h          :      0.81s CPU      0.83s WALL (      24 calls)
+     v_xc         :     11.56s CPU     12.61s WALL (      24 calls)
+     newd         :      6.80s CPU      9.07s WALL (      24 calls)
+     mix_rho      :      1.40s CPU      1.90s WALL (      21 calls)
+
+     Called by c_bands:
+     init_us_2    :      0.15s CPU      0.17s WALL (      43 calls)
+     init_us_2:cp :      0.15s CPU      0.17s WALL (      43 calls)
+     cegterg      :      2.13s CPU      2.49s WALL (      21 calls)
+
+     Called by sum_band:
+     sum_band:wei :      0.00s CPU      0.00s WALL (      21 calls)
+     sum_band:loo :      0.46s CPU      0.55s WALL (      21 calls)
+     sum_band:buf :      0.00s CPU      0.00s WALL (      21 calls)
+     sum_band:ini :      0.07s CPU      0.09s WALL (      21 calls)
+     sum_band:cal :      0.01s CPU      0.02s WALL (      21 calls)
+     sum_band:bec :      0.00s CPU      0.00s WALL (      21 calls)
+     addusdens    :      7.40s CPU      9.61s WALL (      21 calls)
+     addusd:skk   :      0.15s CPU      0.18s WALL (      42 calls)
+     addusd:dgemm :      0.74s CPU      2.52s WALL (      42 calls)
+     addusd:qvan2 :      4.46s CPU      4.48s WALL (      42 calls)
+
+     Called by *egterg:
+     cdiaghg      :      0.01s CPU      0.01s WALL (      65 calls)
+     cegterg:over :      0.05s CPU      0.05s WALL (      46 calls)
+     cegterg:upda :      0.03s CPU      0.03s WALL (      46 calls)
+     cegterg:last :      0.04s CPU      0.04s WALL (      46 calls)
+     h_psi        :      1.94s CPU      2.28s WALL (      68 calls)
+     s_psi        :      0.04s CPU      0.04s WALL (      68 calls)
+     g_psi        :      0.01s CPU      0.01s WALL (      46 calls)
+
+     Called by h_psi:
+     h_psi:calbec :      0.04s CPU      0.05s WALL (      68 calls)
+     vloc_psi     :      1.85s CPU      2.19s WALL (      68 calls)
+     add_vuspsi   :      0.04s CPU      0.04s WALL (      68 calls)
+
+     General routines
+     calbec       :      0.06s CPU      0.07s WALL (     101 calls)
+     fft          :      6.15s CPU      6.53s WALL (     314 calls)
+     ffts         :      0.15s CPU      0.15s WALL (      45 calls)
+     fftw         :      1.86s CPU      2.19s WALL (     592 calls)
+     interpolate  :      0.61s CPU      0.62s WALL (      24 calls)
+
+     Parallel routines
+
+     Environ routines
+
+     PWSCF        :   2m54.98s CPU   3m13.06s WALL
+
+
+   This run was terminated on:   7:31: 7   3May2022            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=
