@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
 
 ### This file is part of Environ version 3.0
 
