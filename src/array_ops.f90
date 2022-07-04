@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
 ! Copyright (C) 2001-2008 Quantum ESPRESSO (www.quantum-espresso.org)
 !
 !----------------------------------------------------------------------------------------
