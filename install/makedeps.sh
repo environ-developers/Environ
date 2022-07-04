@@ -1,7 +1,7 @@
 #!/bin/bash
 #----------------------------------------------------------------------------------------
 #
-# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
 # Copyright (C) 2001-2017 Quantum ESPRESSO (www.quantum-espresso.org)
 #
 #----------------------------------------------------------------------------------------

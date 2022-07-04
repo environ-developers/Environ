@@ -1,7 +1,7 @@
 #!/bin/bash
 #----------------------------------------------------------------------------------------
 #
-# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
 # Copyright (C) 2001-2017 Quantum ESPRESSO (www.quantum-espresso.org)
 #
 #----------------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ default :
 	@echo 'where <target> identifies an action'
 	@echo ' '
 	@echo '  run-tests                            : run-tests-serial (default)'
-	@echo '  run-tests-serial                     : run all tests in SERIAL' 
+	@echo '  run-tests-serial                     : run all tests in SERIAL'
 	@echo '  run-tests-parallel                   : run all tests in PARALLEL (4 MPI)'
 	@echo '  run-custom-test testdir=DIR          : run test in DIR only (serial)'
 	@echo '  run-custom-test-parallel testdir=DIR : run test in DIR only (parallel 4 MPI)'

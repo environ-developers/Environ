@@ -1,16 +1,16 @@
 #----------------------------------------------------------------------------------------
 #
-# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
 #
 #----------------------------------------------------------------------------------------
 #
 #     This file is part of Environ version 3.0
-#     
+#
 #     Environ 3.0 is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 2 of the License, or
 #     (at your option) any later version.
-#     
+#
 #     Environ 3.0 is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -36,7 +36,7 @@ include ../make.inc
 
 MODFLAGS = $(BASEMOD_FLAGS)
 
-DRIVER_OBJS = cmdline_args.o parsers.o prog_utils.o programs.o driver.o 
+DRIVER_OBJS = cmdline_args.o parsers.o prog_utils.o programs.o driver.o
 
 ENVIRON_LIBS = -L$(TOPDIR)/libs -lenvsrc -lenvfft -lenvutil
 
@@ -55,7 +55,7 @@ help:
 	@ echo
 
 avail:
-	@ echo 
+	@ echo
 	@ echo "Available calculations:"
 	@ echo
 	@ echo "tester"
@@ -71,10 +71,10 @@ avail:
 	@ echo "  An Environ calculation of the Soft-Sphere interface function surface, volume, and local surface"
 	@ echo "  and volume. Additionally, the forces due to the interface function and energy contributions can"
 	@ echo "  be calculated"
-	@ echo 
+	@ echo
 	@ echo "  For fine calculation control, see the README file or check out https://environ.readthedocs.io"
 	@ echo
-	
+
 usage:
 	@ echo
 	@ case "$(name)" in \
