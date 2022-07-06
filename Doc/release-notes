@@ -1,32 +1,36 @@
 New in version 3.0:
 
-  * new Environ API for use by host programs (see Environ read-the-docs for API documentation)
-  * improved feature-dependent citations
-  * restored QE XSpectra support
   * new ms-gcs functionality
+  * new field-aware ionic boundary feature
+  * new Environ API for use by host programs (see Environ read-the-docs for API documentation)
+  * new stand-alone programs (running Environ from cube file, computing Environ descriptors)
+  * support for negative surface tension
+  * added optional volume/surface output
   * further decoupling from QE (new install procedures)
   * FFTXlib and UtilXlib updated to QE 7.0
-  * new stand-alone programs (running Environ from cube file, computing Environ descriptors)
-  * added optional volume/surface output
-  * support for negative surface tension
-  * updated testcode to Python3
   * improved performance of ionic boundary calculations
+  * improved feature-dependent citations
+  * updated testcode to Python3
+
+Problems fixed in version 3.0:
+
+  * restored QE XSpectra support
 
 Incompatible changes in version 3.0:
 
   * QE decoupling changes no longer support old install procedure
 
 Problems fixed in version 2.0.3:
-  
+
   * fixed bug in NEB and added an NEB test with dielectric
   * loosened the tolerance for difference between expected and integrated electronic charge
 
 Problems fixed in version 2.0.2:
-  
+
   * restored NEB support
 
 Problems fixed in version 2.0.1:
-  
+
   * missing lowmem derivatives case for ionic solvent-aware interfaces
 
 New in version 2.0:
@@ -35,8 +39,8 @@ New in version 2.0:
   * semiconductor embedding functionality (thanks to Dr. Quinn Campbell)
   * F2003 OOP standards applied throughout the code
   * uniform formatting
-  * calculation of the g-vectors was made internal to Environ, 
-    as well as the initialization of the dfftp variable type for 
+  * calculation of the g-vectors was made internal to Environ,
+    as well as the initialization of the dfftp variable type for
     the system and environment cells
   * during input reading, Environ outputs a summary of default settings
 
@@ -53,7 +57,7 @@ Known problems in Environ 2.0 :
 
   * double-cell scaling
   * spurious forces with solvent_mode = 'system'
-    
+
 New in version 1.1:
 
   * confinement potential introduced
@@ -67,44 +71,42 @@ Problems fixed in version 1.1:
   * improved minimum image convention for generation of functions: it solves
     incorrect behavior for non-orthorombic cells
 
-  * bugfix: laplacian of erfc was not correctly implemented for 1-D and 
-    2-D systems (calculations with dielectric and 1- or 2-D system boundary 
+  * bugfix: laplacian of erfc was not correctly implemented for 1-D and
+    2-D systems (calculations with dielectric and 1- or 2-D system boundary
     were affected)
 
   * fixed a bug in dielectric regions when optical permittivity is different from vacuum
 
   * decreased tolerance for check on electronic charge in utils_charges.f90
- 
-  * fixed a small bug that prevented compilation in environ_init.f90 
 
-  * modified the local arrays in compute_convolution_fft to avoid 
+  * fixed a small bug that prevented compilation in environ_init.f90
+
+  * modified the local arrays in compute_convolution_fft to avoid
     large automatic arrays written on the stack (segmentation fault on
-    Mac with default compilation options, i.e. small stack) 
+    Mac with default compilation options, i.e. small stack)
 
 Incompatible changes in version 1.1:
 
   * from QE-6.4 Environ has no information on spin
 
-  * from QE-6.3 it is no longer possible to speficy PBC correction 
+  * from QE-6.3 it is no longer possible to speficy PBC correction
     scheme of Environ using the assume_isolated keyword in the pw input file
 
 Known problems in Environ 1.1 :
 
   * testset is not fully consistent between parallel and serial execution,
     and with different compilers
-  
+
   * test pw_water/water-anion-sccs-default has convergence issues
 
   * charged systems in PBC without jellium show small differences between
     pcb and iter solvers
 
-  * forces in dielectric embedding for charged systems and PBC have a 
+  * forces in dielectric embedding for charged systems and PBC have a
     small error
 
-  * sqrt preconditioner for dielectric embedding only works for analytic 
+  * sqrt preconditioner for dielectric embedding only works for analytic
     boundary_core
 
-  * alternative preconditioning schemes for dielectric embedding 
+  * alternative preconditioning schemes for dielectric embedding
     are not stable, do not converge
-
- 
