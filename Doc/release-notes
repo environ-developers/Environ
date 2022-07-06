@@ -1,16 +1,20 @@
 New in version 3.0:
 
-  * new Environ API for use by host programs (see Environ read-the-docs for API documentation)
-  * improved feature-dependent citations
-  * restored QE XSpectra support
   * new ms-gcs functionality
+  * new field-aware ionic boundary feature
+  * new Environ API for use by host programs (see Environ read-the-docs for API documentation)
+  * new stand-alone programs (running Environ from cube file, computing Environ descriptors)
+  * support for negative surface tension
+  * added optional volume/surface output
   * further decoupling from QE (new install procedures)
   * FFTXlib and UtilXlib updated to QE 7.0
-  * new stand-alone programs (running Environ from cube file, computing Environ descriptors)
-  * added optional volume/surface output
-  * support for negative surface tension
-  * updated testcode to Python3
   * improved performance of ionic boundary calculations
+  * improved feature-dependent citations
+  * updated testcode to Python3
+
+Problems fixed in version 3.0:
+
+  * restored QE XSpectra support
 
 Incompatible changes in version 3.0:
 
