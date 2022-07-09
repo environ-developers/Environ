@@ -23,7 +23,7 @@ copyright = '2019, Environ Developers'
 author = 'Oliviero Andreussi, Matthew Truscott, Edan Bainglass'
 
 # The short X.Y version
-version = '3.0'
+version = ''
 # The full version, including alpha/beta/rc tags
 release = ''
 
