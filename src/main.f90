@@ -137,6 +137,10 @@ MODULE class_environ
         !
         PROCEDURE :: get_vzero
         PROCEDURE :: get_dvtot
+        PROCEDURE :: get_velectrostatic
+        PROCEDURE :: get_vreference
+        PROCEDURE :: get_vconfine
+        PROCEDURE :: get_vsoftcavity
         !
         PROCEDURE :: update_electrons => environ_update_electrons
         PROCEDURE :: update_ions => environ_update_ions
@@ -664,6 +668,106 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_dvtot
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_velectrostatic(this, nnr) RESULT(velectrostatic)
+        !--------------------------------------------------------------------------------
+        !
+        INTEGER, INTENT(IN) :: nnr
+        CLASS(environ_main), INTENT(IN) :: this
+        !
+        REAL(DP) :: velectrostatic(nnr)
+        !
+        CHARACTER(LEN=80) :: routine = 'get_velectrostatic'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nnr /= this%velectrostatic%cell%nnr) &
+            CALL io%error(routine, "Mismatch in grid size", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        velectrostatic = this%velectrostatic%of_r
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_velectrostatic
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_vreference(this, nnr) RESULT(vreference)
+        !--------------------------------------------------------------------------------
+        !
+        INTEGER, INTENT(IN) :: nnr
+        CLASS(environ_main), INTENT(IN) :: this
+        !
+        REAL(DP) :: vreference(nnr)
+        !
+        CHARACTER(LEN=80) :: routine = 'get_vreference'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nnr /= this%vreference%cell%nnr) &
+            CALL io%error(routine, "Mismatch in grid size", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        vreference = this%vreference%of_r
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_vreference
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_vconfine(this, nnr) RESULT(vconfine)
+        !--------------------------------------------------------------------------------
+        !
+        INTEGER, INTENT(IN) :: nnr
+        CLASS(environ_main), INTENT(IN) :: this
+        !
+        REAL(DP) :: vconfine(nnr)
+        !
+        CHARACTER(LEN=80) :: routine = 'get_vconfine'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nnr /= this%vconfine%cell%nnr) &
+            CALL io%error(routine, "Mismatch in grid size", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        vconfine = this%vconfine%of_r
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_vconfine
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_vsoftcavity(this, nnr) RESULT(vsoftcavity)
+        !--------------------------------------------------------------------------------
+        !
+        INTEGER, INTENT(IN) :: nnr
+        CLASS(environ_main), INTENT(IN) :: this
+        !
+        REAL(DP) :: vsoftcavity(nnr)
+        !
+        CHARACTER(LEN=80) :: routine = 'get_vsoftcavity'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nnr /= this%vsoftcavity%cell%nnr) &
+            CALL io%error(routine, "Mismatch in grid size", 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        vsoftcavity = this%vsoftcavity%of_r
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_vsoftcavity
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
