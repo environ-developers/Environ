@@ -117,6 +117,7 @@ MODULE class_cell
         PROCEDURE, PRIVATE :: create => create_environ_cell
         PROCEDURE :: init => init_environ_cell
         PROCEDURE :: update => update_environ_cell
+        PROCEDURE :: update_coords => update_environ_cell_coords
         PROCEDURE :: destroy => destroy_environ_cell
         !
         PROCEDURE, PRIVATE :: init_dfft
@@ -220,10 +221,6 @@ CONTAINS
         INTEGER :: ngm_g ! global number of G vectors (summed on all procs)
         ! in serial execution, ngm_g = ngm
         !
-        INTEGER :: i
-        LOGICAL :: physical
-        REAL(DP) :: coords(3)
-        !
         CHARACTER(LEN=80) :: routine = 'init_environ_cell'
         !
         !--------------------------------------------------------------------------------
@@ -270,6 +267,12 @@ CONTAINS
         this%in3 = 1.D0 / DBLE(this%nr(3))
         !
         !--------------------------------------------------------------------------------
+        ! Allocate quantities needed for the optimization
+        !
+        ALLOCATE (this%coords(3, this%nnr))
+        ALLOCATE (this%ir(this%nnr))
+        !
+        !--------------------------------------------------------------------------------
         ! Set basic cell properties
         !
         CALL this%update(at)
@@ -280,24 +283,6 @@ CONTAINS
         !
         CALL env_ggen(this%dfft, this%dfft%comm, this%at, this%bg, this%gcutm, &
                       ngm_g, this%dfft%ngm, this%g, this%gg, this%gstart, .TRUE.)
-        !
-        !--------------------------------------------------------------------------------
-        ! Storing position vectors for optimization
-        !
-        ALLOCATE (this%coords(3, this%nnr))
-        ALLOCATE (this%ir(this%nnr))
-        this%coords = 0.D0
-        this%ir = 0
-        !
-        DO i = 1, this%nnr
-            !
-            CALL this%ir2coords(i, coords, physical)
-            !
-            IF (.NOT. physical) CYCLE
-            !
-            this%coords(:, i) = coords
-            this%ir(i) = i
-        END DO
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_cell
@@ -358,6 +343,8 @@ CONTAINS
             !
         END DO
         !
+        CALL this%update_coords()
+        !
         !--------------------------------------------------------------------------------
         ! Output current state
         !
@@ -365,6 +352,35 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_cell
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE update_environ_cell_coords(this)
+        !--------------------------------------------------------------------------------
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), INTENT(INOUT) :: this
+        !
+        INTEGER :: i
+        LOGICAL :: physical
+        REAL(DP) :: coords(3)
+        !
+        this%coords = 0.D0
+        this%ir = 0
+        !
+        DO i = 1, this%nnr
+            !
+            CALL this%ir2coords(i, coords, physical)
+            !
+            IF (.NOT. physical) CYCLE
+            !
+            this%coords(:, i) = coords
+            this%ir(i) = i
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE update_environ_cell_coords
     !------------------------------------------------------------------------------------
     !>
     !!

@@ -208,7 +208,15 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Shift large cell origin in internal length units
         !
-        this%large%origin = -MATMUL(this%large%at, (0.5 - origin / DBLE(large_n)))
+        ! The first part is due to the shift wrt the com of the system in the small cell
+        !
+        this%large%origin = -MATMUL(this%small%at, shift / DBLE(small_n))
+        !
+        ! The second part is due to expanding the small cell into a larger one
+        !
+        this%large%origin = this%large%origin - MATMUL(this%small%at, this%nrep)
+        !
+        CALL this%large%update_coords()
         !
         !--------------------------------------------------------------------------------
         ! Generate mapping
