@@ -135,6 +135,9 @@ MODULE class_environ
         PROCEDURE :: init => init_environ_base
         PROCEDURE :: add_charges => environ_add_charges
         !
+        PROCEDURE :: get_evolume
+        PROCEDURE :: get_esurface
+        !
         PROCEDURE :: get_vzero
         PROCEDURE :: get_dvtot
         PROCEDURE :: get_velectrostatic
@@ -618,6 +621,63 @@ CONTAINS
     !                                   ACCESS METHODS
     !
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_evolume(this) RESULT(evolume)
+        !--------------------------------------------------------------------------------
+        !
+        CLASS(environ_main), INTENT(IN) :: this
+        !
+        REAL(DP) :: evolume
+        !
+        TYPE(environ_setup), POINTER :: setup
+        !
+        CHARACTER(LEN=80) :: routine = 'get_evolume'
+        !
+        evolume = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+        !
+        setup => this%setup
+        IF (setup%lvolume) CALL this%solvent%evolume(setup%pressure, this%evolume)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        evolume = this%evolume
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_evolume
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_esurface(this) RESULT(esurface)
+        !--------------------------------------------------------------------------------
+        !
+        CLASS(environ_main), INTENT(IN) :: this
+        !
+        REAL(DP) :: esurface
+        !
+        TYPE(environ_setup), POINTER :: setup
+        !
+        CHARACTER(LEN=80) :: routine = 'get_esurface'
+        !
+        esurface = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+        !
+        setup => this%setup
+        IF (setup%lvolume) &
+            CALL this%solvent%esurface(setup%surface_tension, this%esurface)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        esurface = this%esurface
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_evolume
     !------------------------------------------------------------------------------------
     !>
     !!
