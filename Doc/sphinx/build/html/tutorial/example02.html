@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2. Example: Solvation Energy (SSCS) &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3. Example: Isolated Systems" href="example03.html" />
+    <link rel="prev" title="1. Example: Solvation Energy (SCCS)" href="example01.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">User Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="example01.html">1. Example: Solvation Energy (SCCS)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2. Example: Solvation Energy (SSCS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example03.html">3. Example: Isolated Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example04.html">4. Example: Two-Dimensional Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example05.html">5. Example: Charge Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example06.html">6. Example: Electrolyte Solutions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/continuum.html">Continuum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/interface_models.html">Interface Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/interactions.html">Interactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorial.html">User Tutorial</a> &raquo;</li>
+      <li><span class="section-number">2. </span>Example: Solvation Energy (SSCS)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorial/example02.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-solvation-energy-sscs">
+<h1><span class="section-number">2. </span>Example: Solvation Energy (SSCS)<a class="headerlink" href="#example-solvation-energy-sscs" title="Permalink to this heading"></a></h1>
+<p>In the previous example, one detail that was not explained was the choice of interface model.
+As stated previously, Environ is designed to be as modular as is reasonable, which means the user is able
+to define settings that enable different models, solvers, and corrections to different subsystems. Previously
+the interface model, that defines the separation of the quantum mechanical system (set in the PW input file),
+with the solvent environment, was set to SCCS. The SCCS model sets a smooth boundary according to the electronic
+density at any particular point. This function is in fact a piece-wise function that is chosen to be easily
+differentiable <a class="footnote-reference brackets" href="#id5" id="id1">1</a>.</p>
+<p>An alternative model that Environ has implemented is the soft-sphere (SSCS) model <a class="footnote-reference brackets" href="#id6" id="id2">2</a>. This model sets
+a smooth boundary according to the ionic positions. Interlocking spheres are taken around each ion, whose
+radii are by default consistent with the UFF force fields <a class="footnote-reference brackets" href="#id7" id="id3">3</a> (note that in the paper, there is an exception
+for nitrogen, which is based off Bondi’s radius for nitrogen <a class="footnote-reference brackets" href="#id8" id="id4">4</a>, an option which is not a default in Environ)
+in a nature similar to PCM, only these are smooth functions (spherical error functions).</p>
+<p>This example repeats the previous setup, instead with a soft-spheres implementation. Since this is a boundary
+parameter, one can see on execution of the bash script that the environ input files here differ, now possessing
+parameters related to the &amp;BOUNDARY keyword.</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span> <span class="p">&amp;</span><span class="n">BOUNDARY</span>
+   <span class="n">solvent_mode</span><span class="o">=</span><span class="s1">&#39;ionic&#39;</span>
+</pre></div>
+</div>
+<p>Simply by setting the solvent_mode parameter one can switch from SCCS to soft-sphere model, environ_type presets
+can take care of the required (tuned) parameters associated with the model. Note that the solver (and auxiliary)
+parameters are not required for the SSCS.</p>
+<p>Calculating the solvation energy is exactly the same procedure as before, and results in a value of
+-5.786kcal/mol, within chemical accuracy of the experimental results, as seen in the first example.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><ol class="upperalpha simple" start="15">
+<li><p>Andreussi, I. Dabo, N. Marzari, J. Chem. Phys. 136, 064102 (2012)</p></li>
+</ol>
+</dd>
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><ol class="upperalpha simple" start="7">
+<li><p>Fisicaro et al., J. Chem. Comput. 2017, 13, 8, 3829-3845</p></li>
+</ol>
+</dd>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dd><ol class="upperalpha simple">
+<li><ol class="upperalpha simple" start="11">
+<li><p>Rappe et al., J. Am. Chem. Soc. (1992), 114 (25) 114 10024-35</p></li>
+</ol>
+</li>
+</ol>
+</dd>
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
+<dd><ol class="upperalpha simple">
+<li><p>Bondi, J. Phys. Chem. (1964), 68 (3) 68 441-51</p></li>
+</ol>
+</dd>
+</dl>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="example01.html" class="btn btn-neutral float-left" title="1. Example: Solvation Energy (SCCS)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="example03.html" class="btn btn-neutral float-right" title="3. Example: Isolated Systems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

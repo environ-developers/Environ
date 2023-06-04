@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dielectric Medium &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Diffuse Layer Models" href="diffuse_layer_models.html" />
+    <link rel="prev" title="Interactions" href="interactions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="continuum.html">Continuum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interface_models.html">Interface Models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="interactions.html">Interactions</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Dielectric Medium</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffuse_layer_models.html">Diffuse Layer Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pressure.html">Pressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tension.html">Tension</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="interactions.html">Interactions</a> &raquo;</li>
+      <li>Dielectric Medium</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/environ/dielectric_medium.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dielectric-medium">
+<h1>Dielectric Medium<a class="headerlink" href="#dielectric-medium" title="Permalink to this heading"></a></h1>
+<p>Electrostatic solvation effects can be described in terms of a reaction field, which provides a stabilization
+effect to the system. In classical electrostatics, this effect is represented in terms of a dielectric medium
+with some boundary and a dielectric permittivity, which has different representations depending on the
+application. Here we consider the permittivity as a function in space, thus making the definition of a
+sharp boundary surface redundant, which itself is consistent with our definition of the interface function.</p>
+<p>Fattebert and Gygi presented an electrostatic picture in terms of 3D fields, with the total electrostatic
+free energy of the embedded system as</p>
+<div class="math notranslate nohighlight">
+\[F[\rho^{\text{el}}, \{\mathbf{R}_i\}] = \int\rho^{\text{sys}}(\mathbf{r})\phi(\mathbf{r})d^3\mathbf{r}-\int\frac{1}{8\pi}\epsilon(\mathbf{r})\lvert\nabla\phi(\mathbf{r})\rvert^2d^3\mathbf{r}\]</div>
+<p>where the electrostatic density term can be decomposed into electronic and ionic terms,</p>
+<div class="math notranslate nohighlight">
+\[\rho^{\text{sys}}(\mathbf{r}) = \left(\rho^{\text{el}}(\mathbf{r}) + \sum_i z_i\delta(\lvert\mathbf{r}-\mathbf{R}_i\rvert)\right),\]</div>
+<p><span class="math notranslate nohighlight">\(z_i\)</span> are the ionic charges, <span class="math notranslate nohighlight">\(\phi(\mathbf{r})\)</span> is the electrostatic potential, and
+<span class="math notranslate nohighlight">\(\epsilon(\mathbf{r})\)</span> is the dielectric permittivity, which reflects the system/continuum separation
+and is thus a function of the continuum interface, for example,</p>
+<div class="math notranslate nohighlight">
+\[\epsilon(\mathbf{r}) \equiv \epsilon(s(\mathbf{r})) = 1 + (\epsilon_0 - 1)(1 - s(\mathbf{r})),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\epsilon_0\)</span> is the bulk dielectric permittivity of the environment.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This dielectric permittivity is the constant set in the Environ input file. Hence Environ takes this
+value, and calculates an interface function that scales from 0 (environment) to 1 (system). As one can
+see from the equation, the result is a smoothly scaling dielectric permittivity function that transitions
+at the computed interface, from 1 (system) representing vacuum, to the permittivity specified by the
+environment, say 80 for water.</p>
+</div>
+<p>The functional derivative of the total electrostatic free energy functional defined above with respect to the
+electrostatic potential is simply the generalized Poisson equation (GPE),</p>
+<div class="math notranslate nohighlight">
+\[\nabla\cdot\epsilon(\mathbf{r})\nabla\phi(\mathbf{r}) = -4\pi\rho^{\text{sys}}(\mathbf{r}),\]</div>
+<p>which is similar to the more popularly known Poisson equation in vacuum,</p>
+<div class="math notranslate nohighlight">
+\[\nabla^2\phi^0(\mathbf{r}) = -4\pi\rho^{\text{sys}}(\mathbf{r}),\]</div>
+<p>following the convention that the dielectric permittivity of vacuum is simply 1. The polarization potential
+is simply the difference between the vacuum potential and the generalized potential. The generalized Poisson
+equation is non-trivial to solve, and an alternative apporach is to define an auxiliary polarization density,
+spread at the continuum interface, and expressed as</p>
+<div class="math notranslate nohighlight">
+\[\rho^{\text{pol}}(\mathbf{r}) = \frac{1}{4\pi}\nabla\ln\epsilon(\mathbf{r})\cdot\nabla\phi(\mathbf{r}) - \frac{\epsilon(\mathbf{r}) - 1}{\epsilon(\mathbf{r})}\rho^{\text{sys}}(\mathbf{r}).\]</div>
+<p>This depends on the gradient of the logarithm of the dielectric function, and thus Andreussi et al. proposed
+an alternative formulation of the dielectric in terms of the continuum interface,</p>
+<div class="math notranslate nohighlight">
+\[\epsilon(\mathbf{r}) = \exp(\log(\epsilon_0[1 - s(\mathbf{r}))).\]</div>
+<p>When optimizing the embedded system degrees of freedom, the functional derivatives of the energy with
+respect to the electronic density or atomic positions need to be computed. It is possible to break down these
+derivatives into more transferable forms,</p>
+<div class="math notranslate nohighlight">
+\[V^{\text{interface}}_{\text{KS}}(\mathbf{r}) = \int\frac{\delta s(\mathbf{r}^{\prime})}{\delta\rho^{\text{el}}(\mathbf{r})}\frac{\delta F[s]}{\delta s(\mathbf{r}^{\prime})}d^3(\mathbf{r})^{\prime},\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[f^{\text{interface}}_i = -\int\frac{\delta s(\mathbf{r})}{\delta\mathbf{R}_a}\frac{\delta F[s]}{\delta s(\mathbf{r})}d^3(\mathbf{r}).\]</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="interactions.html" class="btn btn-neutral float-left" title="Interactions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="diffuse_layer_models.html" class="btn btn-neutral float-right" title="Diffuse Layer Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
