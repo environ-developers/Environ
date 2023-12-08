@@ -40,6 +40,8 @@ MODULE class_electrons
     !
     USE class_density
     !
+    USE class_gradient
+    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -59,6 +61,9 @@ MODULE class_electrons
         REAL(DP) :: charge = 0.D0
         !
         TYPE(environ_density) :: density
+        !
+        LOGICAL :: use_local_gradient = .FALSE.
+        TYPE(environ_gradient) :: gradient
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -102,6 +107,8 @@ CONTAINS
         this%number = 0
         this%charge = 0.D0
         !
+        this%use_local_gradient = .FALSE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_electrons
     !------------------------------------------------------------------------------------
@@ -123,19 +130,22 @@ CONTAINS
         !
         CALL this%density%init(cell, 'electrons')
         !
+        CALL this%gradient%init(cell, 'gradelectrons')
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrons
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_electrons(this, nnr, rho, nelec)
+    SUBROUTINE update_environ_electrons(this, nnr, rho, nelec, gradrho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
+        REAL(DP), OPTIONAL, INTENT(IN) :: gradrho(3,nnr)
         REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
@@ -151,6 +161,11 @@ CONTAINS
             CALL io%error(routine, "Mismatch in grid size", 1)
         !
         this%density%of_r = rho
+        !
+        IF ( PRESENT(gradrho) ) THEN
+            this%use_local_gradient = .TRUE.
+            this%gradient%of_r = gradrho
+        ENDIF
         !
         !--------------------------------------------------------------------------------
         ! Update integral of electronic density and, if provided, check
@@ -187,6 +202,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%density%destroy()
+        !
+        CALL this%gradient%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrons
