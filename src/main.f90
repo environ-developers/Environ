@@ -205,7 +205,7 @@ CONTAINS
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label(ntyp)
         INTEGER, OPTIONAL, INTENT(IN) :: number(ntyp)
         REAL(DP), OPTIONAL, INTENT(IN) :: weight(ntyp)
-        LOGICAL, OPTIONAL  :: lgcscf = .false.
+        LOGICAL, OPTIONAL  :: lgcscf
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
@@ -213,7 +213,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        if (lgcscf == .true.  .and. env_electrolyte_ntyp<2) &
+        if (PRESENT(lgcscf) .and. lgcscf .and. env_electrolyte_ntyp<2) &
             CALL io%error(routine, "Set env_electrolyte_ntyp >= 2 when lgcscf == .true. ", 1)
         CALL this%create()
         !
