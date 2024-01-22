@@ -205,7 +205,7 @@ CONTAINS
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label(ntyp)
         INTEGER, OPTIONAL, INTENT(IN) :: number(ntyp)
         REAL(DP), OPTIONAL, INTENT(IN) :: weight(ntyp)
-        LOGICAL  :: lgcscf 
+        LOGICAL, OPTIONAL  :: lgcscf = .false.
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
