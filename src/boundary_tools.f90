@@ -150,14 +150,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_partial_of_boundary(n, i, partial, ir, vals, grad_vals)
+    SUBROUTINE calc_partial_of_boundary(n, i, local, gradlocal, partial)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n, i
-        INTEGER, INTENT(IN) :: ir(:, :)
-        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
+        TYPE(environ_density), INTENT(IN) :: local(n)
+        TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: partial
         !
@@ -171,26 +171,17 @@ CONTAINS
         !
         IF (i > n) CALL io%error(routine, "Index out of bound", 1)
         !
-        CALL denlocal%init(partial%cell)
-        !
         DO j = 1, 3
-            !
-            CALL reduced2nnr(ir(i, :), partial%cell%nnr, 0.D0, &
-                             den_vals=grad_vals(i, :, j), den_of_r=partial%of_r(j, :))
+            partial%of_r(j, :) = gradlocal(i)%of_r(j, :)
             !
             DO k = 1, n
                 !
                 IF (k == i) CYCLE
                 !
-                CALL reduced2nnr(ir(k, :), partial%cell%nnr, 1.D0, &
-                                 den_vals=vals(k, :), den_of_r=denlocal%of_r)
-                !
-                partial%of_r(j, :) = partial%of_r(j, :) * denlocal%of_r
+                partial%of_r(j, :) = partial%of_r(j, :) * local(k)%of_r(:)
             END DO
             !
         END DO
-        !
-        CALL denlocal%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_partial_of_boundary
@@ -198,14 +189,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradient_of_boundary_highmem(n, grad, ir, vals, grad_vals)
+    SUBROUTINE calc_gradient_of_boundary_highmem(n, local, gradlocal, grad)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
-        INTEGER, INTENT(IN) :: ir(:, :)
-        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
+        TYPE(environ_density), INTENT(IN) :: local(n)
+        TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         !
@@ -223,7 +214,7 @@ CONTAINS
         !
         DO i = 1, n
             !
-            CALL calc_partial_of_boundary(n, i, partial, ir, vals, grad_vals)
+            CALL calc_partial_of_boundary(n, i, local, gradlocal, partial)
             !
             grad%of_r = grad%of_r + partial%of_r
         END DO
@@ -236,22 +227,21 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_laplacian_of_boundary_highmem(n, laplloc, lapl, ir, vals, grad_vals)
+    SUBROUTINE calc_laplacian_of_boundary_highmem(n, local, gradloc, laplloc, lapl)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
+        TYPE(environ_density), INTENT(IN) :: local(n)
+        TYPE(environ_gradient), INTENT(IN) :: gradloc(n)
         TYPE(environ_density), INTENT(IN) :: laplloc(n)
-        INTEGER, INTENT(IN) :: ir(:, :)
-        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_density), INTENT(INOUT) :: lapl
         !
         INTEGER :: i, j, k
         TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density) :: tmp, tmp2
-        TYPE(environ_gradient) :: gradloc1, gradloc2
+        TYPE(environ_density) :: tmp
         !
         !--------------------------------------------------------------------------------
         !
@@ -259,38 +249,23 @@ CONTAINS
         !
         CALL tmp%init(cell)
         !
-        CALL tmp2%init(cell)
-        !
-        CALL gradloc1%init(cell)
-        !
-        CALL gradloc2%init(cell)
-        !
         lapl%of_r = 0.D0
         !
         DO i = 1, n
             !
-            CALL reduced2nnr(ir(i, :), cell%nnr, 0.D0, grad_vals=grad_vals(i, :, :), &
-                             grad_of_r=gradloc1%of_r)
-            !
             DO j = 1, n
-                !
-                CALL reduced2nnr(ir(j, :), cell%nnr, 0.D0, &
-                                 grad_vals=grad_vals(j, :, :), grad_of_r=gradloc2%of_r)
                 !
                 IF (j == i) THEN
                     tmp%of_r = laplloc(i)%of_r
                 ELSE
-                    CALL gradloc1%scalar_product(gradloc2, tmp)
+                    CALL gradloc(i)%scalar_product(gradloc(j), tmp)
                 END IF
                 !
                 DO k = 1, n
                     !
                     IF (k == j .OR. k == i) CYCLE
                     !
-                    CALL reduced2nnr(ir(k, :), cell%nnr, 1.D0, den_vals=vals(k, :), &
-                                     den_of_r=tmp2%of_r)
-                    !
-                    tmp%of_r = tmp%of_r * tmp2%of_r
+                    tmp%of_r = tmp%of_r * local(k)%of_r
                 END DO
                 !
                 lapl%of_r = lapl%of_r + tmp%of_r
@@ -300,24 +275,21 @@ CONTAINS
         !
         CALL tmp%destroy()
         !
-        CALL tmp2%destroy()
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_laplacian_of_boundary_highmem
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dsurface_of_boundary_highmem(n, hessloc, grad, hess, dsurf, ir, &
-                                                 vals, grad_vals)
+    SUBROUTINE calc_dsurface_of_boundary_highmem(n, local, gradloc, hessloc, grad, hess, dsurf)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
+        TYPE(environ_density), INTENT(IN) :: local(n)
+        TYPE(environ_gradient), INTENT(IN) :: gradloc(n)
         TYPE(environ_hessian), INTENT(IN) :: hessloc(n)
-        INTEGER, INTENT(IN) :: ir(:, :)
-        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         TYPE(environ_density), INTENT(INOUT) :: dsurf
@@ -325,8 +297,8 @@ CONTAINS
         !
         INTEGER :: i, j, k, l, m
         TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density) :: dens, denlocal
-        TYPE(environ_gradient) :: partial, grad1, grad2
+        TYPE(environ_density) :: dens
+        TYPE(environ_gradient) :: partial
         !
         !--------------------------------------------------------------------------------
         !
@@ -334,29 +306,17 @@ CONTAINS
         !
         CALL dens%init(cell)
         !
-        CALL denlocal%init(cell)
-        !
-        CALL grad1%init(cell)
-        !
-        CALL grad2%init(cell)
-        !
         CALL partial%init(cell)
         !
         grad%of_r = 0.D0
         !
         DO i = 1, n
             !
-            CALL calc_partial_of_boundary(n, i, partial, ir, vals, grad_vals)
+            CALL calc_partial_of_boundary(n, i, local, gradloc, partial)
             !
             grad%of_r = grad%of_r + partial%of_r
             !
-            CALL reduced2nnr(ir(i, :), cell%nnr, 0.D0, grad_vals=grad_vals(i, :, :), &
-                             grad_of_r=grad1%of_r)
-            !
             DO j = 1, n
-                !
-                CALL reduced2nnr(ir(j, :), cell%nnr, 0.D0, &
-                                 grad_vals=grad_vals(j, :, :), grad_of_r=grad2%of_r)
                 !
                 DO k = 1, 3
                     !
@@ -365,17 +325,15 @@ CONTAINS
                         IF (j == i) THEN
                             dens%of_r = hessloc(i)%of_r(k, l, :)
                         ELSE
-                            dens%of_r = grad1%of_r(k, :) * grad2%of_r(l, :)
+                            dens%of_r(:) = gradloc(i)%of_r(k, :) * &
+                                           gradloc(j)%of_r(l, :)
                         END IF
                         !
                         DO m = 1, n
                             !
                             IF (m == j .OR. m == i) CYCLE
                             !
-                            CALL reduced2nnr(ir(m, :), cell%nnr, 1.D0, &
-                                             den_vals=vals(m, :), den_of_r=denlocal%of_r)
-                            !
-                            dens%of_r = dens%of_r * denlocal%of_r
+                            dens%of_r = dens%of_r * local(m)%of_r
                         END DO
                         !
                         hess%of_r(k, l, :) = hess%of_r(k, l, :) + dens%of_r
@@ -395,12 +353,6 @@ CONTAINS
         !
         CALL dens%destroy()
         !
-        CALL denlocal%destroy()
-        !
-        CALL grad1%destroy()
-        !
-        CALL grad2%destroy()
-        !
         CALL partial%destroy()
         !
         !--------------------------------------------------------------------------------
@@ -409,21 +361,20 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradient_of_boundary_lowmem(n, scal, grad, ir, vals, grad_vals)
+    SUBROUTINE calc_gradient_of_boundary_lowmem(n, local, gradlocal, scal, grad)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
         TYPE(environ_density), INTENT(IN) :: scal ! soft sphere interface function
-        INTEGER, INTENT(IN) :: ir(:, :)
-        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
+        TYPE(environ_density), INTENT(IN) :: local(n)
+        TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         !
-        INTEGER :: i, j, k, idx
+        INTEGER :: i, j, k
         TYPE(environ_cell), POINTER :: cell
-        REAL(DP) :: bound_val, g(3)
         !
         !--------------------------------------------------------------------------------
         !
@@ -436,21 +387,16 @@ CONTAINS
         !
         DO i = 1, n
             !
-            idx = 1
-            !
             DO j = 1, cell%nnr
                 !
-                IF (.NOT. ir(i, idx) == j) CYCLE
-                bound_val = vals(i, idx)
-                g = grad_vals(i, idx, :)
-                idx = idx + 1
-                IF (ABS(bound_val) <= bound_tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
                 !
                 DO k = 1, 3
                     !
                     grad%of_r(k, j) = &
                         grad%of_r(k, j) + &
-                        (g(k) / bound_val * scal%of_r(j))
+                        (gradlocal(i)%of_r(k, j) / &
+                         local(i)%of_r(j) * scal%of_r(j))
                     !
                 END DO
                 !
@@ -464,24 +410,22 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_laplacian_of_boundary_lowmem(n, laploc, scal, grad, lapl, ir, &
-                                                 vals, grad_vals)
+    SUBROUTINE calc_laplacian_of_boundary_lowmem(n, local, gradlocal, laploc, scal, grad, lapl)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
         TYPE(environ_density), INTENT(IN) :: scal ! soft sphere interface function
+        TYPE(environ_density), INTENT(IN) :: local(n)
+        TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
         TYPE(environ_density), INTENT(IN) :: laploc(n)
         TYPE(environ_gradient), INTENT(IN) :: grad
-        INTEGER, INTENT(IN) :: ir(:, :)
-        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_density), INTENT(INOUT) :: lapl
         !
-        INTEGER :: i, j, k, idx
+        INTEGER :: i, j, k
         TYPE(environ_cell), POINTER :: cell
-        REAL(DP) :: bound_val, g(3)
         !
         !--------------------------------------------------------------------------------
         !
@@ -489,28 +433,25 @@ CONTAINS
         !
         DO i = 1, n
             !
-            idx = 1
-            !
             DO j = 1, cell%nnr
                 !
-                IF (.NOT. ir(i, idx) == j) CYCLE
-                bound_val = vals(i, idx)
-                g = grad_vals(i, idx, :)
-                idx = idx + 1
-                IF (ABS(bound_val) <= bound_tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
                 !
                 lapl%of_r(j) = lapl%of_r(j) + &
-                               (laploc(i)%of_r(j) / bound_val * scal%of_r(j))
+                               (laploc(i)%of_r(j) / &
+                               local(i)%of_r(j) * scal%of_r(j))
                 !
                 DO k = 1, 3
                     !
                     lapl%of_r(j) = &
                         lapl%of_r(j) - &
-                        ((g(k)**2 / bound_val**2) * scal%of_r(j))
+                        ((gradlocal(i)%of_r(k, j)**2 / &
+                        local(i)%of_r(j)**2) * scal%of_r(j))
                     !
                     lapl%of_r(j) = &
                         lapl%of_r(j) + &
-                        (grad%of_r(k, j) * g(k) / bound_val)
+                        (grad%of_r(k, j) * &
+                        gradlocal(i)%of_r(k, j) / local(i)%of_r(j))
                     !
                 END DO
                 !
@@ -524,26 +465,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dsurface_of_boundary_lowmem(n, hessloc, grad, hess, scal, dsurf, &
-                                                ir, vals, grad_vals)
+    SUBROUTINE calc_dsurface_of_boundary_lowmem(n, local, gradloc, hessloc, grad, hess, scal, dsurf)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
         TYPE(environ_density), INTENT(IN) :: scal
+        TYPE(environ_density), INTENT(IN) :: local(n)
+        TYPE(environ_gradient), INTENT(IN) :: gradloc(n)
         TYPE(environ_hessian), INTENT(IN) :: hessloc(n)
         TYPE(environ_gradient), INTENT(IN) :: grad
-        !
-        INTEGER, INTENT(IN) :: ir(:, :)
-        REAL(DP), INTENT(IN) :: vals(:, :), grad_vals(:, :, :)
         !
         TYPE(environ_density), INTENT(INOUT) :: dsurf
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         !
-        INTEGER :: i, j, k, l, idx
+        INTEGER :: i, j, k, l
         TYPE(environ_cell), POINTER :: cell
-        REAL(DP) :: bound_val, g(3)
         !
         !--------------------------------------------------------------------------------
         !
@@ -551,17 +489,9 @@ CONTAINS
         !
         DO i = 1, n
             !
-            idx = 1
-            !
             DO j = 1, cell%nnr
                 !
-                IF (.NOT. ir(i, idx) == j) CYCLE
-                !
-                bound_val = vals(i, idx)
-                g = grad_vals(i, idx, :)
-                idx = idx + 1
-                !
-                IF (ABS(bound_val) <= bound_tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
                 !
                 DO k = 1, 3
                     !
@@ -569,16 +499,17 @@ CONTAINS
                         !
                         hess%of_r(k, l, j) = &
                             hess%of_r(k, l, j) + &
-                            (hessloc(i)%of_r(k, l, j) / bound_val * scal%of_r(j))
+                            (hessloc(i)%of_r(k, l, j) / local(i)%of_r(j) * scal%of_r(j))
                         !
                         hess%of_r(k, l, j) = &
                             hess%of_r(k, l, j) - &
-                            ((g(k) * g(l) / &
-                              bound_val**2) * scal%of_r(j))
+                            ((gradloc(i)%of_r(k, j) * gradloc(i)%of_r(l, j) / &
+                              local(i)%of_r(j)**2) * scal%of_r(j))
                         !
                         hess%of_r(k, l, j) = &
                             hess%of_r(k, l, j) + &
-                            (grad%of_r(k, j) * g(l) / bound_val)
+                            (grad%of_r(k, j) * gradloc(i)%of_r(l, j) / &
+                            local(i)%of_r(j))
                         !
                     END DO
                     !
