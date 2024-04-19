@@ -387,6 +387,9 @@ CONTAINS
                 !
             END IF
             !
+
+            call io%writer(this%derivatives_method)
+
             SELECT CASE (this%derivatives_method)
                 !
             CASE ('fft')
@@ -433,6 +436,7 @@ CONTAINS
                 END IF
                 !
             CASE ('chain-local')
+                CALL io%writer('switched boundary derivative to chain-local')
                 ! Save local gradient of electronic density
                 ALLOCATE (gradloc)
                 CALL gradloc%init(cell)

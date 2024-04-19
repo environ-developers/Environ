@@ -305,7 +305,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_electrons(this, rho_in, nelec, lscatter)
+    SUBROUTINE update_electrons(this, rho_in, nelec, lscatter, gradrho_in)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -313,11 +313,19 @@ CONTAINS
         REAL(DP), INTENT(IN) :: rho_in(:)
         REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         LOGICAL, OPTIONAL, INTENT(IN) :: lscatter
+        REAL(DP), OPTIONAL, INTENT(IN) :: gradrho_in(:,:)
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
         REAL(DP), ALLOCATABLE :: rho(:)
         REAL(DP), ALLOCATABLE :: aux(:)
+
+        if (present(gradrho_in)) then
+                call io%writer('gradrho_in is present in interface')
+        else
+                call io%writer('gradrho_in is NOT present in interface')
+        endif
+
         !
         !--------------------------------------------------------------------------------
         ! On certain machines, the FFT-grid dimensions are performance-optimized. If
@@ -354,7 +362,7 @@ CONTAINS
         aux = rho
 #endif
         !
-        CALL this%main%update_electrons(this%setup%system_cell%nnr, aux, nelec)
+        CALL this%main%update_electrons(this%setup%system_cell%nnr, aux, nelec, gradrho=gradrho_in)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_electrons

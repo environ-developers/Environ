@@ -165,6 +165,9 @@ CONTAINS
         IF ( PRESENT(gradrho) ) THEN
             this%use_local_gradient = .TRUE.
             this%gradient%of_r = gradrho
+            call io%writer('gradrho is present in electrons')
+        ELSE
+            call io%writer('gradrho is NOT present in electrons')
         ENDIF
         !
         !--------------------------------------------------------------------------------

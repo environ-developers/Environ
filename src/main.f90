@@ -137,8 +137,8 @@ MODULE class_environ
         PROCEDURE :: init => init_environ_base
         PROCEDURE :: add_charges => environ_add_charges
         !
-        PROCEDURE :: get_evolume
-        PROCEDURE :: get_esurface
+!        PROCEDURE :: get_evolume
+!        PROCEDURE :: get_esurface
         !
         PROCEDURE :: get_vzero
         PROCEDURE :: get_dvtot
@@ -475,7 +475,7 @@ CONTAINS
     !! is performed at every step of electronic optimization.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_update_electrons(this, nnr, rho, nelec)
+    SUBROUTINE environ_update_electrons(this, nnr, rho, nelec, gradrho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -483,6 +483,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
         REAL(DP), OPTIONAL, INTENT(IN) :: nelec
+        REAL(DP), OPTIONAL, INTENT(IN) :: gradrho(3,nnr)
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
@@ -490,6 +491,13 @@ CONTAINS
         !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: environment_cell
+
+        if (present(gradrho)) then
+                call io%writer('gradrho is present in main')
+        else
+                call io%writer('gradrho is NOT present in main')
+        endif
+
         !
         !--------------------------------------------------------------------------------
         !
@@ -504,19 +512,26 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update electrons parameters
         !
-        CALL this%system_electrons%update(nnr, rho, nelec)
+        CALL this%system_electrons%update(nnr, rho, nelec, gradrho=gradrho)
         !
         this%system_electrons%density%label = 'small_electrons'
         !
+
+!        if (present(gradrho)) then
+!                call io%writer('gradrho is present in main')
+!        else
+!                call io%writer('gradrho is NOT present in main')
+!        endif
+
         IF (setup%ldoublecell) THEN
             ALLOCATE (aux(environment_cell%nnr))
             !
             CALL setup%mapping%to_large(nnr, environment_cell%nnr, rho, aux)
             !
-            CALL this%environment_electrons%update(environment_cell%nnr, aux, nelec)
+            CALL this%environment_electrons%update(environment_cell%nnr, aux, nelec, gradrho=gradrho)
             !
         ELSE
-            CALL this%environment_electrons%update(nnr, rho, nelec)
+            CALL this%environment_electrons%update(nnr, rho, nelec, gradrho=gradrho)
         END IF
         !
         this%environment_electrons%density%label = 'large_electrons'
@@ -635,59 +650,59 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    FUNCTION get_evolume(this) RESULT(evolume)
-        !--------------------------------------------------------------------------------
-        !
-        CLASS(environ_main), INTENT(INOUT) :: this
-        !
-        REAL(DP) :: evolume
-        !
-        TYPE(environ_setup), POINTER :: setup
-        !
-        CHARACTER(LEN=80) :: routine = 'get_evolume'
-        !
-        evolume = 0.D0
-        !
-        !--------------------------------------------------------------------------------
-        !
-        setup => this%setup
-        IF (setup%lvolume) CALL this%solvent%evolume(setup%pressure, this%evolume)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        evolume = this%evolume
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION get_evolume
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    FUNCTION get_esurface(this) RESULT(esurface)
-        !--------------------------------------------------------------------------------
-        !
-        CLASS(environ_main), INTENT(INOUT) :: this
-        !
-        REAL(DP) :: esurface
-        !
-        TYPE(environ_setup), POINTER :: setup
-        !
-        CHARACTER(LEN=80) :: routine = 'get_esurface'
-        !
-        esurface = 0.D0
-        !
-        !--------------------------------------------------------------------------------
-        !
-        setup => this%setup
-        IF (setup%lvolume) &
-            CALL this%solvent%esurface(setup%surface_tension, this%esurface)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        esurface = this%esurface
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION get_esurface
+!    FUNCTION get_evolume(this) RESULT(evolume)
+!        !--------------------------------------------------------------------------------
+!        !
+!        CLASS(environ_main), INTENT(IN) :: this
+!        !
+!        REAL(DP) :: evolume
+!        !
+!        TYPE(environ_setup), POINTER :: setup
+!        !
+!        CHARACTER(LEN=80) :: routine = 'get_evolume'
+!        !
+!        evolume = 0.D0
+!        !
+!        !--------------------------------------------------------------------------------
+!        !
+!        setup => this%setup
+!        IF (setup%lvolume) CALL this%solvent%evolume(setup%pressure, this%evolume)
+!        !
+!        !--------------------------------------------------------------------------------
+!        !
+!        evolume = this%evolume
+!        !
+!        !--------------------------------------------------------------------------------
+!    END FUNCTION get_evolume
+!    !------------------------------------------------------------------------------------
+!    !>
+!    !!
+!    !------------------------------------------------------------------------------------
+!    FUNCTION get_esurface(this) RESULT(esurface)
+!        !--------------------------------------------------------------------------------
+!        !
+!        CLASS(environ_main), INTENT(IN) :: this
+!        !
+!        REAL(DP) :: esurface
+!        !
+!        TYPE(environ_setup), POINTER :: setup
+!        !
+!        CHARACTER(LEN=80) :: routine = 'get_esurface'
+!        !
+!        esurface = 0.D0
+!        !
+!        !--------------------------------------------------------------------------------
+!        !
+!        setup => this%setup
+!        IF (setup%lvolume) &
+!            CALL this%solvent%esurface(setup%surface_tension, this%esurface)
+!        !
+!        !--------------------------------------------------------------------------------
+!        !
+!        esurface = this%esurface
+!        !
+!        !--------------------------------------------------------------------------------
+!    END FUNCTION get_evolume
     !------------------------------------------------------------------------------------
     !>
     !!
