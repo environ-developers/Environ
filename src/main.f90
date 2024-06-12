@@ -217,8 +217,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        if (PRESENT(lgcscf) .and. lgcscf .and. env_electrolyte_ntyp<2) &
-            CALL io%error(routine, "Set env_electrolyte_ntyp >= 2 when lgcscf == .true. ", 1)
+        IF (PRESENT(lgcscf)) THEN
+             IF (lgcscf .and. env_electrolyte_ntyp<2) &
+                CALL io%error(routine, "Set env_electrolyte_ntyp >= 2 when lgcscf == .true. ", 1)
+        END IF
+        !
         CALL this%create()
         !
         CALL this%init_potential()
