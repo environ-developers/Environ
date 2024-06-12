@@ -636,7 +636,7 @@ CONTAINS
     FUNCTION get_evolume(this) RESULT(evolume)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_main), INTENT(IN) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         REAL(DP) :: evolume
         !
@@ -664,7 +664,7 @@ CONTAINS
     FUNCTION get_esurface(this) RESULT(esurface)
         !--------------------------------------------------------------------------------
         !
-        CLASS(environ_main), INTENT(IN) :: this
+        CLASS(environ_main), INTENT(INOUT) :: this
         !
         REAL(DP) :: esurface
         !
@@ -685,7 +685,7 @@ CONTAINS
         esurface = this%esurface
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION get_evolume
+    END FUNCTION get_esurface
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -741,16 +741,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (use_gather) THEN
-        #if defined(__MPI)
+#if defined(__MPI)
             dvtot = 0.D0
             !
-            CALL env_gather_grid(dfft, this%dvtot%of_r, dvtot)
+            CALL env_gather_grid(this%setup%system_cell%dfft, this%dvtot%of_r, dvtot)
             !
-            CALL env_mp_sum(dvtot, dfft%comm)
+            CALL env_mp_sum(dvtot, this%setup%system_cell%dfft%comm)
             !
-        #else
+#else
             dvtot = this%dvtot%of_r
-        #endif
+#endif
         ELSE 
             dvtot = this%dvtot%of_r
         END IF
