@@ -198,7 +198,7 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, nat, ntyp, ityp, zv, label, number, weight)
+    SUBROUTINE init_environ_base(this, nat, ntyp, ityp, zv, label, number, weight, lgcscf)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -209,11 +209,16 @@ CONTAINS
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: label(ntyp)
         INTEGER, OPTIONAL, INTENT(IN) :: number(ntyp)
         REAL(DP), OPTIONAL, INTENT(IN) :: weight(ntyp)
+        LOGICAL, OPTIONAL  :: lgcscf
         !
         CLASS(environ_main), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: routine = 'init_environ_base'
+        !
         !--------------------------------------------------------------------------------
         !
+        if (PRESENT(lgcscf) .and. lgcscf .and. env_electrolyte_ntyp<2) &
+            CALL io%error(routine, "Set env_electrolyte_ntyp >= 2 when lgcscf == .true. ", 1)
         CALL this%create()
         !
         CALL this%init_potential()
@@ -1248,12 +1253,12 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        IF (this%setup%lsmearedions) &
-            WRITE (io%unit, 1100) this%environment_ions%potential_shift * RYTOEV
-        !
-1100    FORMAT(/, 5(' '), &
-                "the potential shift due to the Gaussian-smeared nuclei is ", &
-                F10.4, " ev")
+!        IF (this%setup%lsmearedions) &
+!            WRITE (io%unit, 1100) this%environment_ions%potential_shift * RYTOEV
+!        !
+!1100    FORMAT(/, 5(' '), &
+!                "the potential shift due to the Gaussian-smeared nuclei is ", &
+!                F10.4, " ev")
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_potential_shift

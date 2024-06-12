@@ -270,6 +270,8 @@ CONTAINS
         END IF
         !
         CALL aux%destroy()
+        IF (main%setup%lsmearedions)  &
+            main%dvtot%of_r = main%dvtot%of_r + main%environment_ions%potential_shift
         !
         CALL write_cube(main%dvtot, main%system_ions, local_verbose)
         !
