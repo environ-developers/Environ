@@ -43,7 +43,7 @@ export ESPRESSO_ROOT=
 
 export ESPRESSO_PSEUDO=${ESPRESSO_ROOT}/pseudo
 export ESPRESSO_TMPDIR=${ESPRESSO_ROOT}/tempdir
-export NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+export NETWORK_PSEUDO=https://www.quantum-espresso.org/wp-content/uploads/upf_files/
 export TESTCODE_DIR=${ENVIRON_ROOT}/tests/testcode
 
 export TESTCODE_NPROCS=4

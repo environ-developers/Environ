@@ -279,6 +279,9 @@ CONTAINS
                 !
             END DO
             !
+            DEALLOCATE(aux)
+            DEALLOCATE(gaux)
+            !
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------

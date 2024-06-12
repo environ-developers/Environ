@@ -135,6 +135,9 @@ MODULE class_environ
         PROCEDURE :: init => init_environ_base
         PROCEDURE :: add_charges => environ_add_charges
         !
+        PROCEDURE :: get_evolume
+        PROCEDURE :: get_esurface
+        !
         PROCEDURE :: get_vzero
         PROCEDURE :: get_dvtot
         PROCEDURE :: get_velectrostatic
@@ -630,6 +633,63 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    FUNCTION get_evolume(this) RESULT(evolume)
+        !--------------------------------------------------------------------------------
+        !
+        CLASS(environ_main), INTENT(IN) :: this
+        !
+        REAL(DP) :: evolume
+        !
+        TYPE(environ_setup), POINTER :: setup
+        !
+        CHARACTER(LEN=80) :: routine = 'get_evolume'
+        !
+        evolume = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+        !
+        setup => this%setup
+        IF (setup%lvolume) CALL this%solvent%evolume(setup%pressure, this%evolume)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        evolume = this%evolume
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_evolume
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_esurface(this) RESULT(esurface)
+        !--------------------------------------------------------------------------------
+        !
+        CLASS(environ_main), INTENT(IN) :: this
+        !
+        REAL(DP) :: esurface
+        !
+        TYPE(environ_setup), POINTER :: setup
+        !
+        CHARACTER(LEN=80) :: routine = 'get_esurface'
+        !
+        esurface = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+        !
+        setup => this%setup
+        IF (setup%lvolume) &
+            CALL this%solvent%esurface(setup%surface_tension, this%esurface)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        esurface = this%esurface
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_evolume
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     FUNCTION get_vzero(this, nnr) RESULT(vzero)
         !--------------------------------------------------------------------------------
         !
@@ -655,24 +715,45 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    FUNCTION get_dvtot(this, nnr) RESULT(dvtot)
+    FUNCTION get_dvtot(this, nnr, gather) RESULT(dvtot)
         !--------------------------------------------------------------------------------
         !
         INTEGER, INTENT(IN) :: nnr
+        LOGICAL, INTENT(IN), OPTIONAL :: gather
         CLASS(environ_main), INTENT(IN) :: this
         !
         REAL(DP) :: dvtot(nnr)
         !
+        LOGICAL :: use_gather
         CHARACTER(LEN=80) :: routine = 'get_dvtot'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nnr /= this%dvtot%cell%nnr) &
-            CALL io%error(routine, "Mismatch in grid size", 1)
+        use_gather = .FALSE.
+        IF (PRESENT(gather)) use_gather = gather
+        !
+        IF (.NOT.use_gather .AND. nnr /= this%dvtot%cell%nnr) THEN
+                CALL io%error(routine, "Mismatch in local grid size", 1)
+        ELSE IF (use_gather .AND. nnr /= this%dvtot%cell%nnt) THEN
+                CALL io%error(routine, "Mismatch in global grid size", 1)
+        ENDIF
         !
         !--------------------------------------------------------------------------------
         !
-        dvtot = this%dvtot%of_r
+        IF (use_gather) THEN
+        #if defined(__MPI)
+            dvtot = 0.D0
+            !
+            CALL env_gather_grid(dfft, this%dvtot%of_r, dvtot)
+            !
+            CALL env_mp_sum(dvtot, dfft%comm)
+            !
+        #else
+            dvtot = this%dvtot%of_r
+        #endif
+        ELSE 
+            dvtot = this%dvtot%of_r
+        END IF
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_dvtot
