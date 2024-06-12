@@ -437,8 +437,8 @@ CONTAINS
         !
         INTEGER :: i, j, count
         !
-        TYPE(environ_density) :: denlocal
-        TYPE(environ_gradient) :: gradlocal
+        TYPE(environ_density), ALLOCATABLE :: local(:)
+        TYPE(environ_gradient), ALLOCATABLE :: gradloc(:)
         TYPE(environ_density), ALLOCATABLE :: laplloc(:)
         TYPE(environ_hessian), ALLOCATABLE :: hessloc(:)
         TYPE(environ_hessian), POINTER :: hess
@@ -460,33 +460,23 @@ CONTAINS
                    grad => this%gradient, &
                    lapl => this%laplacian, &
                    dsurf => this%dsurface, &
-                   nat => this%ions%number, &
-                   ir_nz => this%ir_nz, &
-                   den_nz => this%den_nz, &
-                   grad_nz => this%grad_nz, &
-                   nnr_nz => SIZE(this%ir_nz))
+                   nat => this%ions%number)
+            !
+            ALLOCATE (local(nss))
             !
             !----------------------------------------------------------------------------
             ! Compute soft spheres and generate boundary
             !
             scal%of_r = 1.D0
             !
-            ALLOCATE (r(nat, nnr_nz, 3))
-            ALLOCATE (dist(nat, nnr_nz))
-            r = 0.D0
-            dist = 0.D0
-            !
-            CALL denlocal%init(cell)
-            !
             DO i = 1, nss
                 !
-                CALL soft_spheres(i)%density(denlocal, .TRUE., ir_nz(i, :), &
-                                             den_nz(i, :), r(i, :, :), dist(i, :))
+                CALL local(i)%init(cell)
                 !
-                scal%of_r = scal%of_r * denlocal%of_r
+                CALL soft_spheres(i)%density(local(i), .FALSE.)
+                !
+                scal%of_r = scal%of_r * local(i)%of_r
             END DO
-            !
-            CALL denlocal%destroy()
             !
             !----------------------------------------------------------------------------
             ! Generate boundary derivatives, if needed
@@ -511,7 +501,7 @@ CONTAINS
                 !
             CASE ('highmem')
                 !
-                IF (ng) CALL gradlocal%init(cell)
+                IF (ng) ALLOCATE(gradloc(nss))
                 !
                 IF (nl .AND. .NOT. nh) ALLOCATE (laplloc(nss))
                 !
@@ -522,35 +512,32 @@ CONTAINS
                 !
                 DO i = 1, nss
                     !
+                    IF (ng) CALL gradloc(i)%init(cell)
+                    !
                     IF (nl .AND. .NOT. nh) CALL laplloc(i)%init(cell)
                     !
                     IF (nh) CALL hessloc(i)%init(cell)
                     !
                     IF (ng) &
-                        CALL soft_spheres(i)%gradient(gradlocal, .TRUE., ir_nz(i, :), &
-                                                      grad_nz(i, :, :), r(i, :, :), &
-                                                      dist(i, :))
+                        CALL soft_spheres(i)%gradient(gradloc(i), .TRUE.)
                     !
                     IF (nl .AND. .NOT. nh) &
-                        CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., ir_nz(i, :), &
-                                                       r(i, :, :), dist(i, :))
+                        CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE.)
                     !
                     IF (nh) &
-                        CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., ir_nz(i, :), &
-                                                     r(i, :, :), dist(i, :))
+                        CALL soft_spheres(i)%hessian(hessloc(i), .FALSE.)
                     !
                 END DO
                 !
                 IF (ng .AND. .NOT. nh) &
-                    CALL gradient_of_boundary(nss, grad, ir_nz, den_nz, grad_nz)
+                    CALL gradient_of_boundary(nss, local, gradloc, grad)
                 !
                 IF (nl .AND. .NOT. nh) &
-                    CALL laplacian_of_boundary(nss, laplloc, lapl, ir_nz, den_nz, grad_nz)
+                    CALL laplacian_of_boundary(nss, local, gradloc, laplloc, lapl)
                 !
                 IF (nh) THEN
                     !
-                    CALL dsurface_of_boundary(nss, hessloc, grad, hess, dsurf, ir_nz, &
-                                              den_nz, grad_nz)
+                    CALL dsurface_of_boundary(nss, local, gradloc, hessloc, grad, hess, dsurf)
                     !
                     IF (nl) lapl%of_r = hess%trace()
                     !
@@ -558,13 +545,15 @@ CONTAINS
                 !
                 DO i = 1, nss
                     !
+                    IF (ng) CALL gradloc(i)%destroy()
+                    !
                     IF (nl .AND. .NOT. nh) CALL laplloc(i)%destroy()
                     !
                     IF (nh) CALL hessloc(i)%destroy()
                     !
                 END DO
                 !
-                IF (ng) CALL gradlocal%destroy()
+                IF (ng) DEALLOCATE(gradloc)
                 !
                 IF (nl .AND. .NOT. nh) DEALLOCATE (laplloc)
                 !
@@ -572,7 +561,7 @@ CONTAINS
                 !
             CASE ('lowmem')
                 !
-                IF (ng) CALL gradlocal%init(cell)
+                IF (ng) ALLOCATE(gradloc(nss))
                 !
                 IF (nl .AND. .NOT. nh) ALLOCATE (laplloc(nss))
                 !
@@ -583,37 +572,32 @@ CONTAINS
                 !
                 DO i = 1, nss
                     !
+                    IF (ng) CALL gradloc(i)%init(cell)
+                    !
                     IF (nl .AND. .NOT. nh) CALL laplloc(i)%init(cell)
                     !
                     IF (nh) CALL hessloc(i)%init(cell)
                     !
                     IF (ng) &
-                        CALL soft_spheres(i)%gradient(gradlocal, .TRUE., &
-                                                      ir_nz(i, :), grad_nz(i, :, :), &
-                                                      r(i, :, :), dist(i, :))
+                        CALL soft_spheres(i)%gradient(gradloc(i), .FALSE.)
                     !
                     IF (nl .AND. .NOT. nh) &
-                        CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE., &
-                                                       ir_nz(i, :), r(i, :, :), &
-                                                       dist(i, :))
+                        CALL soft_spheres(i)%laplacian(laplloc(i), .FALSE.)
                     !
                     IF (nh) &
-                        CALL soft_spheres(i)%hessian(hessloc(i), .FALSE., &
-                                                     ir_nz(i, :), r(i, :, :), dist(i, :))
+                        CALL soft_spheres(i)%hessian(hessloc(i), .FALSE.)
                     !
                 END DO
                 !
                 IF (ng) &
-                    CALL gradient_of_boundary(nss, scal, grad, ir_nz, den_nz, grad_nz)
+                    CALL gradient_of_boundary(nss, local, gradloc, scal, grad)
                 !
                 IF (nl .AND. .NOT. nh) &
-                    CALL laplacian_of_boundary(nss, laplloc, scal, grad, lapl, ir_nz, &
-                                               den_nz, grad_nz)
+                    CALL laplacian_of_boundary(nss, local, gradloc, laplloc, scal, grad, lapl)
                 !
                 IF (nh) THEN
                     !
-                    CALL dsurface_of_boundary(nss, hessloc, grad, hess, scal, dsurf, &
-                                              ir_nz, den_nz, grad_nz)
+                    CALL dsurface_of_boundary(nss, local, gradloc, hessloc, grad, hess, scal, dsurf)
                     !
                     IF (nl) lapl%of_r = hess%trace()
                     !
@@ -621,13 +605,15 @@ CONTAINS
                 !
                 DO i = 1, nss
                     !
+                    IF (ng) CALL gradloc(i)%destroy()
+                    !
                     IF (nl .AND. .NOT. nh) CALL laplloc(i)%destroy()
                     !
                     IF (nh) CALL hessloc(i)%destroy()
                     !
                 END DO
                 !
-                IF (ng) CALL gradlocal%destroy()
+                IF (ng) DEALLOCATE(gradloc)
                 !
                 IF (nl .AND. .NOT. nh) DEALLOCATE (laplloc)
                 !
@@ -670,8 +656,11 @@ CONTAINS
                 !
             END IF
             !
-            DEALLOCATE (r)
-            DEALLOCATE (dist)
+            DO i = 1, nss
+                CALL local(i)%destroy()
+            END DO
+            !
+            DEALLOCATE(local)
             !
         END ASSOCIATE
         !
