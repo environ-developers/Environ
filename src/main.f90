@@ -59,6 +59,8 @@ MODULE class_environ
     USE class_system
     !
     USE env_write_cube
+    USE env_scatter_mod
+    USE env_mp
     !
     !------------------------------------------------------------------------------------
     !
