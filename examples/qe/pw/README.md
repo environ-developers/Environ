@@ -39,10 +39,10 @@ mott_schottky: pw.x
     densities.
 
 ms_gcs: pw.x
-    
+
     Use of ms-gcs correction to model extended semiconductor-solution
     interfaces. Outputs the voltage compared to the flatband potential
-    for a given electrode charge. 
+    for a given electrode charge.
 
 solvent_aware: pw.x
 
