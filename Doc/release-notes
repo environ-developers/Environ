@@ -1,3 +1,11 @@
+New in version 3.1:
+
+  * fix memory bug in soft-sphere interface, crashing for large systems
+  * improved interface (getters) for coupling with FHI-aims
+  * add possibility to use Environ with grand canonical (constant potential) simulations from QE 7.2
+  * fix bug in coupling lgcscf with Environ
+  * fix bug in double-cell mapping 
+
 New in version 3.0:
 
   * new ms-gcs functionality
