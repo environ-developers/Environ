@@ -42,6 +42,8 @@ ENVIRON_LIBS = -L$(TOPDIR)/libs -lenvsrc -lenvfft -lenvutil
 
 driver: driver.o
 	@ $(LD) $(LDFLAGS) -o $@ $(DRIVER_OBJS) $(ENVIRON_LIBS) $(ENVLIBS)
+	@ test -d ../bin || mkdir ../bin
+	@ ( cd ../bin ; ln -fs ../programs/driver driver)
 
 help:
 	@ echo

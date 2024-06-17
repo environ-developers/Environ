@@ -103,6 +103,7 @@ compile: check-makeinc
 	  $(MAKE) compile-util; \
 	  $(MAKE) compile-fft; \
 	  $(MAKE) compile-src; \
+	  $(MAKE) compile-programs; \
 	  ( \
 		cd install; \
 		cat UtilXlib_comp.log FFTXlib_comp.log src_comp.log > Environ_comp.log; \
@@ -127,6 +128,12 @@ compile-src: check-makeinc
 	tee install/src_comp.log
 	@ ( cd src && $(MAKE) all || exit 1 ) 2>&1 | tee -a install/src_comp.log
 	@ $(MAKE) check-for-errors prog=src
+
+compile-programs: check-makeinc
+	@ printf "\nCompiling programs...\n\n" 2>&1 | \
+        tee install/programs_comp.log
+	@ ( cd programs && $(MAKE) || exit 1 ) 2>&1 | tee -a install/programs_comp.log
+	@ $(MAKE) check-for-errors prog=programs
 
 compile-doc:
 	@ if test -d Doc ; then (cd Doc; $(MAKE) TLDEPS=all || exit 1 ); fi
@@ -171,10 +178,17 @@ cannibalize-QE:
 # remove executables and objects
 clean: check-makeinc
 	@ $(MAKE) clean-libs
+	@ $(MAKE) clean-bin
 	@ $(MAKE) clean-logs
 	@ $(MAKE) clean-util
 	@ $(MAKE) clean-fft
 	@ $(MAKE) clean-src
+	@ $(MAKE) clean-programs
+
+clean-bin:
+	@ printf "bin..........."
+	@ if test -d bin; then /bin/rm -fr bin; fi
+	@ printf " done! \n"
 
 clean-libs:
 	@ printf "libs.........."
@@ -202,6 +216,11 @@ clean-fft:
 clean-src:
 	@ printf "src..........."
 	@ (cd src && $(MAKE) clean)
+	@ printf " done! \n"
+
+clean-programs:
+	@@ printf "programs......"
+	@ (cd programs && $(MAKE) clean)
 	@ printf " done! \n"
 
 clean-doc:
