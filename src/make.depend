@@ -152,6 +152,7 @@ electrolyte_base.o : ioncctype.o
 electrons.o : cell.o
 electrons.o : constants.o
 electrons.o : density.o
+electrons.o : gradient.o
 electrons.o : io.o
 externals.o : cell.o
 externals.o : constants.o
@@ -235,6 +236,8 @@ ions.o : iontype.o
 iontype.o : char_ops.o
 iontype.o : constants.o
 iontype.o : io.o
+main.o : ../FFTXlib/scatter_mod.o
+main.o : ../UtilXlib/mp.o
 main.o : base_input.o
 main.o : boundary.o
 main.o : boundary_electronic.o

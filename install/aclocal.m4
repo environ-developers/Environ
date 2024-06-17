@@ -1,6 +1,6 @@
-# generated automatically by aclocal 1.16.1 -*- Autoconf -*-
+# generated automatically by aclocal 1.16.5 -*- Autoconf -*-
 
-# Copyright (C) 1996-2018 Free Software Foundation, Inc.
+# Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -21,11 +21,9 @@ m4_include([m4/x_ac_env_cc.m4])
 m4_include([m4/x_ac_env_cpp.m4])
 m4_include([m4/x_ac_env_cuda.m4])
 m4_include([m4/x_ac_env_default_env.m4])
-m4_include([m4/x_ac_env_elpa.m4])
 m4_include([m4/x_ac_env_f90.m4])
 m4_include([m4/x_ac_env_f90rule.m4])
 m4_include([m4/x_ac_env_fft.m4])
-m4_include([m4/x_ac_env_hdf5.m4])
 m4_include([m4/x_ac_env_lapack.m4])
 m4_include([m4/x_ac_env_ld.m4])
 m4_include([m4/x_ac_env_mass.m4])
@@ -34,6 +32,4 @@ m4_include([m4/x_ac_env_mpif90.m4])
 m4_include([m4/x_ac_env_openmp.m4])
 m4_include([m4/x_ac_env_qe.m4])
 m4_include([m4/x_ac_env_ranlib.m4])
-m4_include([m4/x_ac_env_scalapack.m4])
-m4_include([m4/x_ac_env_signal.m4])
 m4_include([m4/x_ac_env_wget.m4])

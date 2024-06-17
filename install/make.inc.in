@@ -120,11 +120,7 @@ LD_LIBS        = @ld_libs@
 # External Libraries (if any) : blas, lapack, fft, MPI
 BLAS_LIBS      = @blas_libs@
 LAPACK_LIBS    = @lapack_libs@
-SCALAPACK_LIBS = @scalapack_libs@
 FFT_LIBS       = @fft_libs@
-
-# HDF5
-HDF5_LIBS = @hdf5_libs@
 
 # For parallel execution, the correct path to MPI libraries must
 # be specified in MPI_LIBS (except for IBM if you use mpxlf)
@@ -147,11 +143,11 @@ RANLIB         = @ranlib@
 
 # all libraries - do not modify
 FLIB_TARGETS   = all
-ENVLIBS         = $(CUDA_LIBS) $(SCALAPACK_LIBS) $(LAPACK_LIBS) $(FFT_LIBS) $(BLAS_LIBS) \
+ENVLIBS         = $(CUDA_LIBS)  $(FFT_LIBS) $(BLAS_LIBS) \
 				  $(MPI_LIBS) $(MASS_LIBS) $(LD_LIBS)
 
 # wget or curl - useful to download from network
 WGET = @wget@
 
-# Install directory - "make install" copies *.x executables there
+# Install directory - "make install" copies executables there
 PREFIX = @prefix@
