@@ -36,7 +36,7 @@ endif
 
 .PHONY: install
 
-ENVIRON_VERSION=3.0
+ENVIRON_VERSION=3.1
 
 ################################################################################
 # HELP/LIST
@@ -131,7 +131,7 @@ compile-src: check-makeinc
 
 compile-programs: check-makeinc
 	@ printf "\nCompiling programs...\n\n" 2>&1 | \
-        tee install/programs_comp.log
+    tee install/programs_comp.log
 	@ ( cd programs && $(MAKE) || exit 1 ) 2>&1 | tee -a install/programs_comp.log
 	@ $(MAKE) check-for-errors prog=programs
 
