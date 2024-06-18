@@ -10,6 +10,9 @@ case "$arch:$f90_flavor" in
 *:ifort* )
         try_cc="icc ecc $try_cc"
         ;;
+*:ifx* )
+        try_cc="icx $try_cc"
+        ;;
 *:pgf90 | *:nvfortran )
         try_cc="pgcc $try_cc"
         ;;

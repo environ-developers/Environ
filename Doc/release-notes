@@ -4,7 +4,8 @@ New in version 3.1:
   * improved interface (getters) for coupling with FHI-aims
   * add possibility to use Environ with grand canonical (constant potential) simulations from QE 7.2
   * fix bug in coupling lgcscf with Environ
-  * fix bug in double-cell mapping 
+  * fix bug in double-cell mapping
+  * simplified configure and installation
 
 New in version 3.0:
 
@@ -97,7 +98,7 @@ Incompatible changes in version 1.1:
 
   * from QE-6.4 Environ has no information on spin
 
-  * from QE-6.3 it is no longer possible to speficy PBC correction
+  * from QE-6.3 it is no longer possible to specify PBC correction
     scheme of Environ using the assume_isolated keyword in the pw input file
 
 Known problems in Environ 1.1 :
