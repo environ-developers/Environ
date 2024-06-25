@@ -41,6 +41,6 @@ jobs:
       - name: Run container
         run: docker run --interactive --name environ-build ci-environ
       - name: Access container
-        run: docker exec --interactive --tty environ-build bash
+        run: docker exec -it environ-build bash
       - name: Run tests
         run: cd /app/q-e/Environ/tests && make --ignore-errors run-tests-parallel
