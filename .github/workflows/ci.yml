@@ -42,4 +42,5 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: environ:latest
-          run: sh -c "OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 cd /app/q-e/Environ/tests && make --ignore-errors run-tests-parallel | tee /app/tests.log && if grep **FAILED** /app/tests.log; then exit -1; fi"
+          options: -e OMPI_ALLOW_RUN_AS_ROOT=1 -e OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+          run: sh -c "cd /app/q-e/Environ/tests && make --ignore-errors run-tests-parallel | tee /app/tests.log && if grep **FAILED** /app/tests.log; then exit 1; fi"
