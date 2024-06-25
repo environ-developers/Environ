@@ -38,7 +38,10 @@ jobs:
           path: /tmp
       - name: Load image
         run: docker load --input /tmp/environ.tar
-      - name: Run container
-        run: docker run --interactive --name ci-environ environ
       - name: Run tests
-        run: docker exec ci-environ sh -c "cd /app/q-e/Environ/tests && make --ignore-errors run-tests-parallel"
+        uses: addnab/docker-run-action@v3
+        with:
+          image: environ:latest
+          run: |
+            cd /app/q-e/Environ/tests
+            make --ignore-errors run-tests-parallel
