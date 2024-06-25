@@ -41,4 +41,4 @@ jobs:
       - name: Run container
         run: docker run --interactive --name ci-environ environ
       - name: Run tests
-        run: docker exec -it ci-environ sh -c "cd /app/q-e/Environ/tests && make --ignore-errors run-tests-parallel"
+        run: docker exec ci-environ sh -c "cd /app/q-e/Environ/tests && make --ignore-errors run-tests-parallel"
