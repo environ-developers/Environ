@@ -16,7 +16,10 @@ jobs:
           sparse-checkout: Dockerfile
           sparse-checkout-cone-mode: false
       - name: Deactivate flags
-        run: sed -i "s/\(EFFICIENCY\|PRECISION\|TESTS\|EXAMPLES\)=1/\\1=0\" Dockerfile && cat Dockerfile | head -70
+        run: |
+          ls -l
+          sed -i "s/\(EFFICIENCY\|PRECISION\|TESTS\|EXAMPLES\)=1/\\1=0\" Dockerfile
+          cat Dockerfile
       - name: Build image
         uses: docker/build-push-action@v2
         with:
