@@ -21,26 +21,24 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          tags: ci-environ
-          outputs: type=docker,dest=/tmp/ci-environ.tar
+          tags: environ
+          outputs: type=docker,dest=/tmp/environ.tar
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ci-environ
-          path: /tmp/ci-environ.tar
+          name: environ
+          path: /tmp/environ.tar
   test:
     needs: compile
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: ci-environ
+          name: environ
           path: /tmp
       - name: Load image
-        run: docker load --input /tmp/ci-environ.tar
+        run: docker load --input /tmp/environ.tar
       - name: Run container
-        run: docker run --interactive --name environ-build ci-environ
-      - name: Access container
-        run: docker exec -it environ-build bash
+        run: docker run --interactive --name ci-environ environ
       - name: Run tests
-        run: cd /app/q-e/Environ/tests && make --ignore-errors run-tests-parallel
+        run: docker exec -it ci-environ sh -c "cd /app/q-e/Environ/tests && make --ignore-errors run-tests-parallel"
