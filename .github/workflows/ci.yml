@@ -15,11 +15,6 @@ jobs:
         with:
           sparse-checkout: Dockerfile
           sparse-checkout-cone-mode: false
-      - name: Deactivate flags
-        run: |
-          ls -l
-          sed -i "s/\(EFFICIENCY\|PRECISION\|TESTS\|EXAMPLES\)=1/\\1=0\" Dockerfile
-          cat Dockerfile
       - name: Build image
         uses: docker/build-push-action@v2
         with:
@@ -33,6 +28,7 @@ jobs:
           name: ci-environ
           path: /tmp/ci-environ.tar
   test:
+    needs: compile
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@v2
