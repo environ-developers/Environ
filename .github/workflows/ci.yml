@@ -1,0 +1,45 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+
+jobs:
+  compile:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: Dockerfile
+          sparse-checkout-cone-mode: false
+      - name: Deactivate flags
+        run: sed -i "s/\(EFFICIENCY\|PRECISION\|TESTS\|EXAMPLES\)=1/\\1=0\" Dockerfile && cat Dockerfile | head -70
+      - name: Build image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: ci-environ
+          outputs: type=docker,dest=/tmp/ci-environ.tar
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ci-environ
+          path: /tmp/ci-environ.tar
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: ci-environ
+          path: /tmp
+      - name: Load image
+        run: docker load --input /tmp/ci-environ.tar
+      - name: Run container
+        run: docker run --interactive --name ci-environ environ-image
+      - name: Access container
+        run: docker exec --interactive --tty ci-environ bash
+      - name: run tests
+        run: cd q-e/Environ/tests && make --ignore-errors run-tests-parallel
