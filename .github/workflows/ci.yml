@@ -42,6 +42,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: environ:latest
+          options: -e OMPI_ALLOW_RUN_AS_ROOT=1 -e OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
           run: |
             cd /app/q-e/Environ/tests
             make --ignore-errors run-tests-parallel
