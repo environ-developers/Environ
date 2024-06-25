@@ -15,8 +15,9 @@ jobs:
         with:
           sparse-checkout: Dockerfile
           sparse-checkout-cone-mode: false
+      - uses: docker/setup-buildx-action@v3
       - name: Build image
-        uses: docker/setup-buildx-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
