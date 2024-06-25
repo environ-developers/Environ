@@ -42,4 +42,4 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: environ:latest
-          run: sh -c "env && cd /app/q-e/Environ/tests && make --ignore-errors run-tests | tee /app/tests.log && if grep -q **FAILED** /app/tests.log; then exit 1; fi"
+          run: sh -c "env && cd /app/q-e/Environ/tests && sed -i 's/mpirun/mpirun --allow-run-as-root/' run-pw.sh && make --ignore-errors run-tests-parallel | tee /app/tests.log && if grep -q **FAILED** /app/tests.log; then exit 1; fi"
