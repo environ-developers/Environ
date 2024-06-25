@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - develop
+      - containerization
   pull_request:
 
 jobs:
@@ -41,5 +42,5 @@ jobs:
         run: docker run --interactive --name ci-environ environ-image
       - name: Access container
         run: docker exec --interactive --tty ci-environ bash
-      - name: run tests
+      - name: Run tests
         run: cd q-e/Environ/tests && make --ignore-errors run-tests-parallel
