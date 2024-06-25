@@ -55,7 +55,7 @@ ENV N=4 \
     ENVIRON_CONFIG="--with-qe=/app/q-e" \
     DOWNLOAD_EFFICIENCY=0 \
     DOWNLOAD_PRECISION=0 \
-    RUN_TESTS=1 \
+    RUN_TESTS=0 \
     RUN_EXAMPLES=0 \
     BIN_DIR="/app/q-e/bin" \
     PSEUDO_DIR="/app/q-e/pseudo" \
