@@ -1,0 +1,46 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+
+jobs:
+  compile:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: Dockerfile
+          sparse-checkout-cone-mode: false
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: environ
+          outputs: type=docker,dest=/tmp/environ.tar
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: environ
+          path: /tmp/environ.tar
+  test:
+    # if-condition source: https://github.com/orgs/community/discussions/25692#discussioncomment-3248764
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && (contains(github.ref, '/heads/master') || contains(github.ref, '/tags/v')))
+    needs: compile
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: environ
+          path: /tmp
+      - name: Load image
+        run: docker load --input /tmp/environ.tar
+      - name: Run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: environ:latest
+          run: sh -c "env && cd /app/q-e/Environ/tests && make --ignore-errors run-tests | tee /app/tests.log && if grep -q **FAILED** /app/tests.log; then exit 1; fi"

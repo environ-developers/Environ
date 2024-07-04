@@ -1,13 +1,13 @@
-# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2024 ENVIRON (www.quantum-environ.org)
 
-### This file is part of Environ version 3.0
+### This file is part of Environ version 3.1
 
-    Environ 3.0 is free software: you can redistribute it and/or modify
+    Environ 3.1 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 2 of the License, or
     (at your option) any later version.
 
-    Environ 3.0 is distributed in the hope that it will be useful,
+    Environ 3.1 is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more detail, either the file
@@ -20,13 +20,13 @@
 
 | Name               | Institution                                                     |
 | ------------------ | --------------------------------------------------------------- |
-| Oliviero Andreussi | Department of Physics, University of North Texas                |
+| Oliviero Andreussi | Department of Chemistry and Biochemistry, Boise State University|
 | Francesco Nattino  | THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne |
-| Iurii Timrov       | THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne |
+| Iurii Timrov       | PSI Zurich and NCCR-MARVEL                                      |
 | Ismaila Dabo       | Department of Materials Science and Engineering, Penn State     |
 | Nicola Marzari     | THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne |
 | Quinn Campbell     | Sandia National Labs                                            |
-| Edan Bainglass     | Department of Physics, University of North Texas                |
+| Edan Bainglass     | PSI Zurich and NCCR-MARVEL                                      |
 | Matthew Truscott   | Department of Physics, University of North Texas                |
 | Gabriel Medrano    | Department of Physics, University of North Texas                |
 
@@ -50,7 +50,7 @@
 
       http://www.quantum-espresso.org/
 
-# QE + Environ 3.0 Installation
+# QE + Environ 3.1 Installation
 
     The following instructions refer to Environ 3.0 installed on QE >= 7.1
     For previous versions, please refer to the instructions on the website:
@@ -111,7 +111,7 @@ If using cmake, modify the ESPRESSO_ROOT variable in the following files to refl
 
 #
 
-# Uninstall Environ 3.0
+# Uninstall Environ 3.1
 
 From Environ root:
 
