@@ -213,7 +213,7 @@ CONTAINS
         !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
-        CLASS(environ_function), INTENT(INOUT) :: this
+        CLASS(environ_function), INTENT(IN) :: this
         TYPE(environ_density), INTENT(INOUT) :: density
         !
         INTEGER, OPTIONAL, INTENT(OUT) :: ir(:)

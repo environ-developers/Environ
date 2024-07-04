@@ -82,7 +82,7 @@ CONTAINS
         !
         LOGICAL, OPTIONAL, INTENT(IN) :: zero
         !
-        CLASS(environ_function_gaussian), INTENT(INOUT) :: this
+        CLASS(environ_function_gaussian), INTENT(IN) :: this
         TYPE(environ_density), INTENT(INOUT) :: density
         !
         INTEGER, OPTIONAL, INTENT(OUT) :: ir(:)

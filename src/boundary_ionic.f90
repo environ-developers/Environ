@@ -88,15 +88,6 @@ MODULE class_boundary_ionic
         REAL(DP), ALLOCATABLE :: partial_of_ion_field(:, :, :)
         !
         !--------------------------------------------------------------------------------
-        ! Reduced arrays for optimization
-        !
-        INTEGER, ALLOCATABLE :: ir_nz(:, :) ! indices of points of interest
-        REAL(DP), ALLOCATABLE :: den_nz(:, :) ! nonzero density
-        REAL(DP), ALLOCATABLE :: grad_nz(:, :, :) ! nonzero gradient
-        !
-        LOGICAL :: has_stored_gradient ! used in force calculation
-        !
-        !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
@@ -150,12 +141,6 @@ CONTAINS
         !
         IF (ASSOCIATED(this%ions)) CALL io%create_error(routine)
         !
-        IF (ALLOCATED(this%ir_nz)) CALL io%create_error(routine)
-        !
-        IF (ALLOCATED(this%den_nz)) CALL io%create_error(routine)
-        !
-        IF (ALLOCATED(this%grad_nz)) CALL io%create_error(routine)
-        !
         IF (ASSOCIATED(this%electrons)) CALL io%create_error(routine)
         !
         IF (ALLOCATED(this%ion_field)) CALL io%create_error(routine)
@@ -170,8 +155,6 @@ CONTAINS
         !
         this%alpha = 0.D0
         this%softness = 0.D0
-        !
-        this%has_stored_gradient = .FALSE.
         !
         NULLIFY (this%ions)
         NULLIFY (this%electrons)
@@ -195,14 +178,9 @@ CONTAINS
         !
         CLASS(environ_boundary_ionic), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER :: i, imax
-        INTEGER :: nnr_nz ! nonzero grid points per processor
-        !
-        REAL(DP) :: max_rad
+        INTEGER :: i
         !
         INTEGER, POINTER :: nat, nnr
-        !
-        TYPE(environ_density) :: denlocal
         !
         CHARACTER(LEN=80) :: routine = 'init_environ_boundary'
         !
@@ -238,65 +216,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%set_soft_spheres()
-        !
-        max_rad = 0.D0
-        !
-        !--------------------------------------------------------------------------------
-        ! Find maximun radius of soft-spheres
-        !
-        DO i = 1, nat
-            !
-            IF (max_rad < this%soft_spheres%array(i)%width) THEN
-                max_rad = this%soft_spheres%array(i)%width
-                imax = i
-            END IF
-            !
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-        ! Calculate density of largest soft-sphere
-        !
-        CALL denlocal%init(this%cell)
-        !
-        CALL this%soft_spheres%array(imax)%density(denlocal, .TRUE.)
-        !
-        !--------------------------------------------------------------------------------
-        ! Count grid points of interest
-        !
-        nnr_nz = 1
-        !
-        nnr => this%cell%nnr
-        !
-        DO i = 1, nnr
-            !
-            IF (denlocal%of_r(i) /= 1.D0) THEN
-                nnr_nz = nnr_nz + 1
-            END IF
-            !
-        END DO
-        !
-        nnr_nz = nnr_nz * 1.15
-        !
-#if defined (__MPI)
-        CALL env_mp_sum(nnr_nz, io%comm)
-        !
-        CALL env_mp_bcast(nnr_nz, io%node, io%comm)
-#endif
-        !
-        IF (nnr_nz > nnr) nnr_nz = nnr
-        !
-        CALL denlocal%destroy()
-        !
-        !--------------------------------------------------------------------------------
-        ! Allocate reduced-arrays
-        !
-        ALLOCATE (this%ir_nz(nat, nnr_nz))
-        ALLOCATE (this%den_nz(nat, nnr_nz))
-        ALLOCATE (this%grad_nz(nat, nnr_nz, 3))
-        !
-        this%ir_nz = -1
-        this%den_nz = 0.D0
-        this%grad_nz = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_boundary
@@ -393,10 +312,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%pre_destroy()
-        !
-        DEALLOCATE (this%ir_nz)
-        DEALLOCATE (this%den_nz)
-        DEALLOCATE (this%grad_nz)
         !
         CALL this%soft_spheres%destroy()
         !
@@ -632,7 +547,6 @@ CONTAINS
             !
             IF (ng) THEN
                 grad%of_r = -grad%of_r
-                this%has_stored_gradient = .TRUE.
                 !
                 CALL grad%update_modulus()
                 !
@@ -704,16 +618,7 @@ CONTAINS
         IF (this%soft_spheres%number == 0) &
             CALL io%error(routine, "Missing details of ionic boundary", 1)
         !
-        IF (this%derivatives_method == 'fft' .OR. &
-            (.NOT. this%has_stored_gradient)) THEN
-            CALL this%soft_spheres%array(index)%gradient(partial, .TRUE.)
-        ELSE
-            !
-            CALL reduced2nnr(this%ir_nz(index, :), partial%cell%nnr, 0.D0, &
-                             grad_vals=this%grad_nz(index, :, :), &
-                             grad_of_r=partial%of_r)
-            !
-        END IF
+        CALL this%soft_spheres%array(index)%gradient(partial, .TRUE.)
         !
         CALL denlocal%init(partial%cell)
         !
@@ -721,8 +626,7 @@ CONTAINS
             !
             IF (i == index) CYCLE
             !
-            CALL reduced2nnr(this%ir_nz(i, :), denlocal%cell%nnr, 1.D0, &
-                             den_vals=this%den_nz(i, :), den_of_r=denlocal%of_r)
+            CALL this%soft_spheres%array(i)%density(denlocal, .TRUE.)
             !
             DO j = 1, 3
                 partial%of_r(j, :) = partial%of_r(j, :) * denlocal%of_r
