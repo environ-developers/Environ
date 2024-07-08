@@ -3229,7 +3229,7 @@ ia32 | ia64 | x86_64 )
 arm )
         try_f90="nvfortran pgf90 armflang $try_f90"
         ;;
-crayxt* )
+craype* )
         try_f90="ftn"
         try_mpif90="ftn"
         ;;
@@ -4293,7 +4293,7 @@ xlf_flags=0
 echo using F90... $f90
 
 case "$arch:$f90_flavor" in
-*:ifort* )
+*:ifort* | *:ifx* )
         try_fflags="-O2 -assume byterecl -g -traceback"
         if test "$use_debug" -eq 1; then
             try_fflags="$try_fflags -fpe0 -CB"
@@ -4307,8 +4307,8 @@ case "$arch:$f90_flavor" in
             try_fflags_openmp="-qopenmp"
             try_ldflags_openmp="-qopenmp"
         else
-            try_fflags_openmp="-qopenmp"
-            try_ldflags_openmp="-qopenmp"
+            try_fflags_openmp="-openmp"
+            try_ldflags_openmp="-openmp"
         fi
         pre_fdflags="-fpp -allow nofpp_comments "
         ;;
@@ -5570,7 +5570,7 @@ else
                MKLROOT=/opt/intel/mkl
             fi
 	    case "$f90" in
-	       ifort* )
+	       ifort* | *:ifx* )
       		    mkl_lib="mkl_intel_lp64"
       		    mkl_omp="mkl_intel_thread"
 		    if test "$arch" == "mac686"; then
