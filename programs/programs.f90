@@ -418,7 +418,7 @@ CONTAINS
             !
             CHARACTER(34) :: fname
             !
-            INTEGER :: ind, n_atoms, array_size, mype2, mype3
+            INTEGER :: ind, n_atoms, array_size, mype2, mype3, ierr
             LOGICAL :: forces_on
             REAL(DP) :: n_electrons, energy
             REAL(DP), ALLOCATABLE :: rho(:), gradrho(:,:), forces(:,:), dvtot(:)
@@ -495,6 +495,12 @@ CONTAINS
             CLOSE(147)
             !
             DEALLOCATE(dvtot)
+            !
+            !----------------------------------------------------------------------------
+            ! Make sure each processor has written its potential before others might try
+            ! to read it in the interpolation
+            !
+            CALL MPI_Barrier(comm, ierr)
             !
             !----------------------------------------------------------------------------
             ! Calculate and write forces, if requested
