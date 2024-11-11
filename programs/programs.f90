@@ -62,6 +62,7 @@ MODULE programs
     PRIVATE
     !
     PUBLIC :: run_tester, run_environ_from_cube, run_descriptors_generator
+    PUBLIC :: run_environ_with_aims
     !
     PUBLIC :: initial_setup, clean_up, print_available_programs
     !
@@ -90,7 +91,8 @@ CONTAINS
             'Available calculations:', &
             '- tester', &
             '- from_cube', &
-            '- descriptors'
+            '- descriptors', &
+            '- with_aims'
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_available_programs
@@ -111,6 +113,444 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE run_tester
+    !------------------------------------------------------------------------------------
+    !>
+    !! An Environ calculation communicating with an FHI-aims calculation
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE run_environ_with_aims()
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER :: comm, myid, aims_to_env_stat
+        CHARACTER(34) :: fname_aims_env, fname_env_aims
+        LOGICAL :: exist, finished
+        !
+        INTEGER, PARAMETER :: stat_env_init = 1
+        INTEGER, PARAMETER :: stat_env_updates = 2
+        INTEGER, PARAMETER :: stat_env_grid_getters = 3
+        INTEGER, PARAMETER :: stat_env_calc = 4
+        INTEGER, PARAMETER :: stat_env_cleanup = 5
+        !
+        CHARACTER(LEN=80) :: routine = 'run_environ_with_aims'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        comm = MPI_COMM_WORLD
+        myid = env_mp_rank(comm)
+        !
+        !--------------------------------------------------------------------------------
+        ! Filehandles to send and receive status to / from aims
+        !
+        WRITE(fname_aims_env, '(A,I0.10)') 'aims_to_env_stat_info_id', myid
+        WRITE(fname_env_aims, '(A,I0.10)') 'env_to_aims_stat_info_id', myid
+        !
+        !--------------------------------------------------------------------------------
+        ! Keep waiting for status signals from aims until cleanup has been called
+        !
+        finished = .false.
+        !
+        steps: DO
+            !
+            !----------------------------------------------------------------------------
+            ! Idle loop, wait until status file exists
+            !
+            check_stat: DO
+                !
+                INQUIRE(FILE=fname_aims_env, EXIST=exist)
+                !
+                IF (exist) THEN
+                    !
+                    OPEN(UNIT=146, FILE=fname_aims_env, STATUS='unknown', &
+                         ACTION='read', FORM='unformatted', ACCESS='stream')
+                    READ(146) aims_to_env_stat
+                    CLOSE(146, STATUS='delete')
+                    !
+                    EXIT check_stat
+                    !
+                ELSE
+                    !
+                    CALL sleep(1)
+                    !
+                ENDIF
+                !
+            ENDDO check_stat
+            !
+            !----------------------------------------------------------------------------
+            ! Status read, run corresponding calculation step
+            !
+            SELECT CASE (aims_to_env_stat)
+                !
+            CASE (stat_env_init)
+                CALL environ_aims_initializations()
+                !
+            CASE (stat_env_updates)
+                CALL environ_aims_updates()
+                !
+            CASE (stat_env_grid_getters)
+                CALL environ_aims_grid_getters()
+                !
+            CASE (stat_env_calc)
+                CALL environ_aims_calculators()
+                !
+            CASE (stat_env_cleanup)
+                CALL environ_aims_cleanup()
+                finished = .true.
+                !
+            END SELECT
+            !
+            !----------------------------------------------------------------------------
+            ! Pass status back to aims
+            !
+            OPEN(UNIT=146, FILE=fname_env_aims, STATUS='unknown', ACTION='write', &
+                 FORM='unformatted', ACCESS='stream')
+            WRITE(146) aims_to_env_stat
+            CLOSE(146)
+            !
+            !----------------------------------------------------------------------------
+            !
+            IF (finished) EXIT steps
+            !
+        ENDDO steps
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !>
+        !!
+        !--------------------------------------------------------------------------------
+        SUBROUTINE environ_aims_initializations()
+            !----------------------------------------------------------------------------
+            !
+            IMPLICIT NONE
+            !         
+            CHARACTER(34) :: fname
+            !
+            INTEGER :: n_atoms, n_species, ind, ind2
+            REAL(DP) :: lattice_vector(3,3)
+            INTEGER, ALLOCATABLE :: species(:)
+            REAL(DP), ALLOCATABLE :: species_z(:)
+            !
+            !----------------------------------------------------------------------------
+            ! Read data from aims
+            !
+            WRITE(fname, '(A,I0.10)') 'aims_to_env_init_info_id', myid
+            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='read', &
+                 FORM='unformatted', ACCESS='stream')
+            !
+            READ(147) n_atoms
+            READ(147) n_species
+            !
+            ALLOCATE(species(n_atoms))
+            ALLOCATE(species_z(n_species))
+            !
+            DO ind = 1, n_atoms
+                READ(147) species(ind)
+            ENDDO
+            DO ind = 1, n_species
+                READ(147) species_z(ind)
+            ENDDO
+            DO ind = 1, 3
+                DO ind2 = 1, 3
+                    READ(147) lattice_vector(ind, ind2)
+                ENDDO
+            ENDDO
+            !
+            CLOSE(147, STATUS='delete')
+            !
+            !----------------------------------------------------------------------------
+            ! Run Environ initializations
+            !
+            CALL environ%read_input(nsx=n_species)
+            CALL environ%setup%init()
+            CALL environ%setup%print_summary()
+            CALL environ%setup%init_cell(comm, lattice_vector)
+            CALL environ%setup%init_numerical()
+            CALL environ%main%init(n_atoms, n_species, species, species_z, &
+                                   number=NINT(species_z))
+            !
+            !----------------------------------------------------------------------------
+            ! Nothing to pass back to aims at this point, just deallocate and return
+            !
+            DEALLOCATE(species)
+            DEALLOCATE(species_z)
+            !
+            !----------------------------------------------------------------------------
+        END SUBROUTINE environ_aims_initializations
+        !--------------------------------------------------------------------------------
+        !>
+        !!
+        !--------------------------------------------------------------------------------
+        SUBROUTINE environ_aims_updates()
+            !----------------------------------------------------------------------------
+            !
+            IMPLICIT NONE
+            !
+            CHARACTER(34) :: fname
+            !
+            INTEGER :: n_atoms, ind
+            REAL(DP), ALLOCATABLE :: coords_pass(:,:), lattice_vector(:,:)
+            !
+            !----------------------------------------------------------------------------
+            ! Read data from aims
+            !
+            WRITE(fname, '(A,I0.10)') 'aims_to_env_updt_info_id', myid
+            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='read', &
+                 FORM='unformatted', ACCESS='stream')
+            !
+            READ(147) n_atoms
+            !
+            ALLOCATE(coords_pass(3,n_atoms))
+            ALLOCATE(lattice_vector(3,3))
+            !
+            DO ind = 1, n_atoms
+                READ(147) coords_pass(:,ind)
+            ENDDO
+            READ(147) lattice_vector
+            !
+            CLOSE(147, STATUS='delete')
+            !
+            !----------------------------------------------------------------------------
+            ! Run Environ updates
+            !
+            CALL environ%main%update_ions(n_atoms, coords_pass)
+            CALL environ%setup%update_cell(lattice_vector)
+            !
+            !----------------------------------------------------------------------------
+            ! Nothing to pass back to aims at this point, just deallocate and return
+            !
+            DEALLOCATE(coords_pass)
+            DEALLOCATE(lattice_vector)
+            !
+            !----------------------------------------------------------------------------
+        END SUBROUTINE environ_aims_updates
+        !--------------------------------------------------------------------------------
+        !>
+        !!
+        !--------------------------------------------------------------------------------
+        SUBROUTINE environ_aims_grid_getters()
+            !----------------------------------------------------------------------------
+            !
+            IMPLICIT NONE
+            !
+            CHARACTER(34) :: fname
+            !
+            INTEGER :: nnr, ir_end, nnt, ind, nr(3), nrx(3), nproc2, nproc3
+            REAL(DP), ALLOCATABLE :: points(:,:)
+            INTEGER, ALLOCATABLE :: i0r2p(:), i0r3p(:), nr2p(:), nr3p(:)
+            !
+            !----------------------------------------------------------------------------
+            ! Gather data
+            !
+            nnr = environ%setup%get_nnr()
+            ir_end = environ%setup%get_ir_end()
+            nnt = environ%setup%get_nnt()
+            DO ind = 1, 3
+                nr(ind) = environ%setup%get_nr(ind)
+            ENDDO
+            nrx = environ%setup%system_cell%nrx
+            nproc2 = environ%setup%system_cell%dfft%nproc2
+            nproc3 = environ%setup%system_cell%dfft%nproc3
+            !
+            ALLOCATE(i0r2p(nproc2))
+            ALLOCATE(i0r3p(nproc3))
+            ALLOCATE(nr2p(nproc2))
+            ALLOCATE(nr3p(nproc3))
+            ALLOCATE(points(3,nnr))
+            !
+            i0r2p = environ%setup%system_cell%dfft%i0r2p
+            i0r3p = environ%setup%system_cell%dfft%i0r3p
+            nr2p = environ%setup%system_cell%dfft%nr2p
+            nr3p = environ%setup%system_cell%dfft%nr3p
+            points = environ%setup%get_coords(nnr)
+            !
+            !----------------------------------------------------------------------------
+            ! Write data for aims
+            !
+            WRITE(fname, '(A,I0.10)') 'env_to_aims_grid_info_id', myid
+            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
+                 FORM='unformatted', ACCESS='stream')
+            !
+            WRITE(147) nnr
+            WRITE(147) ir_end
+            WRITE(147) nnt
+            DO ind = 1, 3
+                WRITE(147) nr(ind)
+            ENDDO
+            DO ind = 1, 3
+                WRITE(147) nrx(ind)
+            ENDDO
+            WRITE(147) nproc2
+            WRITE(147) nproc3
+            DO ind = 1, nproc2
+               WRITE(147) i0r2p(ind)
+               WRITE(147) nr2p(ind)
+            ENDDO
+            DO ind = 1, nproc3
+                WRITE(147) i0r3p(ind)
+                WRITE(147) nr3p(ind)
+            enddo
+            DO ind = 1, nnr
+                WRITE(147) points(:,ind)
+            ENDDO
+            !
+            CLOSE(147)
+            !
+            !----------------------------------------------------------------------------
+            !
+            DEALLOCATE(points)
+            DEALLOCATE(i0r2p)
+            DEALLOCATE(i0r3p)
+            DEALLOCATE(nr2p)
+            DEALLOCATE(nr3p)
+            !
+            !----------------------------------------------------------------------------
+        END SUBROUTINE environ_aims_grid_getters
+        !--------------------------------------------------------------------------------
+        !>
+        !!
+        !--------------------------------------------------------------------------------
+        SUBROUTINE environ_aims_calculators()
+            !----------------------------------------------------------------------------
+            !
+            IMPLICIT NONE
+            !
+            CHARACTER(34) :: fname
+            !
+            INTEGER :: ind, n_atoms, array_size, mype2, mype3
+            LOGICAL :: forces_on
+            REAL(DP) :: n_electrons, energy
+            REAL(DP), ALLOCATABLE :: rho(:), gradrho(:,:), forces(:,:), dvtot(:)
+            !
+            !----------------------------------------------------------------------------
+            !
+            energy = 0.
+            !
+            mype2 = environ%setup%system_cell%dfft%mype2
+            mype3 = environ%setup%system_cell%dfft%mype3
+            !
+            !----------------------------------------------------------------------------
+            ! Read data from aims
+            !
+            WRITE(fname, '(A,I0.10)') 'aims_to_env_elec_info_id', myid
+            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='read', &
+                 FORM='unformatted', ACCESS='stream')
+            !
+            READ(147) forces_on
+            READ(147) n_atoms
+            READ(147) n_electrons
+            READ(147) array_size
+            !
+            ALLOCATE(rho(array_size))
+            ALLOCATE(gradrho(3,array_size))
+            !
+            DO ind = 1, array_size
+                READ(147) rho(ind)
+            ENDDO
+            DO ind = 1, array_size
+                READ(147) gradrho(:,ind)
+            ENDDO
+            !
+            CLOSE(147, STATUS='delete')
+            !
+            !----------------------------------------------------------------------------
+            ! Update environ and deallocate temporary arrays
+            !
+            CALL environ%update_electrons(rho, nelec=n_electrons, lscatter=.false., &
+                                          gradrho_in=gradrho)
+            !
+            DEALLOCATE(rho)
+            DEALLOCATE(gradrho)
+            !
+            !----------------------------------------------------------------------------
+            ! Run calculators
+            !
+            CALL environ%calc%potential(update=.true.)
+            CALL environ%calc%energy(energy)
+            ALLOCATE(dvtot(array_size))
+            dvtot = environ%main%get_dvtot(array_size)
+            !
+            !----------------------------------------------------------------------------
+            ! Write energy, as well as part of potential owned by this processor
+            !
+            WRITE(fname, '(A,I0.10)') 'env_to_aims_ener_info_id', myid
+            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
+                 FORM='unformatted', ACCESS='stream')
+            !
+            WRITE(147) energy
+            !
+            CLOSE(147)
+            !
+            !----------------------------------------------------------------------------
+            !
+            WRITE(fname, '(A,I0.10,A,I0.10)') 'env_pot_proc_', mype2, '_', mype3
+            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
+                 FORM='unformatted', ACCESS='stream')
+            !
+            DO ind = 1, array_size
+                WRITE(147) dvtot(ind)
+            ENDDO
+            !
+            CLOSE(147)
+            !
+            DEALLOCATE(dvtot)
+            !
+            !----------------------------------------------------------------------------
+            ! Calculate and write forces, if requested
+            !
+            IF (forces_on) THEN
+                ALLOCATE(forces(3,n_atoms))
+                CALL environ%calc%force(n_atoms, forces)
+                !
+                WRITE(fname, '(A,I0.10)') 'env_to_aims_forc_info_id', myid
+                OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
+                     FORM='unformatted', ACCESS='stream')
+                !
+                DO ind = 1, n_atoms
+                    WRITE(147) forces(:,ind)
+                ENDDO
+                !
+                CLOSE(147)
+                !
+                DEALLOCATE(forces)
+            ENDIF
+            !
+            !----------------------------------------------------------------------------
+        END SUBROUTINE environ_aims_calculators
+        !--------------------------------------------------------------------------------
+        !>
+        !!
+        !--------------------------------------------------------------------------------
+        SUBROUTINE environ_aims_cleanup()
+            !----------------------------------------------------------------------------
+            !
+            IMPLICIT NONE
+            !
+            INTEGER :: mype2, mype3
+            CHARACTER(34) :: fname
+            !
+            !----------------------------------------------------------------------------
+            ! Clean up potential files
+            !
+            mype2 = environ%setup%system_cell%dfft%mype2
+            mype3 = environ%setup%system_cell%dfft%mype3
+            !
+            WRITE(fname, '(A,I0.10,A,I0.10)') 'env_pot_proc_', mype2, '_', mype3
+            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
+                 FORM='unformatted', ACCESS='stream')
+            !
+            CLOSE(147, STATUS='delete')
+            !
+            !----------------------------------------------------------------------------
+            ! clean_up() will be called in driver.f90, we're done here.
+            !
+            !----------------------------------------------------------------------------
+        END SUBROUTINE environ_aims_cleanup
+        !--------------------------------------------------------------------------------
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE run_environ_with_aims
     !------------------------------------------------------------------------------------
     !>
     !! An Environ calculation on a "frozen" density provided in a cube file
