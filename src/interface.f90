@@ -319,13 +319,6 @@ CONTAINS
         !
         REAL(DP), ALLOCATABLE :: rho(:)
         REAL(DP), ALLOCATABLE :: aux(:)
-
-        if (present(gradrho_in)) then
-                call io%writer('gradrho_in is present in interface')
-        else
-                call io%writer('gradrho_in is NOT present in interface')
-        endif
-
         !
         !--------------------------------------------------------------------------------
         ! On certain machines, the FFT-grid dimensions are performance-optimized. If

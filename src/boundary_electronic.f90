@@ -387,9 +387,6 @@ CONTAINS
                 !
             END IF
             !
-
-            call io%writer(this%derivatives_method)
-
             SELECT CASE (this%derivatives_method)
                 !
             CASE ('fft')

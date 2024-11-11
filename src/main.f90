@@ -491,13 +491,6 @@ CONTAINS
         !
         TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: environment_cell
-
-        if (present(gradrho)) then
-                call io%writer('gradrho is present in main')
-        else
-                call io%writer('gradrho is NOT present in main')
-        endif
-
         !
         !--------------------------------------------------------------------------------
         !
@@ -516,13 +509,6 @@ CONTAINS
         !
         this%system_electrons%density%label = 'small_electrons'
         !
-
-!        if (present(gradrho)) then
-!                call io%writer('gradrho is present in main')
-!        else
-!                call io%writer('gradrho is NOT present in main')
-!        endif
-
         IF (setup%ldoublecell) THEN
             ALLOCATE (aux(environment_cell%nnr))
             !
