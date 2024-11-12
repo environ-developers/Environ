@@ -245,17 +245,9 @@ CONTAINS
             ALLOCATE(species(n_atoms))
             ALLOCATE(species_z(n_species))
             !
-            DO ind = 1, n_atoms
-                READ(147) species(ind)
-            ENDDO
-            DO ind = 1, n_species
-                READ(147) species_z(ind)
-            ENDDO
-            DO ind = 1, 3
-                DO ind2 = 1, 3
-                    READ(147) lattice_vector(ind, ind2)
-                ENDDO
-            ENDDO
+            READ(147) species
+            READ(147) species_z
+            READ(147) lattice_vector
             !
             CLOSE(147, STATUS='delete')
             !
@@ -304,9 +296,7 @@ CONTAINS
             ALLOCATE(coords_pass(3,n_atoms))
             ALLOCATE(lattice_vector(3,3))
             !
-            DO ind = 1, n_atoms
-                READ(147) coords_pass(:,ind)
-            ENDDO
+            READ(147) coords_pass
             READ(147) lattice_vector
             !
             CLOSE(147, STATUS='delete')
@@ -375,25 +365,15 @@ CONTAINS
             WRITE(147) nnr
             WRITE(147) ir_end
             WRITE(147) nnt
-            DO ind = 1, 3
-                WRITE(147) nr(ind)
-            ENDDO
-            DO ind = 1, 3
-                WRITE(147) nrx(ind)
-            ENDDO
+            WRITE(147) nr
+            WRITE(147) nrx
             WRITE(147) nproc2
             WRITE(147) nproc3
-            DO ind = 1, nproc2
-               WRITE(147) i0r2p(ind)
-               WRITE(147) nr2p(ind)
-            ENDDO
-            DO ind = 1, nproc3
-                WRITE(147) i0r3p(ind)
-                WRITE(147) nr3p(ind)
-            enddo
-            DO ind = 1, nnr
-                WRITE(147) points(:,ind)
-            ENDDO
+            WRITE(147) i0r2p
+            WRITE(147) nr2p
+            WRITE(147) i0r3p
+            WRITE(147) nr3p
+            WRITE(147) points
             !
             CLOSE(147)
             !
@@ -445,12 +425,8 @@ CONTAINS
             ALLOCATE(rho(array_size))
             ALLOCATE(gradrho(3,array_size))
             !
-            DO ind = 1, array_size
-                READ(147) rho(ind)
-            ENDDO
-            DO ind = 1, array_size
-                READ(147) gradrho(:,ind)
-            ENDDO
+            READ(147) rho
+            READ(147) gradrho
             !
             CLOSE(147, STATUS='delete')
             !
@@ -468,7 +444,9 @@ CONTAINS
             !
             CALL environ%calc%potential(update=.true.)
             CALL environ%calc%energy(energy)
+            !
             ALLOCATE(dvtot(array_size))
+            !
             dvtot = environ%main%get_dvtot(array_size)
             !
             !----------------------------------------------------------------------------
@@ -488,9 +466,7 @@ CONTAINS
             OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
                  FORM='unformatted', ACCESS='stream')
             !
-            DO ind = 1, array_size
-                WRITE(147) dvtot(ind)
-            ENDDO
+            WRITE(147) dvtot
             !
             CLOSE(147)
             !
@@ -513,9 +489,7 @@ CONTAINS
                 OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
                      FORM='unformatted', ACCESS='stream')
                 !
-                DO ind = 1, n_atoms
-                    WRITE(147) forces(:,ind)
-                ENDDO
+                WRITE(147) forces
                 !
                 CLOSE(147)
                 !
