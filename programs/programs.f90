@@ -27,7 +27,7 @@ MODULE programs
     !------------------------------------------------------------------------------------
     !
     USE env_parallel_include
-    USE env_mp, ONLY: env_mp_rank, env_mp_stop, env_mp_sum
+    USE env_mp, ONLY: env_mp_rank, env_mp_stop, env_mp_sum, env_mp_size
     !
     USE env_mytime, ONLY: env_f_wall
     !
@@ -123,22 +123,46 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        INTEGER :: comm, myid, aims_to_env_stat
+        INTEGER :: comm, myid, mpi_size, aims_to_env_stat, env_to_aims_stat, ierr, &
+                   crash_file_size
         CHARACTER(34) :: fname_aims_env, fname_env_aims
-        LOGICAL :: exist, finished
+        LOGICAL :: exist, finished, initialized, updated
+        INTEGER, ALLOCATABLE :: stat_all_tasks(:)
         !
-        INTEGER, PARAMETER :: stat_env_init = 1
-        INTEGER, PARAMETER :: stat_env_updates = 2
-        INTEGER, PARAMETER :: stat_env_grid_getters = 3
-        INTEGER, PARAMETER :: stat_env_calc = 4
-        INTEGER, PARAMETER :: stat_env_cleanup = 5
+        !--------------------------------------------------------------------------------
+        ! This is copied over from aims. Not all values are actually used on this side.
+        ! See aims code for meaning of inividual values.
+        !
+        INTEGER, PARAMETER :: stat_env_err              = -101
+        INTEGER, PARAMETER :: stat_env_err_not_ini      = -102
+        INTEGER, PARAMETER :: stat_env_err_not_updt     = -103
+        INTEGER, PARAMETER :: stat_env_err_hand_ini     = -104
+        INTEGER, PARAMETER :: stat_env_err_hand_not_ini = -105
+        INTEGER, PARAMETER :: stat_env_err_inval        = -106
+        INTEGER, PARAMETER :: stat_env_stopped          = -107
+        INTEGER, PARAMETER :: stat_env_undef_env        = -1
+        INTEGER, PARAMETER :: stat_env_undef_aims       = -2
+        INTEGER, PARAMETER :: stat_env_ini              = 1
+        INTEGER, PARAMETER :: stat_env_updates          = 2
+        INTEGER, PARAMETER :: stat_env_grid_getters     = 3
+        INTEGER, PARAMETER :: stat_env_calc             = 4
+        INTEGER, PARAMETER :: stat_env_cleanup          = 5
+        INTEGER, PARAMETER :: stat_env_read_success     = 101
         !
         CHARACTER(LEN=80) :: routine = 'run_environ_with_aims'
         !
         !--------------------------------------------------------------------------------
         !
+        initialized = .false.
+        updated = .false.
+        !
+        !--------------------------------------------------------------------------------
+        !
         comm = MPI_COMM_WORLD
         myid = env_mp_rank(comm)
+        mpi_size = env_mp_size(comm)
+        !
+        ALLOCATE(stat_all_tasks(mpi_size))
         !
         !--------------------------------------------------------------------------------
         ! Filehandles to send and receive status to / from aims
@@ -154,9 +178,57 @@ CONTAINS
         steps: DO
             !
             !----------------------------------------------------------------------------
+            ! Set status that will be returned to aims to undefined. If work subroutines
+            ! do not overwrite it, aims will know that work has not been completed
+            ! correctly, and will terminate. A signal to terminate Environ will be sent
+            ! from aims, no need to check for the return status here.
+            !
+            env_to_aims_stat = stat_env_undef_env
+            !
+            !----------------------------------------------------------------------------
             ! Idle loop, wait until status file exists
             !
             check_stat: DO
+                !
+                !------------------------------------------------------------------------
+                ! Check if aims or a different process wrote a crash file. In this case,
+                ! we can come to a controlled termination where aims writes some
+                ! diagnostic output.
+                !
+                INQUIRE(FILE='AIMS_ENV_CRASH', EXIST=exist)
+                !
+                IF (exist) THEN
+                    !
+                    aims_to_env_stat = stat_env_cleanup
+                    EXIT check_stat
+                    !
+                ENDIF
+                !
+                !------------------------------------------------------------------------
+                ! Check if an error happened in aims, outside of the Environ interface,
+                ! and was redirected to AIMS_CRASH. In this case, we cannot write any
+                ! meaningful diagnostic output, but we can still terminate Environ. If
+                ! user did not redirect stderr, it is up to them to kill Environ after
+                ! aims has crashed.
+                !
+                INQUIRE(FILE='AIMS_CRASH', EXIST=exist)
+                !
+                IF (exist) then
+                    !
+                    INQUIRE(FILE='AIMS_CRASH', SIZE=crash_file_size)
+                    !
+                    IF (crash_file_size .gt. 0) THEN
+                        !
+                        aims_to_env_stat = stat_env_cleanup
+                        exit check_stat
+                        !
+                    ENDIF
+                    !
+                ENDIF
+                !
+                !------------------------------------------------------------------------
+                ! If no process sent a crash file, check for regular communication file
+                ! from aims
                 !
                 INQUIRE(FILE=fname_aims_env, EXIST=exist)
                 !
@@ -178,25 +250,68 @@ CONTAINS
             ENDDO check_stat
             !
             !----------------------------------------------------------------------------
-            ! Status read, run corresponding calculation step
+            ! Status read, check if all processes were sent the same status
+            !
+            stat_all_tasks(:) = 0
+            stat_all_tasks(myid+1) = aims_to_env_stat
+            CALL MPI_ALLREDUCE(MPI_IN_PLACE, stat_all_tasks, mpi_size, MPI_INTEGER, &
+                               MPI_SUM, comm, ierr)
+            !
+            !----------------------------------------------------------------------------
+            ! If different processes exited idle loop with different status, this is
+            ! probably because some of them caught a crash file. In this case, terminate
+            ! Environ. Aims will terminate on its own; if not because it sent the crash
+            ! file, then because Environ will return a different status than it was sent
+            ! on at least one process. No need to do anything fancy here.
+            !
+            IF (any(stat_all_tasks(:mpi_size) .ne. stat_all_tasks(1))) &
+                aims_to_env_stat = stat_env_cleanup
+            !
+            !----------------------------------------------------------------------------
+            ! Run the program step that was requested by aims
             !
             SELECT CASE (aims_to_env_stat)
                 !
-            CASE (stat_env_init)
-                CALL environ_aims_initializations()
+            CASE (stat_env_ini)
+                IF (io%lnode) WRITE(io%unit, '(A)') &
+                        '  [Environ side interface for FHI-aims] run initialization'
+                CALL environ_aims_initializations(env_to_aims_stat)
                 !
             CASE (stat_env_updates)
-                CALL environ_aims_updates()
+                IF (io%lnode) WRITE(io%unit, '(A)') &
+                        '  [Environ side interface for FHI-aims] run updates'
+                CALL environ_aims_updates(env_to_aims_stat)
                 !
             CASE (stat_env_grid_getters)
-                CALL environ_aims_grid_getters()
+                IF (io%lnode) WRITE(io%unit, '(A)') &
+                        '  [Environ side interface for FHI-aims] run grid getters'
+                CALL environ_aims_grid_getters(env_to_aims_stat)
                 !
             CASE (stat_env_calc)
-                CALL environ_aims_calculators()
+                IF (io%lnode) WRITE(io%unit, '(A)') &
+                        '  [Environ side interface for FHI-aims] run calculators'
+                CALL environ_aims_calculators(env_to_aims_stat)
                 !
             CASE (stat_env_cleanup)
-                CALL environ_aims_cleanup()
+                IF (io%lnode) WRITE(io%unit, '(A)') &
+                        '  [Environ side interface for FHI-aims] run cleanup'
+                CALL environ_aims_cleanup(env_to_aims_stat)
                 finished = .true.
+                !
+            CASE DEFAULT
+                !
+                !------------------------------------------------------------------------
+                ! In principle, this should already have been caught by aims before
+                ! any signal is sent to Environ. The only case when this error should
+                ! occur is when a new status is implemented in the version of aims that
+                ! was used in the run, but is not implemented in this Environ version.
+                !
+                ! Generally, erroneous status should be handled by aims.
+                !
+                IF (io%lnode) WRITE(io%unit, '(A)') &
+                        '  [Environ side interface for FHI-aims] unknown'//&
+                        ' input status. Check version compatibility.'
+                env_to_aims_stat = stat_env_err
                 !
             END SELECT
             !
@@ -205,7 +320,7 @@ CONTAINS
             !
             OPEN(UNIT=146, FILE=fname_env_aims, STATUS='unknown', ACTION='write', &
                  FORM='unformatted', ACCESS='stream')
-            WRITE(146) aims_to_env_stat
+            WRITE(146) env_to_aims_stat
             CLOSE(146)
             !
             !----------------------------------------------------------------------------
@@ -214,16 +329,20 @@ CONTAINS
             !
         ENDDO steps
         !
+        DEALLOCATE(stat_all_tasks)
+        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !>
         !!
         !--------------------------------------------------------------------------------
-        SUBROUTINE environ_aims_initializations()
+        SUBROUTINE environ_aims_initializations(stat)
             !----------------------------------------------------------------------------
             !
             IMPLICIT NONE
+            !
+            INTEGER, INTENT(INOUT) :: stat
             !         
             CHARACTER(34) :: fname
             !
@@ -268,21 +387,33 @@ CONTAINS
             DEALLOCATE(species)
             DEALLOCATE(species_z)
             !
+            initialized = .true.
+            stat = stat_env_ini
+            !
             !----------------------------------------------------------------------------
         END SUBROUTINE environ_aims_initializations
         !--------------------------------------------------------------------------------
         !>
         !!
         !--------------------------------------------------------------------------------
-        SUBROUTINE environ_aims_updates()
+        SUBROUTINE environ_aims_updates(stat)
             !----------------------------------------------------------------------------
             !
             IMPLICIT NONE
+            !
+            INTEGER, INTENT(INOUT) :: stat
             !
             CHARACTER(34) :: fname
             !
             INTEGER :: n_atoms, ind
             REAL(DP), ALLOCATABLE :: coords_pass(:,:), lattice_vector(:,:)
+            !
+            !----------------------------------------------------------------------------
+            !
+            if (.not. initialized) then
+                stat = stat_env_err_not_ini
+                return
+            endif
             !
             !----------------------------------------------------------------------------
             ! Read data from aims
@@ -314,21 +445,42 @@ CONTAINS
             DEALLOCATE(lattice_vector)
             !
             !----------------------------------------------------------------------------
+            ! Caution is advised here. This flag only checks if Environ has ever been
+            ! updated at all. It does not check if it was updated since the last
+            ! geometry change in aims.
+            !
+            updated = .true.
+            stat = stat_env_updates
+            !
+            !----------------------------------------------------------------------------
         END SUBROUTINE environ_aims_updates
         !--------------------------------------------------------------------------------
         !>
         !!
         !--------------------------------------------------------------------------------
-        SUBROUTINE environ_aims_grid_getters()
+        SUBROUTINE environ_aims_grid_getters(stat)
             !----------------------------------------------------------------------------
             !
             IMPLICIT NONE
+            !
+            INTEGER, INTENT(INOUT) :: stat
             !
             CHARACTER(34) :: fname
             !
             INTEGER :: nnr, ir_end, nnt, ind, nr(3), nrx(3), nproc2, nproc3
             REAL(DP), ALLOCATABLE :: points(:,:)
             INTEGER, ALLOCATABLE :: i0r2p(:), i0r3p(:), nr2p(:), nr3p(:)
+            !
+            !----------------------------------------------------------------------------
+            !
+            if (.not. initialized) then
+                stat = stat_env_err_not_ini
+                return
+            endif
+            if (.not. updated) then
+                stat = stat_env_err_not_updt
+                return
+            endif
             !
             !----------------------------------------------------------------------------
             ! Gather data
@@ -385,23 +537,38 @@ CONTAINS
             DEALLOCATE(nr2p)
             DEALLOCATE(nr3p)
             !
+            stat = stat_env_grid_getters
+            !
             !----------------------------------------------------------------------------
         END SUBROUTINE environ_aims_grid_getters
         !--------------------------------------------------------------------------------
         !>
         !!
         !--------------------------------------------------------------------------------
-        SUBROUTINE environ_aims_calculators()
+        SUBROUTINE environ_aims_calculators(stat)
             !----------------------------------------------------------------------------
             !
             IMPLICIT NONE
             !
+            INTEGER, INTENT(INOUT) :: stat
+            !
             CHARACTER(34) :: fname
             !
-            INTEGER :: ind, n_atoms, array_size, mype2, mype3, ierr
+            INTEGER :: ind, n_atoms, array_size, mype2, mype3
             LOGICAL :: forces_on
             REAL(DP) :: n_electrons, energy
             REAL(DP), ALLOCATABLE :: rho(:), gradrho(:,:), forces(:,:), dvtot(:)
+            !
+            !----------------------------------------------------------------------------
+            !
+            if (.not. initialized) then
+                stat = stat_env_err_not_ini
+                return
+            endif
+            if (.not. updated) then
+                stat = stat_env_err_not_updt
+                return
+            endif
             !
             !----------------------------------------------------------------------------
             !
@@ -473,12 +640,6 @@ CONTAINS
             DEALLOCATE(dvtot)
             !
             !----------------------------------------------------------------------------
-            ! Make sure each processor has written its potential before others might try
-            ! to read it in the interpolation
-            !
-            CALL MPI_Barrier(comm, ierr)
-            !
-            !----------------------------------------------------------------------------
             ! Calculate and write forces, if requested
             !
             IF (forces_on) THEN
@@ -496,16 +657,20 @@ CONTAINS
                 DEALLOCATE(forces)
             ENDIF
             !
+            stat = stat_env_calc
+            !
             !----------------------------------------------------------------------------
         END SUBROUTINE environ_aims_calculators
         !--------------------------------------------------------------------------------
         !>
         !!
         !--------------------------------------------------------------------------------
-        SUBROUTINE environ_aims_cleanup()
+        SUBROUTINE environ_aims_cleanup(stat)
             !----------------------------------------------------------------------------
             !
             IMPLICIT NONE
+            !
+            INTEGER, INTENT(INOUT) :: stat
             !
             INTEGER :: mype2, mype3
             CHARACTER(34) :: fname
@@ -524,6 +689,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             ! clean_up() will be called in driver.f90, we're done here.
+            !
+            stat = stat_env_cleanup
             !
             !----------------------------------------------------------------------------
         END SUBROUTINE environ_aims_cleanup
