@@ -237,6 +237,10 @@ CONTAINS
             !
             IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
                 CALL card_external_charges(local_unit, input_line)
+            ELSE IF (io%lnode) THEN
+                CALL io%warning("card "//TRIM(input_line)//" ignored", 1001)
+            END IF
+            !
             IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
                 CALL card_dielectric_regions(local_unit, input_line)
             ELSE IF (io%lnode) THEN
