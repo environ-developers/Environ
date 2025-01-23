@@ -256,7 +256,7 @@ CONTAINS
             ALLOCATE (aux(nnr))
             ALLOCATE (gaux(nnr))
             !
-            aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
+            aux = CMPLX(f%of_r, kind=DP)
             !
             CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
@@ -353,7 +353,7 @@ CONTAINS
                 ! z
                 !
                 i = 3
-                aux = CMPLX(grad%of_r(i, :), 0.0_DP, kind=DP)
+                aux = CMPLX(grad%of_r(i, :), kind=DP)
                 !
                 CALL env_fwfft('Rho', aux, dfft) ! bring a(i, r) to G-space, a(G)
                 !
@@ -373,7 +373,7 @@ CONTAINS
             ELSE
                 !
                 DO i = 1, 3
-                    aux = CMPLX(grad%of_r(i, :), 0.0_DP, kind=DP)
+                    aux = CMPLX(grad%of_r(i, :), kind=DP)
                     !
                     CALL env_fwfft('Rho', aux, dfft) ! bring a(i,r) to G-space, a(G)
                     !
@@ -432,7 +432,7 @@ CONTAINS
             ALLOCATE (aux(nnr))
             ALLOCATE (laux(nnr))
             !
-            aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
+            aux = CMPLX(f%of_r, kind=DP)
             !
             CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
@@ -490,7 +490,7 @@ CONTAINS
             ALLOCATE (gaux(nnr))
             ALLOCATE (haux(nnr))
             !
-            aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
+            aux = CMPLX(f%of_r, kind=DP)
             !
             CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
@@ -565,7 +565,7 @@ CONTAINS
             ! Bring fa and fb to reciprocal space
             !
             ALLOCATE (auxr(nnr))
-            auxr = CMPLX(f1%of_r, 0.D0, kind=DP)
+            auxr = CMPLX(f1%of_r, kind=DP)
             !
             CALL env_fwfft('Rho', auxr, dfft)
             !
@@ -574,7 +574,7 @@ CONTAINS
             !
             auxg(nl) = auxr(nl)
             !
-            auxr = CMPLX(f2%of_r, 0.D0, kind=DP)
+            auxr = CMPLX(f2%of_r, kind=DP)
             !
             CALL env_fwfft('Rho', auxr, dfft)
             !
@@ -797,14 +797,14 @@ CONTAINS
             ! Bring rho to G space
             !
             ALLOCATE (auxr(dfft%nnr))
-            auxr = CMPLX(rho%of_r, 0.D0, kind=DP)
+            auxr = CMPLX(rho%of_r, kind=DP)
             !
             CALL env_fwfft('Rho', auxr, dfft)
             !
             ALLOCATE (auxg(ngm))
             auxg = auxr(nl)
             !
-            auxr = CMPLX(0.D0, 0.D0, kind=DP)
+            auxr(:) = CMPLX(0.D0, 0.D0, kind=DP)
             !
             auxr(nl(1)) = auxg(1) * this%correction(1) * pi ! G = 0 term
             !
@@ -863,7 +863,7 @@ CONTAINS
             ! Bring rho to G space
             !
             ALLOCATE (auxr(dfft%nnr))
-            auxr = CMPLX(rho%of_r, 0.D0, KIND=DP)
+            auxr = CMPLX(rho%of_r, KIND=DP)
             !
             CALL env_fwfft('Rho', auxr, dfft)
             !
@@ -874,7 +874,7 @@ CONTAINS
             ! Compute gradient of potential in G space one direction at a time
             !
             DO i = 1, 3
-                auxr = CMPLX(0.0_DP, 0.0_DP)
+                auxr(:) = CMPLX(0.0_DP, 0.0_DP)
                 !
 !$omp parallel do private(fac)
                 DO j = this%cell%gstart, ngm
@@ -965,7 +965,7 @@ CONTAINS
             !
             ALLOCATE (auxr(dfft%nnr))
             !
-            auxr = CMPLX(rho%of_r, 0.D0, KIND=DP)
+            auxr = CMPLX(rho%of_r, KIND=DP)
             !
             CALL env_fwfft('Rho', auxr, dfft)
             !
@@ -1062,7 +1062,7 @@ CONTAINS
             ! Bring rho to G space
             !
             ALLOCATE (auxr(nnr))
-            auxr = CMPLX(rho, 0.D0, KIND=DP)
+            auxr = CMPLX(rho, KIND=DP)
             !
             CALL env_fwfft('Rho', auxr, dfft)
             !
@@ -1140,7 +1140,7 @@ CONTAINS
             ! Bring rho to G space
             !
             ALLOCATE (auxr(nnr))
-            auxr = CMPLX(rho, 0.D0, KIND=DP)
+            auxr = CMPLX(rho, KIND=DP)
             !
             CALL env_fwfft('Rho', auxr, dfft)
             !
@@ -1218,15 +1218,15 @@ CONTAINS
             ! Bring gradrho to G space
             !
             ALLOCATE (auxe(nnr))
-            auxe = CMPLX(0.D0, 0.D0, KIND=DP)
+            auxe(:) = CMPLX(0.D0, 0.D0, KIND=DP)
             !
             ALLOCATE (auxr(nnr))
-            auxr = CMPLX(0.D0, 0.D0, KIND=DP)
+            auxr(:) = CMPLX(0.D0, 0.D0, KIND=DP)
             !
             ALLOCATE (auxg(nnr))
             !
             DO i = 1, 3
-                auxg = CMPLX(grad_rho(i, :), 0.D0, KIND=DP)
+                auxg = CMPLX(grad_rho(i, :), KIND=DP)
                 !
                 CALL env_fwfft('Rho', auxg, dfft)
                 !
