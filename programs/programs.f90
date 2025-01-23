@@ -255,6 +255,11 @@ CONTAINS
         CALL calc_descriptors()
         !
         !--------------------------------------------------------------------------------
+        ! Write cube files corresponding to descriptors
+        !
+        CALL write_cube_descriptors()
+        !
+        !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !>
@@ -365,7 +370,8 @@ CONTAINS
                             IF (dist <= alpha(j)) THEN
                                 pvol(i, j) = pvol(i, j) + scal%of_r(ir) * cell%domega
                                 psurf(i, j) = psurf(i, j) + mod_grad%of_r(ir) * cell%domega
-                                if (environ%main%setup%lelectrostatic) ppol(i, j) = ppol(i, j) + pol_den%of_r(ir) * cell%domega
+                                if (environ%main%setup%lelectrostatic) &
+                                    ppol(i, j) = ppol(i, j) + pol_den%of_r(ir) * cell%domega
                             END IF
                             !
                         END DO
@@ -416,6 +422,27 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
         END SUBROUTINE calc_descriptors
+        !--------------------------------------------------------------------------------
+        !>
+        !!
+        !--------------------------------------------------------------------------------
+        SUBROUTINE write_cube_descriptors()
+            !----------------------------------------------------------------------------
+            !
+            IMPLICIT NONE
+            !
+            !----------------------------------------------------------------------------
+            !
+            CALL write_cube(environ%main%solvent%scaled, &
+                            environ%main%system_ions, 3)
+            CALL write_cube(environ%main%solvent%gradient%modulus, &
+                            environ%main%system_ions, 3)
+            IF (environ%main%setup%lelectrostatic) &
+                CALL write_cube(environ%main%static%density, &
+                                environ%main%system_ions, 3, label='static_density')
+            !
+            !----------------------------------------------------------------------------
+        END SUBROUTINE write_cube_descriptors
         !--------------------------------------------------------------------------------
         !>
         !!
