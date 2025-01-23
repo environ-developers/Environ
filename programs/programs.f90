@@ -240,11 +240,6 @@ CONTAINS
         cell => environ%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
-        ! Compute descriptors
-        !
-        CALL calc_descriptors()
-        !
-        !--------------------------------------------------------------------------------
         ! Get the energy of the system
         !
         IF (calc_energy) CALL get_energy()
@@ -253,6 +248,11 @@ CONTAINS
         ! Get the forces due to the surface and volume
         !
         IF (calc_force) CALL get_forces()
+        !
+        !--------------------------------------------------------------------------------
+        ! Compute descriptors
+        !
+        CALL calc_descriptors()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -298,7 +298,7 @@ CONTAINS
             INTEGER :: i, j, ir
             REAL(DP) :: r(3), r2, dist
             LOGICAL :: physical
-            REAL(DP), ALLOCATABLE :: alpha(:), pvol(:, :), psurf(:, :)
+            REAL(DP), ALLOCATABLE :: alpha(:), pvol(:, :), psurf(:, :), ppol(:, :)
             !
             TYPE(environ_boundary_ionic), POINTER :: solvent
             !
@@ -319,7 +319,8 @@ CONTAINS
                        num => solvent%soft_spheres%number, &
                        a_num => NINT(alpha_max / alpha_step), &
                        vol => solvent%volume, &
-                       surf => solvent%surface)
+                       surf => solvent%surface, &
+                       pol_den => environ%main%static%density)
                 !
                 !------------------------------------------------------------------------
                 ! Print out surface and volume
@@ -336,9 +337,11 @@ CONTAINS
                 ALLOCATE (alpha(a_num))
                 ALLOCATE (pvol(num, a_num))
                 ALLOCATE (psurf(num, a_num))
+                ALLOCATE (ppol(num, a_num))
                 !
                 pvol = 0.D0
                 psurf = 0.D0
+                ppol = 0.D0
                 !
                 DO i = 1, a_num
                     alpha(i) = alpha_step * i
@@ -362,6 +365,7 @@ CONTAINS
                             IF (dist <= alpha(j)) THEN
                                 pvol(i, j) = pvol(i, j) + scal%of_r(ir) * cell%domega
                                 psurf(i, j) = psurf(i, j) + mod_grad%of_r(ir) * cell%domega
+                                if (environ%main%setup%lelectrostatic) ppol(i, j) = ppol(i, j) + pol_den%of_r(ir) * cell%domega
                             END IF
                             !
                         END DO
@@ -374,6 +378,8 @@ CONTAINS
                 CALL env_mp_sum(pvol, io%comm)
                 !
                 CALL env_mp_sum(psurf, io%comm)
+                !
+                CALL env_mp_sum(ppol, io%comm)
 #endif
                 !
                 IF (io%lnode) THEN
@@ -384,7 +390,7 @@ CONTAINS
                         WRITE (io%unit, 2003)
                         !
                         DO j = 1, a_num
-                            WRITE (io%unit, 2004) alpha(j), pvol(i, j), psurf(i, j)
+                            WRITE (io%unit, 2004) alpha(j), pvol(i, j), psurf(i, j), ppol(i, j)
                         END DO
                         !
                         WRITE (io%unit, *)
@@ -404,9 +410,9 @@ CONTAINS
             !
 2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I4,/)
             !
-2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface", /, 9X, 52('-'))
+2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface  |     Partial Pol. Density", /, 9X, 81('-'))
             !
-2004        FORMAT(10X, F6.3, ' |', F17.8, '     |', f17.8)
+2004        FORMAT(10X, F6.3, ' |', F17.8, '     |', f17.8, '     |', f17.8)
             !
             !----------------------------------------------------------------------------
         END SUBROUTINE calc_descriptors
