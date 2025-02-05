@@ -51,6 +51,8 @@ MODULE programs
     !
     USE parsers
     !
+    USE environ_param, only: BOHR_RADIUS_ANGS
+    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -222,6 +224,12 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
+        ! TODO: If we want to integrate over cylinders or slabs, we should make these
+        !       input parameters or command line arguments. For now, integrate over
+        !       spheres.
+        INTEGER, PARAMETER :: descriptor_dim = 0
+        INTEGER, PARAMETER :: descriptor_axis = 1
+        !
         CHARACTER(LEN=80) :: routine = 'run_descriptors_generator'
         !
         !--------------------------------------------------------------------------------
@@ -252,7 +260,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Compute descriptors
         !
-        CALL calc_descriptors()
+        CALL calc_descriptors(descriptor_dim, descriptor_axis)
         !
         !--------------------------------------------------------------------------------
         ! Write cube files corresponding to descriptors
@@ -295,10 +303,12 @@ CONTAINS
         !>
         !!
         !--------------------------------------------------------------------------------
-        SUBROUTINE calc_descriptors()
+        SUBROUTINE calc_descriptors(dim, axis)
             !----------------------------------------------------------------------------
             !
             IMPLICIT NONE
+            !
+            INTEGER, INTENT(IN) :: dim, axis
             !
             INTEGER :: i, j, ir
             REAL(DP) :: r(3), r2, dist
@@ -318,10 +328,10 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            ASSOCIATE (ss => solvent%soft_spheres%array, &
+            ASSOCIATE (ions => environ%main%system_ions, &
                        scal => solvent%scaled, &
                        mod_grad => solvent%gradient%modulus, &
-                       num => solvent%soft_spheres%number, &
+                       num => environ%main%system_ions%number, &
                        a_num => NINT(alpha_max / alpha_step), &
                        vol => solvent%volume, &
                        surf => solvent%surface, &
@@ -358,8 +368,8 @@ CONTAINS
                     !
                     DO i = 1, num
                         !
-                        CALL cell%get_min_distance(ir, ss(i)%dim, ss(i)%axis, &
-                                                   ss(i)%pos, r, r2, physical)
+                        CALL cell%get_min_distance(ir, dim, axis, &
+                                                   ions%tau(:,i), r, r2, physical)
                         !
                         IF (.NOT. physical) CYCLE
                         !
@@ -391,7 +401,13 @@ CONTAINS
                 IF (io%lnode) THEN
                     !
                     DO i = 1, num
-                        WRITE (io%unit, 2002) i, solvent%ions%ityp(i)
+                        WRITE (io%unit, 2002) i, ions%ityp(i)
+                        !
+                        WRITE (io%unit, 2008) "Bohr", ions%tau(:,i)
+                        !
+                        WRITE (io%unit, 2008) "Angstrom", ions%tau(:,i) * BOHR_RADIUS_ANGS
+                        !
+                        WRITE (io%unit, '(A)') ""
                         !
                         WRITE (io%unit, 2003)
                         !
@@ -415,6 +431,8 @@ CONTAINS
 2001        FORMAT(5X, "Total surface of the QM region: ", F17.8,/)
             !
 2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I4,/)
+            !
+2008        FORMAT(5X, "Position (", A8, "): ", F18.8, 1X, F18.8, 1X, F18.8)
             !
 2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface  |     Partial Pol. Density", /, 9X, 81('-'))
             !
