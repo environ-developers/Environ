@@ -401,7 +401,7 @@ CONTAINS
                 IF (io%lnode) THEN
                     !
                     DO i = 1, num
-                        WRITE (io%unit, 2002) i, ions%ityp(i)
+                        WRITE (io%unit, 2002) i, ions%iontype(ions%ityp(i))%atmnum
                         !
                         WRITE (io%unit, 2008) "Bohr", ions%tau(:,i)
                         !
@@ -430,7 +430,7 @@ CONTAINS
             !
 2001        FORMAT(5X, "Total surface of the QM region: ", F17.8,/)
             !
-2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I4,/)
+2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I3,/)
             !
 2008        FORMAT(5X, "Position (", A8, "): ", F18.8, 1X, F18.8, 1X, F18.8)
             !
