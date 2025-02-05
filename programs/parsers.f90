@@ -33,7 +33,7 @@ MODULE parsers
     USE env_mp, ONLY: env_mp_bcast, env_mp_abort
     USE env_array_ops, ONLY: env_get_index
     !
-    USE environ_param, ONLY: DP
+    USE environ_param, ONLY: DP, BOHR_RADIUS_ANGS
     !
     USE cmdline_args
     !
@@ -147,7 +147,7 @@ CONTAINS
         CALL env_mp_bcast(at, io%node, io%comm)
         !
         IF (ANY(nr < 0)) THEN
-            fact = 1.8897259886D0
+            fact = 1./BOHR_RADIUS_ANGS
             nr = -nr
         ELSE
             fact = 1.D0
