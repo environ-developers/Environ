@@ -458,12 +458,14 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
-        LOGICAL :: print_cube = .TRUE.
+        LOGICAL :: print_cube
         REAL(DP) :: integral
         !
         CHARACTER(LEN=80) :: routine = 'print_environ_density'
         !
         !--------------------------------------------------------------------------------
+        !
+        print_cube = .TRUE.
         !
         IF (PRESENT(debug_verbose)) THEN
             base_verbose = debug_verbose
