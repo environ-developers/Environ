@@ -42,6 +42,7 @@ MODULE programs
     USE class_gradient, ONLY: environ_gradient
     !
     USE class_boundary_ionic, ONLY: environ_boundary_ionic
+    USE class_boundary_electronic, ONLY: environ_boundary_electronic
     !
     USE env_write_cube, ONLY: write_cube
     !
@@ -54,6 +55,8 @@ MODULE programs
     USE environ_param, only: BOHR_RADIUS_ANGS
     !
     USE tools_math, only: environ_erfc
+    !
+    USE env_base_input, ONLY: solvent_mode, alpha, softness
     !
     !------------------------------------------------------------------------------------
     !
@@ -346,7 +349,7 @@ CONTAINS
             !         
             CHARACTER(34) :: fname
             !
-            INTEGER :: n_atoms, n_species, ind, ind2
+            INTEGER :: n_atoms, n_species
             REAL(DP) :: lattice_vector(3,3)
             INTEGER, ALLOCATABLE :: species(:)
             REAL(DP), ALLOCATABLE :: species_z(:)
@@ -381,13 +384,69 @@ CONTAINS
             CALL environ%main%init(n_atoms, n_species, species, species_z, &
                                    number=NINT(species_z))
             !
-            !----------------------------------------------------------------------------
-            ! Nothing to pass back to aims at this point, just deallocate and return
-            !
             DEALLOCATE(species)
             DEALLOCATE(species_z)
             !
             initialized = .true.
+            !
+            !----------------------------------------------------------------------------
+            ! Pass 'safe' region of each species to FHI-aims
+            !
+            WRITE(fname, '(A,I0.10)') 'env_to_aims_init_info_id', myid
+            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
+                 FORM='unformatted', ACCESS='stream')
+            !
+            SELECT CASE (solvent_mode)
+                !
+            CASE ('electronic', 'full')
+                !
+                !------------------------------------------------------------------------
+                ! Flag for aims to get radii from isodensity
+                !
+                WRITE(147) .TRUE.
+                !
+                SELECT TYPE (slvnt => environ%main%solvent)
+                    !
+                TYPE IS (environ_boundary_electronic)
+                    WRITE(147) slvnt%rhomax
+                    !
+                CLASS DEFAULT
+                    stat = stat_env_err
+                    CLOSE(147)
+                    RETURN
+                    !
+                END SELECT
+                !
+            CASE ('ionic', 'system')
+                !
+                !------------------------------------------------------------------------
+                ! Flag for aims to not get radii from isodensity
+                !
+                WRITE(147) .FALSE.
+                !
+                IF (ANY(environ%main%system_ions%iontype(:)%solvationrad .le. &
+                        2.D0*softness/alpha)) THEN
+                    stat = stat_env_err
+                    CLOSE(147)
+                    RETURN
+                ENDIF
+                !
+                !------------------------------------------------------------------------
+                ! Get radius where (1-boundary function) = 0.5*(1+erf(-2)) < 1.e-2, then
+                ! take half of that radius
+                !
+                WRITE(147) (environ%main%system_ions%iontype(:)%solvationrad * alpha &
+                            - 2.D0 * softness) * 0.5D0
+                !
+            CASE DEFAULT
+                stat = stat_env_err
+                CLOSE(147)
+                RETURN
+                !
+            END SELECT
+            !
+            CLOSE(147)
+            !
             stat = stat_env_ini
             !
             !----------------------------------------------------------------------------
