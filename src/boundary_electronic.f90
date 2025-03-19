@@ -324,7 +324,6 @@ CONTAINS
         REAL(DP), POINTER :: rhomax, rhomin, fact
         !
         TYPE(environ_density), POINTER :: denloc
-        TYPE(environ_gradient), POINTER :: gradloc
         TYPE(environ_hessian), POINTER :: hessloc
         !
         INTEGER :: i, j

@@ -305,7 +305,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_electrons(this, rho_in, nelec, lscatter, gradrho_in)
+    SUBROUTINE update_electrons(this, rho_in, nelec, lscatter)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -313,7 +313,6 @@ CONTAINS
         REAL(DP), INTENT(IN) :: rho_in(:)
         REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         LOGICAL, OPTIONAL, INTENT(IN) :: lscatter
-        REAL(DP), OPTIONAL, INTENT(IN) :: gradrho_in(:,:)
         !
         CLASS(environ_interface), INTENT(INOUT) :: this
         !
@@ -355,7 +354,7 @@ CONTAINS
         aux = rho
 #endif
         !
-        CALL this%main%update_electrons(this%setup%system_cell%nnr, aux, nelec, gradrho=gradrho_in)
+        CALL this%main%update_electrons(this%setup%system_cell%nnr, aux, nelec)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_electrons

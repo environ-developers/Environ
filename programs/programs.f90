@@ -616,7 +616,7 @@ CONTAINS
             INTEGER :: ind, n_atoms, array_size, mype2, mype3
             LOGICAL :: forces_on
             REAL(DP) :: n_electrons, energy
-            REAL(DP), ALLOCATABLE :: rho(:), gradrho(:,:), forces(:,:), dvtot(:)
+            REAL(DP), ALLOCATABLE :: rho(:), forces(:,:), dvtot(:)
             !
             !----------------------------------------------------------------------------
             !
@@ -649,21 +649,17 @@ CONTAINS
             READ(147) array_size
             !
             ALLOCATE(rho(array_size))
-            ALLOCATE(gradrho(3,array_size))
             !
             READ(147) rho
-            READ(147) gradrho
             !
             CLOSE(147, STATUS='delete')
             !
             !----------------------------------------------------------------------------
             ! Update environ and deallocate temporary arrays
             !
-            CALL environ%update_electrons(rho, nelec=n_electrons, lscatter=.false., &
-                                          gradrho_in=gradrho)
+            CALL environ%update_electrons(rho, nelec=n_electrons, lscatter=.false.)
             !
             DEALLOCATE(rho)
-            DEALLOCATE(gradrho)
             !
             !----------------------------------------------------------------------------
             ! Run calculators

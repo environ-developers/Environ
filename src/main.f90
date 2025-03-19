@@ -475,7 +475,7 @@ CONTAINS
     !! is performed at every step of electronic optimization.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_update_electrons(this, nnr, rho, nelec, gradrho)
+    SUBROUTINE environ_update_electrons(this, nnr, rho, nelec)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -483,7 +483,6 @@ CONTAINS
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
         REAL(DP), OPTIONAL, INTENT(IN) :: nelec
-        REAL(DP), OPTIONAL, INTENT(IN) :: gradrho(3,nnr)
         !
         CLASS(environ_main), TARGET, INTENT(INOUT) :: this
         !
@@ -505,7 +504,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update electrons parameters
         !
-        CALL this%system_electrons%update(nnr, rho, nelec, gradrho=gradrho)
+        CALL this%system_electrons%update(nnr, rho, nelec)
         !
         this%system_electrons%density%label = 'small_electrons'
         !
@@ -514,10 +513,10 @@ CONTAINS
             !
             CALL setup%mapping%to_large(nnr, environment_cell%nnr, rho, aux)
             !
-            CALL this%environment_electrons%update(environment_cell%nnr, aux, nelec, gradrho=gradrho)
+            CALL this%environment_electrons%update(environment_cell%nnr, aux, nelec)
             !
         ELSE
-            CALL this%environment_electrons%update(nnr, rho, nelec, gradrho=gradrho)
+            CALL this%environment_electrons%update(nnr, rho, nelec)
         END IF
         !
         this%environment_electrons%density%label = 'large_electrons'
