@@ -48,7 +48,7 @@ MODULE class_setup
     !
     USE class_core
     USE class_core_fft
-    USE class_core_fft
+    USE class_core_fft_lowpass
     USE class_core_1da
     !
     USE class_solver_setup
@@ -173,7 +173,7 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Numerical cores
         !
-        TYPE(core_fft) :: env_fft, ref_fft
+        CLASS(core_fft), ALLOCATABLE :: env_fft, ref_fft
         TYPE(core_1da) :: env_1da
         !
         !--------------------------------------------------------------------------------
@@ -433,17 +433,30 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr)
+    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr, with_fhi_aims)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
+        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr, with_fhi_aims
+        !
+        LOGICAL :: use_lowpass
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         ! Initialize cores
+        !
+        use_lowpass = .FALSE.
+        IF (PRESENT(with_fhi_aims)) use_lowpass = with_fhi_aims
+        !
+        IF (use_lowpass) THEN
+            ALLOCATE(core_fft_lowpass :: this%ref_fft)
+            ALLOCATE(core_fft_lowpass :: this%env_fft)
+        ELSE
+            ALLOCATE(core_fft :: this%ref_fft)
+            ALLOCATE(core_fft :: this%env_fft)
+        ENDIF
         !
         IF (this%lfft_system) &
             CALL this%ref_fft%init(this%system_cell, use_internal_pbc_corr)

@@ -246,11 +246,6 @@ CONTAINS
             IF (this%electrons%lupdate) THEN
                 this%density%of_r = this%electrons%density%of_r
                 !
-                IF ( this%electrons%use_local_gradient ) THEN
-                    this%derivatives_method = 'chain-local'
-                    this%gradient%of_r = this%electrons%gradient%of_r
-                ENDIF
-                !
                 CALL this%build()
                 !
                 this%update_status = 2 ! boundary has changes and is ready
@@ -394,54 +389,6 @@ CONTAINS
                 !
             CASE ('chain')
                 CALL this%compute_boundary_derivatives_fft(denloc, hessloc)
-                !
-                !------------------------------------------------------------------------
-                ! Apply chain rule
-                !
-                IF (this%need_hessian) THEN
-                    !
-                    IF (this%solvent_aware) THEN
-                        !
-                        DO i = 1, 3
-                            !
-                            DO j = 1, 3
-                                !
-                                hessloc%of_r(i, j, :) = &
-                                    hessloc%of_r(i, j, :) * dscal%of_r + &
-                                    grad%of_r(i, :) * grad%of_r(j, :) * d2scal%of_r
-                                !
-                            END DO
-                            !
-                        END DO
-                        !
-                    END IF
-                    !
-                END IF
-                !
-                IF (this%need_laplacian) &
-                    lapl%of_r = lapl%of_r * dscal%of_r + &
-                                (grad%of_r(1, :)**2 + &
-                                 grad%of_r(2, :)**2 + &
-                                 grad%of_r(3, :)**2) * d2scal%of_r
-                !
-                IF (this%need_gradient) THEN
-                    !
-                    DO i = 1, 3
-                        grad%of_r(i, :) = grad%of_r(i, :) * dscal%of_r
-                    END DO
-                    !
-                END IF
-                !
-            CASE ('chain-local')
-                CALL io%writer('switched boundary derivative to chain-local')
-                ! Save local gradient of electronic density
-                ALLOCATE (gradloc)
-                CALL gradloc%init(cell)
-                gradloc%of_r = grad%of_r
-                !
-                CALL this%compute_boundary_derivatives_fft(denloc, hessloc)
-                grad%of_r = gradloc%of_r
-                DEALLOCATE(gradloc)
                 !
                 !------------------------------------------------------------------------
                 ! Apply chain rule

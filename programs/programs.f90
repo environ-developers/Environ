@@ -380,7 +380,7 @@ CONTAINS
             CALL environ%setup%init()
             CALL environ%setup%print_summary()
             CALL environ%setup%init_cell(comm, lattice_vector)
-            CALL environ%setup%init_numerical()
+            CALL environ%setup%init_numerical(with_fhi_aims=.TRUE.)
             CALL environ%main%init(n_atoms, n_species, species, species_z, &
                                    number=NINT(species_z))
             !
