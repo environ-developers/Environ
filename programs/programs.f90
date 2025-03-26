@@ -53,6 +53,8 @@ MODULE programs
     !
     USE environ_param, only: BOHR_RADIUS_ANGS
     !
+    USE tools_math, only: environ_erfc
+    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -311,7 +313,7 @@ CONTAINS
             INTEGER, INTENT(IN) :: dim, axis
             !
             INTEGER :: i, j, ir
-            REAL(DP) :: r(3), r2, dist
+            REAL(DP) :: r(3), r2, dist, weight
             LOGICAL :: physical
             REAL(DP), ALLOCATABLE :: alpha(:), pvol(:, :), psurf(:, :), ppol(:, :)
             !
@@ -377,12 +379,12 @@ CONTAINS
                         !
                         DO j = 1, a_num
                             !
-                            IF (dist <= alpha(j)) THEN
-                                pvol(i, j) = pvol(i, j) + scal%of_r(ir) * cell%domega
-                                psurf(i, j) = psurf(i, j) + mod_grad%of_r(ir) * cell%domega
-                                if (environ%main%setup%lelectrostatic) &
-                                    ppol(i, j) = ppol(i, j) + pol_den%of_r(ir) * cell%domega
-                            END IF
+                            weight = 0.5D0 * environ_erfc(2*(dist-alpha(j))/alpha_step) &
+                                     * cell%domega
+                            pvol(i, j) = pvol(i, j) + scal%of_r(ir) * weight
+                            psurf(i, j) = psurf(i, j) + mod_grad%of_r(ir) * weight
+                            if (environ%main%setup%lelectrostatic) ppol(i, j) = &
+                                ppol(i, j) + pol_den%of_r(ir) * weight
                             !
                         END DO
                         !
