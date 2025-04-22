@@ -7,13 +7,15 @@ MODULE class_core_fft_lowpass
     !
     USE env_fft_interfaces, ONLY: env_fwfft, env_invfft
     !
-    USE environ_param, ONLY: DP, pi, tpi, tpi2, pi_third
+    USE environ_param, ONLY: DP, pi, tpi, tpi2
     !
     USE class_density
     USE class_gradient
     USE class_hessian
     !
     USE tools_math, ONLY: environ_erfc
+    !
+    USE env_base_input, only: deriv_lowpass_p1, deriv_lowpass_p2
     !
     !------------------------------------------------------------------------------------
     !
@@ -35,7 +37,6 @@ MODULE class_core_fft_lowpass
         !--------------------------------------------------------------------------------
         !
         PROCEDURE :: gradient => gradient_fft_lowpass
-        PROCEDURE :: divergence => divergence_fft_lowpass
         PROCEDURE :: laplacian => laplacian_fft_lowpass
         PROCEDURE :: hessian => hessian_fft_lowpass
         !
@@ -89,13 +90,19 @@ CONTAINS
             CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
+            ! Apply low-pass filter
+            !
+            DO i = 1, this%cell%dfft%ngm
+                aux(nl(i)) = aux(nl(i)) * this%filter_lowpass(this%cell%gg(i))
+            ENDDO
+            !
+            !----------------------------------------------------------------------------
             ! Multiply by (iG) to get (\grad_ipol a)(G)
             !
             DO i = 1, 3
                 gaux = (0.0_DP, 0.0_DP)
                 !
                 gaux(nl) = this%cell%g(i, :) * &
-                           this%filter_lowpass(this%cell%dfft%ngm, this%cell%gg(:)) * &
                            CMPLX(-AIMAG(aux(nl)), REAL(aux(nl)), kind=DP)
                 !
                 IF (dfft%lgamma) &
@@ -117,122 +124,6 @@ CONTAINS
     END SUBROUTINE gradient_fft_lowpass
     !------------------------------------------------------------------------------------
     !>
-    !! Calculates div = \sum_i \grad_i a_i in R-space
-    !! input : grad(3,:) a real function on the real-space FFT grid
-    !! output: div(:)    \sum_i \grad_i a_i, real, on the real-space FFT grid
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE divergence_fft_lowpass(this, grad, div)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(core_fft_lowpass), INTENT(IN) :: this
-        TYPE(environ_gradient), INTENT(IN) :: grad
-        !
-        TYPE(environ_density), INTENT(INOUT) :: div
-        !
-        INTEGER :: n, i
-        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux
-        COMPLEX(DP) :: fp, fm, aux1, aux2
-        !
-        !--------------------------------------------------------------------------------
-        !
-        ASSOCIATE (dfft => this%cell%dfft, &
-                   nnr => this%cell%dfft%nnr, &
-                   nl => this%cell%dfft%nl, &
-                   nlm => this%cell%dfft%nlm, &
-                   ngm => this%cell%dfft%ngm, &
-                   g => this%cell%g)
-            !
-            !----------------------------------------------------------------------------
-            !
-            ALLOCATE (aux(nnr))
-            ALLOCATE (gaux(nnr))
-            !
-            gaux = (0.0_DP, 0.0_DP)
-            !
-            IF (dfft%lgamma) THEN
-                !
-                !------------------------------------------------------------------------
-                ! Gamma tricks: perform 2 FFT's in a single shot
-                !
-                ! x and y
-                !
-                i = 1
-                aux = CMPLX(grad%of_r(i, :), grad%of_r(i + 1, :), kind=DP)
-                !
-                CALL env_fwfft('Rho', aux, dfft) ! bring a(i,r) to G-space, a(G)
-                !
-                !------------------------------------------------------------------------
-                ! Multiply by iG to get the gradient in G-space
-                !
-                DO n = 1, ngm
-                    fp = (aux(nl(n)) + aux(nlm(n))) * 0.5_DP
-                    fm = (aux(nl(n)) - aux(nlm(n))) * 0.5_DP
-                    aux1 = CMPLX(REAL(fp), AIMAG(fm), kind=DP)
-                    aux2 = CMPLX(AIMAG(fp), -REAL(fm), kind=DP)
-                    !
-                    gaux(nl(n)) = CMPLX(0.0_DP, g(i, n), kind=DP) * aux1 + &
-                                  CMPLX(0.0_DP, g(i + 1, n), kind=DP) * aux2
-                    !
-                END DO
-                !
-                !------------------------------------------------------------------------
-                ! z
-                !
-                i = 3
-                aux = CMPLX(grad%of_r(i, :), kind=DP)
-                !
-                CALL env_fwfft('Rho', aux, dfft) ! bring a(i, r) to G-space, a(G)
-                !
-                !------------------------------------------------------------------------
-                ! Multiply by iG to get the gradient in G-space
-                ! Fill both gaux(G) and gaux(-G) = gaux*(G)
-                !
-                DO n = 1, ngm
-                    !
-                    gaux(nl(n)) = gaux(nl(n)) + &
-                                  g(i, n) * &
-                                  CMPLX(-AIMAG(aux(nl(n))), REAL(aux(nl(n))), kind=DP)
-                    !
-                    gaux(nlm(n)) = CONJG(gaux(nl(n)))
-                END DO
-                !
-            ELSE
-                !
-                DO i = 1, 3
-                    aux = CMPLX(grad%of_r(i, :), kind=DP)
-                    !
-                    CALL env_fwfft('Rho', aux, dfft) ! bring a(i,r) to G-space, a(G)
-                    !
-                    !--------------------------------------------------------------------
-                    ! Multiply by iG to get the gradient in G-space
-                    !
-                    DO n = 1, ngm
-                        !
-                        gaux(nl(n)) = &
-                            gaux(nl(n)) + &
-                            g(i, n) * &
-                            CMPLX(-AIMAG(aux(nl(n))), REAL(aux(nl(n))), kind=DP)
-                        !
-                    END DO
-                    !
-                END DO
-                !
-            END IF
-            !
-            CALL env_invfft('Rho', gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
-            !
-            div%of_r = tpi * REAL(gaux)
-            ! Add the factor 2\pi/a missing in the definition of G and sum
-            !
-        END ASSOCIATE
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE divergence_fft_lowpass
-    !------------------------------------------------------------------------------------
-    !>
     !! Calculates lapla = laplacian(a)
     !! input : f(:)       A real function on the real-space FFT grid
     !! output: lapla(:)   \nabla^2 a, real, on the real-space FFT grid
@@ -248,6 +139,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: lapla
         !
+        INTEGER :: i
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, laux
         !
         !--------------------------------------------------------------------------------
@@ -266,12 +158,18 @@ CONTAINS
             CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
+            ! Apply low-pass filter
+            !
+            DO i = 1, this%cell%dfft%ngm
+                aux(nl(i)) = aux(nl(i)) * this%filter_lowpass(this%cell%gg(i))
+            ENDDO
+            !
+            !----------------------------------------------------------------------------
             ! Compute the laplacian
             !
             laux = (0.0_DP, 0.0_DP)
             !
-            laux(nl) = -this%cell%gg * aux(nl) * &
-                        this%filter_lowpass(this%cell%dfft%ngm, this%cell%gg(:))
+            laux(nl) = -this%cell%gg * aux(nl)
             !
             IF (dfft%lgamma) &
                 laux(dfft%nlm) = CMPLX(REAL(laux(nl)), -AIMAG(laux(nl)), kind=DP)
@@ -325,13 +223,19 @@ CONTAINS
             CALL env_fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
+            ! Apply low-pass filter
+            !
+            DO i = 1, this%cell%dfft%ngm
+                aux(nl(i)) = aux(nl(i)) * this%filter_lowpass(this%cell%gg(i))
+            ENDDO
+            !
+            !----------------------------------------------------------------------------
             ! Multiply by (iG) to get (\grad_ipol a)(G)
             !
             DO i = 1, 3
                 gaux = (0.0_DP, 0.0_DP)
                 !
-                gaux(nl) = g(i, :) * CMPLX(-AIMAG(aux(nl)), REAL(aux(nl)), kind=DP) * &
-                           this%filter_lowpass(this%cell%dfft%ngm, this%cell%gg(:))
+                gaux(nl) = g(i, :) * CMPLX(-AIMAG(aux(nl)), REAL(aux(nl)), kind=DP)
                 !
                 IF (dfft%lgamma) &
                     gaux(nlm) = CMPLX(REAL(gaux(nl)), -AIMAG(gaux(nl)), kind=DP)
@@ -349,8 +253,7 @@ CONTAINS
                     haux = (0.0_DP, 0.0_DP)
                     !
                     haux(nl) = -g(i, :) * g(j, :) * &
-                               CMPLX(REAL(aux(nl)), AIMAG(aux(nl)), kind=DP) * &
-                               this%filter_lowpass(this%cell%dfft%ngm, this%cell%gg(:))
+                               CMPLX(REAL(aux(nl)), AIMAG(aux(nl)), kind=DP)
                     !
                     IF (dfft%lgamma) &
                         haux(nlm) = CMPLX(REAL(haux(nl)), -AIMAG(haux(nl)), kind=DP)
@@ -381,25 +284,20 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    FUNCTION filter_lowpass(this, ngm, gg)
+    FUNCTION filter_lowpass(this, gg)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(core_fft_lowpass), INTENT(IN) :: this
         !
-        REAL(DP) :: filter_lowpass(ngm)
-        INTEGER, INTENT(IN) :: ngm
-        REAL(DP), INTENT(IN) :: gg(ngm)
-        !
-        INTEGER :: i
+        REAL(DP) :: filter_lowpass
+        REAL(DP), INTENT(IN) :: gg
         !
         !--------------------------------------------------------------------------------
         !
-        DO i = 1, ngm
-            filter_lowpass(i) = 0.5D0 * environ_erfc( &
-                ( 8.D0 * gg(i) / this%cell%gcutm - 5.D0 ) * pi_third )
-        ENDDO
+        filter_lowpass = 0.5D0 * environ_erfc( &
+            deriv_lowpass_p1 * gg / this%cell%gcutm - deriv_lowpass_p2 )
         !
         !--------------------------------------------------------------------------------
     END FUNCTION filter_lowpass

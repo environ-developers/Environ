@@ -433,24 +433,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr, with_fhi_aims)
+    SUBROUTINE init_environ_numerical_base(this, use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr, with_fhi_aims
-        !
-        LOGICAL :: use_lowpass
+        LOGICAL, OPTIONAL, INTENT(IN) :: use_internal_pbc_corr
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'init_environ_numerical_base'
         !
         !--------------------------------------------------------------------------------
         ! Initialize cores
         !
-        use_lowpass = .FALSE.
-        IF (PRESENT(with_fhi_aims)) use_lowpass = with_fhi_aims
-        !
-        IF (use_lowpass) THEN
+        IF (deriv_lowpass_p1 .gt. 0.D0 .or. deriv_lowpass_p2 .gt. 0.D0) THEN
+            IF (deriv_lowpass_p1 .le. 0.D0 .or. deriv_lowpass_p2 .le. 0.D0) &
+                CALL io%error(routine, "Both lowpass parameters need to be positive", 1)
             ALLOCATE(core_fft_lowpass :: this%ref_fft)
             ALLOCATE(core_fft_lowpass :: this%env_fft)
         ELSE

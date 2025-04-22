@@ -477,6 +477,11 @@ MODULE env_base_input
     REAL(DP) :: sc_spread = 0.5D0
     ! spread of the interfaces for the mott schottky boundary
     !
+    REAL(DP) :: deriv_lowpass_p1 = -1.D0
+    REAL(DP) :: deriv_lowpass_p2 = -1.D0
+    ! If >0, apply low-pass filter in FFT core subroutines for gradient, Hessian, and
+    ! Laplacian
+    !
     !------------------------------------------------------------------------------------
     !
     NAMELIST /boundary/ &
@@ -486,7 +491,7 @@ MODULE env_base_input
         field_factor, field_asymmetry, field_max, field_min, electrolyte_mode, &
         electrolyte_distance, electrolyte_spread, electrolyte_rhomax, &
         electrolyte_rhomin, electrolyte_alpha, electrolyte_softness, deriv_method, &
-        deriv_core, sc_distance, sc_spread
+        deriv_core, sc_distance, sc_spread, deriv_lowpass_p1, deriv_lowpass_p2
     !
     !=---------------------------------------------------------------------------------=!
 !     ELECTROSTATIC Namelist Input Parameters

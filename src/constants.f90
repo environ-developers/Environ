@@ -51,7 +51,6 @@ MODULE environ_param
     REAL(DP), PARAMETER :: fpi = 4.0_DP * pi
     REAL(DP), PARAMETER :: sqrtpi = 1.77245385090551602729_DP
     REAL(DP), PARAMETER :: sqrt2 = 1.41421356237309504880_DP
-    REAL(DP), PARAMETER :: pi_third = pi / 3.D0
     !
     !------------------------------------------------------------------------------------
     ! Physical constants, SI (NIST CODATA 2006), Web Version 5.1
