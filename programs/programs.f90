@@ -376,7 +376,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Run Environ initializations
             !
-            CALL environ%read_input(nsx=n_species)
+            CALL environ%read_input(inputfile, nsx=n_species)
             CALL environ%setup%init()
             CALL environ%setup%print_summary()
             CALL environ%setup%init_cell(comm, lattice_vector)
