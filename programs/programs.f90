@@ -615,7 +615,7 @@ CONTAINS
             !
             INTEGER :: ind, n_atoms, array_size, mype2, mype3
             LOGICAL :: forces_on
-            REAL(DP) :: n_electrons, energy
+            REAL(DP) :: n_electrons, energy, denergy
             REAL(DP), ALLOCATABLE :: rho(:), forces(:,:), dvtot(:)
             !
             !----------------------------------------------------------------------------
@@ -631,7 +631,8 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            energy = 0.
+            energy = 0.D0
+            denergy = 0.D0
             !
             mype2 = environ%setup%system_cell%dfft%mype2
             mype3 = environ%setup%system_cell%dfft%mype3
@@ -666,6 +667,7 @@ CONTAINS
             !
             CALL environ%calc%potential(update=.true.)
             CALL environ%calc%energy(energy)
+            CALL environ%calc%denergy(denergy)
             !
             ALLOCATE(dvtot(array_size))
             !
@@ -679,6 +681,7 @@ CONTAINS
                  FORM='unformatted', ACCESS='stream')
             !
             WRITE(147) energy
+            WRITE(147) denergy
             !
             CLOSE(147)
             !
