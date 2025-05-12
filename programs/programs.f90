@@ -396,54 +396,67 @@ CONTAINS
             OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
                  FORM='unformatted', ACCESS='stream')
             !
-            SELECT CASE (solvent_mode)
-                !
-            CASE ('electronic', 'full')
-                !
-                !------------------------------------------------------------------------
-                ! Flag for aims to get radii from isodensity
-                !
-                WRITE(147) .TRUE.
-                !
-                SELECT TYPE (slvnt => environ%main%solvent)
+            IF (environ%setup%lsolvent) THEN
+                SELECT CASE (solvent_mode)
                     !
-                TYPE IS (environ_boundary_electronic)
-                    WRITE(147) slvnt%rhomax
+                CASE ('electronic', 'full')
                     !
-                CLASS DEFAULT
+                    !------------------------------------------------------------------------
+                    ! Flag for aims to get radii from isodensity
+                    !
+                    WRITE(147) .TRUE.
+                    !
+                    SELECT TYPE (slvnt => environ%main%solvent)
+                        !
+                    TYPE IS (environ_boundary_electronic)
+                        WRITE(147) slvnt%rhomax
+                        !
+                    CLASS DEFAULT
+                        stat = stat_env_err
+                        CLOSE(147)
+                        RETURN
+                        !
+                    END SELECT
+                    !
+                CASE ('ionic', 'system')
+                    !
+                    !------------------------------------------------------------------------
+                    ! Flag for aims to not get radii from isodensity
+                    !
+                    WRITE(147) .FALSE.
+                    !
+                    IF (ANY(environ%main%system_ions%iontype(:)%solvationrad .le. &
+                            2.D0*softness/alpha)) THEN
+                        stat = stat_env_err
+                        CLOSE(147)
+                        RETURN
+                    ENDIF
+                    !
+                    !------------------------------------------------------------------------
+                    ! Get radius where (1-boundary function) = 0.5*(1+erf(-2)) < 1.e-2, then
+                    ! take half of that radius
+                    !
+                    WRITE(147) (environ%main%system_ions%iontype(:)%solvationrad * alpha &
+                                - 2.D0 * softness) * 0.5D0
+                    !
+                CASE DEFAULT
                     stat = stat_env_err
                     CLOSE(147)
                     RETURN
                     !
                 END SELECT
                 !
-            CASE ('ionic', 'system')
+            ELSE
                 !
                 !------------------------------------------------------------------------
-                ! Flag for aims to not get radii from isodensity
+                ! Likely only PBC corrections. Default to determining smoothing cutoff
+                ! radii from default SCCS rhomax, if not user specified.
                 !
-                WRITE(147) .FALSE.
+                WRITE(147) .TRUE.
                 !
-                IF (ANY(environ%main%system_ions%iontype(:)%solvationrad .le. &
-                        2.D0*softness/alpha)) THEN
-                    stat = stat_env_err
-                    CLOSE(147)
-                    RETURN
-                ENDIF
+                WRITE(147) 0.005D0
                 !
-                !------------------------------------------------------------------------
-                ! Get radius where (1-boundary function) = 0.5*(1+erf(-2)) < 1.e-2, then
-                ! take half of that radius
-                !
-                WRITE(147) (environ%main%system_ions%iontype(:)%solvationrad * alpha &
-                            - 2.D0 * softness) * 0.5D0
-                !
-            CASE DEFAULT
-                stat = stat_env_err
-                CLOSE(147)
-                RETURN
-                !
-            END SELECT
+            ENDIF
             !
             CLOSE(147)
             !
