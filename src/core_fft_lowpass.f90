@@ -4,14 +4,16 @@ MODULE class_core_fft_lowpass
     USE class_core_fft
     !
     USE class_io, ONLY: io
+    USE env_mp, ONLY: env_mp_sum
     !
     USE env_fft_interfaces, ONLY: env_fwfft, env_invfft
     !
-    USE environ_param, ONLY: DP, pi, tpi, tpi2
+    USE environ_param, ONLY: DP, pi, tpi, tpi2, fpi, e2
     !
     USE class_density
     USE class_gradient
     USE class_hessian
+    USE class_functions
     !
     USE tools_math, ONLY: environ_erfc
     !
@@ -39,6 +41,8 @@ MODULE class_core_fft_lowpass
         PROCEDURE :: gradient => gradient_fft_lowpass
         PROCEDURE :: laplacian => laplacian_fft_lowpass
         PROCEDURE :: hessian => hessian_fft_lowpass
+        !
+        PROCEDURE :: force => force_fft_lowpass
         !
         PROCEDURE, PRIVATE :: filter_lowpass
         !
@@ -274,6 +278,127 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_fft_lowpass
+    !------------------------------------------------------------------------------------
+    !>
+    !! Compute the force in G-space using a Gaussian-smeared ion description
+    !!
+    !! @ param nat   : number of ions
+    !! @ param rho   : input density
+    !! @ param ions  : object containing the charge, spread, and position of the ions
+    !! @ param force : output force
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE force_fft_lowpass(this, nat, rho, ions, force)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_fft_lowpass), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: nat
+        TYPE(environ_density), INTENT(IN) :: rho
+        TYPE(environ_functions), INTENT(IN) :: ions
+        !
+        REAL(DP), INTENT(INOUT) :: force(3, nat)
+        !
+        INTEGER :: i, j
+        !
+        REAL(DP) :: fact ! symmetry factor
+        REAL(DP) :: fpibg2 ! 4pi / G^2
+        REAL(DP) :: t_arg ! G . R
+        REAL(DP) :: e_arg ! -D^2 * G^2 / 4
+        REAL(DP) :: euler_term ! sin(G . R) * Re(rho(G)) + cos(G . R) * Im(rho(G))
+        REAL(DP) :: gauss_term ! Z * 4pi / G^2 * exp(-D^2 * G^2 / 4)
+        REAL(DP) :: main_term ! gauss_term + any active PBC correction
+        !
+        REAL(DP) :: R(3) ! position vector
+        !
+        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
+        !
+        CHARACTER(LEN=80) :: routine = 'force_fft'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nat /= ions%number) &
+            CALL io%error(routine, &
+                          'Mismatch in numbers of atoms passed in input and stored', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   ngm => this%cell%dfft%ngm, &
+                   G => this%cell%g, &
+                   G2 => this%cell%gg)
+            !
+            !----------------------------------------------------------------------------
+            ! Bring rho to G space
+            !
+            ALLOCATE (auxr(dfft%nnr))
+            !
+            auxr = CMPLX(rho%of_r, KIND=DP)
+            !
+            CALL env_fwfft('Rho', auxr, dfft)
+            !
+            ALLOCATE (auxg(ngm))
+            auxg = auxr(dfft%nl) ! aux now contains n(G)
+            DEALLOCATE (auxr)
+            !
+            !----------------------------------------------------------------------------
+            ! Apply low-pass filter
+            !
+            DO j = 1, ngm
+                auxg(j) = auxg(j) * this%filter_lowpass(G2(j))
+            ENDDO
+            !
+            !----------------------------------------------------------------------------
+            ! Set symmetry factor
+            !
+            IF (dfft%lgamma) THEN
+                fact = 2.D0
+            ELSE
+                fact = 1.D0
+            END IF
+            !
+            !----------------------------------------------------------------------------
+            ! Compute force
+            !
+            force = 0.D0
+            !
+            DO i = 1, nat
+                !
+                ASSOCIATE (Z => ions%array(i)%volume, & ! ionic charge
+                           D => ions%array(i)%spread, & ! gaussian spread of smeared ion
+                           R => ions%array(i)%pos - this%cell%origin) ! ion position
+                    !
+                    DO j = this%cell%gstart, ngm
+                        fpibg2 = fpi / (G2(j) * tpi2)
+                        !
+                        t_arg = tpi * SUM(G(:, j) * R)
+                        !
+                        euler_term = SIN(t_arg) * DBLE(auxg(j)) + &
+                                     COS(t_arg) * AIMAG(auxg(j))
+                        !
+                        e_arg = -0.25D0 * D**2 * G2(j) * tpi2
+                        gauss_term = fpibg2 * EXP(e_arg)
+                        !
+                        main_term = gauss_term + this%correction(j)
+                        !
+                        force(:, i) = force(:, i) + G(:, j) * euler_term * main_term
+                    END DO
+                    !
+                    force(:, i) = force(:, i) * Z
+                    !
+                END ASSOCIATE
+                !
+            END DO
+            !
+            force = force * tpi * e2 * fact
+            !
+            CALL env_mp_sum(force, rho%cell%dfft%comm)
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE force_fft_lowpass
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
