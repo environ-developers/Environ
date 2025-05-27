@@ -53,6 +53,10 @@ MODULE class_electrons
     TYPE, PUBLIC :: environ_electrons
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE.
         !
         INTEGER :: number = 0
@@ -123,6 +127,8 @@ CONTAINS
         !
         CALL this%density%init(cell, 'electrons')
         !
+        this%initialized = .TRUE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrons
     !------------------------------------------------------------------------------------
@@ -189,6 +195,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%density%destroy()
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrons

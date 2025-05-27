@@ -61,6 +61,10 @@ MODULE class_externals
     TYPE, PUBLIC :: environ_externals
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE.
 
         INTEGER :: number = 0
@@ -140,6 +144,8 @@ CONTAINS
         IF (n > 0) &
             CALL this%functions%init(n, 1, axes, dims, spreads, spreads, -charges, pos)
         !
+        !
+        this%initialized = .TRUE.
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_externals
     !------------------------------------------------------------------------------------
@@ -185,6 +191,8 @@ CONTAINS
         CALL this%density%destroy()
         !
         CALL this%functions%destroy()
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_externals

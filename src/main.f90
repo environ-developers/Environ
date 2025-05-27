@@ -135,6 +135,7 @@ MODULE class_environ
         !
         PROCEDURE, PRIVATE :: create => create_environ_base
         PROCEDURE :: init => init_environ_base
+        PROCEDURE :: destroy => destroy_environ_base
         PROCEDURE :: add_charges => environ_add_charges
         !
 !        PROCEDURE :: get_evolume
@@ -237,6 +238,61 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_base
+    !------------------------------------------------------------------------------------
+    !>
+    !! Subroutine to destroy main object to allow for re-initialization
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_environ_base(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_main), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: routine = 'destroy_environ_base'
+        !
+        ! NULLIFY(this%setup) ! pointer is associated in interface, not main
+        !
+        IF (this%system_ions%initialized) CALL this%system_ions%destroy()
+        IF (this%environment_ions%initialized) CALL this%environment_ions%destroy()
+        IF (this%system_system%initialized) CALL this%system_system%destroy()
+        IF (this%environment_system%initialized) CALL this%environment_system%destroy()
+        IF (this%system_electrons%initialized) CALL this%system_electrons%destroy()
+        IF (this%environment_electrons%initialized) CALL this%environment_electrons%destroy()
+        IF (this%system_charges%initialized) CALL this%system_charges%destroy()
+        IF (this%environment_charges%initialized) CALL this%environment_charges%destroy()
+        IF (this%solvent%initialized) CALL this%solvent%destroy()
+        DEALLOCATE(this%solvent)
+        IF (this%system_response_electrons%initialized) CALL this%system_response_electrons%destroy()
+        IF (this%environment_response_electrons%initialized) CALL this%environment_response_electrons%destroy()
+        IF (this%system_response_charges%initialized) CALL this%system_response_charges%destroy()
+        IF (this%environment_response_charges%initialized) CALL this%environment_response_charges%destroy()
+        IF (this%externals%initialized) CALL this%externals%destroy()
+        IF (this%static%initialized) CALL this%static%destroy()
+        IF (this%optical%initialized) CALL this%optical%destroy()
+        IF (this%electrolyte%initialized) CALL this%electrolyte%destroy()
+        IF (this%semiconductor%initialized) CALL this%semiconductor%destroy()
+        IF (this%vzero%initialized) CALL this%vzero%destroy()
+        IF (this%velectrostatic%initialized) CALL this%velectrostatic%destroy()
+        IF (this%vreference%initialized) CALL this%vreference%destroy()
+        IF (this%dvtot%initialized) CALL this%dvtot%destroy()
+        IF (this%vconfine%initialized) CALL this%vconfine%destroy()
+        IF (this%vsoftcavity%initialized) CALL this%vsoftcavity%destroy()
+        !
+        this%evolume = 0.0_DP
+        this%esurface = 0.0_DP
+        this%econfine = 0.0_DP
+        this%deenviron = 0.0_DP
+        this%eelectrolyte = 0.0_DP
+        this%eelectrostatic = 0.0_DP
+        !
+        IF (this%additional_charges%initialized) CALL this%additional_charges%destroy()
+        !
+        this%initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_environ_base
     !------------------------------------------------------------------------------------
     !>
     !!
