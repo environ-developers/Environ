@@ -49,7 +49,8 @@ and follow the above directions to unpack the archive
 
 .. note::
       Environ versions prior to :guilabel:`v3.0` require Environ root to be placed inside QE root
-      Environ versions :guilabel:`v3.0+` MUST NOT be placed inside the QE root directory
+      For :guilabel:`v3.0+` do not install Environ inside the QE root directory
+
 
 .. _QE releases: https://gitlab.com/QEF/q-e/-/releases
 .. _Environ releases: https://github.com/environ-developers/Environ/releases
