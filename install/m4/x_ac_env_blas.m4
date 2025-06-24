@@ -1,12 +1,12 @@
 # Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
-# Copyright (C) 2001-2020 Quantum ESPRESSO Foundation
+# Copyright (C) 2001-2025 Quantum ESPRESSO Foundation
 
 AC_DEFUN([X_AC_ENV_BLAS], [
 
 have_blas=0
 
 # Flags for machine-specific libraries
-have_acml=0
+have_aocl=0
 have_atlas=0
 have_essl=0
 have_mkl=0
@@ -25,6 +25,15 @@ else
 
     # search for architecture-specific libraries
     
+    *:flang )
+	    #
+            # AOCC: assume -lblis -lflame without testing 
+	    #
+            unset ac_cv_search_dgemm # clear cached value
+            blas_libs="-lblis -lflame"
+            have_blas=1
+            have_aocl=1
+            ;;
     x86_64:* | mac686:* )
             #
             # search for MKL in directory $MKL_ROOT
@@ -37,11 +46,12 @@ else
                MKLROOT=/opt/intel/mkl
             fi
 	    case "$f90" in
-	       ifort* | *:ifx* )
+	       ifort* | ifx* )
       		    mkl_lib="mkl_intel_lp64"
       		    mkl_omp="mkl_intel_thread"
 		    if test "$arch" == "mac686"; then
-		       add_mkl_flag="-openmp"
+                       # for ifort v.15 or later
+		       add_mkl_flag="-qopenmp"
 		       add_mkl_lib="-lpthread"
 		       add_mkl_omp="-lpthread"
 		    fi
@@ -166,17 +176,21 @@ else
 	    
     arm:armflang )
 	    # search for ARM libs - ARM compiler
+	    # PG: This section seems to me useless, 
+	    # just add option -armpl to $fflags, set have_blas=1 have_armpl=1
             if test "$use_openmp" -eq 0; then 
                FFLAGS="-armpl"
+               ARMLIB="armpl"
             else 
                FFLAGS="-fopenmp -armpl=parallel" 
+               ARMLIB="armpl_mp"
             fi 
-            AC_SEARCH_LIBS(dgemm, armpl_arm,
+            AC_SEARCH_LIBS(dgemm, $ARMLIB,
                                    have_blas=1 have_armpl=1
                                    blas_libs=""
                                    ldflags="$ldflags \$(FFLAGS)",
-                                   echo "armpl not found",
-                                   yes)
+                                   echo "armpl not found"
+                                   )
             if test "$have_armpl" -eq 1; then 
                if test "$use_openmp" -eq 0; then 
                   fflags="$fflags  -armpl"

@@ -1,11 +1,11 @@
 # Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
-# Copyright (C) 2001-2020 Quantum ESPRESSO Foundation
+# Copyright (C) 2001-2025 Quantum ESPRESSO Foundation
 
 AC_DEFUN([X_AC_ENV_LAPACK], [
 
-if test "$have_mkl" -ne 0 || test "$have_armpl" -ne 0 || test "$have_acml" -ne 0 || test "$have_essl" -ne 0 
+if test "$have_mkl" -ne 0 || test "$have_armpl" -ne 0 || test "$have_aocl" -ne 0 || test "$have_essl" -ne 0
 then
-   # MKL or ARM libraries or ACML (obsolete) or ESSL (obsolete?) found:
+   # MKL or ARM libraries or AOCL or ESSL (obsolete?) found:
    # no need to check for lapack
    have_lapack=1
 else
@@ -83,13 +83,19 @@ fi
 
 if test "$have_lapack" -eq 0  ; then
     echo LAPACK library not found; exit 1
-#     lapack_libs="\$(TOPDIR)/LAPACK/liblapack.a"
-#     echo setting LAPACK to internal library ...  $lapack_libs
+#    lapack_libs="\$(TOPDIR)/LAPACK/liblapack.a"
+#    echo setting LAPACK to internal library ...  $lapack_libs
+    lapack_target="liblapack"
+else
+    lapack_target=""
 fi
 lapack_line="LAPACK_LIBS=$lapack_libs"
 
 AC_SUBST(lapack_libs)
+AC_SUBST(lapack_target)  
 AC_SUBST(lapack_line)
 
+AC_CONFIG_FILES(install/make_lapack.inc)
+  
   ]
 )
