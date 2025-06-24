@@ -96,8 +96,8 @@ then
    cuda_libs="-cudalib=cufft,cublas,cusolver,curand \$(TOPDIR)/devxlib/src/libdevXlib.a"
    
    cuda_fflags="-cuda -gpu=cc$with_cuda_cc,cuda$with_cuda_runtime"
-   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/external/devxlib/src"
-   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/external/devxlib/include"
+   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/devxlib/src"
+   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/devxlib/include"
    #
    if test "$enable_nvtx" == "yes"; then
       try_dflags="$try_dflags -D__PROFILE_NVTX"
