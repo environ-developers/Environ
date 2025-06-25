@@ -7,7 +7,7 @@
 # of the License. See the file `License' in the root directory
 # of the present distribution.
 
-AC_INIT(ENVIRON, 3.0, , environ)
+AC_INIT(ENVIRON, 3.1.1, , environ)
 
 AC_PREREQ(2.64)
 AC_CONFIG_MACRO_DIR([m4/])
