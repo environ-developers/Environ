@@ -95,7 +95,5 @@ AC_SUBST(lapack_libs)
 AC_SUBST(lapack_target)  
 AC_SUBST(lapack_line)
 
-AC_CONFIG_FILES(install/make_lapack.inc)
-  
   ]
 )

@@ -4698,8 +4698,8 @@ fi
    cuda_libs="-cudalib=cufft,cublas,cusolver,curand \$(TOPDIR)/devxlib/src/libdevXlib.a"
 
    cuda_fflags="-cuda -gpu=cc$with_cuda_cc,cuda$with_cuda_runtime"
-   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/external/devxlib/src"
-   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/external/devxlib/include"
+   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/devxlib/src"
+   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/devxlib/include"
    #
    if test "$enable_nvtx" == "yes"; then
       try_dflags="$try_dflags -D__PROFILE_NVTX"
@@ -6215,9 +6215,6 @@ lapack_line="LAPACK_LIBS=$lapack_libs"
 
 
 
-
-
-ac_config_files="$ac_config_files install/make_lapack.inc"
 
 
 
@@ -8022,7 +8019,6 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
-    "install/make_lapack.inc") CONFIG_FILES="$CONFIG_FILES install/make_lapack.inc" ;;
     "make.inc") CONFIG_FILES="$CONFIG_FILES make.inc" ;;
     "configure.msg") CONFIG_FILES="$CONFIG_FILES configure.msg" ;;
 
