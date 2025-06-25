@@ -63,7 +63,7 @@ LDFLAGS="$test_ldflags"
 X_AC_ENV_BLAS()
 
 # Checking LAPACK...
-X_AC_ENV_LAPACK()
+# X_AC_ENV_LAPACK()
 
 # Checking for FFT...
 X_AC_ENV_FFT()
