@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
 # Copyright (C) 2001-2024 Quantum ESPRESSO Foundation
 #####
 #

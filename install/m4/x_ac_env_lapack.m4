@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
 # Copyright (C) 2001-2025 Quantum ESPRESSO Foundation
 
 AC_DEFUN([X_AC_ENV_LAPACK], [
