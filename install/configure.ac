@@ -49,7 +49,7 @@ X_AC_ENV_CPP()
 X_AC_ENV_LD()
 
 # Checking CUDA...
-X_AC_ENV_CUDA()
+# X_AC_ENV_CUDA()
 
 # Checking F90 rule...
 X_AC_ENV_F90RULE()

@@ -689,12 +689,6 @@ FFLAGS
 F77
 f90rule
 SET_MAKE
-cuda_extlibs
-cuda_libs
-cuda_fflags
-cuda_cflags
-cuda_runtime
-gpu_arch
 ldflags
 ld
 cppflags
@@ -775,11 +769,6 @@ enable_debug
 enable_pedantic
 enable_shared
 enable_static
-with_cuda
-with_cuda_cc
-with_cuda_runtime
-with_cuda_mpi
-enable_nvtx
 with_qe
 '
       ac_precious_vars='build_alias
@@ -1424,16 +1413,10 @@ Optional Features:
   --enable-shared         produce object files suitable for shared libraries
                           (default: no)
   --enable-static         build static executables if possible (default: no)
-  --enable-nvtx           Enable compilation for NVTX [default=no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-cuda=PATH        prefix where CUDA is installed [default=no]
-  --with-cuda-cc=VAL      GPU architecture (Kepler: 35, Pascal: 60, Volta: 70)
-                          [default=35]
-  --with-cuda-runtime=VAL CUDA runtime (Pascal: 8+, Volta: 9+) [default=10.1]
-  --with-cuda-mpi=VAL     CUDA-aware MPI (yes|no) [default=no]
   --with-qe               absolute path to QE root directory
 
 Some influential environment variables:
@@ -4558,182 +4541,7 @@ test_ldflags="`echo $ldflags | sed 's/\$([^)]*)//g'`"
 
 
 # Checking CUDA...
-
-
-
-# Variables
-gpu_arch=
-cuda_runtime=
-cuda_cflags=
-cuda_fflags=
-cuda_libs=
-# FIXME: currently devxlib is needed also for non-CUDA compilation
-cuda_extlibs=devxlib
-
-# Provide your CUDA path with this
-
-# Check whether --with-cuda was given.
-if test ${with_cuda+y}
-then :
-  withval=$with_cuda;
-else case e in #(
-  e) with_cuda=no ;;
-esac
-fi
-
-
-
-# Check whether --with-cuda-cc was given.
-if test ${with_cuda_cc+y}
-then :
-  withval=$with_cuda_cc;
-else case e in #(
-  e) with_cuda_cc=35 ;;
-esac
-fi
-
-
-
-# Check whether --with-cuda-runtime was given.
-if test ${with_cuda_runtime+y}
-then :
-  withval=$with_cuda_runtime;
-else case e in #(
-  e) with_cuda_runtime=10.1 ;;
-esac
-fi
-
-
-
-# Check whether --with-cuda-mpi was given.
-if test ${with_cuda_mpi+y}
-then :
-  withval=$with_cuda_mpi;
-else case e in #(
-  e) with_cuda_mpi=no ;;
-esac
-fi
-
-
-
-# Check whether --enable-nvtx was given.
-if test ${enable_nvtx+y}
-then :
-  enableval=$enable_nvtx;
-   enable_nvtx=no
-fi
-
-
-
-if test "x$with_cuda" != "xno"
-then
-   # NVHPC v.< 21.7 too old (FIXME: still allowing 21.2 for CI)
-   if (test "$f90_major_version" -lt 21 ) || (test "$f90_major_version" -eq 21 && test "$f90_minor_version" -lt 2 ) ; then
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Compiler version too old, use at least 21.7" >&5
-printf "%s\n" "$as_me: WARNING: Compiler version too old, use at least 21.7" >&2;}
-   fi
-   if (test "$f90_major_version" -lt 21 ) ; then
-      as_fn_error $? "Compiler version too old, use at least 21.7" "$LINENO" 5
-   fi
-   # NVHPC v. 21.11-22.1 buggy
-   if (test "$f90_major_version" -eq 21 && test "$f90_minor_version" -ge 11) ||
-      (test "$f90_major_version" -eq 22 && test "$f90_minor_version" -le 1 ) ; then
-      as_fn_error $? "Buggy compiler version, upgrade to 22.3 or downgrade to 21.9" "$LINENO" 5
-   fi
-
-   # -----------------------------------------
-   # Check compiler
-   # -----------------------------------------
-   as_CACHEVAR=`printf "%s\n" "ax_cv_check_cflags__-cuda -gpu=cuda$with_cuda_runtime" | sed "$as_sed_sh"`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -cuda -gpu=cuda$with_cuda_runtime" >&5
-printf %s "checking whether C compiler accepts -cuda -gpu=cuda$with_cuda_runtime... " >&6; }
-if eval test \${$as_CACHEVAR+y}
-then :
-  printf %s "(cached) " >&6
-else case e in #(
-  e)
-  ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -cuda -gpu=cuda$with_cuda_runtime"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-MODULE test; use cudafor; END MODULE
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-  eval "$as_CACHEVAR=yes"
-else case e in #(
-  e) eval "$as_CACHEVAR=no" ;;
-esac
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-  CFLAGS=$ax_check_save_flags ;;
-esac
-fi
-eval ac_res=\$$as_CACHEVAR
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_CACHEVAR"\" = x"yes"
-then :
-  have_cudafor=yes
-else case e in #(
-  e) have_cudafor=no ;;
-esac
-fi
-
-   if test "x$have_cudafor" != "xyes"
-   then
-      as_fn_error $? "You do not have the cudafor module. Are you using NVHPC compiler?" "$LINENO" 5
-   fi
-   # -----------------------------------------
-   # Headers and libraries
-   # -----------------------------------------
-   try_dflags="$try_dflags -D__CUDA"
-   if test "$use_parallel" -eq 1 && test "$with_cuda_mpi" == "yes"; then
-      try_dflags="$try_dflags -D__GPU_MPI"
-   fi
-   cuda_extlibs="devxlib"
-   cuda_libs="-cudalib=cufft,cublas,cusolver,curand \$(TOPDIR)/devxlib/src/libdevXlib.a"
-
-   cuda_fflags="-cuda -gpu=cc$with_cuda_cc,cuda$with_cuda_runtime"
-   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/devxlib/src"
-   cuda_fflags="$cuda_fflags \$(MOD_FLAG)\$(TOPDIR)/devxlib/include"
-   #
-   if test "$enable_nvtx" == "yes"; then
-      try_dflags="$try_dflags -D__PROFILE_NVTX"
-      cuda_fflags="$cuda_fflags -InvToolsExt.h -lnvToolsExt"
-   fi
-   # -----------------------------------------
-   # Fortran flags
-   # -----------------------------------------
-   runtime_major_version=`echo $with_cuda_runtime | cut -d. -f1`
-   runtime_minor_version=`echo $with_cuda_runtime | cut -d. -f2`
-   if test "$runtime_major_version" -lt 10 ||
-     (test "$runtime_major_version" -eq 10 && test "$runtime_minor_version" -lt 1 )
-   then
-       # CUDA toolkit v < 10.1: cusolver not available
-       as_fn_error $? "Unsupported CUDA Toolkit, too old" "$LINENO" 5
-   fi
-   # -----------------------------------------
-   # C flags
-   # -----------------------------------------
-   cuda_cflags=" -gpu=cc$with_cuda_cc,cuda$with_cuda_runtime"
-   ldflags="$ldflags -cuda -gpu=cc$with_cuda_cc,cuda$with_cuda_runtime"
-   gpu_arch="$with_cuda_cc"
-   cuda_runtime="$with_cuda_runtime"
-   ldflags="$ldflags -acc"
-   cuda_fflags="$cuda_fflags -acc"
-   cuda_cflags="$cuda_cflags -acc"
-
-fi
-
-# Announcing the new variables
-
-
-
-
-
-
-
+# X_AC_ENV_CUDA()
 
 # Checking F90 rule...
 
