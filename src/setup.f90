@@ -1588,13 +1588,6 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        IF (this%lperiodic) WRITE (io%unit, 1100)
-        !
-1100    FORMAT(/, &
-                5(' '), "WARNING: you are using the parabolic pbc correction;", /, &
-                5(' '), "         the potential shift above must be added to ", /, &
-                5(' '), "         band and Fermi energies.")
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_potential_warning
     !------------------------------------------------------------------------------------
