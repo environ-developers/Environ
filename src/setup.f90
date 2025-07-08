@@ -1469,8 +1469,10 @@ CONTAINS
             !
             WRITE (io%unit, 1014) TRIM(deriv_core)
             !
-            WRITE (io%unit, 1015) 'SCCS'
-            WRITE (io%unit, 1016) rhomax, rhomin
+            IF (solvent_mode == 'ionic' .OR. solvent_mode == 'full') THEN
+                WRITE (io%unit, 1015) 'SCCS'
+                WRITE (io%unit, 1016) rhomax, rhomin
+            END IF
             !
             IF (solvent_mode == 'ionic') THEN
                 WRITE (io%unit, 1017) TRIM(radius_mode), softness, alpha
