@@ -174,8 +174,7 @@ end],have_fft_include=1,)
    # if no valid FFT library was found, use the local copy
    if test "$have_fft" -eq 0
    then
-      echo "using internal copy of FFTW"
-      try_dflags="$try_dflags -D__FFTW"
+      echo FFT library not found; exit 1
    fi
 
 else
