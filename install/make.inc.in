@@ -68,21 +68,6 @@ MPIF90         = @mpif90@
 F90            = @f90@
 CC             = @cc@
 
-# CUDA Toolkit path
-CUDA_PATH=@cuda_path@
-
-# GPU architecture (Kepler: 35, Pascal: 60, Volta: 70 )
-GPU_ARCH=@gpu_arch@
-
-# CUDA runtime (Pascal: 8.0, Volta: 9.0)
-CUDA_RUNTIME=@gpu_runtime@
-
-# CUDA F90 Flags
-CUDA_F90FLAGS=@cuda_fflags@
-
-# CUDA C Flags
-CUDA_CFLAGS=@CUDA_CFLAGS@
-
 # C preprocessor and preprocessing flags - for explicit preprocessing,
 # if needed (see the compilation rules above)
 # preprocessing flags must include DFLAGS and IFLAGS
@@ -92,8 +77,8 @@ CPPFLAGS       = @cppflags@ $(DFLAGS) $(IFLAGS)
 # compiler flags: C, F90
 # C flags must include DFLAGS and IFLAGS
 # F90 flags must include MODFLAGS, IFLAGS, and FDFLAGS with appropriate syntax
-CFLAGS         = @cflags@ $(DFLAGS) $(IFLAGS) $(CUDA_CFLAGS)
-F90FLAGS       = @f90flags@ @pre_fdflags@$(FDFLAGS) $(CUDA_F90FLAGS) $(IFLAGS) $(MODFLAGS)
+CFLAGS         = @cflags@ $(DFLAGS) $(IFLAGS)
+F90FLAGS       = @f90flags@ @pre_fdflags@$(FDFLAGS) $(IFLAGS) $(MODFLAGS)
 
 # add flags to silence warnings coming from cannibalized libraries
 ifeq ($(F90),ifort)
@@ -128,10 +113,6 @@ MPI_LIBS       = @mpi_libs@
 # IBM-specific: MASS libraries, if available and if -D__MASS is defined in FDFLAGS
 MASS_LIBS      = @mass_libs@
 
-# CUDA libraries
-CUDA_LIBS=@cuda_libs@
-CUDA_EXTLIBS = @cuda_extlibs@
-
 # ar command and flags - for most architectures: AR = ar, ARFLAGS = ruv
 AR             = @ar@
 ARFLAGS        = @arflags@
@@ -142,7 +123,7 @@ RANLIB         = @ranlib@
 
 # all libraries - do not modify
 FLIB_TARGETS   = all
-ENVLIBS         = $(CUDA_LIBS)  $(FFT_LIBS) $(BLAS_LIBS) \
+ENVLIBS         = $(FFT_LIBS) $(BLAS_LIBS) \
 				  $(MPI_LIBS) $(MASS_LIBS) $(LD_LIBS)
 
 # wget or curl - useful to download from network
