@@ -4866,7 +4866,7 @@ else
             # AOCC: assume -lblis -lflame without testing
 	    #
             unset ac_cv_search_dgemm # clear cached value
-            blas_libs="-lblis -lflame"
+            blas_libs="-lblis"
             have_blas=1
             have_aocl=1
             ;;
