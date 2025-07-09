@@ -119,7 +119,6 @@ LD_LIBS        = @ld_libs@
 
 # External Libraries (if any) : blas, lapack, fft, MPI
 BLAS_LIBS      = @blas_libs@
-LAPACK_LIBS    = @lapack_libs@
 FFT_LIBS       = @fft_libs@
 
 # For parallel execution, the correct path to MPI libraries must
