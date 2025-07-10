@@ -58,7 +58,7 @@
 
 #
 
-From Environ root:
+## From Environ root:
 #### Note: Environ root can not be a subdirectory of QE root unless it is inside QE/external
 
 1. configure Environ with
@@ -74,9 +74,9 @@ From Environ root:
      - if issues arise, retry with `N` = 1
 #
 
-From QE root:
+## From QE root:
 
-# using make
+### using make
 
 1. configure QE with
 
@@ -91,7 +91,7 @@ From QE root:
      - if issues arise, retry with `N = 1`
    - Environ supports the following QE packages: PW, CP, TDDFPT, XSpectra, NEB
 
-# using cmake
+### using cmake
 
 1. create and navigate to a new directory (`build/` is a common choice)
 2. generate build environment with
@@ -101,15 +101,12 @@ From QE root:
 
 3. compile desired QE package as described above
 
-#
-
 If using cmake, modify the ESPRESSO_ROOT variable in the following files to reflect the build dir:
 
 - Environ/tests/environment
 - Environ/examples/qe/environment
-
+###
 #
-
 # Uninstall Environ 3.1.1
 
 From Environ root:
