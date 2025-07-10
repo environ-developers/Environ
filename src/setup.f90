@@ -1475,6 +1475,7 @@ CONTAINS
             END IF
             !
             IF (solvent_mode == 'ionic') THEN
+                WRITE (io%unit, 1015) 'SSCS'
                 WRITE (io%unit, 1017) TRIM(radius_mode), softness, alpha
             END IF
             !
