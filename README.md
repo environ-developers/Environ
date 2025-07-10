@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2024 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
 
 ### This file is part of Environ version 3.1
 
@@ -38,9 +38,8 @@
     The steps below will cover the following:
 
     - configuration of QE and Environ
-    - QE compilation
     - Environ compilation
-    - QE patching, dependency updating, and recompilation
+    - QE compilation
 
     Note that Environ now uses its own FFTXlib and UtilXlib libraries modeled
     respectively after the FFTXlib and UtilXlib libraries of QE 6.7
@@ -60,6 +59,7 @@
 #
 
 From Environ root:
+#### Note: Environ root can not be a subdirectory of QE root unless it is inside QE/external
 
 1. configure Environ with
 
@@ -72,7 +72,6 @@ From Environ root:
    - `make -jN compile`
    - `N` = number of cores for compilation (default = 1)
      - if issues arise, retry with `N` = 1
-
 #
 
 From QE root:
