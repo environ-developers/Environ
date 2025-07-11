@@ -106,7 +106,7 @@ CONTAINS
         !
         CALL environ%main%init(nat, ntyp, ityp, zv, number=species)
         !
-        CALL environ%main%update_ions(nat, tau, origin)
+        CALL environ%main%update_ions(nat, tau)!, origin)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_from_cube

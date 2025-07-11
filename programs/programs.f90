@@ -51,6 +51,10 @@ MODULE programs
     !
     USE parsers
     !
+    USE environ_param, only: BOHR_RADIUS_ANGS
+    !
+    USE tools_math, only: environ_erfc
+    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -158,7 +162,7 @@ CONTAINS
         !
         CALL environ%calc%energy(env_energy)
         !
-        CALL environ%calc%force(nat, env_force)
+        IF (calc_force) CALL environ%calc%force(nat, env_force)
         !
         !--------------------------------------------------------------------------------
         ! Print results
@@ -181,11 +185,15 @@ CONTAINS
             !
             WRITE (io%unit, 1003), env_energy
             !
-            WRITE (io%unit, 1004), SUM(env_force)
-            !
-            DO i = 1, nat
-                WRITE (io%unit, 1005) i, (env_force(j, i), j=1, 3)
-            END DO
+            IF (calc_force) THEN
+                !
+                WRITE (io%unit, 1004), SUM(env_force)
+                !
+                DO i = 1, nat
+                    WRITE (io%unit, 1005) i, (env_force(j, i), j=1, 3)
+                END DO
+                !
+            END IF
             !
             WRITE (io%unit, *) ! final blank line
         END IF
@@ -222,6 +230,12 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
+        ! TODO: If we want to integrate over cylinders or slabs, we should make these
+        !       input parameters or command line arguments. For now, integrate over
+        !       spheres.
+        INTEGER, PARAMETER :: descriptor_dim = 0
+        INTEGER, PARAMETER :: descriptor_axis = 1
+        !
         CHARACTER(LEN=80) :: routine = 'run_descriptors_generator'
         !
         !--------------------------------------------------------------------------------
@@ -240,11 +254,6 @@ CONTAINS
         cell => environ%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
-        ! Compute descriptors
-        !
-        CALL calc_descriptors()
-        !
-        !--------------------------------------------------------------------------------
         ! Get the energy of the system
         !
         IF (calc_energy) CALL get_energy()
@@ -253,6 +262,16 @@ CONTAINS
         ! Get the forces due to the surface and volume
         !
         IF (calc_force) CALL get_forces()
+        !
+        !--------------------------------------------------------------------------------
+        ! Compute descriptors
+        !
+        CALL calc_descriptors(descriptor_dim, descriptor_axis)
+        !
+        !--------------------------------------------------------------------------------
+        ! Write cube files corresponding to descriptors
+        !
+        CALL write_cube_descriptors()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -290,15 +309,17 @@ CONTAINS
         !>
         !!
         !--------------------------------------------------------------------------------
-        SUBROUTINE calc_descriptors()
+        SUBROUTINE calc_descriptors(dim, axis)
             !----------------------------------------------------------------------------
             !
             IMPLICIT NONE
             !
+            INTEGER, INTENT(IN) :: dim, axis
+            !
             INTEGER :: i, j, ir
-            REAL(DP) :: r(3), r2, dist
+            REAL(DP) :: r(3), r2, dist, weight
             LOGICAL :: physical
-            REAL(DP), ALLOCATABLE :: alpha(:), pvol(:, :), psurf(:, :)
+            REAL(DP), ALLOCATABLE :: alpha(:), pvol(:, :), psurf(:, :), ppol(:, :)
             !
             TYPE(environ_boundary_ionic), POINTER :: solvent
             !
@@ -313,13 +334,14 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             !
-            ASSOCIATE (ss => solvent%soft_spheres%array, &
+            ASSOCIATE (ions => environ%main%system_ions, &
                        scal => solvent%scaled, &
                        mod_grad => solvent%gradient%modulus, &
-                       num => solvent%soft_spheres%number, &
+                       num => environ%main%system_ions%number, &
                        a_num => NINT(alpha_max / alpha_step), &
                        vol => solvent%volume, &
-                       surf => solvent%surface)
+                       surf => solvent%surface, &
+                       pol_den => environ%main%static%density)
                 !
                 !------------------------------------------------------------------------
                 ! Print out surface and volume
@@ -336,9 +358,11 @@ CONTAINS
                 ALLOCATE (alpha(a_num))
                 ALLOCATE (pvol(num, a_num))
                 ALLOCATE (psurf(num, a_num))
+                ALLOCATE (ppol(num, a_num))
                 !
                 pvol = 0.D0
                 psurf = 0.D0
+                ppol = 0.D0
                 !
                 DO i = 1, a_num
                     alpha(i) = alpha_step * i
@@ -350,8 +374,8 @@ CONTAINS
                     !
                     DO i = 1, num
                         !
-                        CALL cell%get_min_distance(ir, ss(i)%dim, ss(i)%axis, &
-                                                   ss(i)%pos, r, r2, physical)
+                        CALL cell%get_min_distance(ir, dim, axis, &
+                                                   ions%tau(:,i), r, r2, physical)
                         !
                         IF (.NOT. physical) CYCLE
                         !
@@ -359,10 +383,12 @@ CONTAINS
                         !
                         DO j = 1, a_num
                             !
-                            IF (dist <= alpha(j)) THEN
-                                pvol(i, j) = pvol(i, j) + scal%of_r(ir) * cell%domega
-                                psurf(i, j) = psurf(i, j) + mod_grad%of_r(ir) * cell%domega
-                            END IF
+                            weight = 0.5D0 * environ_erfc(2*(dist-alpha(j))/alpha_step) &
+                                     * cell%domega
+                            pvol(i, j) = pvol(i, j) + scal%of_r(ir) * weight
+                            psurf(i, j) = psurf(i, j) + mod_grad%of_r(ir) * weight
+                            if (environ%main%setup%lelectrostatic) ppol(i, j) = &
+                                ppol(i, j) + pol_den%of_r(ir) * weight
                             !
                         END DO
                         !
@@ -374,17 +400,25 @@ CONTAINS
                 CALL env_mp_sum(pvol, io%comm)
                 !
                 CALL env_mp_sum(psurf, io%comm)
+                !
+                CALL env_mp_sum(ppol, io%comm)
 #endif
                 !
                 IF (io%lnode) THEN
                     !
                     DO i = 1, num
-                        WRITE (io%unit, 2002) i, solvent%ions%ityp(i)
+                        WRITE (io%unit, 2002) i, ions%iontype(ions%ityp(i))%atmnum
+                        !
+                        WRITE (io%unit, 2008) "Bohr", ions%tau(:,i)
+                        !
+                        WRITE (io%unit, 2008) "Angstrom", ions%tau(:,i) * BOHR_RADIUS_ANGS
+                        !
+                        WRITE (io%unit, '(A)') ""
                         !
                         WRITE (io%unit, 2003)
                         !
                         DO j = 1, a_num
-                            WRITE (io%unit, 2004) alpha(j), pvol(i, j), psurf(i, j)
+                            WRITE (io%unit, 2004) alpha(j), pvol(i, j), psurf(i, j), ppol(i, j)
                         END DO
                         !
                         WRITE (io%unit, *)
@@ -402,14 +436,37 @@ CONTAINS
             !
 2001        FORMAT(5X, "Total surface of the QM region: ", F17.8,/)
             !
-2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I4,/)
+2002        FORMAT(5X, "Atom number: ", I4, "; Atom type: ", I3,/)
             !
-2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface", /, 9X, 52('-'))
+2008        FORMAT(5X, "Position (", A8, "): ", F18.8, 1X, F18.8, 1X, F18.8)
             !
-2004        FORMAT(10X, F6.3, ' |', F17.8, '     |', f17.8)
+2003        FORMAT(10X, "alpha  |    Partial Volume    |     Partial Surface  |     Partial Pol. Density", /, 9X, 81('-'))
+            !
+2004        FORMAT(10X, F6.3, ' |', F17.8, '     |', f17.8, '     |', f17.8)
             !
             !----------------------------------------------------------------------------
         END SUBROUTINE calc_descriptors
+        !--------------------------------------------------------------------------------
+        !>
+        !!
+        !--------------------------------------------------------------------------------
+        SUBROUTINE write_cube_descriptors()
+            !----------------------------------------------------------------------------
+            !
+            IMPLICIT NONE
+            !
+            !----------------------------------------------------------------------------
+            !
+            CALL write_cube(environ%main%solvent%scaled, &
+                            environ%main%system_ions, 3)
+            CALL write_cube(environ%main%solvent%gradient%modulus, &
+                            environ%main%system_ions, 3)
+            IF (environ%main%setup%lelectrostatic) &
+                CALL write_cube(environ%main%static%density, &
+                                environ%main%system_ions, 3, label='static_density')
+            !
+            !----------------------------------------------------------------------------
+        END SUBROUTINE write_cube_descriptors
         !--------------------------------------------------------------------------------
         !>
         !!

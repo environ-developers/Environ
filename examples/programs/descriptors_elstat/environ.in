@@ -1,0 +1,23 @@
+ &ENVIRON
+   env_ecut = 300 ! Grid density of your choice
+   env_static_permittivity = 78.3D0
+   env_surface_tension = 50.0D0
+   env_pressure = -0.35D0
+   env_confine = 0.D0
+   verbose = 1 ! Cube files writing is skipped if verbose = 0
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode = 'ionic'
+   softness = 0.8D0         ! Or whatever radii you want
+   alpha = 1.24D0           ! to work with; I just took
+   radius_mode = 'muff'     ! these from the example
+   !
+ /
+ &ELECTROSTATIC
+   !
+   tol = 1.0d-5
+   !
+ /
+
