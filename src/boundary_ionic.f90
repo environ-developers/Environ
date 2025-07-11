@@ -614,7 +614,7 @@ CONTAINS
             this%volume = scal%integrate()
             !
             IF (ng) THEN
-                grad%of_r = -grad%of_r
+                grad%of_r(:,:) = -grad%of_r(:,:)
                 !
                 CALL grad%update_modulus()
                 !
