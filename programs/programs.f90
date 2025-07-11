@@ -162,7 +162,7 @@ CONTAINS
         !
         CALL environ%calc%energy(env_energy)
         !
-        CALL environ%calc%force(nat, env_force)
+        IF (calc_force) CALL environ%calc%force(nat, env_force)
         !
         !--------------------------------------------------------------------------------
         ! Print results
@@ -185,11 +185,15 @@ CONTAINS
             !
             WRITE (io%unit, 1003), env_energy
             !
-            WRITE (io%unit, 1004), SUM(env_force)
-            !
-            DO i = 1, nat
-                WRITE (io%unit, 1005) i, (env_force(j, i), j=1, 3)
-            END DO
+            IF (calc_force) THEN
+                !
+                WRITE (io%unit, 1004), SUM(env_force)
+                !
+                DO i = 1, nat
+                    WRITE (io%unit, 1005) i, (env_force(j, i), j=1, 3)
+                END DO
+                !
+            END IF
             !
             WRITE (io%unit, *) ! final blank line
         END IF
