@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
 # Copyright (C) 2001-2016 Quantum ESPRESSO Foundation
 
 AC_DEFUN([X_AC_ENV_CC], [
@@ -53,7 +53,7 @@ case "$arch:$cc" in
         # Workaround for BEEF compilation with PGI v.19 and previous 
         if test "$f90_flavor" = "pgf90"; then try_cflags="-c11 $try_cflags"; fi
         ;;
-crayxt*:cc )
+craype*:cc )
         # Actually we need something like is done for ftn to detect 
         # the proper compiler used (NdFilippo)
         try_cflags="-O3"

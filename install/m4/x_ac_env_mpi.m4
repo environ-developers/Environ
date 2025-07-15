@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
 # Copyright (C) 2001-2016 Quantum ESPRESSO Foundation
 
 AC_DEFUN([X_AC_ENV_MPI], [
@@ -25,6 +25,11 @@ then
                         AC_SEARCH_LIBS(mpi_init, mpi, 
                                        have_mpi=1 parallel=1 mpi_libs="$LIBS" try_dflags="$try_dflags -D__MPI")
                 fi
+        fi
+        if test "$have_mpi" -eq 1; then
+           AC_COMPILE_IFELSE([program conftest; use mpi; end],
+                             [try_dflags="$try_dflags -D__MPI_MODULE"],
+                             [AC_MSG_RESULT([mpi module not available])] )
         fi
 else
         if test "$use_parallel" -ne 0

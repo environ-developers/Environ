@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
 # Copyright (C) 2001-2016 Quantum ESPRESSO Foundation
 
 AC_DEFUN([X_AC_ENV_ARCH], [
@@ -40,14 +40,16 @@ then
                 * )                     AC_MSG_WARN(Unrecognized build architecture)
         ;;
         esac
-            # workaround for Cray-XT machines
-        test -d /proc/cray_xt && arch=crayxt
-            # workaround for IBM BG machines
+        # check for Cray machines
+        if test -d /proc/cray_xt && test "$arch" != "craype"; then
+            AC_MSG_WARN(This seems to be a cray but ARCH is not "craype")
+        fi
+        # workaround for IBM BG machines
         test -d /bgsys && arch=ppc64-bg
         test -f /bgsys/drivers/ppcfloor/bin/runjob && arch=ppc64-bgq
 fi
 	case $arch in
-	ia32 | ia64 | necsx | crayxt | ppc64-bg )
+	ia32 | ia64 | necsx | ppc64-bg )
             AC_MSG_WARN(Obsolete architecture? $arch)
 	    ;;
 	esac

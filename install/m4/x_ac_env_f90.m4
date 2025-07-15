@@ -1,5 +1,5 @@
-# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
-# Copyright (C) 2001-2016 Quantum ESPRESSO Foundation
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2001-2025 Quantum ESPRESSO Foundation
 
 AC_DEFUN([X_AC_ENV_F90], [
 
@@ -80,15 +80,60 @@ arm:armflang )
         if test "$use_debug" -eq 1; then 
            try_fflags="$try_fflags -g" 
         fi   
-        try_ldflags="-mcpu=native"
         try_fflags_openmp="-fopenmp"
-        try_ldfflags_openmp="-fopenmp" 
         try_f90flags="\$(FFLAGS) -cpp"
         try_ldflags="-g -mcpu=native"
         try_ldflags_openmp="-fopenmp"
         try_ldflags_static="-static -static-flang-libs"
 
         ;;
+*:pgf* | *:nvfortran )
+	try_fflags_nomain="-Mnomain"
+        try_fflags="-fast"
+        try_fflags_openmp="-mp"
+        if test "$use_debug" -eq 1; then
+           try_f90flags="-g -C -Ktrap=fp -Mcache_align -Mpreprocess -Mlarge_arrays"
+        else
+           try_f90flags="-fast -Mcache_align -Mpreprocess -Mlarge_arrays"
+        fi
+        try_foxflags="-fast -Mcache_align -Mpreprocess -Mlarge_arrays"
+        try_fflags_noopt="-O0"
+        try_ldflags=""
+        try_ldflags_openmp="-mp"
+        try_ldflags_static="-Bstatic"
+        try_dflags="$try_dflags -D__PGI"
+        have_cpp=1
+        ;;
+*:*gfortran )
+	try_fflags="-O3 -g"
+        if test "$use_debug" -eq 1; then
+            try_fflags="-O3 -g  -Wall -fbounds-check -frange-check -finit-integer=987654321 -finit-real=nan -finit-logical=true -finit-character=64"
+        fi
+        if test "$use_pedantic" -eq 1; then
+            try_fflags="-O2 -g -pedantic -Wall -Wextra -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all"
+        fi
+        if test "$f90_major_version" -ge "10"; then
+ 	        try_fflags="$try_fflags -fallow-argument-mismatch"
+        fi
+        try_fflags_openmp="-fopenmp"
+        try_f90flags="\$(FFLAGS) -cpp"
+        try_fflags_noopt="-O0 -g"
+        try_ldflags="-g"
+        try_ldflags_openmp="-pthread -fopenmp"
+        try_ldflags_static="-static"
+        ;;
+*:flang )
+        try_fflags="-O3"
+        if test "$use_debug" -eq 1; then
+            try_fflags="-O0 -g"
+        fi
+        try_fflags_nomain=""
+        try_f90flags="\$(FFLAGS) -cpp"
+        try_fflags_noopt="-O0 -g"
+        try_dflags="$try_dflags -D_AOCC"
+        try_ldflags=""
+        ;;
+# from now on: likely obsolete cases
 x86_64:nagfor* )
         try_fflags="-O3 -kind=byte -dcfuns -mismatch"
         if test "$use_debug" -eq 1; then
@@ -104,7 +149,7 @@ x86_64:nagfor* )
         try_dflags="$try_dflags -D__NAG"
         have_cpp=0
         ;;
-crayxt*:cray* )
+craype*:cray* )
         try_fflags_nomain=""
         #NOTE: by default OpenMP is always ON (see crayftn man page)
         try_fflags_openmp="-homp"
@@ -112,24 +157,24 @@ crayxt*:cray* )
         #NOTE: add '-rm' to get messages from crayftn about why
         #      optimizations have not been applied
         #      -x dir disable directives introduced by !DIR$
-        try_f90flags="-O3,fp3 -f free -x dir"
+        try_f90flags="-eF -O3,fp3 -f free -x dir"
         try_fflags_noopt="-O0"
         try_ldflags_openmp="-homp"
         try_ldflags="-v"
         try_ldflags_static="-static"
         try_dflags="$try_dflags -D__CRAY"
-        have_cpp=0
+        have_cpp=1
         ;;
-crayxt*:pgf* )
+craype*:pgf* )
 # see comment above for pgf*
-	    try_fflags_nomain="-Mnomain"
+        try_fflags_nomain="-Mnomain"
         try_fflags_openmp="-mp"
         try_fflags="-O3"
         try_f90flags="-fast -Mcache_align -Mpreprocess -Mlarge_arrays"
         try_fflags_noopt="-O0"
         try_ldflags_openmp="-mp"
         try_ldflags="-v"
-        try_dflags="$try_dflags -D__PGI -D__IOTK_WORKAROUND1"
+        try_dflags="$try_dflags -D__PGI"
         have_cpp=1
         ;;
 necsx:* )
@@ -204,41 +249,6 @@ ppc64-bgq:*xlf* )
         try_dflags="-D__XLF"
         pre_fdflags="-WF,"
         xlf_flags=1
-        ;;
-*:pgf* | *:nvfortran )
-	try_fflags_nomain="-Mnomain"
-        try_fflags="-fast"
-        try_fflags_openmp="-mp"
-        if test "$use_debug" -eq 1; then
-           try_f90flags="-g -C -Ktrap=fp -Mcache_align -Mpreprocess -Mlarge_arrays"
-        else
-           try_f90flags="-fast -Mcache_align -Mpreprocess -Mlarge_arrays"
-        fi
-        try_foxflags="-fast -Mcache_align -Mpreprocess -Mlarge_arrays"
-        try_fflags_noopt="-O0"
-        try_ldflags=""
-        try_ldflags_openmp="-mp"
-        try_ldflags_static="-Bstatic"
-        try_dflags="$try_dflags -D__PGI"
-        have_cpp=1
-        ;;
-*:*gfortran )
-	try_fflags="-O3 -g"
-        if test "$f90_major_version" -ge "10"; then
- 	   try_fflags="$try_fflags -fallow-argument-mismatch"
-        fi
-        if test "$use_debug" -eq 1; then
-            try_fflags="-O3 -g  -Wall -fbounds-check -frange-check -finit-integer=987654321 -finit-real=nan -finit-logical=true -finit-character=64"
-        fi
-        if test "$use_pedantic" -eq 1; then
-            try_fflags="-O2 -g -pedantic -Wall -Wextra -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all"
-        fi
-        try_fflags_openmp="-fopenmp"
-        try_f90flags="\$(FFLAGS) -cpp"
-        try_fflags_noopt="-O0 -g"
-        try_ldflags="-g"
-        try_ldflags_openmp="-pthread -fopenmp"
-        try_ldflags_static="-static"
         ;;
 
 * )

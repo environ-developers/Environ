@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2022 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
 # Copyright (C) 2001-2020 Quantum ESPRESSO Foundation
 
 AC_DEFUN([X_AC_ENV_FFT], [
@@ -151,10 +151,10 @@ if test "$fft_libs" = ""; then
                   then
                         try_dflags="$try_dflags -D__FFTW3"
                         try_incdir="$FFTW_INCLUDE $FFTW_INC $INCLUDE_PATH $CPATH $FPATH"
-                        orig_fflags="$FFLAGS"
+                        orig_fflags="$FCFLAGS"
                         for inc in $try_incdir
                         do
-                           FFLAGS="$orig_fflags -I$inc -ffree-form"
+                           FCFLAGS="$orig_fflags -I$inc"
                            AC_COMPILE_IFELSE([use iso_c_binding
 include "fftw3.f03"
 end],have_fft_include=1,)
@@ -164,7 +164,7 @@ end],have_fft_include=1,)
                              break
                            fi
                         done
-                        FFLAGS="$orig_fflags"
+                        FCFLAGS="$orig_fflags"
                         break
                   fi
 
@@ -174,8 +174,7 @@ end],have_fft_include=1,)
    # if no valid FFT library was found, use the local copy
    if test "$have_fft" -eq 0
    then
-      echo "using internal copy of FFTW"
-      try_dflags="$try_dflags -D__FFTW"
+      echo FFT library not found; exit 1
    fi
 
 else
