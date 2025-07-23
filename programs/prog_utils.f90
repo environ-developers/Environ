@@ -108,6 +108,8 @@ CONTAINS
         !
         CALL environ%main%update_ions(nat, tau)!, origin)
         !
+        CALL environ%setup%update_cell(at)
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_from_cube
     !------------------------------------------------------------------------------------
