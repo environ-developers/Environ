@@ -40,8 +40,6 @@ MODULE class_electrons
     !
     USE class_density
     !
-    USE class_gradient
-    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -55,15 +53,16 @@ MODULE class_electrons
     TYPE, PUBLIC :: environ_electrons
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE.
         !
         INTEGER :: number = 0
         REAL(DP) :: charge = 0.D0
         !
         TYPE(environ_density) :: density
-        !
-        LOGICAL :: use_local_gradient = .FALSE.
-        TYPE(environ_gradient) :: gradient
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -107,8 +106,6 @@ CONTAINS
         this%number = 0
         this%charge = 0.D0
         !
-        this%use_local_gradient = .FALSE.
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_electrons
     !------------------------------------------------------------------------------------
@@ -130,7 +127,7 @@ CONTAINS
         !
         CALL this%density%init(cell, 'electrons')
         !
-        CALL this%gradient%init(cell, 'gradelectrons')
+        this%initialized = .TRUE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrons
@@ -138,14 +135,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_electrons(this, nnr, rho, nelec, gradrho)
+    SUBROUTINE update_environ_electrons(this, nnr, rho, nelec)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
-        REAL(DP), OPTIONAL, INTENT(IN) :: gradrho(3,nnr)
         REAL(DP), OPTIONAL, INTENT(IN) :: nelec
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
@@ -162,11 +158,6 @@ CONTAINS
         !
         this%density%of_r = rho
         !
-        IF ( PRESENT(gradrho) ) THEN
-            this%use_local_gradient = .TRUE.
-            this%gradient%of_r = gradrho
-        ENDIF
-        !
         !--------------------------------------------------------------------------------
         ! Update integral of electronic density and, if provided, check
         ! against input value
@@ -176,8 +167,10 @@ CONTAINS
         !
         IF (PRESENT(nelec)) THEN
             !
-            IF (ABS(this%charge - nelec) > tol) &
+            IF (ABS(this%charge - nelec) > tol) THEN
+                WRITE(*,*) this%charge, nelec
                 CALL io%error(routine, "Mismatch in integrated electronic charge", 1)
+            ENDIF
             !
         END IF
         !
@@ -203,7 +196,7 @@ CONTAINS
         !
         CALL this%density%destroy()
         !
-        CALL this%gradient%destroy()
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrons

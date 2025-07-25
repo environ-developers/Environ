@@ -135,6 +135,9 @@ CONTAINS
         CASE ('from_cube')
             CALL run_environ_from_cube()
             !
+        CASE ('with_aims')
+            CALL run_environ_with_aims()
+            !
         CASE DEFAULT
             !
             IF (prog /= '') THEN

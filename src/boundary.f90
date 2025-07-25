@@ -69,6 +69,10 @@ MODULE class_boundary
     TYPE, ABSTRACT, PUBLIC :: environ_boundary
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         CHARACTER(LEN=80) :: label ! boundary label
         CHARACTER(LEN=80) :: mode ! choice of the interface
         INTEGER :: update_status = 0
@@ -318,6 +322,8 @@ CONTAINS
         IF (this%need_hessian) &
             CALL this%dsurface%init(cell, 'dsurface_'//this%label)
         !
+        this%initialized = .TRUE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pre_init_environ_boundary
     !------------------------------------------------------------------------------------
@@ -451,6 +457,8 @@ CONTAINS
         END IF
         !
         NULLIFY (this%cores)
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pre_destroy_environ_boundary

@@ -66,6 +66,10 @@ MODULE class_charges
     TYPE, PUBLIC :: environ_charges
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: include_ions = .FALSE.
         TYPE(environ_ions), POINTER :: ions => NULL()
         !
@@ -191,6 +195,8 @@ CONTAINS
         CALL this%create()
         !
         CALL this%density%init(cell, 'charge')
+        !
+        this%initialized = .TRUE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_charges
@@ -358,6 +364,8 @@ CONTAINS
         IF (ASSOCIATED(this%additional_charges)) NULLIFY (this%additional_charges)
         !
         CALL this%density%destroy()
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_charges

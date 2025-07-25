@@ -584,6 +584,10 @@ CONTAINS
         !
         CALL env_mp_bcast(electrolyte_deriv_method, io%node, io%comm)
         !
+        CALL env_mp_bcast(deriv_lowpass_p1, io%node, io%comm)
+        !
+        CALL env_mp_bcast(deriv_lowpass_p2, io%node, io%comm)
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_bcast
     !------------------------------------------------------------------------------------

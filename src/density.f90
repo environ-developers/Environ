@@ -55,6 +55,10 @@ MODULE class_density
     TYPE, PUBLIC :: environ_density
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
         !
         CHARACTER(LEN=80) :: label = 'density'
@@ -165,6 +169,8 @@ CONTAINS
         ALLOCATE (this%of_r(this%cell%nnr))
         this%of_r = 0.D0
         !
+        this%initialized = .TRUE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_density
     !------------------------------------------------------------------------------------
@@ -191,6 +197,8 @@ CONTAINS
         NULLIFY (this%cell)
         !
         DEALLOCATE (this%of_r)
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_density
@@ -458,12 +466,14 @@ CONTAINS
         !
         INTEGER :: base_verbose, local_verbose, local_unit
         !
-        LOGICAL :: print_cube = .TRUE.
+        LOGICAL :: print_cube
         REAL(DP) :: integral
         !
         CHARACTER(LEN=80) :: routine = 'print_environ_density'
         !
         !--------------------------------------------------------------------------------
+        !
+        print_cube = .TRUE.
         !
         IF (PRESENT(debug_verbose)) THEN
             base_verbose = debug_verbose

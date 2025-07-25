@@ -68,6 +68,10 @@ avail:
 	@ echo
 	@ echo "  Computes environment contributions to properties of a \"frozen\" density given as a cube file"
 	@ echo
+	@ echo "with_aims"
+	@ echo
+	@ echo "  For use with FHI-aims"
+	@ echo
 	@ echo "descriptors"
 	@ echo
 	@ echo "  An Environ calculation of the Soft-Sphere interface function surface, volume, and local surface"
@@ -81,6 +85,7 @@ usage:
 	@ echo
 	@ case "$(name)" in \
 	  	from_cube) usage='driver -n from_cube -i input-file -c cube-file';; \
+	        with_aims) usage='<mpiexe> -np <N> driver -n with_aims -i input-file & <mpiexe> -np <N> <aims_binary>';; \
 	  	descriptors) usage='driver -n descriptors -i input-file -c cube-file';; \
 		*) usage='make usage name=name-of-calculation';; \
 	  esac; \

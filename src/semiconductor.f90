@@ -59,6 +59,10 @@ MODULE class_semiconductor
     TYPE, PUBLIC :: environ_semiconductor
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE.
         !
         TYPE(environ_semiconductor_base) :: base
@@ -148,6 +152,8 @@ CONTAINS
         CALL this%simple%init(3, system%axis, system%dim, sc_distance, sc_spread, &
                               1.D0, system%com)
         !
+        this%initialized = .TRUE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor
     !------------------------------------------------------------------------------------
@@ -192,6 +198,8 @@ CONTAINS
         CALL this%simple%destroy()
         !
         CALL this%base%destroy()
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_semiconductor
