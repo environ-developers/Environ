@@ -18,14 +18,24 @@ Clone the repository and checkout the relevant QE version (see note below) ::
 or download the relevant version's archive from the `QE releases`_ page
 and unpack the archive using ::
 
-      tar zxvf qe-X.Y.Z.tar.gz
+      tar zxvf q-e-qe-X.Y.Z.tar.gz
 
 or, if your :command:`tar` doesn't recognize the :guilabel:`z` flag ::
 
-      gunzip -c qe-X.Y.Z.tar.gz | tar xvf -
+      gunzip -c q-e-qe-X.Y.Z.tar.gz | tar xvf -
+
++-------------------+-----------------------------------------+
+| Environ Version   | Supported QE Version                    |
++===================+=========================================+
+| :guilabel:`v3.1+` | :guilabel:`v7.1+`                       |
++-------------------+-----------------------------------------+
+| :guilabel:`v3.0`  | :guilabel:`v7.1` - :guilabel:`v7.2`     |
++-------------------+-----------------------------------------+
+| :guilabel:`<v3.0` | :guilabel:`v6.3` - :guilabel:`v7.0`     |
++-------------------+-----------------------------------------+
 
 .. note::
-      Environ :guilabel:`v3.0` supports QE :guilabel:`qe-7.1` and up. Prior Environ versions support QE :guilabel:`qe-6.3` - :guilabel:`qe-7.0`
+    Quantum Espresso versions :guilabel:`>v7.3` require Environ version :guilabel:`>v3.1`
 
 Environ
 -------
@@ -39,6 +49,8 @@ and follow the above directions to unpack the archive
 
 .. note::
       Environ versions prior to :guilabel:`v3.0` require Environ root to be placed inside QE root
+      For :guilabel:`v3.0+` do not install Environ inside the QE root directory
 
-.. _QE releases: https://github.com/QEF/q-e/releases
+
+.. _QE releases: https://gitlab.com/QEF/q-e/-/releases
 .. _Environ releases: https://github.com/environ-developers/Environ/releases
