@@ -48,7 +48,7 @@ MODULE class_setup
     !
     USE class_core
     USE class_core_fft
-    USE class_core_fft
+    USE class_core_fft_lowpass
     USE class_core_1da
     !
     USE class_solver_setup
@@ -173,7 +173,7 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Numerical cores
         !
-        TYPE(core_fft) :: env_fft, ref_fft
+        CLASS(core_fft), ALLOCATABLE :: env_fft, ref_fft
         TYPE(core_1da) :: env_1da
         !
         !--------------------------------------------------------------------------------
@@ -198,6 +198,7 @@ MODULE class_setup
         PROCEDURE :: get_nskip
         PROCEDURE :: get_nnt
         PROCEDURE :: get_nnr
+        PROCEDURE :: get_ir_end
         PROCEDURE :: get_nr
         PROCEDURE :: get_coords
         PROCEDURE :: is_tddfpt
@@ -441,8 +442,20 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: routine = 'init_environ_numerical_base'
+        !
         !--------------------------------------------------------------------------------
         ! Initialize cores
+        !
+        IF (deriv_lowpass_p1 .gt. 0.D0 .or. deriv_lowpass_p2 .gt. 0.D0) THEN
+            IF (deriv_lowpass_p1 .le. 0.D0 .or. deriv_lowpass_p2 .le. 0.D0) &
+                CALL io%error(routine, "Both lowpass parameters need to be positive", 1)
+            ALLOCATE(core_fft_lowpass :: this%ref_fft)
+            ALLOCATE(core_fft_lowpass :: this%env_fft)
+        ELSE
+            ALLOCATE(core_fft :: this%ref_fft)
+            ALLOCATE(core_fft :: this%env_fft)
+        ENDIF
         !
         IF (this%lfft_system) &
             CALL this%ref_fft%init(this%system_cell, use_internal_pbc_corr)
@@ -693,6 +706,25 @@ CONTAINS
     !
     !--------------------------------------------------------------------------------
     END FUNCTION get_nnr
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    INTEGER FUNCTION get_ir_end(this)
+    !--------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    CLASS(environ_setup), INTENT(IN) :: this
+    !
+    CHARACTER(LEN=80) :: routine = 'get_ir_end'
+    !
+    !--------------------------------------------------------------------------------
+    !
+    get_ir_end = this%system_cell%ir_end
+    !
+    !--------------------------------------------------------------------------------
+    END FUNCTION get_ir_end
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -1469,10 +1501,13 @@ CONTAINS
             !
             WRITE (io%unit, 1014) TRIM(deriv_core)
             !
-            WRITE (io%unit, 1015) 'SCCS'
-            WRITE (io%unit, 1016) rhomax, rhomin
+            IF (solvent_mode == 'ionic' .OR. solvent_mode == 'full') THEN
+                WRITE (io%unit, 1015) 'SCCS'
+                WRITE (io%unit, 1016) rhomax, rhomin
+            END IF
             !
             IF (solvent_mode == 'ionic') THEN
+                WRITE (io%unit, 1015) 'SSCS'
                 WRITE (io%unit, 1017) TRIM(radius_mode), softness, alpha
             END IF
             !
@@ -1587,13 +1622,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
-        !
-        IF (this%lperiodic) WRITE (io%unit, 1100)
-        !
-1100    FORMAT(/, &
-                5(' '), "WARNING: you are using the parabolic pbc correction;", /, &
-                5(' '), "         the potential shift above must be added to ", /, &
-                5(' '), "         band and Fermi energies.")
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_potential_warning

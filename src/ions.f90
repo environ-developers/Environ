@@ -64,6 +64,10 @@ MODULE class_ions
     TYPE, PUBLIC :: environ_ions
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE.
         !
         INTEGER :: number = 0
@@ -307,6 +311,8 @@ CONTAINS
         !
         this%use_core_electrons = lcoredensity
         !
+        this%initialized = .TRUE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_ions
     !------------------------------------------------------------------------------------
@@ -450,6 +456,8 @@ CONTAINS
         DEALLOCATE (this%ityp)
         DEALLOCATE (this%iontype)
         DEALLOCATE (this%tau)
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_ions

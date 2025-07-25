@@ -110,6 +110,13 @@ core_fft.o : gradient.o
 core_fft.o : hessian.o
 core_fft.o : io.o
 core_fft.o : tools_math.o
+core_fft_lowpass.o : ../FFTXlib/fft_interfaces.o
+core_fft_lowpass.o : constants.o
+core_fft_lowpass.o : core_fft.o
+core_fft_lowpass.o : density.o
+core_fft_lowpass.o : gradient.o
+core_fft_lowpass.o : hessian.o
+core_fft_lowpass.o : io.o
 cube.o : density.o
 cube.o : io.o
 cube.o : ions.o
@@ -167,14 +174,6 @@ function.o : density.o
 function.o : gradient.o
 function.o : hessian.o
 function.o : io.o
-function_bspline.o : ../UtilXlib/mp.o
-function_bspline.o : cell.o
-function_bspline.o : constants.o
-function_bspline.o : density.o
-function_bspline.o : function.o
-function_bspline.o : gradient.o
-function_bspline.o : hessian.o
-function_bspline.o : io.o
 function_erfc.o : ../UtilXlib/mp.o
 function_erfc.o : cell.o
 function_erfc.o : constants.o
@@ -282,6 +281,7 @@ setup.o : core.o
 setup.o : core_1da.o
 setup.o : core_container.o
 setup.o : core_fft.o
+setup.o : core_fft_lowpass.o
 setup.o : io.o
 setup.o : mapping.o
 setup.o : solver.o

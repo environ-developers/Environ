@@ -68,6 +68,10 @@ MODULE class_electrolyte
     TYPE, PUBLIC :: environ_electrolyte
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE.
         !
         TYPE(environ_electrolyte_base) :: base
@@ -247,6 +251,8 @@ CONTAINS
         !
         IF (this%base%linearized) CALL this%de_dboundary_second_order%init(cell)
         !
+        this%initialized = .TRUE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrolyte
     !------------------------------------------------------------------------------------
@@ -322,6 +328,8 @@ CONTAINS
         IF (this%base%linearized) CALL this%de_dboundary_second_order%destroy()
         !
         CALL this%base%destroy()
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrolyte

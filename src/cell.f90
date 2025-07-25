@@ -534,7 +534,7 @@ CONTAINS
         k = 3
         sign = 1.D0
         !
-        DO WHILE (sign >= 0.D0)
+        DO
             !
             DO m = 1, 3
                 denominator = denominator + sign * a1(i) * a2(j) * a3(k)
@@ -547,6 +547,9 @@ CONTAINS
             i = 2
             j = 1
             k = 3
+            !
+            IF (sign < 0) exit
+            !
             sign = -sign
             !
         END DO

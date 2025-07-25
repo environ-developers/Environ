@@ -7,7 +7,7 @@
 # of the License. See the file `License' in the root directory
 # of the present distribution.
 
-AC_INIT(ENVIRON, 3.0, , environ)
+AC_INIT(ENVIRON, 3.1.1, , environ)
 
 AC_PREREQ(2.64)
 AC_CONFIG_MACRO_DIR([m4/])
@@ -49,7 +49,7 @@ X_AC_ENV_CPP()
 X_AC_ENV_LD()
 
 # Checking CUDA...
-X_AC_ENV_CUDA()
+# X_AC_ENV_CUDA()
 
 # Checking F90 rule...
 X_AC_ENV_F90RULE()
@@ -63,7 +63,7 @@ LDFLAGS="$test_ldflags"
 X_AC_ENV_BLAS()
 
 # Checking LAPACK...
-X_AC_ENV_LAPACK()
+# X_AC_ENV_LAPACK()
 
 # Checking for FFT...
 X_AC_ENV_FFT()

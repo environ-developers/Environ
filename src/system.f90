@@ -51,6 +51,10 @@ MODULE class_system
     TYPE, PUBLIC :: environ_system
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE.
         !
         INTEGER :: ntyp = 0
@@ -139,6 +143,8 @@ CONTAINS
         this%axis = axis
         !
         this%ions => ions
+        !
+        this%initialized = .TRUE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_system
@@ -244,6 +250,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         NULLIFY (this%ions)
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_system

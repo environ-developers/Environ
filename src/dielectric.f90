@@ -70,6 +70,10 @@ MODULE class_dielectric
     TYPE, PUBLIC :: environ_dielectric
         !--------------------------------------------------------------------------------
         !
+        LOGICAL :: initialized = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+        !
         LOGICAL :: lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
@@ -247,6 +251,8 @@ CONTAINS
         !
         IF (this%need_auxiliary) CALL this%iterative%init(cell, 'iterative')
         !
+        this%initialized = .TRUE.
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_dielectric
     !------------------------------------------------------------------------------------
@@ -382,6 +388,8 @@ CONTAINS
         CALL this%density%destroy()
         !
         IF (this%need_auxiliary) CALL this%iterative%destroy()
+        !
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_dielectric

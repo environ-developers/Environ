@@ -361,44 +361,37 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradient_of_boundary_lowmem(n, local, gradlocal, scal, grad)
+    SUBROUTINE calc_gradient_of_boundary_lowmem(local, gradlocal, scal, grad)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
         TYPE(environ_density), INTENT(IN) :: scal ! soft sphere interface function
-        TYPE(environ_density), INTENT(IN) :: local(n)
-        TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
+        TYPE(environ_density), INTENT(IN) :: local
+        TYPE(environ_gradient), INTENT(IN) :: gradlocal
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         !
-        INTEGER :: i, j, k
+        INTEGER :: j, k
         TYPE(environ_cell), POINTER :: cell
         !
         !--------------------------------------------------------------------------------
         !
         cell => grad%cell
         !
-        grad%of_r = 0.D0
-        !
         !--------------------------------------------------------------------------------
         ! Temporary quotient
         !
-        DO i = 1, n
+        DO j = 1, cell%nnr
             !
-            DO j = 1, cell%nnr
+            IF (ABS(local%of_r(j)) <= bound_tol) CYCLE
+            !
+            DO k = 1, 3
                 !
-                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
-                !
-                DO k = 1, 3
-                    !
-                    grad%of_r(k, j) = &
-                        grad%of_r(k, j) + &
-                        (gradlocal(i)%of_r(k, j) / &
-                         local(i)%of_r(j) * scal%of_r(j))
-                    !
-                END DO
+                grad%of_r(k, j) = &
+                    grad%of_r(k, j) + &
+                    (gradlocal%of_r(k, j) / &
+                     local%of_r(j) * scal%of_r(j))
                 !
             END DO
             !
@@ -410,50 +403,45 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_laplacian_of_boundary_lowmem(n, local, gradlocal, laploc, scal, grad, lapl)
+    SUBROUTINE calc_laplacian_of_boundary_lowmem(local, gradlocal, laploc, scal, grad, lapl)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
         TYPE(environ_density), INTENT(IN) :: scal ! soft sphere interface function
-        TYPE(environ_density), INTENT(IN) :: local(n)
-        TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
-        TYPE(environ_density), INTENT(IN) :: laploc(n)
+        TYPE(environ_density), INTENT(IN) :: local
+        TYPE(environ_gradient), INTENT(IN) :: gradlocal
+        TYPE(environ_density), INTENT(IN) :: laploc
         TYPE(environ_gradient), INTENT(IN) :: grad
         !
         TYPE(environ_density), INTENT(INOUT) :: lapl
         !
-        INTEGER :: i, j, k
+        INTEGER :: j, k
         TYPE(environ_cell), POINTER :: cell
         !
         !--------------------------------------------------------------------------------
         !
         cell => lapl%cell
         !
-        DO i = 1, n
+        DO j = 1, cell%nnr
             !
-            DO j = 1, cell%nnr
+            IF (ABS(local%of_r(j)) <= bound_tol) CYCLE
+            !
+            lapl%of_r(j) = lapl%of_r(j) + &
+                           (laploc%of_r(j) / &
+                           local%of_r(j) * scal%of_r(j))
+            !
+            DO k = 1, 3
                 !
-                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
+                lapl%of_r(j) = &
+                    lapl%of_r(j) - &
+                    ((gradlocal%of_r(k, j)**2 / &
+                    local%of_r(j)**2) * scal%of_r(j))
                 !
-                lapl%of_r(j) = lapl%of_r(j) + &
-                               (laploc(i)%of_r(j) / &
-                               local(i)%of_r(j) * scal%of_r(j))
-                !
-                DO k = 1, 3
-                    !
-                    lapl%of_r(j) = &
-                        lapl%of_r(j) - &
-                        ((gradlocal(i)%of_r(k, j)**2 / &
-                        local(i)%of_r(j)**2) * scal%of_r(j))
-                    !
-                    lapl%of_r(j) = &
-                        lapl%of_r(j) + &
-                        (grad%of_r(k, j) * &
-                        gradlocal(i)%of_r(k, j) / local(i)%of_r(j))
-                    !
-                END DO
+                lapl%of_r(j) = &
+                    lapl%of_r(j) + &
+                    (grad%of_r(k, j) * &
+                    gradlocal%of_r(k, j) / local%of_r(j))
                 !
             END DO
             !
@@ -465,53 +453,48 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dsurface_of_boundary_lowmem(n, local, gradloc, hessloc, grad, hess, scal, dsurf)
+    SUBROUTINE calc_dsurface_of_boundary_lowmem(local, gradloc, hessloc, grad, hess, scal, dsurf)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: n
         TYPE(environ_density), INTENT(IN) :: scal
-        TYPE(environ_density), INTENT(IN) :: local(n)
-        TYPE(environ_gradient), INTENT(IN) :: gradloc(n)
-        TYPE(environ_hessian), INTENT(IN) :: hessloc(n)
+        TYPE(environ_density), INTENT(IN) :: local
+        TYPE(environ_gradient), INTENT(IN) :: gradloc
+        TYPE(environ_hessian), INTENT(IN) :: hessloc
         TYPE(environ_gradient), INTENT(IN) :: grad
         !
         TYPE(environ_density), INTENT(INOUT) :: dsurf
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         !
-        INTEGER :: i, j, k, l
+        INTEGER :: j, k, l
         TYPE(environ_cell), POINTER :: cell
         !
         !--------------------------------------------------------------------------------
         !
         cell => grad%cell
         !
-        DO i = 1, n
+        DO j = 1, cell%nnr
             !
-            DO j = 1, cell%nnr
+            IF (ABS(local%of_r(j)) <= bound_tol) CYCLE
+            !
+            DO k = 1, 3
                 !
-                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
-                !
-                DO k = 1, 3
+                DO l = 1, 3
                     !
-                    DO l = 1, 3
-                        !
-                        hess%of_r(k, l, j) = &
-                            hess%of_r(k, l, j) + &
-                            (hessloc(i)%of_r(k, l, j) / local(i)%of_r(j) * scal%of_r(j))
-                        !
-                        hess%of_r(k, l, j) = &
-                            hess%of_r(k, l, j) - &
-                            ((gradloc(i)%of_r(k, j) * gradloc(i)%of_r(l, j) / &
-                              local(i)%of_r(j)**2) * scal%of_r(j))
-                        !
-                        hess%of_r(k, l, j) = &
-                            hess%of_r(k, l, j) + &
-                            (grad%of_r(k, j) * gradloc(i)%of_r(l, j) / &
-                            local(i)%of_r(j))
-                        !
-                    END DO
+                    hess%of_r(k, l, j) = &
+                        hess%of_r(k, l, j) + &
+                        (hessloc%of_r(k, l, j) / local%of_r(j) * scal%of_r(j))
+                    !
+                    hess%of_r(k, l, j) = &
+                        hess%of_r(k, l, j) - &
+                        ((gradloc%of_r(k, j) * gradloc%of_r(l, j) / &
+                          local%of_r(j)**2) * scal%of_r(j))
+                    !
+                    hess%of_r(k, l, j) = &
+                        hess%of_r(k, l, j) + &
+                        (grad%of_r(k, j) * gradloc%of_r(l, j) / &
+                           local%of_r(j))
                     !
                 END DO
                 !

@@ -1,13 +1,13 @@
-# Copyright (C) 2018-2024 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2018-2025 ENVIRON (www.quantum-environ.org)
 
-### This file is part of Environ version 3.1
+### This file is part of Environ version 3.1.1
 
-    Environ 3.1 is free software: you can redistribute it and/or modify
+    Environ 3.1.1 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 2 of the License, or
     (at your option) any later version.
 
-    Environ 3.1 is distributed in the hope that it will be useful,
+    Environ 3.1.1 is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more detail, either the file
@@ -38,9 +38,8 @@
     The steps below will cover the following:
 
     - configuration of QE and Environ
-    - QE compilation
     - Environ compilation
-    - QE patching, dependency updating, and recompilation
+    - QE compilation
 
     Note that Environ now uses its own FFTXlib and UtilXlib libraries modeled
     respectively after the FFTXlib and UtilXlib libraries of QE 6.7
@@ -50,7 +49,7 @@
 
       http://www.quantum-espresso.org/
 
-# QE + Environ 3.1 Installation
+# QE + Environ 3.1.1 Installation
 
     The following instructions refer to Environ 3.0 installed on QE >= 7.1
     For previous versions, please refer to the instructions on the website:
@@ -59,7 +58,8 @@
 
 #
 
-From Environ root:
+## From Environ root:
+#### Note: Environ root can not be a subdirectory of QE root unless it is inside QE/external
 
 1. configure Environ with
 
@@ -72,12 +72,11 @@ From Environ root:
    - `make -jN compile`
    - `N` = number of cores for compilation (default = 1)
      - if issues arise, retry with `N` = 1
-
 #
 
-From QE root:
+## From QE root:
 
-# using make
+### using make
 
 1. configure QE with
 
@@ -92,7 +91,7 @@ From QE root:
      - if issues arise, retry with `N = 1`
    - Environ supports the following QE packages: PW, CP, TDDFPT, XSpectra, NEB
 
-# using cmake
+### using cmake
 
 1. create and navigate to a new directory (`build/` is a common choice)
 2. generate build environment with
@@ -102,16 +101,13 @@ From QE root:
 
 3. compile desired QE package as described above
 
-#
-
 If using cmake, modify the ESPRESSO_ROOT variable in the following files to reflect the build dir:
 
 - Environ/tests/environment
 - Environ/examples/qe/environment
-
+###
 #
-
-# Uninstall Environ 3.1
+# Uninstall Environ 3.1.1
 
 From Environ root:
 
