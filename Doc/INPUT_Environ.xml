@@ -549,6 +549,32 @@ The choice of the core numerical methods to be exploited for computing derivativ
          <status> OPTIONAL
          </status>
       </var>
+      <var name="deriv_lowpass_p1" type="REAL" >
+         <default> -1.D0
+         </default>
+         <info>
+If deriv_lowpass_p1 and deriv_lowpass_p2 are set to positive values, then a low-pass filter
+
+0.5 * erfc(p1 * g^2 / g_cut^2 - p2)
+
+is applied in the FFT based derivatives (gradient, Hessian, Laplacian, and forces). p1 and p2
+are the parameters set by deriv_lowpass_p1 and deriv_lowpass_p2, respectively. g^2 is the squared
+norm of a given vector in g space. g_cut^2 is the squared g vector cutoff.
+
+See also <link>https://arxiv.org/abs/2507.17672</link>, sec 3.5.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="deriv_lowpass_p2" type="REAL" >
+         <default> -1.D0
+         </default>
+         <info>
+See deriv_lowpass_p1.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <var name="deriv_method" type="CHARACTER" >
          <default> see below
          </default>

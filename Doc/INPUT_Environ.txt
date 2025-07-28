@@ -563,6 +563,32 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
+   Variable:       deriv_lowpass_p1
+   
+   Type:           REAL
+   Default:        -1.D0
+   Description:    If deriv_lowpass_p1 and deriv_lowpass_p2 are set to positive values, then a low-pass filter
+                   
+                   0.5 * erfc(p1 * g^2 / g_cut^2 - p2)
+                   
+                   is applied in the FFT based derivatives (gradient, Hessian, Laplacian, and forces). p1 and p2
+                   are the parameters set by deriv_lowpass_p1 and deriv_lowpass_p2, respectively. g^2 is the squared
+                   norm of a given vector in g space. g_cut^2 is the squared g vector cutoff.
+                   
+                   See also https://arxiv.org/abs/2507.17672, sec 3.5.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       deriv_lowpass_p2
+   
+   Type:           REAL
+   Default:        -1.D0
+   Description:    See deriv_lowpass_p1.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
    Variable:       deriv_method
    
    Type:           CHARACTER
@@ -1567,4 +1593,4 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Sat Jun 25 10:08:41 CDT 2022
+This file has been created by helpdoc utility on Mon Jul 28 16:24:41 MDT 2025
