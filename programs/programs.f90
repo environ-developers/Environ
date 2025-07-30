@@ -742,6 +742,7 @@ CONTAINS
             !
             INTEGER :: mype2, mype3
             CHARACTER(34) :: fname
+            LOGICAL :: exist
             !
             !----------------------------------------------------------------------------
             ! Clean up potential files
@@ -750,10 +751,15 @@ CONTAINS
             mype3 = environ%setup%system_cell%dfft%mype3
             !
             WRITE(fname, '(A,I0.10,A,I0.10)') 'env_pot_proc_', mype2, '_', mype3
-            OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
-                 FORM='unformatted', ACCESS='stream')
+            INQUIRE(FILE=fname, EXIST=exist)
             !
-            CLOSE(147, STATUS='delete')
+            IF (exist) THEN
+                !
+                OPEN(UNIT=147, FILE=fname, STATUS='unknown', ACTION='write', &
+                     FORM='unformatted', ACCESS='stream')
+                CLOSE(147, STATUS='delete')
+                !
+            ENDIF
             !
             !----------------------------------------------------------------------------
             ! clean_up() will be called in driver.f90, we're done here.
