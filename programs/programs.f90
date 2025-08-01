@@ -127,7 +127,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER :: comm, myid, mpi_size, aims_to_env_stat, env_to_aims_stat, ierr, &
-                   crash_file_size
+                   crash_file_size, stat_file_size
         CHARACTER(34) :: fname_aims_env, fname_env_aims
         LOGICAL :: exist, finished, initialized, updated
         INTEGER, ALLOCATABLE :: stat_all_tasks(:)
@@ -236,6 +236,20 @@ CONTAINS
                 INQUIRE(FILE=fname_aims_env, EXIST=exist)
                 !
                 IF (exist) THEN
+                    !
+                    DO
+                        !
+                        INQUIRE(FILE=fname_aims_env, SIZE=stat_file_size)
+                        !
+                        IF (stat_file_size .gt. 0) EXIT
+                        !
+                        !----------------------------------------------------------------
+                        ! Corner case where the file exists but content has not been
+                        ! written yet. Wait until write is finished.
+                        !
+                        CALL sleep(1)
+                        !
+                    ENDDO
                     !
                     OPEN(UNIT=146, FILE=fname_aims_env, STATUS='unknown', &
                          ACTION='read', FORM='unformatted', ACCESS='stream')
