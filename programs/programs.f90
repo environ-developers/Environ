@@ -241,7 +241,6 @@ CONTAINS
                          ACTION='read', FORM='unformatted', ACCESS='stream')
                     READ(146, IOSTAT=iostat) aims_to_env_stat
                     IF (IS_IOSTAT_END(iostat)) THEN
-                        WRITE(*,*) '* proc ', myid, ': Aims to Environ stat file exists, but no content has been written. Reattempting ...'
                         CLOSE(146)
                         CALL sleep(1)
                     ELSE
