@@ -127,7 +127,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER :: comm, myid, mpi_size, aims_to_env_stat, env_to_aims_stat, ierr, &
-                   crash_file_size
+                   crash_file_size, iostat
         CHARACTER(34) :: fname_aims_env, fname_env_aims
         LOGICAL :: exist, finished, initialized, updated
         INTEGER, ALLOCATABLE :: stat_all_tasks(:)
@@ -239,10 +239,15 @@ CONTAINS
                     !
                     OPEN(UNIT=146, FILE=fname_aims_env, STATUS='unknown', &
                          ACTION='read', FORM='unformatted', ACCESS='stream')
-                    READ(146) aims_to_env_stat
-                    CLOSE(146, STATUS='delete')
-                    !
-                    EXIT check_stat
+                    READ(146, IOSTAT=iostat) aims_to_env_stat
+                    IF (IS_IOSTAT_END(iostat)) THEN
+                        CLOSE(146)
+                        CALL sleep(1)
+                    ELSE
+                        CLOSE(146, STATUS='delete')
+                        !
+                        EXIT check_stat
+                    ENDIF
                     !
                 ELSE
                     !
