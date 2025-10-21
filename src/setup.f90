@@ -450,11 +450,11 @@ CONTAINS
         IF (deriv_lowpass_p1 .gt. 0.D0 .or. deriv_lowpass_p2 .gt. 0.D0) THEN
             IF (deriv_lowpass_p1 .le. 0.D0 .or. deriv_lowpass_p2 .le. 0.D0) &
                 CALL io%error(routine, "Both lowpass parameters need to be positive", 1)
-            ALLOCATE(core_fft_lowpass :: this%ref_fft)
-            ALLOCATE(core_fft_lowpass :: this%env_fft)
+            IF (.NOT.ALLOCATED(this%ref_fft)) ALLOCATE(core_fft_lowpass :: this%ref_fft)
+            IF (.NOT.ALLOCATED(this%env_fft)) ALLOCATE(core_fft_lowpass :: this%env_fft)
         ELSE
-            ALLOCATE(core_fft :: this%ref_fft)
-            ALLOCATE(core_fft :: this%env_fft)
+            IF (.NOT.ALLOCATED(this%ref_fft)) ALLOCATE(core_fft :: this%ref_fft)
+            IF (.NOT.ALLOCATED(this%env_fft)) ALLOCATE(core_fft :: this%env_fft)
         ENDIF
         !
         IF (this%lfft_system) &
