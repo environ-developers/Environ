@@ -82,7 +82,7 @@ MODULE class_iontype
     CHARACTER(LEN=3) :: elements(92)
     !
     REAL(DP), DIMENSION(92) :: pauling_radii, bondi_radii, UFF_diameters, &
-                               MUFF_diameters, weights
+                               MUFF_diameters, UFF_OPLS_diameters, weights
     !
     DATA elements/ &
         'h', 'he', 'li', 'be', 'b', 'c', 'n', 'o', 'f', 'ne', 'na', 'mg', 'al', 'si', &
@@ -133,6 +133,19 @@ MODULE class_iontype
         2.834_DP, 3.495_DP, 2.763_DP, 4.383_DP, 4.280_DP, 4.230_DP, 4.205_DP, 4.189_DP, 4.141_DP, & ! Co, Cu, Zn, Ga, Ge, As, Se, Br, Kr
         4.114_DP, 3.641_DP, 3.345_DP, 3.124_DP, 3.165_DP, 3.052_DP, 2.998_DP, 2.963_DP, 2.929_DP, & ! Rb, Sr, Y, Zr, Nb, Mo, Tc, Ru, Rh
         2.899_DP, 3.148_DP, 2.848_DP, 4.463_DP, 4.392_DP, 4.420_DP, 4.470_DP, 4.500_DP, 4.404_DP, & ! Pd, Ag, Cd, In, Sn, Sb, Te, I, Xe
+        4.517_DP, 3.703_DP, 3.522_DP, 3.556_DP, 3.606_DP, 3.575_DP, 3.547_DP, 3.520_DP, & ! Cs, Ba, La, Ce, Pr, Nd, Pm, Sm
+        3.493_DP, 3.368_DP, 3.451_DP, 3.428_DP, 3.409_DP, 3.391_DP, 3.374_DP, 3.355_DP, & ! Eu, Gd, Tb, Dy, Ho, Er, Tm, Yb
+        3.640_DP, 3.141_DP, 3.170_DP, 3.069_DP, 2.954_DP, 3.120_DP, 2.840_DP, 2.754_DP, & ! Lu, Hf, Ta, W, Re, Os, Ir, Pt
+        3.293_DP, 2.705_DP, 4.337_DP, 4.297_DP, 4.379_DP, 4.709_DP, 4.750_DP, 4.765_DP, & ! Au, Hg, Tl, Pb, Bi, Po, At, Rn
+        4.900_DP, 3.677_DP, 3.478_DP, 3.396_DP, 3.424_DP, 3.395_DP/ ! Fr, Ra, Ac, Th, Pa, U
+    !
+    DATA UFF_OPLS_diameters/2.886_DP, 0.000_DP, & ! H, H without radius
+        2.451_DP, 2.745_DP, 4.083_DP, 3.851_DP, 3.660_DP, 3.500_DP, 3.255_DP, 3.243_DP, & ! Li, Be, B, C, N, O, F (OPLS-AA), Ne
+        2.983_DP, 3.021_DP, 4.499_DP, 4.295_DP, 4.147_DP, 4.035_DP, 3.816_DP, 3.868_DP, & ! Na, Mg, Al, Si, P, S, Cl (OPLS-AA), Ar
+        3.812_DP, 3.399_DP, 3.295_DP, 3.175_DP, 3.144_DP, 3.023_DP, 2.961_DP, 2.912_DP, 2.872_DP, & ! K, Ca, Sc, Ti, V, Cr, Mn, Ni, Fe
+        2.834_DP, 3.495_DP, 2.763_DP, 4.383_DP, 4.280_DP, 4.230_DP, 4.205_DP, 3.895_DP, 4.141_DP, & ! Co, Cu, Zn, Ga, Ge, As, Se, Br (OPLS-AA), Kr
+        4.114_DP, 3.641_DP, 3.345_DP, 3.124_DP, 3.165_DP, 3.052_DP, 2.998_DP, 2.963_DP, 2.929_DP, & ! Rb, Sr, Y, Zr, Nb, Mo, Tc, Ru, Rh
+        2.899_DP, 3.148_DP, 2.848_DP, 4.463_DP, 4.392_DP, 4.420_DP, 4.470_DP, 3.985_DP, 4.404_DP, & ! Pd, Ag, Cd, In, Sn, Sb, Te, I (OPLS-AA), Xe
         4.517_DP, 3.703_DP, 3.522_DP, 3.556_DP, 3.606_DP, 3.575_DP, 3.547_DP, 3.520_DP, & ! Cs, Ba, La, Ce, Pr, Nd, Pm, Sm
         3.493_DP, 3.368_DP, 3.451_DP, 3.428_DP, 3.409_DP, 3.391_DP, 3.374_DP, 3.355_DP, & ! Eu, Gd, Tb, Dy, Ho, Er, Tm, Yb
         3.640_DP, 3.141_DP, 3.170_DP, 3.069_DP, 2.954_DP, 3.120_DP, 2.840_DP, 2.754_DP, & ! Lu, Hf, Ta, W, Re, Os, Ir, Pt
@@ -211,7 +224,7 @@ CONTAINS
         !
         CALL this%create()
         !
-        CALL this%set_id(id)
+        CALL this%set_id(id, radius_mode)
         !
         CALL this%set_defaults(index, radius_mode)
         !
@@ -230,7 +243,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! If cavity is defined exclusively on ions, check that radius is not zero
         !
-        IF (.NOT. lsoftcavity .AND. (this%solvationrad == 0.D0)) &
+        IF (.NOT. lsoftcavity .AND. (this%solvationrad == 0.D0) .AND. &
+            .NOT. (this%atmnum .EQ. 2 .AND. radius_mode .EQ. 'uff-opls')) &
             CALL io%error(routine, &
                           'Missing solvation radius for one of the atom types', 1)
         !
@@ -253,12 +267,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_iontype_id(this, id)
+    SUBROUTINE set_iontype_id(this, id, radius_mode)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(*), INTENT(IN) :: id
+        CHARACTER(LEN=*), INTENT(IN) :: radius_mode
         !
         CLASS(environ_iontype), INTENT(INOUT) :: this
         !
@@ -284,7 +299,12 @@ CONTAINS
             !
         END SELECT
         !
-        this%weight = weights(this%atmnum)
+        IF (radius_mode .EQ. 'uff-opls' .AND. this%atmnum .EQ. 2) THEN
+            ! Atomic number 2 is 'stolen' from He to represent H without a radius
+            this%weight = weights(1)
+        ELSE
+            this%weight = weights(this%atmnum)
+        ENDIF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_iontype_id
@@ -324,6 +344,9 @@ CONTAINS
             !
         CASE ('muff')
             this%solvationrad = MUFF_diameters(this%atmnum) * 0.5_DP
+        !
+        CASE ('uff-opls')
+            this%solvationrad = UFF_OPLS_diameters(this%atmnum) * 0.5_DP
             !
         CASE DEFAULT
             CALL io%error(routine, "Unknown radius_mode", 1)

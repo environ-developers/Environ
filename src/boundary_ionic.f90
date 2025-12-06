@@ -977,6 +977,7 @@ CONTAINS
         REAL(DP), DIMENSION(this%ions%number) :: spreads, volumes
         !
         REAL(DP), ALLOCATABLE :: radii(:)
+        LOGICAL, DIMENSION(this%ions%number) :: mask
         !
         CHARACTER(LEN=20) :: local_item = 'solvationrad'
         !
@@ -991,8 +992,10 @@ CONTAINS
         !
         radii = radii * this%alpha
         !
+        mask = ABS(radii) .GT. 1.D-15
+        !
         CALL this%soft_spheres%init(this%ions%number, 4, axes, dims, radii, spreads, &
-                                    volumes, this%ions%tau)
+                                    volumes, this%ions%tau, mask)
         !
         IF (this%field_aware) ALLOCATE (this%unscaled_spheres, source=this%soft_spheres)
         !

@@ -124,7 +124,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_functions(this, n, f_type, f_axis, f_dim, f_width, &
-                                      f_spread, f_volume, f_pos)
+                                      f_spread, f_volume, f_pos, mask)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -134,10 +134,11 @@ CONTAINS
         INTEGER, DIMENSION(n), INTENT(IN) :: f_dim, f_axis
         REAL(DP), DIMENSION(n), INTENT(IN) :: f_width, f_spread, f_volume
         REAL(DP), OPTIONAL, TARGET, INTENT(IN) :: f_pos(3, n)
+        LOGICAL, OPTIONAL, DIMENSION(n), INTENT(IN) :: mask
         !
         CLASS(environ_functions), INTENT(INOUT) :: this
         !
-        INTEGER :: i
+        INTEGER :: i, i_actual
         !
         CHARACTER(LEN=80) :: routine = 'init_environ_functions'
         !
@@ -148,13 +149,19 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Cast function as concrete type
         !
+        IF (PRESENT(mask)) THEN
+            this%number = COUNT(mask)
+        ELSE
+            this%number = n
+        ENDIF
+        !
         SELECT CASE (f_type)
             !
         CASE (1)
-            ALLOCATE (environ_function_gaussian :: this%array(n))
+            ALLOCATE (environ_function_gaussian :: this%array(this%number))
             !
         CASE (2, 3, 4)
-            ALLOCATE (environ_function_erfc :: this%array(n))
+            ALLOCATE (environ_function_erfc :: this%array(this%number))
             !
         CASE DEFAULT
             CALL io%error(routine, "Unexpected function type", 1)
@@ -163,13 +170,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%number = n
         this%f_type = f_type
         !
-        DO i = 1, this%number
+        i_actual = 0
+        !
+        DO i = 1, n
             !
-            CALL this%array(i)%init(f_type, f_axis(i), f_dim(i), f_width(i), &
-                                    f_spread(i), f_volume(i), f_pos(:, i))
+            IF (PRESENT(mask)) THEN
+                IF (.NOT. mask(i)) CYCLE
+            ENDIF
+            !
+            i_actual = i_actual + 1
+            CALL this%array(i_actual)%init(f_type, f_axis(i), f_dim(i), f_width(i), &
+                                           f_spread(i), f_volume(i), f_pos(:, i))
             !
         END DO
         !
