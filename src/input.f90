@@ -230,17 +230,23 @@ CONTAINS
         CALL env_read_line(local_unit, input_line, end_of_file=tend)
         !
         IF (.NOT. tend) THEN
-            !
-            READ (input_line, *) card ! store card title only in 'card'
-            !
             input_line = env_uppercase(input_line) ! force uppercase
+            READ (input_line, *) card ! store card title only in 'card'
             !
             IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
                 CALL card_external_charges(local_unit, input_line)
+            ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
+                CALL card_dielectric_regions(local_unit, input_line)
             ELSE IF (io%lnode) THEN
                 CALL io%warning("card "//TRIM(input_line)//" ignored", 1001)
             END IF
-            !
+        END IF
+        !
+        CALL env_read_line(local_unit, input_line, end_of_file=tend)
+        !
+        IF (.NOT. tend) THEN
+            input_line = env_uppercase(input_line)! force uppercase 
+            READ (input_line, *) card ! store card title only in 'card'
             IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
                 CALL card_dielectric_regions(local_unit, input_line)
             ELSE IF (io%lnode) THEN
