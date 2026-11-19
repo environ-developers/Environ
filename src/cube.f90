@@ -95,15 +95,20 @@ CONTAINS
         !
         IF (local_verbose >= 3) THEN
             !
-            OPEN (300, file=TRIM(filename), status='unknown')
+            ! Only the I/O node writes the file; density%write_cube performs
+            ! collective MPI operations and must be called by all ranks
             !
-            CALL density%cell%write_cube(ions%number) ! write cube cell data
+            IF (io%lnode) THEN
+                OPEN (300, file=TRIM(filename), status='unknown')
+                !
+                CALL density%cell%write_cube(ions%number) ! write cube cell data
+                !
+                CALL ions%write_cube() ! write cube ion data
+            END IF
             !
-            CALL ions%write_cube() ! write cube ion data
+            CALL density%write_cube() ! collective: gather + sum, writes on lnode only
             !
-            CALL density%write_cube()
-            !
-            CLOSE (300)
+            IF (io%lnode) CLOSE (300)
             !
         END IF
         !
