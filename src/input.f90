@@ -227,33 +227,37 @@ CONTAINS
             local_unit = 5
         END IF
         !
-        CALL env_read_line(local_unit, input_line, end_of_file=tend)
+        !--------------------------------------------------------------------------------
+        ! Read cards in any order until the end of the file
         !
-        IF (.NOT. tend) THEN
+        DO
+            !
+            CALL env_read_line(local_unit, input_line, end_of_file=tend)
+            !
+            IF (tend) EXIT
+            !
             input_line = env_uppercase(input_line) ! force uppercase
             READ (input_line, *) card ! store card title only in 'card'
             !
-            IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
+            SELECT CASE (TRIM(card))
+                !
+            CASE ('EXTERNAL_CHARGES')
                 CALL card_external_charges(local_unit, input_line)
-            ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
+                !
+            CASE ('DIELECTRIC_REGIONS')
                 CALL card_dielectric_regions(local_unit, input_line)
-            ELSE IF (io%lnode) THEN
-                CALL io%warning("card "//TRIM(input_line)//" ignored", 1001)
-            END IF
-        END IF
-        !
-        CALL env_read_line(local_unit, input_line, end_of_file=tend)
-        !
-        IF (.NOT. tend) THEN
-            input_line = env_uppercase(input_line)! force uppercase 
-            READ (input_line, *) card ! store card title only in 'card'
-            IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
-                CALL card_dielectric_regions(local_unit, input_line)
-            ELSE IF (io%lnode) THEN
-                CALL io%warning("card "//TRIM(input_line)//" ignored", 1001)
-            END IF
+                !
+            CASE ('ELECTROLYTE_REGIONS')
+                CALL card_electrolyte_regions(local_unit, input_line)
+                !
+            CASE DEFAULT
+                !
+                IF (io%lnode) &
+                    CALL io%warning("card "//TRIM(input_line)//" ignored", 1001)
+                !
+            END SELECT
             !
-        END IF
+        END DO
         !
         !--------------------------------------------------------------------------------
         ! Final check
@@ -263,6 +267,9 @@ CONTAINS
         !
         IF (env_dielectric_regions > 0 .AND. .NOT. taepsreg) &
             CALL io%error(routine, "Missing card dielectric_regions", 1)
+        !
+        IF (env_electrolyte_regions > 0 .AND. .NOT. taelecreg) &
+            CALL io%error(routine, "Missing card electrolyte_regions", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_read_cards
@@ -332,6 +339,7 @@ CONTAINS
         !
         env_external_charges = 0
         env_dielectric_regions = 0
+        env_electrolyte_regions = 0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_defaults
@@ -515,6 +523,8 @@ CONTAINS
         CALL env_mp_bcast(env_external_charges, io%node, io%comm)
         !
         CALL env_mp_bcast(env_dielectric_regions, io%node, io%comm)
+        !
+        CALL env_mp_bcast(env_electrolyte_regions, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_bcast
@@ -835,6 +845,13 @@ CONTAINS
         !
         IF (env_dielectric_regions < 0) &
             CALL io%error(routine, "env_dielectric_regions out of range", 1)
+        !
+        IF (env_electrolyte_regions < 0) &
+            CALL io%error(routine, "env_electrolyte_regions out of range", 1)
+        !
+        IF (env_electrolyte_regions > 0 .AND. env_electrolyte_ntyp == 0) &
+            CALL io%error(routine, &
+                          "env_electrolyte_regions requires env_electrolyte_ntyp > 0", 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_checkin
@@ -2029,6 +2046,240 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_input_epsregion
+    !------------------------------------------------------------------------------------
+    !>
+    !! Description of the allowed input CARDS
+    !!
+    !! ELECTROLYTE_REGIONS (unit_option)
+    !!
+    !!   set up fixed regions with a modified electrolyte concentration
+    !!
+    !! Syntax:
+    !!
+    !!    ELECTROLYTE_REGIONS (unit_option)
+    !!      factor(1) x(1) y(1) z(1)  width(1) spread(1) dim(1)  axis(1)
+    !!       ...       ...        ...      ...        ...
+    !!      factor(n) x(n) y(n) z(n)  width(n) spread(n) dim(n)  axis(n)
+    !!
+    !! Example:
+    !!
+    !! ELECTROLYTE_REGIONS (bohr)
+    !!  0.0   0.0  0.0  10.0   5.0  1.0  2  3
+    !!
+    !! Where:
+    !!
+    !!   unit_option == bohr       positions are given in Bohr (DEFAULT)
+    !!   unit_option == angstrom   positions are given in Angstrom
+    !!
+    !!      factor(i)     ( real )    relative electrolyte concentration inside the
+    !!                                region, from 0 (no electrolyte) to 1 (no effect)
+    !!      x/y/z(i)      ( real )    cartesian center of the region
+    !!      width(i)      ( real )    size of the region (in bohr)
+    !!      spread(i)     ( real )    spread of the interface (in bohr, optional)
+    !!      dim(i)     ( integer )    0/1/2 point/line/plane region (optional)
+    !!      axis(i)    ( integer )    1/2/3 for x/y/z direction of line/plane (optional)
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE card_electrolyte_regions(unit, input_line)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: unit
+        !
+        CHARACTER(LEN=*), INTENT(OUT) :: input_line
+        !
+        INTEGER :: i, j
+        INTEGER :: nfield
+        LOGICAL :: tend
+        CHARACTER(LEN=256) :: field_str
+        !
+        CHARACTER(LEN=80) :: routine = 'card_electrolyte_regions'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (taelecreg) CALL io%error(routine, "Two occurrences", 2)
+        !
+        IF (env_electrolyte_regions > local_nsx) &
+            CALL io%error(routine, "nsx out of range", env_electrolyte_regions)
+        !
+        CALL allocate_input_elecregion(env_electrolyte_regions)
+        !
+        IF (env_is_substring("BOHR", input_line)) THEN
+            elecregion_units = 'bohr'
+        ELSE IF (env_is_substring("ANGSTROM", input_line)) THEN
+            elecregion_units = 'angstrom'
+        ELSE
+            !
+            IF (TRIM(ADJUSTL(input_line)) /= 'ELECTROLYTE_REGIONS') &
+                CALL io%error(routine, &
+                              "Invalid units for ELECTROLYTE_REGIONS: "//input_line, 1)
+            !
+            elecregion_units = 'bohr'
+            !
+            CALL io%writer("* setting electrolyte region units to "// &
+                           TRIM(elecregion_units))
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Parse card input
+        !
+        DO i = 1, env_electrolyte_regions
+            !
+            CALL env_read_line(unit, input_line, end_of_file=tend)
+            !
+            IF (tend) &
+                CALL io%error(routine, "End of file reading electrolyte regions", i)
+            !
+            CALL env_field_count(nfield, input_line)
+            !
+            !----------------------------------------------------------------------------
+            ! Read field 1 (relative electrolyte concentration inside the region)
+            !
+            CALL env_get_field(1, field_str, input_line)
+            !
+            READ (field_str, *) elecregion_factor(i)
+            !
+            IF (elecregion_factor(i) < 0.D0 .OR. elecregion_factor(i) > 1.D0) &
+                CALL io%error(routine, "Concentration factor must be in [0,1]", i)
+            !
+            !----------------------------------------------------------------------------
+            ! Read fields 2-4 (x-y-z position of electrolyte region)
+            !
+            CALL env_get_field(2, field_str, input_line)
+            !
+            READ (field_str, *) elecregion_pos(1, i)
+            !
+            CALL env_get_field(3, field_str, input_line)
+            !
+            READ (field_str, *) elecregion_pos(2, i)
+            !
+            CALL env_get_field(4, field_str, input_line)
+            !
+            READ (field_str, *) elecregion_pos(3, i)
+            !
+            !----------------------------------------------------------------------------
+            ! Read field 5 (size/width of the electrolyte region)
+            !
+            CALL env_get_field(5, field_str, input_line)
+            !
+            READ (field_str, *) elecregion_width(i)
+            !
+            IF (elecregion_width(i) < 0.D0) &
+                CALL io%error(routine, "Width must be positive", i)
+            !
+            !----------------------------------------------------------------------------
+            ! Optionally read field 6 (spread of interface of the electrolyte region)
+            !
+            IF (nfield >= 6) THEN
+                !
+                CALL env_get_field(6, field_str, input_line)
+                !
+                READ (field_str, *) elecregion_spread(i)
+                !
+                IF (elecregion_spread(i) < 0.D0) &
+                    CALL io%error(routine, "Spread must be positive", i)
+                !
+            ELSE
+                CALL io%writer("* setting electrolyte region spread to 0.5 (a.u.)")
+            END IF
+            !
+            !----------------------------------------------------------------------------
+            ! Optionally read field 7 and 8 (dimensionality and direction)
+            !
+            IF (nfield >= 7) THEN
+                !
+                CALL env_get_field(7, field_str, input_line)
+                !
+                READ (field_str, *) elecregion_dim(i)
+                !
+                IF (elecregion_dim(i) < 0 .OR. elecregion_dim(i) > 2) &
+                    CALL io%error(routine, "Wrong elecregion dimension", i)
+                !
+                IF (elecregion_dim(i) > 0) THEN
+                    !
+                    IF (nfield == 7) THEN
+                        CALL io%writer("* setting electrolyte region axis to 3 (z-axis)")
+                    ELSE
+                        !
+                        CALL env_get_field(8, field_str, input_line)
+                        !
+                        READ (field_str, *) elecregion_axis(i)
+                        !
+                        IF (elecregion_axis(i) < 1 .OR. elecregion_axis(i) > 3) &
+                            CALL io%error(routine, "Wrong elecregion axis", i)
+                        !
+                    END IF
+                    !
+                END IF
+                !
+            ELSE
+                CALL io%writer("* setting electrolyte region dimensions to 0D")
+            END IF
+            !
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+        ! Convert to atomic units
+        !
+        taelecreg = .TRUE.
+        !
+        DO i = 1, env_electrolyte_regions
+            !
+            DO j = 1, 3
+                CALL convert_length(elecregion_units, elecregion_pos(j, i))
+            END DO
+            !
+            CALL convert_length(elecregion_units, elecregion_width(i))
+            !
+            CALL convert_length(elecregion_units, elecregion_spread(i))
+            !
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE card_electrolyte_regions
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE allocate_input_elecregion(electrolyte_regions)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: electrolyte_regions
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ALLOCATED(elecregion_factor)) DEALLOCATE (elecregion_factor)
+        !
+        IF (ALLOCATED(elecregion_pos)) DEALLOCATE (elecregion_pos)
+        !
+        IF (ALLOCATED(elecregion_width)) DEALLOCATE (elecregion_width)
+        !
+        IF (ALLOCATED(elecregion_spread)) DEALLOCATE (elecregion_spread)
+        !
+        IF (ALLOCATED(elecregion_dim)) DEALLOCATE (elecregion_dim)
+        !
+        IF (ALLOCATED(elecregion_axis)) DEALLOCATE (elecregion_axis)
+        !
+        ALLOCATE (elecregion_factor(electrolyte_regions))
+        ALLOCATE (elecregion_pos(3, electrolyte_regions))
+        ALLOCATE (elecregion_spread(electrolyte_regions))
+        ALLOCATE (elecregion_width(electrolyte_regions))
+        ALLOCATE (elecregion_dim(electrolyte_regions))
+        ALLOCATE (elecregion_axis(electrolyte_regions))
+        !
+        elecregion_factor = 1.0_DP
+        elecregion_pos = 0.0_DP
+        elecregion_spread = 0.5_DP
+        elecregion_width = 0.0_DP
+        elecregion_dim = 0
+        elecregion_axis = 3
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE allocate_input_elecregion
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

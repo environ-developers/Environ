@@ -1207,7 +1207,16 @@ CONTAINS
                 field_asymmetry, field_max, field_min, this%environment_electrons, &
                 this%environment_ions, this%environment_system, temperature, cion, &
                 cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized, &
-                setup%outer_container, electrolyte_deriv_method, environment_cell)
+                setup%outer_container, electrolyte_deriv_method, &
+                env_electrolyte_regions, environment_cell)
+            !
+            IF (this%electrolyte%nregions > 0) &
+                CALL this%electrolyte%set_regions(env_electrolyte_regions, &
+                                                  elecregion_dim, elecregion_axis, &
+                                                  elecregion_pos, elecregion_width, &
+                                                  elecregion_spread, &
+                                                  1.D0 - elecregion_factor)
+            ! the region removes a fraction (1 - factor) of the electrolyte
             !
             CALL this%environment_charges%add(electrolyte=this%electrolyte)
             !
@@ -1272,6 +1281,19 @@ CONTAINS
         IF (ALLOCATED(epsregion_spread)) DEALLOCATE (epsregion_spread)
         !
         IF (ALLOCATED(epsregion_eps)) DEALLOCATE (epsregion_eps)
+        !
+        IF (ALLOCATED(elecregion_factor)) DEALLOCATE (elecregion_factor)
+        !
+        ! elecregion_pos (like epsregion_pos) is NOT deallocated: the region functions
+        ! keep a pointer to it (environ_function%pos)
+        !
+        IF (ALLOCATED(elecregion_width)) DEALLOCATE (elecregion_width)
+        !
+        IF (ALLOCATED(elecregion_spread)) DEALLOCATE (elecregion_spread)
+        !
+        IF (ALLOCATED(elecregion_dim)) DEALLOCATE (elecregion_dim)
+        !
+        IF (ALLOCATED(elecregion_axis)) DEALLOCATE (elecregion_axis)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_init_physical

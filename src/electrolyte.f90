@@ -43,6 +43,9 @@ MODULE class_electrolyte
     !
     USE class_cell
     USE class_density
+    USE class_function
+    USE class_function_erfc
+    USE class_functions
     !
     USE class_core_container
     !
@@ -77,6 +80,12 @@ MODULE class_electrolyte
         TYPE(environ_electrolyte_base) :: base
         !
         !--------------------------------------------------------------------------------
+        ! Regions with modified electrolyte concentration
+        !
+        INTEGER :: nregions = 0
+        TYPE(environ_functions) :: regions
+        !
+        !--------------------------------------------------------------------------------
         !
         CLASS(environ_boundary), ALLOCATABLE :: boundary
         TYPE(environ_density) :: density
@@ -100,8 +109,10 @@ MODULE class_electrolyte
         PROCEDURE :: init => init_environ_electrolyte
         PROCEDURE :: update => update_environ_electrolyte
         PROCEDURE :: destroy => destroy_environ_electrolyte
+        PROCEDURE :: set_regions => set_electrolyte_regions
         !
         PROCEDURE :: of_boundary => electrolyte_of_boundary
+        PROCEDURE :: update_background => update_electrolyte_background
         PROCEDURE :: of_potential => electrolyte_of_potential
         PROCEDURE :: energy => calc_eelectrolyte
         PROCEDURE :: de_dboundary => calc_deelectrolyte_dboundary
@@ -135,6 +146,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        this%nregions = 0
         this%lupdate = .FALSE.
         this%energy_second_order = 0.D0
         this%charge = 0.D0
@@ -153,13 +165,13 @@ CONTAINS
                                         field_asymmetry, field_max, field_min, &
                                         electrons, ions, system, temperature, cbulk, &
                                         cionmax, radius, z, electrolyte_entropy, &
-                                        linearized, cores, deriv_method, cell)
+                                        linearized, cores, deriv_method, nregions, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        INTEGER, INTENT(IN) :: ntyp, nregions
         LOGICAL, INTENT(IN) :: linearized, field_aware
-        INTEGER, INTENT(IN) :: ntyp
         CHARACTER(LEN=*), INTENT(IN) :: mode, electrolyte_entropy, deriv_method
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, const, distance, spread, &
@@ -186,6 +198,8 @@ CONTAINS
         !
         CALL this%base%init(ntyp, const, distance, spread, temperature, cbulk, cionmax, &
                             radius, z, electrolyte_entropy, linearized, cell)
+        !
+        this%nregions = nregions
         !
         !--------------------------------------------------------------------------------
         ! Casting and general setup
@@ -317,6 +331,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (this%nregions > 0) THEN
+            CALL this%regions%destroy()
+        ELSE
+            !
+            IF (this%regions%number /= 0) &
+                CALL io%error(routine, "Found unexpected allocated object", 1)
+            !
+        END IF
+        !
+        this%nregions = 0
+        !
         CALL this%boundary%destroy()
         !
         CALL this%density%destroy()
@@ -358,8 +383,79 @@ CONTAINS
         this%gamma%of_r = 1.D0 - this%boundary%scaled%of_r
         this%dgamma%of_r = -1.D0
         !
+        CALL this%update_background()
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrolyte_of_boundary
+    !------------------------------------------------------------------------------------
+    !>
+    !! Scale the exclusion function by the electrolyte regions
+    !!
+    !! Each region i has a profile f_i(r), equal to (1 - factor_i) inside the region
+    !! and 0 outside, so that
+    !!
+    !! gamma(r) = (1 - s(r)) * PRODUCT_i (1 - f_i(r))
+    !!
+    !! dgamma/ds(r) = -PRODUCT_i (1 - f_i(r))
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE update_electrolyte_background(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_electrolyte), INTENT(INOUT) :: this
+        !
+        INTEGER :: i
+        !
+        TYPE(environ_density) :: local
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (this%nregions <= 0) RETURN
+        !
+        CALL local%init(this%boundary%scaled%cell)
+        !
+        DO i = 1, this%nregions
+            !
+            CALL this%regions%array(i)%density(local, .TRUE.)
+            !
+            this%gamma%of_r = this%gamma%of_r * (1.D0 - local%of_r)
+            this%dgamma%of_r = this%dgamma%of_r * (1.D0 - local%of_r)
+            !
+        END DO
+        !
+        CALL local%destroy()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE update_electrolyte_background
+    !------------------------------------------------------------------------------------
+    !>
+    !! Set up the electrolyte regions
+    !!
+    !! amplitudes = fraction of the electrolyte removed inside each region
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_electrolyte_regions(this, n, dims, axes, pos, widths, spreads, &
+                                       amplitudes)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: n
+        INTEGER, DIMENSION(n), INTENT(IN) :: dims, axes
+        REAL(DP), INTENT(IN) :: pos(3, n)
+        REAL(DP), DIMENSION(n), INTENT(IN) :: widths, spreads, amplitudes
+        !
+        CLASS(environ_electrolyte), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (n > 0) &
+            CALL this%regions%init(n, 3, axes, dims, widths, spreads, amplitudes, pos)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_electrolyte_regions
     !------------------------------------------------------------------------------------
     !>
     !!

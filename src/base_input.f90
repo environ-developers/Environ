@@ -70,6 +70,20 @@ MODULE env_base_input
     INTEGER, ALLOCATABLE :: epsregion_dim(:) ! point/line/plane region
     INTEGER, ALLOCATABLE :: epsregion_axis(:) ! x/y/z direction of line/plane
     !
+    !------------------------------------------------------------------------------------
+    ! Local parameters of electrolyte regions
+    !
+    LOGICAL :: taelecreg = .FALSE.
+    !
+    CHARACTER(LEN=80) :: elecregion_units = 'bohr' ! atomic positions (bohr|angstrom)
+    !
+    REAL(DP), ALLOCATABLE :: elecregion_factor(:) ! relative electrolyte concentration
+    REAL(DP), ALLOCATABLE :: elecregion_pos(:, :) ! cartesian center of region
+    REAL(DP), ALLOCATABLE :: elecregion_width(:) ! region size (bohr)
+    REAL(DP), ALLOCATABLE :: elecregion_spread(:) ! interface spread (bohr)
+    INTEGER, ALLOCATABLE :: elecregion_dim(:) ! point/line/plane region
+    INTEGER, ALLOCATABLE :: elecregion_axis(:) ! x/y/z direction of line/plane
+    !
     !=---------------------------------------------------------------------------------=!
 !     ENVIRON Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
@@ -236,6 +250,12 @@ MODULE env_base_input
     ! number of fixed dielectric regions in the calculation
     !
     !------------------------------------------------------------------------------------
+    ! Electrolyte regions parameters not read from ELECTROLYTE_REGIONS card
+    !
+    INTEGER :: env_electrolyte_regions = 0
+    ! number of fixed regions with modified electrolyte concentration
+    !
+    !------------------------------------------------------------------------------------
     ! Flags for printing out the surface and volume continuum solvation values
     ! lsurface triggers computation of the boundary gradient
     !
@@ -252,7 +272,7 @@ MODULE env_base_input
         env_electrolyte_ntyp, cion, cionmax, rion, zion, temperature, &
         electrolyte_linearized, electrolyte_entropy, sc_permittivity, &
         sc_carrier_density, sc_electrode_chg, sc_chg_thr, env_external_charges, &
-        env_dielectric_regions, lsurface, lvolume
+        env_dielectric_regions, env_electrolyte_regions, lsurface, lvolume
     !
     !=---------------------------------------------------------------------------------=!
 !     BOUNDARY Namelist Input Parameters

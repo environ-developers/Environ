@@ -44,6 +44,10 @@ Structure of the environ.in input file:
     EPSst_E1 EPSopt_E1 0.0 0.0 0.0 width_E1 { spread_E1 dim_E1 axis_E1 }
     EPSst_E2 EPSopt_E2 0.0 0.0 0.0 width_E2 { spread_E2 dim_E2 axis_E2 } ]
 
+[ ELECTROLYTE_REGIONS { bohr | angstrom }
+    factor_R1 0.0 0.0 0.0 width_R1 { spread_R1 dim_R1 axis_R1 }
+    factor_R2 0.0 0.0 0.0 width_R2 { spread_R2 dim_R2 axis_R2 } ]
+
 
 
 ========================================================================
@@ -152,6 +156,18 @@ NAMELIST: &ENVIRON
                    the electrolyte. If different from zero, must be greater or equal to 2 in order
                    for the electrolyte to be charge neutral.
    Status:         REQUIRED
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       env_electrolyte_regions
+   
+   Type:           INTEGER
+   Default:        0
+   Description:    Number of fixed regions with a modified electrolyte concentration. Requires
+                   env_electrolyte_ntyp > 0. Shape, position, and relative concentration of each region
+                   need to be specified in the ELECTROLYTE_REGIONS card. These regions are independent
+                   of the dielectric regions (env_dielectric_regions).
+   Status:         OPTIONAL
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
@@ -1567,4 +1583,101 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Sat Jun 25 10:08:41 CDT 2022
+========================================================================
+CARD: ELECTROLYTE_REGIONS { bohr | angstrom }
+
+   /////////////////////////////////////////
+   // Syntax:                             //
+   /////////////////////////////////////////
+   
+      ELECTROLYTE_REGIONS { bohr | angstrom }
+         factor(1)    x(1)    y(1)    z(1)    width(1)    {  spread(1)    dim(1)    axis(1)    }  
+         factor(2)    x(2)    y(2)    z(2)    width(2)    {  spread(2)    dim(2)    axis(2)    }  
+         . . . 
+         factor(ner)  x(ner)  y(ner)  z(ner)  width(ner)  {  spread(ner)  dim(ner)  axis(ner)  }  
+   
+   /////////////////////////////////////////
+   
+   DESCRIPTION OF ITEMS:
+   
+      +--------------------------------------------------------------------
+      Card's flags:   { bohr | angstrom }
+      
+      Default:        bohr
+      Description:    bohr    : positions are in cartesian coordinate, in atomic units
+                                (i.e. Bohr radii)
+                      
+                      angstrom: positions are in cartesian coordinates,
+                                in Angstrom
+      +--------------------------------------------------------------------
+
+
+      +--------------------------------------------------------------------
+      Variable:       factor
+      
+      Type:           REAL
+      Description:    Relative electrolyte concentration inside the region, between 0 and 1.
+                      
+                      factor .EQ. 1 : no effect, the electrolyte is unchanged
+                      factor .EQ. 0 : no electrolyte inside the region
+                      
+                      The electrolyte exclusion function is multiplied by
+                      (1 - (1 - factor) * f(r)), where f(r) is 1 inside the region and
+                      0 outside, with an erfc-shaped interface. Overlapping regions
+                      multiply.
+      +--------------------------------------------------------------------
+      
+      +--------------------------------------------------------------------
+      Variables:      x, y, z
+      
+      Type:           REAL
+      Description:    Positions
+                      
+                      NOTE: each coordinate can also be specified as a simple algebraic expression, see the description in the input file of PW.
+      +--------------------------------------------------------------------
+      
+      +--------------------------------------------------------------------
+      Variable:       width
+      
+      Type:           REAL
+      Description:    Width of the electrolyte region in atomic units
+      +--------------------------------------------------------------------
+      
+      +--------------------------------------------------------------------
+      Variable:       spread
+      
+      Type:           REAL
+      Description:    Spread of the electrolyte region in atomic units
+      Default:        0.5
+      +--------------------------------------------------------------------
+      
+      +--------------------------------------------------------------------
+      Variable:       dim
+      
+      Type:           INTEGER
+      Description:    Dimensionality of the electrolyte region
+                      
+                      dim .EQ. 0 : sphere-like (erfc shaped) region
+                      dim .EQ. 1 : cylinder-like (erfc shaped) region
+                      dim .EQ. 2 : planar (erfc shaped) region
+      Default:        0
+      +--------------------------------------------------------------------
+      
+      +--------------------------------------------------------------------
+      Variable:       axis
+      
+      Type:           INTEGER
+      Description:    Axis of the electrolyte region.
+                      
+                      dim .EQ. 0 : axis has no meaning/use
+                      dim .EQ. 1 : axis identifies the direction of the cylinder
+                                   axis .EQ. 1|2|3 means cylinders along x|y|z
+                      dim .EQ. 2 : axis identifies the direction orthogonal to the plane
+                                   axis .EQ. 1|2|3 means planes orthogonal to x|y|z
+      Default:        3
+      +--------------------------------------------------------------------
+      
+===END OF CARD==========================================================
+
+
+This file has been created by helpdoc utility on Fri Nov 20 14:47:33 CET 2026
