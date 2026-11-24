@@ -33,7 +33,7 @@ MODULE class_destructor
     USE class_io, ONLY: io
     !
     USE class_environ
-    !
+    USE env_write_cube
     USE env_base_input
     !
     !------------------------------------------------------------------------------------
@@ -112,10 +112,69 @@ CONTAINS
         !
         CLASS(environ_destructor), TARGET, INTENT(IN) :: this
         !
+        INTEGER :: i
+        !
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (main => this%main, &
-                   setup => this%main%setup)
+                   setup => this%main%setup, &
+                   ions => this%main%system_ions, &
+                   charges => this%main%environment_charges)
+            !
+            !----------------------------------------------------------------------------
+            ! Write debug cube files of the final potentials and densities
+            !
+            IF (io%verbosity > 0) THEN
+                !
+                IF (main%velectrostatic%initialized) &
+                    CALL write_cube(main%velectrostatic, ions, verbose=2)
+                !
+                IF (main%vreference%initialized) &
+                    CALL write_cube(main%vreference, ions, verbose=2)
+                !
+                IF (main%dvtot%initialized) CALL write_cube(main%dvtot, ions, verbose=2)
+                !
+                IF (main%vconfine%initialized) &
+                    CALL write_cube(main%vconfine, ions, verbose=2)
+                !
+                IF (main%vsoftcavity%initialized) &
+                    CALL write_cube(main%vsoftcavity, ions, verbose=2)
+                !
+                IF (main%electrolyte%initialized) THEN
+                    !
+                    CALL write_cube(main%electrolyte%gamma, ions, verbose=2)
+                    !
+                    DO i = 1, main%electrolyte%base%ntyp
+                        !
+                        CALL write_cube(main%electrolyte%base%ioncctype(i)%c, ions, &
+                                        verbose=2)
+                        !
+                        CALL write_cube(main%electrolyte%base%ioncctype(i)%cfactor, &
+                                        ions, verbose=2)
+                        !
+                    END DO
+                    !
+                END IF
+                !
+                IF (main%externals%initialized) &
+                    CALL write_cube(main%externals%density, ions, verbose=2)
+                !
+                IF (charges%initialized) THEN
+                    !
+                    IF (ASSOCIATED(charges%dielectric)) THEN
+                        !
+                        CALL write_cube(charges%dielectric%density, ions, verbose=2)
+                        !
+                        CALL write_cube(charges%dielectric%epsilon, ions, verbose=2)
+                        !
+                    END IF
+                    !
+                    IF (ASSOCIATED(charges%additional_charges)) &
+                        CALL write_cube(charges%additional_charges, ions, verbose=2)
+                    !
+                END IF
+                !
+            END IF
             !
             !----------------------------------------------------------------------------
             !

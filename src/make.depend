@@ -127,6 +127,7 @@ density.o : cell.o
 density.o : constants.o
 density.o : io.o
 destructor.o : base_input.o
+destructor.o : cube.o
 destructor.o : io.o
 destructor.o : main.o
 dielectric.o : boundary.o

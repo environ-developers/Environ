@@ -582,15 +582,20 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Write cube
         !
-        OPEN (300, file=TRIM(filename), status='unknown')
+        ! Only the I/O node writes the file; this%write_cube performs
+        ! collective MPI operations and must be called by all ranks
         !
-        CALL this%cell%write_cube(1) ! write cube cell data
+        IF (io%lnode) THEN
+            OPEN (300, file=TRIM(filename), status='unknown')
+            !
+            CALL this%cell%write_cube(1) ! write cube cell data
+            !
+            WRITE (300, '(i5,4f12.6)') 1, 0.D0, 0.D0, 0.D0, 0.D0 ! hydrogen ion
+        END IF
         !
-        WRITE (300, '(i5,4f12.6)') 1, 0.D0, 0.D0, 0.D0, 0.D0 ! hydrogen ion
+        CALL this%write_cube() ! collective: gather + sum, writes on lnode only
         !
-        CALL this%write_cube()
-        !
-        CLOSE (300)
+        IF (io%lnode) CLOSE (300)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE write_cube_no_ions
@@ -644,7 +649,12 @@ CONTAINS
 #endif
         !
         !--------------------------------------------------------------------------------
-        ! Write cube density data
+        ! Write cube density data (I/O node only)
+        !
+        IF (.NOT. io%lnode) THEN
+            DEALLOCATE (flocal)
+            RETURN
+        END IF
         !
         count = 0
         !
@@ -660,9 +670,9 @@ CONTAINS
                     IF (ABS(tmp) < 1.D-99) tmp = 0.D0
                     !
                     IF (MOD(count, 6) == 0) THEN
-                        WRITE (300, '(e13.6,1x)') tmp
+                        WRITE (300, '(e25.17,1x)') tmp
                     ELSE
-                        WRITE (300, '(e13.6,1x)', advance='no') tmp
+                        WRITE (300, '(e25.17,1x)', advance='no') tmp
                     END IF
                     !
                 END DO

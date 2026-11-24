@@ -168,13 +168,14 @@ CONTAINS
             ! IF (this%setup%lexternals) CALL this%environment_charges%update()
             ! #TODO keep for now until external tests are fully debugged
             !
+            CALL main%environment_charges%of_potential(main%velectrostatic)
+            ! update electrolyte and polarization charges before they are printed
+            !
             CALL write_cube(main%velectrostatic, main%system_ions)
             !
             CALL setup%mapping%to_small(main%velectrostatic, aux)
             !
             main%dvtot%of_r = aux%of_r - main%vreference%of_r
-            !
-            CALL main%environment_charges%of_potential(main%velectrostatic)
             !
             CALL main%environment_charges%printout()
             !
