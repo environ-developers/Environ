@@ -149,6 +149,9 @@ electrolyte.o : core_container.o
 electrolyte.o : density.o
 electrolyte.o : electrolyte_base.o
 electrolyte.o : electrons.o
+electrolyte.o : function.o
+electrolyte.o : function_erfc.o
+electrolyte.o : functions.o
 electrolyte.o : io.o
 electrolyte.o : ions.o
 electrolyte.o : system.o

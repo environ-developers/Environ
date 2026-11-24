@@ -39,6 +39,10 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
         [ @b DIELECTRIC_REGIONS { bohr | angstrom }
             EPSst_E1 EPSopt_E1 0.0 0.0 0.0 width_E1 { spread_E1 dim_E1 axis_E1 }
             EPSst_E2 EPSopt_E2 0.0 0.0 0.0 width_E2 { spread_E2 dim_E2 axis_E2 } ]
+
+        [ @b ELECTROLYTE_REGIONS { bohr | angstrom }
+            factor_R1 0.0 0.0 0.0 width_R1 { spread_R1 dim_R1 axis_R1 }
+            factor_R2 0.0 0.0 0.0 width_R2 { spread_R2 dim_R2 axis_R2 } ]
     }
 
     namelist ENVIRON {
@@ -137,6 +141,17 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             for the electrolyte to be charge neutral.
             }
             status { REQUIRED }
+        }
+
+        var env_electrolyte_regions -type INTEGER {
+            default { 0 }
+            info {
+            Number of fixed regions with a modified electrolyte concentration. Requires
+            env_electrolyte_ntyp > 0. Shape, position, and relative concentration of each region
+            need to be specified in the ELECTROLYTE_REGIONS card. These regions are independent
+            of the dielectric regions (env_dielectric_regions).
+            }
+            status { OPTIONAL }
         }
 
         var env_electrostatic -type LOGICAL {
@@ -1433,8 +1448,98 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
                             dim .EQ. 1 : axis identifies the direction of the linear charge 
                                          density. 
                                          axis .EQ. 1|2|3 means lines along x|y|z respectively
-                            dim .EQ. 2 : axis identifies the direction orthogonal to the planar 
-                                         charge density. 
+                            dim .EQ. 2 : axis identifies the direction orthogonal to the planar
+                                         charge density.
+                                         axis .EQ. 1|2|3 means planes orthogonal to x|y|z
+                            }
+                            default { 3 }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #
+    # card ELECTROLYTE_REGIONS
+    #
+
+    card ELECTROLYTE_REGIONS {
+
+        flag elecregion_unit -use optional {
+
+            enum { bohr | angstrom }
+
+            default { bohr }
+
+            info {
+                bohr    : positions are in cartesian coordinate, in atomic units
+                          (i.e. Bohr radii)
+
+                angstrom: positions are in cartesian coordinates,
+                          in Angstrom
+                }
+        }
+
+        syntax {
+             table elecregion_coordinates {
+                rows -start 1 -end ner {
+
+                    col factor -type REAL {
+                    info {
+                        Relative electrolyte concentration inside the region, between 0 and 1.
+
+                        factor .EQ. 1 : no effect, the electrolyte is unchanged
+                        factor .EQ. 0 : no electrolyte inside the region
+
+                        The electrolyte exclusion function is multiplied by
+                        (1 - (1 - factor) * f(r)), where f(r) is 1 inside the region and
+                        0 outside, with an erfc-shaped interface. Overlapping regions
+                        multiply.
+                    }
+                    }
+
+                    colgroup -type REAL {
+                    info {
+                        Positions
+
+                        NOTE: each coordinate can also be specified as a simple algebraic expression, see the description in the input file of PW.
+                    }
+                    col x
+                    col y
+                    col z
+                    }
+
+                    col width -type REAL {
+                    info { Width of the electrolyte region in atomic units }
+                    }
+
+                    optional {
+                        col spread -type REAL {
+                            info { Spread of the electrolyte region in atomic units }
+                            default { 0.5 }
+                        }
+
+                        col dim -type INTEGER {
+                            info {
+                            Dimensionality of the electrolyte region
+
+                            dim .EQ. 0 : sphere-like (erfc shaped) region
+                            dim .EQ. 1 : cylinder-like (erfc shaped) region
+                            dim .EQ. 2 : planar (erfc shaped) region
+
+                            }
+                            default { 0 }
+                        }
+
+                        col axis -type INTEGER {
+                            info {
+                            Axis of the electrolyte region.
+
+                            dim .EQ. 0 : axis has no meaning/use
+                            dim .EQ. 1 : axis identifies the direction of the cylinder
+                                         axis .EQ. 1|2|3 means cylinders along x|y|z
+                            dim .EQ. 2 : axis identifies the direction orthogonal to the plane
                                          axis .EQ. 1|2|3 means planes orthogonal to x|y|z
                             }
                             default { 3 }
